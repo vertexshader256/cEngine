@@ -8,9 +8,15 @@ import play.api.routing.Router
 import play.api.routing.sird._
 import org.eclipse.cdt.internal.core.dom.parser.c._
 import org.eclipse.cdt.core.dom.ast.IASTNode
+import org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage
+import org.eclipse.cdt.core.parser._
+import java.io.File
+import java.util.Map
+import java.util.HashMap
 
 import scala.util.{Failure, Success, Try}
 import play.api.libs.json.{JsNull, JsString, JsValue, Json}
+
 import scala.concurrent.Future
 
 class AppLoader extends ApplicationLoader {
@@ -23,7 +29,7 @@ class AppLoader extends ApplicationLoader {
 
 
 
-  def getAllChildren(node: IASTNode): d3Node = {
+  def getAllChildren(node: IASTNode): JsObject = {
 
     def getLabel(node: IASTNode) = node match {
       case x: CASTParameterDeclaration => "Param"
@@ -44,26 +50,52 @@ class AppLoader extends ApplicationLoader {
       case x => x.getClass.getSimpleName
     }
 
-    def recurse(node: IASTNode): Seq[d3Node] = {
+    def recurse(node: IASTNode): Seq[JsObject] = {
       count += 1
       if (count > 100) {
         Nil
       } else {
         node.getChildren.map { child =>
           if (!child.getChildren.isEmpty) {
-            d3Package(getLabel(child), recurse(child))
+            Json.obj(
+              "name" -> getLabel(child),
+              "children" -> recurse(child)
+            )
           } else {
-            d3Leaf(getLabel(child), 1000)
+            Json.obj(
+              "name" -> getLabel(child),
+              "size" -> 1000
+            )
           }
         }
       }
     }
 
     if (!node.getChildren.isEmpty) {
-      d3Package(getLabel(node), recurse(node))
+      Json.obj(
+        "name" -> getLabel(node),
+        "children" -> recurse(node)
+      )
     } else {
-      d3Leaf(getLabel(node), 1000)
+      Json.obj(
+        "name" -> getLabel(node),
+        "size" -> 1000
+      )
     }
+  }
+
+  def getTranslationUnit(code: String) = {
+    val fileContent = FileContent.create("test", code.toCharArray)
+    val symbolMap = new HashMap[String, String];
+
+    val systemIncludes = List(new File(raw"C:\MinGW\include"), new File(raw"C:\MinGW\include\GL"), new File(raw"C:\MinGW\lib\gcc\mingw32\4.6.2\include"))
+
+    val info = new ScannerInfo(symbolMap, systemIncludes.toArray.map(_.getAbsolutePath))
+    val log = new DefaultLogService()
+    val opts = 8
+    val includes = IncludeFileContentProvider.getEmptyFilesProvider
+
+    GCCLanguage.getDefault().getASTTranslationUnit(fileContent, info, includes, null, opts, log)
   }
 
   // Entry point!
@@ -94,22 +126,10 @@ class AppLoader extends ApplicationLoader {
 
       case GET(p"/getAst" ? q"code=$code" ? q"height=${int(height)}" ? q"width=${int(width)}") => Action.async {
 
-        println("GETTING AST!")
-
         Future {
-
-          val nodes = Json.arr(
-            Json.obj(
-              "x" -> width/3,
-              "y" -> height/2
-            ),
-            Json.obj(
-              "x" -> 2*width/3,
-              "y" -> height/2
-            )
-          )
-
-          Ok(Json.stringify(nodes))
+          println(code)
+          val tUnit = getTranslationUnit(code)
+          Ok(getAllChildren(tUnit))
         }
       }
 
