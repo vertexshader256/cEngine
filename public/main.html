@@ -21,54 +21,88 @@
       .node text {
           pointer-events: none;
           font: 10px sans-serif;
-        }
+      }
+
+
+      #editor {
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 280px;
+      }
 
     </style>
 </head>
 <body>
 
-<textarea rows="7" cols="80" id="codeArea"></textarea>
+<div id="editor">
+    #include&lt;stdio.h&gt;
+    double sq_root(double x)
+    {
+      double rt = 1, ort = 0;
+      while(ort!=rt)
+      {
+        ort = rt;
+        rt = ((x/rt) + rt) / 2;
+      }
+      return rt;
+    }
+
+    int main(void)
+    {
+      int i;
+      for(i = 2; i<1001; i++) printf(\"square root of %d is %f\n\",i, sq_root(i));
+      return 0;
+    }
+</div>
+
 <button type="button" id="goButton" onclick="submitCode()">Go!</button>
 
 <script type="text/javascript" src="js/d3.min.js"></script>
 <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.js"></script>
+<script type="text/javascript" src="js/src-min/ace.js" charset="utf-8"></script>
 
 <script type="text/javascript">
 
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/twilight");
+    editor.getSession().setMode("ace/mode/c_cpp");
+
     var helloWorld = "#include<stdio.h> \
-          main() \
-          { \
-              printf(\"Hello World\"); \
-          }"
+      main() \
+      { \
+          printf(\"Hello World\"); \
+      }"
 
     var newtonSqrt = "# include<stdio.h> \
-            double sq_root(double x) \
+        double sq_root(double x) \
+        { \
+            double rt = 1, ort = 0; \
+            while(ort!=rt) \
             { \
-                double rt = 1, ort = 0; \
-                while(ort!=rt) \
-                { \
-                    ort = rt; \
-                    rt = ((x/rt) + rt) / 2; \
-                } \
-                return rt; \
+                ort = rt; \
+                rt = ((x/rt) + rt) / 2; \
             } \
-            int main(void) \
-            { \
-                int i; \
-                for(i = 2; i<1001; i++) printf(\"square root of %d is %f\n\",i, sq_root(i)); \
-                return 0; \
-            }"
+            return rt; \
+        } \
+        int main(void) \
+        { \
+            int i; \
+            for(i = 2; i<1001; i++) printf(\"square root of %d is %f\n\",i, sq_root(i)); \
+            return 0; \
+        }"
 
     function submitCode() {
 
         $.getJSON("getAst",
             {
-              code: $('#codeArea').val(),
+              code: editor.getValue(),
               width: 640,
               height: 480
             },
             function( data ) {
-            alert("JSON RECEIVED!")
                var json = eval(data);
 
                 var w = 1280,
