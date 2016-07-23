@@ -21,13 +21,7 @@ import scala.concurrent.Future
 
 class AppLoader extends ApplicationLoader {
 
-  trait d3Node
-  case class d3Leaf(name: String, size: Double) extends d3Node
-  case class d3Package(name: String, children: Seq[d3Node]) extends d3Node
-
   var count = 0
-
-
 
   def getAllChildren(node: IASTNode): JsObject = {
 
@@ -145,7 +139,6 @@ class AppLoader extends ApplicationLoader {
           if (page == "favicon.ico") {
             Ok.sendFile(new java.io.File(s"./public/img/favicon.png"))
           } else {
-            println("SERVING INDEX")
             val f = new java.io.File(s"./public/main.html")
             Ok(scala.io.Source.fromFile(f.getCanonicalPath()).mkString).as("text/html");
           }
