@@ -112,7 +112,6 @@ var currentNodesToUnfold = [root];
 var elapsedTimer = 2000;
 var isFirst = true;
 var isFirst = true;
-var markers = []
 
   // Returns a list of all nodes under the root.
 function flatten(root) {
@@ -135,22 +134,29 @@ function highlightNode(node) {
     var keepLooping = node.offset != 0
     var offset = 0
 
-    function addMarker(row, lineText) {
+    function addMarker(row, lineText, currentOffset, desiredOffset, length) {
       var Range = ace.require("ace/range").Range
 
-      var j = 0;
-      var startCharIndex = -1;
-      var lastCharIndex = -1;
-      for (j = 0; j < lineText.length; j++) {
-         if (lineText[j] != ' ' && startCharIndex == -1) {
-           startCharIndex = j;
-           lastCharIndex = j + 1;
-         } else if (lineText[j] != ' ') {
-           lastCharIndex = j + 1;
-         }
-      }
+      if (desiredOffset + length > currentOffset + lineText.length - 1) {
+          // if the current node contains this whole line, highlight it all except for spaces
+          var j = 0;
+          var startCharIndex = -1;
+          var lastCharIndex = -1;
+          for (j = 0; j < lineText.length; j++) {
+             if (lineText[j] != ' ' && startCharIndex == -1) {
+               startCharIndex = j;
+               lastCharIndex = j + 1;
+             } else if (lineText[j] != ' ') {
+               lastCharIndex = j + 1;
+             }
+          }
 
-      markers.push(editor.getSession().addMarker(new Range(row, startCharIndex, row, lastCharIndex),'errorHighlight'));
+          editor.getSession().addMarker(new Range(row, startCharIndex, row, lastCharIndex),'errorHighlight');
+      } else {
+         // the current node completely resides on this line
+         var column = desiredOffset - currentOffset
+         editor.getSession().addMarker(new Range(row, column, row, column + length),'errorHighlight');
+      }
     }
 
     while (keepLooping) {
@@ -158,9 +164,9 @@ function highlightNode(node) {
 
        if (currentOffset + lineText.length + 1 >= node.offset + node.length) {
           keepLooping = false;
-          addMarker(i, lineText);
+          addMarker(i, lineText, currentOffset, node.offset, node.length);
        } else if (currentOffset + lineText.length + 1 >= node.offset) {
-          addMarker(i, lineText);
+          addMarker(i, lineText, currentOffset, node.offset, node.length);
           currentOffset += lineText.length + 1
           i += 1;
        } else {
@@ -242,15 +248,13 @@ function tick() {
 
           console.log(node.type);
 
+          var markers = editor.getSession().getMarkers(false)
+
           $.each(markers, function(marker) {
               editor.getSession().removeMarker(marker);
           });
 
-          markers.length = 0;
-
           highlightNode(node);
-
-          alert(markers.length);
 
           d3.select(this).select("circle").transition()
                 .duration(350)
