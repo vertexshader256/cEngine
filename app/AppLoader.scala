@@ -21,9 +21,9 @@ import scala.concurrent.Future
 
 class AppLoader extends ApplicationLoader {
 
-  var count = 0
-
   def getAllChildren(node: IASTNode): JsObject = {
+
+    var count = 0
 
     def getLabel(node: IASTNode) = node match {
       case x: CASTParameterDeclaration => "Param"
@@ -119,9 +119,8 @@ class AppLoader extends ApplicationLoader {
       }
 
       case GET(p"/getAst" ? q"code=$code" ? q"height=${int(height)}" ? q"width=${int(width)}") => Action.async {
-
+        println("GETTING AST")
         Future {
-          println(code)
           val tUnit = getTranslationUnit(code)
           Ok(getAllChildren(tUnit))
         }
