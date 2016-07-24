@@ -112,6 +112,7 @@ var currentNodesToUnfold = [root];
 var elapsedTimer = 2000;
 var isFirst = true;
 var isFirst = true;
+var markers = []
 
   // Returns a list of all nodes under the root.
 function flatten(root) {
@@ -127,6 +128,47 @@ function flatten(root) {
       root.numChildren = recurse(root);
       return nodes;
 }
+
+function highlightNode(node) {
+    var i = 0;
+    var currentOffset = 0
+    var keepLooping = node.offset != 0
+    var offset = 0
+
+    function addMarker(row, lineText) {
+      var Range = ace.require("ace/range").Range
+
+      var j = 0;
+      var startCharIndex = -1;
+      var lastCharIndex = -1;
+      for (j = 0; j < lineText.length; j++) {
+         if (lineText[j] != ' ' && startCharIndex == -1) {
+           startCharIndex = j;
+           lastCharIndex = j + 1;
+         } else if (lineText[j] != ' ') {
+           lastCharIndex = j + 1;
+         }
+      }
+
+      markers.push(editor.getSession().addMarker(new Range(row, startCharIndex, row, lastCharIndex),'errorHighlight'));
+    }
+
+    while (keepLooping) {
+       var lineText = editor.session.getLine(i);
+
+       if (currentOffset + lineText.length + 1 >= node.offset + node.length) {
+          keepLooping = false;
+          addMarker(i, lineText);
+       } else if (currentOffset + lineText.length + 1 >= node.offset) {
+          addMarker(i, lineText);
+          currentOffset += lineText.length + 1
+          i += 1;
+       } else {
+          currentOffset += lineText.length + 1
+          i += 1;
+       }
+    }
+  }
 
 function tick() {
 
@@ -187,7 +229,7 @@ function tick() {
               });
       });
 
-      node.on("click", function (d) {
+      node.on("click", function (node) {
           var clickedCircles = vis.selectAll("circle.node").filter(function(i) {
             return i.isClicked;
           });
@@ -196,28 +238,19 @@ function tick() {
             return i.isClicked;
           });
 
-          d.isClicked = true;
+          node.isClicked = true;
 
-          console.log(d.type);
+          console.log(node.type);
 
-          var i = 0;
-          var currentOffset = 0
-          var keepLooping = d.offset != 0
-          var offset = 0
+          $.each(markers, function(marker) {
+              editor.getSession().removeMarker(marker);
+          });
 
-          while (keepLooping) {
-             var lineText = editor.session.getLine(i);
-             if (currentOffset + lineText.length + 1 >= d.offset) {
-                offset = d.offset - currentOffset;
-                keepLooping = false;
-             } else {
-                 currentOffset += lineText.length + 1
-                 i += 1;
-             }
-          }
+          markers.length = 0;
 
-           var Range = ace.require("ace/range").Range
-           editor.session.addMarker(new Range(i,offset,i,offset + d.length),'errorHighlight');
+          highlightNode(node);
+
+          alert(markers.length);
 
           d3.select(this).select("circle").transition()
                 .duration(350)
