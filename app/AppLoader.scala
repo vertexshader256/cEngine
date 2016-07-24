@@ -16,6 +16,8 @@ import java.util.HashMap
 
 import scala.util.{Failure, Success, Try}
 import play.api.libs.json.{JsNull, JsString, JsValue, Json}
+import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
+
 
 import scala.concurrent.Future
 
@@ -29,18 +31,60 @@ class AppLoader extends ApplicationLoader {
       case x: CASTParameterDeclaration => "Param"
       case x: CASTTypedefNameSpecifier => x.getName.getRawSignature
       case x: CASTFunctionDeclarator => "Function"
+      case x: CASTIdExpression => ""
       case x: CASTFieldReference => "."
       case x: CASTFieldReference => "."
+      case x: CASTFunctionCallExpression => "calls"
       case x: CASTFunctionDefinition => x.getDeclarator.getName.toString + "()"
-      case x: CASTSimpleDeclaration => "Declaration"
+      case x: CASTSimpleDeclaration => ""
       case x: CASTArrayDeclarator => "Array"
       case x: CASTDeclarator => x.getName.getRawSignature
-      case x: CASTReturnStatement => "Return"
-      case x: CASTIfStatement => "If"
-      case x: CASTWhileStatement => "While"
-      case x: CASTExpressionStatement => "Expression"
-      case x: CASTUnaryExpression => "="
+      case x: CASTReturnStatement => "return"
+      case x: CASTIfStatement => "if"
+      case x: CASTForStatement => "for"
+      case x: CASTWhileStatement => "while"
+      case x: CASTExpressionStatement => ""
+      case x: CASTCompoundStatement => ""
+      case x: CASTUnaryExpression => ""
+      case x: CASTEqualsInitializer => "="
+      case x: CASTDeclarationStatement => ""
+      case x: CASTTranslationUnit => ""
       case x if x.getChildren.isEmpty => node.getRawSignature
+      case expr: CASTBinaryExpression => {
+        expr.getOperator match {
+          case `op_assign` => "="
+          case `op_binaryAnd` => "&"
+          case `op_binaryAndAssign` => "&="
+          case `op_binaryOr` => "|"
+          case `op_binaryOrAssign` => "|="
+          case `op_binaryXor` => "^"
+          case `op_binaryXorAssign` => "^="
+          case `op_divide` => "/"
+          case `op_divideAssign` => "/="
+          case `op_ellipses` => "..."
+          case `op_equals` => "=="
+          case `op_greaterEqual` => ">="
+          case `op_greaterThan` => ">"
+          case `op_lessEqual` => "<="
+          case `op_lessThan` => "<"
+          case `op_logicalAnd` => "&&"
+          case `op_logicalOr` => "||"
+          case `op_minus` => "-"
+          case `op_minusAssign` => "-="
+          case `op_modulo` => "%"
+          case `op_moduloAssign` => "%="
+          case `op_multiply` => "*"
+          case `op_multiplyAssign` => "*="
+          case `op_notequals` => "!="
+          case `op_plus` => "+"
+          case `op_plusAssign` => "+="
+          case `op_shiftLeft` => "<<"
+          case `op_shiftLeftAssign` => "<<="
+          case `op_shiftRight` => ">>"
+          case `op_shiftRightAssign` => ">>="
+          case _ => "UNKNOWN BINARY EXPRESSION"
+        }
+      }
       case x => x.getClass.getSimpleName
     }
 
@@ -53,12 +97,13 @@ class AppLoader extends ApplicationLoader {
           if (!child.getChildren.isEmpty) {
             Json.obj(
               "name" -> getLabel(child),
+              "type" -> node.getClass.getSimpleName,
               "children" -> recurse(child)
             )
           } else {
             Json.obj(
               "name" -> getLabel(child),
-              "size" -> 1000
+              "type" -> node.getClass.getSimpleName
             )
           }
         }
@@ -68,12 +113,13 @@ class AppLoader extends ApplicationLoader {
     if (!node.getChildren.isEmpty) {
       Json.obj(
         "name" -> getLabel(node),
+        "type" -> node.getClass.getSimpleName,
         "children" -> recurse(node)
       )
     } else {
       Json.obj(
         "name" -> getLabel(node),
-        "size" -> 1000
+        "type" -> node.getClass.getSimpleName
       )
     }
   }
