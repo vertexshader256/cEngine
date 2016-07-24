@@ -217,7 +217,7 @@ function tick() {
           }
 
            var Range = ace.require("ace/range").Range
-           editor.session.addMarker(new Range(i,offset,i,offset + d.length),'ace_highlight-marker');
+           editor.session.addMarker(new Range(i,offset,i,offset + d.length),'errorHighlight');
 
           d3.select(this).select("circle").transition()
                 .duration(350)
