@@ -188,8 +188,6 @@ function tick() {
       });
 
       node.on("click", function (d) {
-        if (!d.isClicked) {
-
           var clickedCircles = vis.selectAll("circle.node").filter(function(i) {
             return i.isClicked;
           });
@@ -200,7 +198,26 @@ function tick() {
 
           d.isClicked = true;
 
-          alert(d.type);
+          console.log(d.type);
+
+          var i = 0;
+          var currentOffset = 0
+          var keepLooping = d.offset != 0
+          var offset = 0
+
+          while (keepLooping) {
+             var lineText = editor.session.getLine(i);
+             if (currentOffset + lineText.length + 1 >= d.offset) {
+                offset = d.offset - currentOffset;
+                keepLooping = false;
+             } else {
+                 currentOffset += lineText.length + 1
+                 i += 1;
+             }
+          }
+
+           var Range = ace.require("ace/range").Range
+           editor.session.addMarker(new Range(i,offset,i,offset + d.length),'ace_highlight-marker');
 
           d3.select(this).select("circle").transition()
                 .duration(350)
@@ -217,7 +234,6 @@ function tick() {
           $.each(clicked, function(d) {
               d.isClicked = false;
           });
-        }
       });
 
       node.on("mouseout", function (d) {
@@ -335,7 +351,7 @@ function submitCode() {
         function( data ) {
             var json = eval(data);
 
-          //alert(JSON.stringify(json));
+         // alert(JSON.stringify(json));
 
           root = json;
           root.fixed = true;

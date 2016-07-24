@@ -38,7 +38,7 @@ class AppLoader extends ApplicationLoader {
       case x: CASTFunctionDefinition => x.getDeclarator.getName.toString + "()"
       case x: CASTSimpleDeclaration => ""
       case x: CASTArrayDeclarator => "Array"
-      case x: CASTDeclarator => x.getName.getRawSignature
+      case x: CASTDeclarator => ""
       case x: CASTReturnStatement => "return"
       case x: CASTIfStatement => "if"
       case x: CASTForStatement => "for"
@@ -49,6 +49,7 @@ class AppLoader extends ApplicationLoader {
       case x: CASTEqualsInitializer => "="
       case x: CASTDeclarationStatement => ""
       case x: CASTTranslationUnit => ""
+      case x: CASTName => x.toString
       case x if x.getChildren.isEmpty => node.getRawSignature
       case expr: CASTBinaryExpression => {
         expr.getOperator match {
@@ -94,34 +95,26 @@ class AppLoader extends ApplicationLoader {
         Nil
       } else {
         node.getChildren.map { child =>
-          if (!child.getChildren.isEmpty) {
-            Json.obj(
-              "name" -> getLabel(child),
-              "type" -> node.getClass.getSimpleName,
-              "children" -> recurse(child)
-            )
-          } else {
-            Json.obj(
-              "name" -> getLabel(child),
-              "type" -> node.getClass.getSimpleName
-            )
-          }
+          Json.obj(
+            "name" -> getLabel(child),
+            "type" -> child.getClass.getSimpleName,
+            "children" -> recurse(child),
+            "offset" -> (if (child.getFileLocation != null) child.getFileLocation.getNodeOffset else 0),
+            "length" -> child.getRawSignature.length
+          )
         }
       }
     }
 
-    if (!node.getChildren.isEmpty) {
-      Json.obj(
-        "name" -> getLabel(node),
-        "type" -> node.getClass.getSimpleName,
-        "children" -> recurse(node)
-      )
-    } else {
-      Json.obj(
-        "name" -> getLabel(node),
-        "type" -> node.getClass.getSimpleName
-      )
-    }
+    Json.obj(
+      "name" -> getLabel(node),
+      "type" -> node.getClass.getSimpleName,
+      "children" -> recurse(node),
+      "offset" -> (if (node.getFileLocation != null) node.getFileLocation.getNodeOffset else 0),
+      "length" -> node.getRawSignature.length
+    )
+
+    // "location" -> Json.obj("offset" -> node.getFileLocation.getOffset, length -> node.getRawSignature.length)
   }
 
   def getTranslationUnit(code: String) = {
