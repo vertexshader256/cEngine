@@ -315,8 +315,6 @@
                     });
                 });
 
-                var currentTransition = null;
-
                 node.on("click", function (d) {
                   if (!d.isClicked) {
 
@@ -330,7 +328,7 @@
 
                     d.isClicked = true;
 
-                    currentTransition = d3.select(this).select("circle").transition()
+                    d3.select(this).select("circle").transition()
                             .duration(350)
                             .style('stroke', '#FF0000')
                             .style('stroke-width', 4.0);
@@ -357,12 +355,13 @@
                       d3.select(this).select("circle").transition()
                       .duration(350)
                       .style("r", 6.0)
-                      .style('stroke-width', function (x) {if (x.isClicked) {return 3;} else return 3.0;})
-                      .style('stroke', function (x) {if (x.isClicked) {return '#FF0000';} else return '#000000';});
+                      .style('stroke-width', 3.0)
+                      .style('stroke', '#000000');
                    } else {
-                      currentTransition.transition()
+                      d3.select(this).select("circle").transition()
                       .duration(350)
                       .style("r", 6.0)
+                      .style('stroke', '#FF0000')
                       .style('stroke-width', 3.0);
                    }
                 });
