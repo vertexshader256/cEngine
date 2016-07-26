@@ -1,3 +1,5 @@
+package scala.astViewer
+
 import play.api.ApplicationLoader.Context
 import play.api._
 import play.api.libs.json._
@@ -10,19 +12,19 @@ import org.eclipse.cdt.internal.core.dom.parser.c._
 import org.eclipse.cdt.core.dom.ast.IASTNode
 import org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage
 import org.eclipse.cdt.core.parser._
+import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 import java.io.File
 import java.util.Map
 import java.util.HashMap
 
 import scala.util.{Failure, Success, Try}
 import play.api.libs.json.{JsNull, JsString, JsValue, Json}
-import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
+
 
 
 import scala.concurrent.Future
 
-class AppLoader extends ApplicationLoader {
-
+object AstUtils {
   def getAllChildren(node: IASTNode): JsObject = {
 
     var count = 0
@@ -130,6 +132,11 @@ class AppLoader extends ApplicationLoader {
 
     GCCLanguage.getDefault().getASTTranslationUnit(fileContent, info, includes, null, opts, log)
   }
+}
+
+class AppLoader extends ApplicationLoader {
+
+  
 
   // Entry point!
   def load(context: Context) = new BuiltInComponentsFromContext(context) {
@@ -160,8 +167,8 @@ class AppLoader extends ApplicationLoader {
       case GET(p"/getAst" ? q"code=$code" ? q"height=${int(height)}" ? q"width=${int(width)}") => Action.async {
         println("GETTING AST")
         Future {
-          val tUnit = getTranslationUnit(code)
-          Ok(getAllChildren(tUnit))
+          val tUnit = AstUtils.getTranslationUnit(code)
+          Ok(AstUtils.getAllChildren(tUnit))
         }
       }
 
