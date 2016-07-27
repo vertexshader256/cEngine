@@ -12,11 +12,15 @@ import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 trait PrimitiveType
 case class IntPrimitive(name: String, value: Int) extends PrimitiveType
 
-class Scope {
+class Scope(outerScope: Scope) {
   val integers = new ListBuffer[IntPrimitive]() 
   
   def getVariableValue(name: String): String = {
-    integers.filter(_.name == name).head.value.toString
+    if (outerScope != null) {
+      (outerScope.integers ++ integers).filter(_.name == name).head.value.toString
+    } else {
+      integers.filter(_.name == name).head.value.toString
+    }
   }
 }
 
@@ -59,8 +63,8 @@ class Executor {
     }
   }
   
-  def executeStatement(statement: IASTStatement) = {
-    val scope = new Scope
+  def executeStatement(statement: IASTStatement, outerScope: Scope) = {
+    val scope = new Scope(outerScope)
     
     statement match {
       case compound: CASTCompoundStatement => {
@@ -89,15 +93,27 @@ class Executor {
     }
   }
   
-  def executeFunction(fcnDef: IASTFunctionDefinition) = {
-    executeStatement(fcnDef.getBody)
+  def executeFunction(fcnDef: IASTFunctionDefinition, outerScope: Scope) = {
+    executeStatement(fcnDef.getBody, outerScope)
   }
   
   def execute(tUnit: IASTTranslationUnit) = {
-    val main = tUnit.getDeclarations.collect{case x: CASTFunctionDefinition => x}
-                  .filter(x => x.getDeclarator.getName.getRawSignature == "main").head
-                  
-     executeFunction(main)
+
+    var main: CASTFunctionDefinition = null
+    val globalScope = new Scope(null)
+
+    tUnit.getDeclarations.foreach{ decl =>
+      decl match {
+        case x: CASTFunctionDefinition => {
+          if (x.getDeclarator.getName.getRawSignature == "main") {
+            main = x
+          }
+        }
+        case x: CASTSimpleDeclaration => parseDeclaration(x, globalScope)
+      }
+    }
+
+    executeFunction(main, globalScope)
   }
   
 }
@@ -111,7 +127,7 @@ class BasicTest extends FlatSpec with ShouldMatchers {
     }
   }
   
-  "A simple math expression with addition" should "print the correct results" in {
+  "A simple math expression with addition and one inner var" should "print the correct results" in {
     val tUnit = AstUtils.getTranslationUnit("""
       void main() {
         int x = 1 + 2;
@@ -121,6 +137,19 @@ class BasicTest extends FlatSpec with ShouldMatchers {
       val executor = new Executor
       executor.execute(tUnit)     
       executor.stdout.head should equal ("3")              
+  }
+
+  "A simple math expression with addition and one global var" should "print the correct results" in {
+    val tUnit = AstUtils.getTranslationUnit("""
+      int x = 1 + 2;
+
+      void main() {
+        printf("%d\n", x);
+      }""")
+
+    val executor = new Executor
+    executor.execute(tUnit)
+    executor.stdout.head should equal ("3")
   }
   
   "A simple inlined math expression with addition" should "print the correct results" in {
@@ -145,6 +174,18 @@ class BasicTest extends FlatSpec with ShouldMatchers {
       val executor = new Executor
       executor.execute(tUnit)     
       executor.stdout.head should equal ("7")              
+  }
+
+  "A simple math expression with addition, a variable, and a literal" should "print the correct results" in {
+    val tUnit = AstUtils.getTranslationUnit("""
+      void main() {
+        int x = 4;
+        printf("%d\n", x + 4);
+      }""")
+
+    val executor = new Executor
+    executor.execute(tUnit)
+    executor.stdout.head should equal ("8")
   }
   
   "A simple 3-literal math expression" should "print the correct results" in {
