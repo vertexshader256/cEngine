@@ -76,7 +76,7 @@ class Executor {
               expr.getExpression match {
                 case call: CASTFunctionCallExpression => {
                   if (call.getFunctionNameExpression.getRawSignature == "printf") {
-                    val formatArg = call.getArguments.head // first arg is the format
+                    val formatArg = call.getArguments.head.getRawSignature.tail.reverse.tail.reverse // first arg is the format
 
                     call.getArguments.tail.foreach{arg =>
                       arg match {
@@ -85,8 +85,9 @@ class Executor {
                         case lit: IASTLiteralExpression => {
                           val arg = lit.getRawSignature
 
-                          if (!arg.isEmpty && arg.head == '\"' && arg.last == '\"') {
-                            stdout += arg.tail.reverse.tail.reverse
+                          if (formatArg.contains("%s") && arg.head == '\"' && arg.last == '\"') {
+                            val noQuotes = arg.tail.reverse.tail.reverse
+                            stdout += formatArg.replace("%s", noQuotes).replace("\\n", "")
                           } else {
                             Unit
                           }
