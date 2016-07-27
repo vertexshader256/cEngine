@@ -76,11 +76,21 @@ class Executor {
               expr.getExpression match {
                 case call: CASTFunctionCallExpression => {
                   if (call.getFunctionNameExpression.getRawSignature == "printf") {
-                    call.getArguments.foreach{arg =>
+                    val formatArg = call.getArguments.head // first arg is the format
+
+                    call.getArguments.tail.foreach{arg =>
                       arg match {
                         case x: CASTIdExpression => stdout += scope.getVariableValue(x.getName.getRawSignature)
                         case expr: IASTBinaryExpression => stdout += parseIntExpr(expr, scope).toString
-                        case lit: IASTLiteralExpression => Unit
+                        case lit: IASTLiteralExpression => {
+                          val arg = lit.getRawSignature
+
+                          if (!arg.isEmpty && arg.head == '\"' && arg.last == '\"') {
+                            stdout += arg.tail.reverse.tail.reverse
+                          } else {
+                            Unit
+                          }
+                        }
                       }
                     }
                   }
@@ -126,17 +136,27 @@ class BasicTest extends FlatSpec with ShouldMatchers {
         
     }
   }
-  
+
+  "Hello world" should "print the correct results" in {
+    val tUnit = AstUtils.getTranslationUnit("""
+      void main() {
+        printf("%s\n", "Hello world!");
+      }""")
+    val executor = new Executor
+    executor.execute(tUnit)
+    executor.stdout.head should equal ("Hello world!")
+  }
+
   "A simple math expression with addition and one inner var" should "print the correct results" in {
     val tUnit = AstUtils.getTranslationUnit("""
       void main() {
         int x = 1 + 2;
         printf("%d\n", x);
       }""")
-      
-      val executor = new Executor
-      executor.execute(tUnit)     
-      executor.stdout.head should equal ("3")              
+
+    val executor = new Executor
+    executor.execute(tUnit)
+    executor.stdout.head should equal ("3")
   }
 
   "A simple math expression with addition and one global var" should "print the correct results" in {
@@ -150,6 +170,20 @@ class BasicTest extends FlatSpec with ShouldMatchers {
     val executor = new Executor
     executor.execute(tUnit)
     executor.stdout.head should equal ("3")
+  }
+
+  "A simple math expression with addition and two global vars" should "print the correct results" in {
+    val tUnit = AstUtils.getTranslationUnit("""
+      int x = 1 + 2;
+      int y = 5 - 3;
+
+      void main() {
+        printf("%d\n", x * y);
+      }""")
+
+    val executor = new Executor
+    executor.execute(tUnit)
+    executor.stdout.head should equal ("6")
   }
   
   "A simple inlined math expression with addition" should "print the correct results" in {
