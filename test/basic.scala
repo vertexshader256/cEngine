@@ -26,17 +26,31 @@ class Scope(outerScope: Scope) {
 
 object Utils {
 
+  def parse(code: String, offset: Int): IASTCompletionNode = {
+    val fileContent = FileContent.create("test", code.toCharArray)
+    val log = new DefaultLogService()
+
+    GCCLanguage.getDefault().getCompletionNode(fileContent, new ScannerInfo(), null, null, log, offset);
+  }
+
   def findFunctions(node: IASTTranslationUnit): Seq[IASTFunctionDefinition] = {
     node.getDeclarations.collect{case decl: IASTFunctionDefinition => decl}
   }
 
-  def findGlobals(node: IASTTranslationUnit): Seq[IVariable] = {
-    val bindings = node.getDeclarations
-        .collect{case decl: IASTSimpleDeclaration => decl}
-        .flatMap(x => x.getDeclarators)
-        .map(_.getName.resolveBinding)
+  def findVariable(scope: IScope, name: String, tUnit: IASTTranslationUnit): Option[IVariable] = {
+    var currentScope = scope
 
-    bindings.collect{case binding: IVariable => binding}
+    val scopeLookup = new IScope.ScopeLookupData(name.toCharArray, tUnit)
+
+    while (currentScope != null && currentScope.getBindings(scopeLookup).isEmpty) {
+      currentScope = currentScope.getParent
+    }
+
+    if (currentScope == null) {
+      None
+    } else {
+      Some(currentScope.getBindings(scopeLookup).head.asInstanceOf[IVariable])
+    }
   }
 }
 
@@ -44,7 +58,6 @@ class Executor(code: String) extends ASTVisitor(true) {
 
   val tUnit = AstUtils.getTranslationUnit(code)
   val functions = Utils.findFunctions(tUnit)
-  val globals = Utils.findGlobals(tUnit)
   val main = functions.filter{fcn => fcn.getDeclarator.getName.getRawSignature == "main"}.head
 
   val stdout = new ListBuffer[String]()
@@ -55,7 +68,7 @@ class Executor(code: String) extends ASTVisitor(true) {
   var inDeclarationStatement = false
   var functionBeingCalled = ""
 
-  var currentScope: IScope = null
+  var currentScope: IScope = tUnit.getScope
 
  // var main: IASTFunctionDefinition = null
   val globalScope = new Scope(null)
@@ -121,10 +134,7 @@ class Executor(code: String) extends ASTVisitor(true) {
             println(args(1).getRawSignature)
             stdout += args(1).getRawSignature.tail.reverse.tail.reverse
           } else {
-            println(globals.size)
-            globals.find{_.getName == secondArg}.foreach{variable =>
-              stdout += variable.getInitialValue.getSignature.mkString
-            }
+            stdout +=  Utils.findVariable(currentScope, args(1).getRawSignature, tUnit).head.getInitialValue.numericalValue().toString
           }
         }
       case id: IASTIdExpression =>
@@ -139,6 +149,7 @@ class Executor(code: String) extends ASTVisitor(true) {
       case decl: IASTDeclarationStatement =>
         inDeclarationStatement = true
       case compound: IASTCompoundStatement =>
+        currentScope = compound.getScope
       case exprStatement: IASTExpressionStatement =>
     }
 
@@ -280,6 +291,19 @@ class BasicTest extends FlatSpec with ShouldMatchers {
     val code = """
       int x = 1;
       void main() {
+        printf("%d\n", x);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("1"))
+  }
+
+  "A simple function-scoped integer reference" should "print the correct results" in {
+    val code = """
+
+      void main() {
+        int x = 1;
         printf("%d\n", x);
       }"""
 
