@@ -9,7 +9,7 @@ import play.api.mvc._
 import play.api.routing.Router
 import play.api.routing.sird._
 import org.eclipse.cdt.internal.core.dom.parser.c._
-import org.eclipse.cdt.core.dom.ast.IASTNode
+import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage
 import org.eclipse.cdt.core.parser._
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
@@ -119,7 +119,7 @@ object AstUtils {
     // "location" -> Json.obj("offset" -> node.getFileLocation.getOffset, length -> node.getRawSignature.length)
   }
 
-  def getTranslationUnit(code: String) = {
+  def getTranslationUnit(code: String): IASTTranslationUnit = {
     val fileContent = FileContent.create("test", code.toCharArray)
     val symbolMap = new HashMap[String, String];
 

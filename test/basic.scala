@@ -26,23 +26,17 @@ class Scope(outerScope: Scope) {
 
 object Utils {
 
-  def findFunctions(node: IASTNode): Seq[IASTFunctionDefinition] = {
+  def findFunctions(node: IASTTranslationUnit): Seq[IASTFunctionDefinition] = {
+    node.getDeclarations.collect{case decl: IASTFunctionDefinition => decl}
+  }
 
-    var functions = new ListBuffer[IASTFunctionDefinition]()
+  def findGlobals(node: IASTTranslationUnit): Seq[IVariable] = {
+    val bindings = node.getDeclarations
+        .collect{case decl: IASTSimpleDeclaration => decl}
+        .flatMap(x => x.getDeclarators)
+        .map(_.getName.resolveBinding)
 
-    val finder = new ASTVisitor(true) {
-      override def visit(declaration: IASTDeclaration): Int = {
-        declaration match {
-          case fcnDef: IASTFunctionDefinition =>
-            functions += fcnDef
-        }
-        return ASTVisitor.PROCESS_CONTINUE
-      }
-    }
-
-    node.accept(finder)
-
-    functions
+    bindings.collect{case binding: IVariable => binding}
   }
 }
 
@@ -50,6 +44,7 @@ class Executor(code: String) extends ASTVisitor(true) {
 
   val tUnit = AstUtils.getTranslationUnit(code)
   val functions = Utils.findFunctions(tUnit)
+  val globals = Utils.findGlobals(tUnit)
   val main = functions.filter{fcn => fcn.getDeclarator.getName.getRawSignature == "main"}.head
 
   val stdout = new ListBuffer[String]()
@@ -57,6 +52,7 @@ class Executor(code: String) extends ASTVisitor(true) {
   var nestingLevel = 0
   var inFunction = false
   var inFunctionCall = false
+  var inDeclarationStatement = false
   var functionBeingCalled = ""
 
   var currentScope: IScope = null
@@ -68,7 +64,13 @@ class Executor(code: String) extends ASTVisitor(true) {
     return ASTVisitor.PROCESS_CONTINUE
   }
   
-  override def visit(declarator: IASTDeclarator): Int = {    
+  override def visit(declarator: IASTDeclarator): Int = {
+    declarator match {
+      case simple: IASTSimpleDeclaration =>
+      case fcnDec: IASTFunctionDeclarator =>
+      case decl: IASTDeclarator =>
+    }
+
     return ASTVisitor.PROCESS_CONTINUE
   }
 
@@ -77,6 +79,8 @@ class Executor(code: String) extends ASTVisitor(true) {
     declaration match {
       case fcnDef: IASTFunctionDefinition =>
         currentScope = fcnDef.getScope
+      case decl: IASTSimpleDeclaration =>
+
     }
 
     return ASTVisitor.PROCESS_CONTINUE
@@ -112,7 +116,16 @@ class Executor(code: String) extends ASTVisitor(true) {
         val args = call.getArguments
 
         if (name == "printf") {
-          stdout += args(1).getRawSignature.tail.reverse.tail.reverse
+          val secondArg = args(1).getRawSignature
+          if (secondArg.head == '\"' || secondArg.last == '\"') {
+            println(args(1).getRawSignature)
+            stdout += args(1).getRawSignature.tail.reverse.tail.reverse
+          } else {
+            println(globals.size)
+            globals.find{_.getName == secondArg}.foreach{variable =>
+              stdout += variable.getInitialValue.getSignature.mkString
+            }
+          }
         }
       case id: IASTIdExpression =>
       case lit: IASTLiteralExpression =>
@@ -121,11 +134,25 @@ class Executor(code: String) extends ASTVisitor(true) {
     return ASTVisitor.PROCESS_CONTINUE
   }
 
-  override def visit(statement: IASTStatement): Int = {  
+  override def visit(statement: IASTStatement): Int = {
+    statement match {
+      case decl: IASTDeclarationStatement =>
+        inDeclarationStatement = true
+      case compound: IASTCompoundStatement =>
+      case exprStatement: IASTExpressionStatement =>
+    }
+
     return ASTVisitor.PROCESS_CONTINUE
   }
 
   override def leave(statement: IASTStatement): Int = {
+    statement match {
+      case decl: IASTDeclarationStatement =>
+        inDeclarationStatement = false
+      case compound: IASTCompoundStatement =>
+      case exprStatement: IASTExpressionStatement =>
+    }
+
     return ASTVisitor.PROCESS_CONTINUE
   }
 //  
@@ -246,21 +273,33 @@ class BasicTest extends FlatSpec with ShouldMatchers {
 
     val executor = new Executor(code)
     executor.execute
-    executor.stdout.head should equal ("Hello world!")
+    executor.stdout.headOption should equal (Some("Hello world!"))
+  }
+
+  "A simple integer global reference" should "print the correct results" in {
+    val code = """
+      int x = 1;
+      void main() {
+        printf("%d\n", x);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("1"))
   }
 
 //  "A simple math expression with addition and one inner var" should "print the correct results" in {
-//    val tUnit = AstUtils.getTranslationUnit("""
+//    val code = """
 //      void main() {
 //        int x = 1 + 2;
 //        printf("%d\n", x);
-//      }""")
+//      }"""
 //
 //    val executor = new Executor
 //    executor.execute(tUnit)
 //    executor.stdout.head should equal ("3")
 //  }
-//
+
 //  "A simple math expression with addition and one global var" should "print the correct results" in {
 //    val tUnit = AstUtils.getTranslationUnit("""
 //      int x = 1 + 2;
