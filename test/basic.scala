@@ -216,53 +216,53 @@ class BasicTest extends FlatSpec with ShouldMatchers {
     executor.execute
     executor.stdout.headOption should equal (Some("6"))
   }
-//  
-//  "A simple inlined math expression with addition" should "print the correct results" in {
-//    val tUnit = AstUtils.getTranslationUnit("""
-//      void main() {
-//        printf("%d\n", 1 + 2);
-//      }""")
-//      
-//      val executor = new Executor
-//      executor.execute(tUnit)     
-//      executor.stdout.head should equal ("3")              
-//  }
-//  
-//  "A simple math expression with addition and two variables" should "print the correct results" in {
-//    val tUnit = AstUtils.getTranslationUnit("""
-//      void main() {
-//        int x = 4;
-//        int y = 3;
-//        printf("%d\n", x + y);
-//      }""")
-//      
-//      val executor = new Executor
-//      executor.execute(tUnit)     
-//      executor.stdout.head should equal ("7")              
-//  }
-//
-//  "A simple math expression with addition, a variable, and a literal" should "print the correct results" in {
-//    val tUnit = AstUtils.getTranslationUnit("""
-//      void main() {
-//        int x = 4;
-//        printf("%d\n", x + 4);
-//      }""")
-//
-//    val executor = new Executor
-//    executor.execute(tUnit)
-//    executor.stdout.head should equal ("8")
-//  }
-//  
+
+  "A simple inlined math expression with addition" should "print the correct results" in {
+    val code = """
+      void main() {
+        printf("%d\n", 1 + 2);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("3"))
+  }
+
+  "A simple math expression with addition and two variables" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 4;
+        int y = 3;
+        printf("%d\n", x + y);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("7"))
+  }
+
+  "A simple math expression with addition, a variable, and a literal" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 4;
+        printf("%d\n", x + 4);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("8"))
+  }
+
 //  "A simple 3-literal math expression" should "print the correct results" in {
 //    val tUnit = AstUtils.getTranslationUnit("""
 //      void main() {
 //        int x = 1 + 2 + 3;
 //        printf("%d\n", x);
 //      }""")
-//      
+//
 //      val executor = new Executor
-//      executor.execute(tUnit)     
-//      executor.stdout.head should equal ("6")              
+//      executor.execute(tUnit)
+//      executor.stdout.head should equal ("6")
 //  }
 //  
 //  "A simple math expression with substraction" should "print the correct results" in {
