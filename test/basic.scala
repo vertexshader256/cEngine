@@ -15,7 +15,7 @@ import scala.collection.mutable.ListBuffer
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 
 trait PrimitiveType
-case class IntPrimitive(name: String, value: Int) extends PrimitiveType
+case class IntPrimitive(name: String, value: Long) extends PrimitiveType
 
 class Scope(outerScope: Scope) {
   val integers = new ListBuffer[IntPrimitive]() 
@@ -50,12 +50,19 @@ class Executor(code: String) {
 
   val path = Utils.getPath(tUnit)
 
+  var isInDeclaration = false
+
   def step(node: IASTNode) = {
     node match {
       case declarator: IASTTranslationUnit =>
       case simple: IASTSimpleDeclaration =>
-      case fcnDec: IASTFunctionDeclarator =>
+        isInDeclaration = !isInDeclaration
       case decl: IASTDeclarator =>
+        if (isInDeclaration) {
+          globalScope.integers += IntPrimitive(decl.getName.getRawSignature, Utils.findVariable(currentScope, decl.getName.getRawSignature, tUnit).head.getInitialValue.numericalValue)
+        }
+      case fcnDec: IASTFunctionDeclarator =>
+
       case fcnDef: IASTFunctionDefinition =>
         if (!isLeavingNode) {
           currentScope = fcnDef.getScope
@@ -63,18 +70,18 @@ class Executor(code: String) {
       case decl: IASTSimpleDeclaration =>
       case call: IASTFunctionCallExpression =>
 
-          val name = call.getFunctionNameExpression.getRawSignature
-          val args = call.getArguments
+        val name = call.getFunctionNameExpression.getRawSignature
+        val args = call.getArguments
 
-          if (name == "printf") {
-            val secondArg = args(1).getRawSignature
-            if (secondArg.head == '\"' || secondArg.last == '\"') {
-              println(args(1).getRawSignature)
-              stdout += args(1).getRawSignature.tail.reverse.tail.reverse
-            } else {
-              stdout +=  Utils.findVariable(currentScope, args(1).getRawSignature, tUnit).head.getInitialValue.numericalValue().toString
-            }
+        if (name == "printf") {
+          val secondArg = args(1).getRawSignature
+          if (secondArg.head == '\"' || secondArg.last == '\"') {
+            println(args(1).getRawSignature)
+            stdout += args(1).getRawSignature.tail.reverse.tail.reverse
+          } else {
+            stdout += globalScope.getVariableValue(args(1).getRawSignature)
           }
+        }
       case id: IASTIdExpression =>
       case lit: IASTLiteralExpression =>
       case decl: IASTDeclarationStatement =>
@@ -89,7 +96,7 @@ class Executor(code: String) {
   }
 
   def execute = {
-    //path.foreach{ node => println(node.getClass.getSimpleName)}
+    path.foreach{ node => println(node.getClass.getSimpleName)}
     path.foreach{ node => step(node)}
   }
 }
