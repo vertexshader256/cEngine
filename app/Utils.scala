@@ -56,15 +56,18 @@ object Utils {
     val results = new ListBuffer[IASTNode]()
 
     def recurse(node: IASTNode): Seq[IASTNode] = {
-        node.getChildren.flatMap { child =>
+      node.getChildren.flatMap { child =>
+        if (!child.isInstanceOf[IASTIdExpression]) {
           val x = recurse(child)
           if (!x.isEmpty) {
             Seq(node) ++ recurse(child) ++ Seq(node)
           } else {
             Seq(node)
           }
+        } else {
+          Seq(node)
         }
-
+      }
     }
 
     val crudeList = recurse(tUnit)
