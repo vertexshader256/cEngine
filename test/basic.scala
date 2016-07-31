@@ -12,6 +12,7 @@ import org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage
 import org.eclipse.cdt.core.parser._
 
 import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.Stack
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 
 trait PrimitiveType
@@ -51,6 +52,9 @@ class Executor(code: String) {
   val path = Utils.getPath(tUnit)
 
   var isInDeclaration = false
+  var isInFunctionCallExpr = false
+
+  val integerStack = new Stack[Int]()
 
   def step(node: IASTNode) = {
     node match {
@@ -59,7 +63,8 @@ class Executor(code: String) {
         isInDeclaration = !isInDeclaration
       case decl: IASTDeclarator =>
         if (isInDeclaration) {
-          globalScope.integers += IntPrimitive(decl.getName.getRawSignature, Utils.findVariable(currentScope, decl.getName.getRawSignature, tUnit).head.getInitialValue.numericalValue)
+          integerStack.push(Utils.findVariable(currentScope, decl.getName.getRawSignature, tUnit).head.getInitialValue.numericalValue.toInt)
+          //globalScope.integers += IntPrimitive(decl.getName.getRawSignature, Utils.findVariable(currentScope, decl.getName.getRawSignature, tUnit).head.getInitialValue.numericalValue)
         }
       case fcnDec: IASTFunctionDeclarator =>
 
@@ -70,19 +75,25 @@ class Executor(code: String) {
       case decl: IASTSimpleDeclaration =>
       case call: IASTFunctionCallExpression =>
 
-        val name = call.getFunctionNameExpression.getRawSignature
-        val args = call.getArguments
+        isInFunctionCallExpr = !isInFunctionCallExpr
 
-        if (name == "printf") {
-          val secondArg = args(1).getRawSignature
-          if (secondArg.head == '\"' || secondArg.last == '\"') {
-            println(args(1).getRawSignature)
-            stdout += args(1).getRawSignature.tail.reverse.tail.reverse
-          } else {
-            stdout += globalScope.getVariableValue(args(1).getRawSignature)
+        // only evaluate after leaving
+        if (!isInFunctionCallExpr || call.getArguments()(1).isInstanceOf[IASTLiteralExpression] || call.getArguments()(1).isInstanceOf[IASTIdExpression]) {
+          val name = call.getFunctionNameExpression.getRawSignature
+          val args = call.getArguments
+
+          if (name == "printf") {
+            val secondArg = args(1).getRawSignature
+            if (secondArg.head == '\"' || secondArg.last == '\"') {
+              println(args(1).getRawSignature)
+              stdout += args(1).getRawSignature.tail.reverse.tail.reverse
+            } else {
+              stdout += integerStack.pop.toString
+            }
           }
         }
-      case id: IASTIdExpression =>
+
+
       case lit: IASTLiteralExpression =>
       case decl: IASTDeclarationStatement =>
       case compound: IASTCompoundStatement =>
@@ -92,11 +103,32 @@ class Executor(code: String) {
       case exprStatement: IASTExpressionStatement =>
       case equalsInit: IASTEqualsInitializer =>
       case binaryExpr: IASTBinaryExpression =>
+
+        val op1 = (binaryExpr.getOperand1 match {
+          case lit: IASTLiteralExpression => lit.getRawSignature.toInt
+          case id: IASTIdExpression => Utils.findVariable(currentScope, id.getRawSignature, tUnit).head.getInitialValue.numericalValue.toInt
+        })
+
+        val op2 = binaryExpr.getOperand2 match {
+          case lit: IASTLiteralExpression => lit.getRawSignature.toInt
+          case id: IASTIdExpression => Utils.findVariable(currentScope, id.getRawSignature, tUnit).head.getInitialValue.numericalValue.toInt
+        }
+
+        val result = binaryExpr.getOperator match {
+          case `op_multiply` =>
+            op1 * op2
+          case `op_plus` =>
+            op1 + op2
+          case `op_minus` =>
+            op1 - op2
+        }
+
+        integerStack.push(result)
     }
   }
 
   def execute = {
-    path.foreach{ node => println(node.getClass.getSimpleName)}
+    //path.foreach{ node => println(node.getClass.getSimpleName)}
     path.foreach{ node => step(node)}
   }
 }
@@ -171,19 +203,19 @@ class BasicTest extends FlatSpec with ShouldMatchers {
     executor.stdout.headOption should equal (Some("3"))
   }
 
-//  "A simple math expression with addition and two global vars" should "print the correct results" in {
-//    val code = """
-//      int x = 1 + 2;
-//      int y = 5 - 3;
-//
-//      void main() {
-//        printf("%d\n", x * y);
-//      }"""
-//
-//    val executor = new Executor(code)
-//    executor.execute
-//    executor.stdout.headOption should equal (Some("6"))
-//  }
+  "A simple math expression with addition and two global vars" should "print the correct results" in {
+    val code = """
+      int x = 1 + 2;
+      int y = 5 - 3;
+
+      void main() {
+        printf("%d\n", x * y);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("6"))
+  }
 //  
 //  "A simple inlined math expression with addition" should "print the correct results" in {
 //    val tUnit = AstUtils.getTranslationUnit("""
