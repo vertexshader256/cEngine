@@ -2,6 +2,20 @@ var force = null;
 var vis = null;
 var editor = null;
 
+var w = 1280,
+    h = 800,
+    node,
+    nodes,
+    links,
+    link,
+    root;
+
+
+var currentNodesToUnfold = [root];
+var elapsedTimer = 2000;
+var isFirst = true;
+var isFirst = true;
+
 $(document).ready(function() {
     editor = ace.edit("editor");
     editor.setTheme("ace/theme/twilight");
@@ -24,30 +38,6 @@ $(document).ready(function() {
                 .attr("height", h);
 });
 
-var helloWorld = "#include<stdio.h> \
-  main() \
-  { \
-      printf(\"Hello World\"); \
-  }"
-
-var newtonSqrt = "# include<stdio.h> \
-    double sq_root(double x) \
-    { \
-        double rt = 1, ort = 0; \
-        while(ort!=rt) \
-        { \
-            ort = rt; \
-            rt = ((x/rt) + rt) / 2; \
-        } \
-        return rt; \
-    } \
-    int main(void) \
-    { \
-        int i; \
-        for(i = 2; i<1001; i++) printf(\"square root of %d is %f\n\",i, sq_root(i)); \
-        return 0; \
-    }"
-
 function initNode(node) {
     node.isCollapsed = true
     node.charge = 0
@@ -63,7 +53,15 @@ function initNode(node) {
 
 // Color leaf nodes orange, and packages white or blue.
 function color(d) {
-  return d._children.length > 0 ? "#3182bd" : d.children.length > 0 ? "#c6dbef" : "#fd8d3c";
+  if (d == root) {
+    return "#ff0000"
+  } else if (d._children.length > 0) {
+    return "#3182bd";
+  } else if (d.children.length > 0) {
+    return "#c6dbef";
+  } else {
+    return "#fd8d3c";
+  }
 }
 
 function openNode(d) {
@@ -99,19 +97,7 @@ function unfold(node) {
   }
 }
 
-var w = 1280,
-    h = 800,
-    node,
-    nodes,
-    links,
-    link,
-    root;
 
-
-var currentNodesToUnfold = [root];
-var elapsedTimer = 2000;
-var isFirst = true;
-var isFirst = true;
 
   // Returns a list of all nodes under the root.
 function flatten(root) {

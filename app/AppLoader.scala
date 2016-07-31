@@ -13,9 +13,7 @@ import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage
 import org.eclipse.cdt.core.parser._
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
-import java.io.File
-import java.util.Map
-import java.util.HashMap
+
 
 import scala.util.{Failure, Success, Try}
 import play.api.libs.json.{JsNull, JsString, JsValue, Json}
@@ -119,19 +117,7 @@ object AstUtils {
     // "location" -> Json.obj("offset" -> node.getFileLocation.getOffset, length -> node.getRawSignature.length)
   }
 
-  def getTranslationUnit(code: String): IASTTranslationUnit = {
-    val fileContent = FileContent.create("test", code.toCharArray)
-    val symbolMap = new HashMap[String, String];
 
-    val systemIncludes = List(new File(raw"C:\MinGW\include"), new File(raw"C:\MinGW\include\GL"), new File(raw"C:\MinGW\lib\gcc\mingw32\4.6.2\include"))
-
-    val info = new ScannerInfo(symbolMap, systemIncludes.toArray.map(_.getAbsolutePath))
-    val log = new DefaultLogService()
-    val opts = 8
-    val includes = IncludeFileContentProvider.getEmptyFilesProvider
-
-    GCCLanguage.getDefault().getASTTranslationUnit(fileContent, info, includes, null, opts, log)
-  }
 }
 
 class AppLoader extends ApplicationLoader {
@@ -167,7 +153,7 @@ class AppLoader extends ApplicationLoader {
       case GET(p"/getAst" ? q"code=$code" ? q"height=${int(height)}" ? q"width=${int(width)}") => Action.async {
         println("GETTING AST")
         Future {
-          val tUnit = AstUtils.getTranslationUnit(code)
+          val tUnit = Utils.getTranslationUnit(code)
           Ok(AstUtils.getAllChildren(tUnit))
         }
       }
