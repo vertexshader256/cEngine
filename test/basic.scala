@@ -114,12 +114,12 @@ class Executor(code: String) {
 
         val op1 = (binaryExpr.getOperand1 match {
           case lit: IASTLiteralExpression => lit.getRawSignature.toInt
-          case id: IASTIdExpression => Utils.findVariable(currentScope, id.getRawSignature, tUnit).head.getInitialValue.numericalValue.toInt
+          case id: IASTIdExpression => variableMap(id.getRawSignature).value.toInt
         })
 
         val op2 = binaryExpr.getOperand2 match {
           case lit: IASTLiteralExpression => lit.getRawSignature.toInt
-          case id: IASTIdExpression => Utils.findVariable(currentScope, id.getRawSignature, tUnit).head.getInitialValue.numericalValue.toInt
+          case id: IASTIdExpression => variableMap(id.getRawSignature).value.toInt
         }
 
         val result = binaryExpr.getOperator match {
