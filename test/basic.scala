@@ -56,7 +56,7 @@ class Executor(code: String) {
   var isInDeclarator = false
 
   val integerStack = new Stack[Int]()
-  val variableStack = new Stack[IntPrimitive]()
+  val variableMap = scala.collection.mutable.Map[String, IntPrimitive]()
 
   def step(node: IASTNode) = {
     node match {
@@ -67,7 +67,9 @@ class Executor(code: String) {
       case decl: IASTDeclarator =>
         isInDeclarator = !isInDeclarator
         if (!isInDeclarator) {
-          variableStack.push(IntPrimitive(decl.getName.getRawSignature, integerStack.pop))
+          val value = integerStack.pop
+          println("ADDING VAR: " + decl.getName.getRawSignature + ", " + value)
+          variableMap += (decl.getName.getRawSignature -> IntPrimitive(decl.getName.getRawSignature, value))
         }
       case fcnDef: IASTFunctionDefinition =>
         if (!isLeavingNode) {
@@ -89,7 +91,7 @@ class Executor(code: String) {
               println(args(1).getRawSignature)
               stdout += args(1).getRawSignature.tail.reverse.tail.reverse
             } else {
-              stdout += variableStack.pop.value.toString
+              stdout += variableMap(args(1).getRawSignature).value.toString
             }
           }
         }
