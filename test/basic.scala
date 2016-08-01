@@ -90,7 +90,11 @@ class Executor(code: String) {
             if (secondArg.head == '\"' || secondArg.last == '\"') {
               println(args(1).getRawSignature)
               stdout += args(1).getRawSignature.tail.reverse.tail.reverse
+            } else if (args(1).isInstanceOf[IASTBinaryExpression]) {
+              // the argument is an expression
+              stdout += integerStack.pop.toString
             } else {
+              // the argument is just a variable reference
               stdout += variableMap(args(1).getRawSignature).value.toString
             }
           }
@@ -210,20 +214,20 @@ class BasicTest extends FlatSpec with ShouldMatchers {
     executor.stdout.headOption should equal (Some("3"))
   }
 
-//  "A simple math expression with addition and two global vars" should "print the correct results" in {
-//    val code = """
-//      int x = 1 + 2;
-//      int y = 5 - 3;
-//
-//      void main() {
-//        printf("%d\n", x * y);
-//      }"""
-//
-//    val executor = new Executor(code)
-//    executor.execute
-//    executor.stdout.headOption should equal (Some("6"))
-//  }
-//
+  "A simple math expression with addition and two global vars" should "print the correct results" in {
+    val code = """
+      int x = 1 + 2;
+      int y = 5 - 3;
+
+      void main() {
+        printf("%d\n", x * y);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("6"))
+  }
+
 //  "A simple inlined math expression with addition" should "print the correct results" in {
 //    val code = """
 //      void main() {
