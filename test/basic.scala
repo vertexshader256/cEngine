@@ -51,10 +51,6 @@ class Executor(code: String) {
 
   val path = Utils.getPath(tUnit)
 
-  var isInDeclaration = false
-  var isInFunctionCallExpr = false
-  var isInDeclarator = false
-
   val integerStack = new Stack[Int]()
   val variableMap = scala.collection.mutable.Map[String, IntPrimitive]()
 
@@ -65,26 +61,19 @@ class Executor(code: String) {
     path.node match {
       case tUnit: IASTTranslationUnit =>
       case simple: IASTSimpleDeclaration =>
-        isInDeclaration = !isInDeclaration
       case fcnDec: IASTFunctionDeclarator =>
       case decl: IASTDeclarator =>
-        isInDeclarator = !isInDeclarator
-        if (!isInDeclarator) {
+        if (direction == Exiting) {
           val value = integerStack.pop
           println("ADDING VAR: " + decl.getName.getRawSignature + ", " + value)
           variableMap += (decl.getName.getRawSignature -> IntPrimitive(decl.getName.getRawSignature, value))
         }
       case fcnDef: IASTFunctionDefinition =>
-        if (!isLeavingNode) {
-          currentScope = fcnDef.getScope
-        }
       case decl: IASTSimpleDeclaration =>
       case call: IASTFunctionCallExpression =>
 
-        isInFunctionCallExpr = !isInFunctionCallExpr
-
         // only evaluate after leaving
-        if (!isInFunctionCallExpr || call.getArguments()(1).isInstanceOf[IASTLiteralExpression] || call.getArguments()(1).isInstanceOf[IASTIdExpression]) {
+        if (direction == Exiting || call.getArguments()(1).isInstanceOf[IASTLiteralExpression] || call.getArguments()(1).isInstanceOf[IASTIdExpression]) {
           val name = call.getFunctionNameExpression.getRawSignature
           val args = call.getArguments
 
@@ -107,9 +96,6 @@ class Executor(code: String) {
       case lit: IASTLiteralExpression =>
       case decl: IASTDeclarationStatement =>
       case compound: IASTCompoundStatement =>
-        if (!isLeavingNode) {
-          currentScope = compound.getScope
-        }
       case exprStatement: IASTExpressionStatement =>
       case equalsInit: IASTEqualsInitializer =>
         equalsInit.getInitializerClause match {
