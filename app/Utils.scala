@@ -64,12 +64,12 @@ object Utils {
       node.getChildren.filter{ child => !child.isInstanceOf[IASTIdExpression] }.flatMap(x => x +: getDescendants(x))
     }
 
-    def recurse(node: IASTNode, isFirst: Boolean): Seq[Path] = {
+    def recurse(node: IASTNode): Seq[Path] = {
       val children = node.getChildren.filter{ child => !child.isInstanceOf[IASTIdExpression] }
       Seq(Path(node, Entering)) ++ children.flatMap { child =>
         val descendants = getDescendants(child)
         if (descendants.size > 1) {
-          recurse(child, false) ++ Seq(Path(node, Exiting))
+          recurse(child) ++ Seq(Path(node, Exiting))
         } else if (descendants.size == 1) {
           Seq(Path(child, Visiting)) ++ Seq(Path(node, Exiting))
         } else {
@@ -78,6 +78,6 @@ object Utils {
       }
     }
 
-    recurse(tUnit, true)
+    recurse(tUnit)
   }
 }
