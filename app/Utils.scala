@@ -81,7 +81,7 @@ object Utils {
 
     val result = recurse(tUnit)
 
-    result.foreach(println)
+    //result.foreach(println)
 
     result
   }

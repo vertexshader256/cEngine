@@ -61,6 +61,7 @@ class Executor(code: String) {
     val direction = path.direction
 
     path.node match {
+      case unary: IASTUnaryExpression =>
       case id: IASTIdExpression =>
         currentName = id.getName.getRawSignature
       case tUnit: IASTTranslationUnit =>
@@ -116,11 +117,15 @@ class Executor(code: String) {
           val op1 = (binaryExpr.getOperand1 match {
             case lit: IASTLiteralExpression => lit.getRawSignature.toInt
             case id: IASTIdExpression => variableMap(id.getRawSignature).value.toInt
+            case bin: IASTBinaryExpression => integerStack.pop
+            case bin: IASTUnaryExpression => integerStack.pop
           })
 
           val op2 = binaryExpr.getOperand2 match {
             case lit: IASTLiteralExpression => lit.getRawSignature.toInt
             case id: IASTIdExpression => variableMap(id.getRawSignature).value.toInt
+            case bin: IASTBinaryExpression => integerStack.pop
+            case bin: IASTUnaryExpression => integerStack.pop
           }
 
           val result = binaryExpr.getOperator match {
@@ -130,6 +135,8 @@ class Executor(code: String) {
               op1 + op2
             case `op_minus` =>
               op1 - op2
+            case `op_divide` =>
+              op1 / op2
           }
 
           integerStack.push(result)
@@ -226,123 +233,123 @@ class BasicTest extends FlatSpec with ShouldMatchers {
     executor.stdout.headOption should equal (Some("6"))
   }
 
-//  "A simple inlined math expression with addition" should "print the correct results" in {
-//    val code = """
-//      void main() {
-//        printf("%d\n", 1 + 2);
-//      }"""
-//
-//    val executor = new Executor(code)
-//    executor.execute
-//    executor.stdout.headOption should equal (Some("3"))
-//  }
-//
-//  "A simple math expression with addition and two variables" should "print the correct results" in {
-//    val code = """
-//      void main() {
-//        int x = 4;
-//        int y = 3;
-//        printf("%d\n", x + y);
-//      }"""
-//
-//    val executor = new Executor(code)
-//    executor.execute
-//    executor.stdout.headOption should equal (Some("7"))
-//  }
-//
-//  "A simple math expression with addition, a variable, and a literal" should "print the correct results" in {
-//    val code = """
-//      void main() {
-//        int x = 4;
-//        printf("%d\n", x + 4);
-//      }"""
-//
-//    val executor = new Executor(code)
-//    executor.execute
-//    executor.stdout.headOption should equal (Some("8"))
-//  }
+  "A simple inlined math expression with addition" should "print the correct results" in {
+    val code = """
+      void main() {
+        printf("%d\n", 1 + 2);
+      }"""
 
-//  "A simple 3-literal math expression" should "print the correct results" in {
-//    val tUnit = AstUtils.getTranslationUnit("""
-//      void main() {
-//        int x = 1 + 2 + 3;
-//        printf("%d\n", x);
-//      }""")
-//
-//      val executor = new Executor
-//      executor.execute(tUnit)
-//      executor.stdout.head should equal ("6")
-//  }
-//  
-//  "A simple math expression with substraction" should "print the correct results" in {
-//    val tUnit = AstUtils.getTranslationUnit("""
-//      void main() {
-//        int x = 10 - 7;
-//        printf("%d\n", x);
-//      }""")
-//      
-//      val executor = new Executor
-//      executor.execute(tUnit)     
-//      executor.stdout.head should equal ("3")              
-//  }
-//  
-//  "A simple math expression with multiplication" should "print the correct results" in {
-//    val tUnit = AstUtils.getTranslationUnit("""
-//      void main() {
-//        int x = 10 * 7;
-//        printf("%d\n", x);
-//      }""")
-//      
-//      val executor = new Executor
-//      executor.execute(tUnit)     
-//      executor.stdout.head should equal ("70")              
-//  }
-//  
-//  "A simple math expression with division" should "print the correct results" in {
-//    val tUnit = AstUtils.getTranslationUnit("""
-//      void main() {
-//        int x = 27 / 3;
-//        printf("%d\n", x);
-//      }""")
-//      
-//      val executor = new Executor
-//      executor.execute(tUnit)     
-//      executor.stdout.head should equal ("9")              
-//  }
-//  
-//  "Order of operations test 1" should "print the correct results" in {
-//    val tUnit = AstUtils.getTranslationUnit("""
-//      void main() {
-//        int x = 1 * 2 + 3;
-//        printf("%d\n", x);
-//      }""")
-//      
-//      val executor = new Executor
-//      executor.execute(tUnit)     
-//      executor.stdout.head should equal ("5")              
-//  }
-//  
-//  "Order of operations test 2" should "print the correct results" in {
-//    val tUnit = AstUtils.getTranslationUnit("""
-//      void main() {
-//        int x = 1 + 2 * 3;
-//        printf("%d\n", x);
-//      }""")
-//      
-//      val executor = new Executor
-//      executor.execute(tUnit)     
-//      executor.stdout.head should equal ("7")              
-//  }
-//  
-//  "Order of operations test 3" should "print the correct results" in {
-//    val tUnit = AstUtils.getTranslationUnit("""
-//      void main() {
-//        int x = (1 + 2) * 3;
-//        printf("%d\n", x);
-//      }""")
-//      
-//      val executor = new Executor
-//      executor.execute(tUnit)     
-//      executor.stdout.head should equal ("9")              
-//  }
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("3"))
+  }
+
+  "A simple math expression with addition and two variables" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 4;
+        int y = 3;
+        printf("%d\n", x + y);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("7"))
+  }
+
+  "A simple math expression with addition, a variable, and a literal" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 4;
+        printf("%d\n", x + 4);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("8"))
+  }
+
+  "A simple 3-literal math expression" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 1 + 2 + 3;
+        printf("%d\n", x);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("6"))
+  }
+
+  "A simple math expression with substraction" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 10 - 7;
+        printf("%d\n", x);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("3"))
+  }
+
+  "A simple math expression with multiplication" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 10 * 7;
+        printf("%d\n", x);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("70"))
+  }
+
+  "A simple math expression with division" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 27 / 3;
+        printf("%d\n", x);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("9"))
+  }
+
+  "Order of operations test 1" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 1 * 2 + 3;
+        printf("%d\n", x);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("5"))
+  }
+
+  "Order of operations test 2" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 1 + 2 * 3;
+        printf("%d\n", x);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("7"))
+  }
+
+  "Order of operations test 3" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = (1 + 2) * 3;
+        printf("%d\n", x);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("9"))
+  }
 }
