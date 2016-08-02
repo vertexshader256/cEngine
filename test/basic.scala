@@ -54,11 +54,15 @@ class Executor(code: String) {
   val integerStack = new Stack[Int]()
   val variableMap = scala.collection.mutable.Map[String, IntPrimitive]()
 
+  var currentName = ""
+
   def step(path: Path) = {
 
     val direction = path.direction
 
     path.node match {
+      case id: IASTIdExpression =>
+        currentName = id.getName.getRawSignature
       case tUnit: IASTTranslationUnit =>
       case simple: IASTSimpleDeclaration =>
       case fcnDec: IASTFunctionDeclarator =>
@@ -105,26 +109,31 @@ class Executor(code: String) {
         }
       case binaryExpr: IASTBinaryExpression =>
 
-        val op1 = (binaryExpr.getOperand1 match {
-          case lit: IASTLiteralExpression => lit.getRawSignature.toInt
-          case id: IASTIdExpression => variableMap(id.getRawSignature).value.toInt
-        })
+        if (direction == Exiting || direction == Visiting) {
 
-        val op2 = binaryExpr.getOperand2 match {
-          case lit: IASTLiteralExpression => lit.getRawSignature.toInt
-          case id: IASTIdExpression => variableMap(id.getRawSignature).value.toInt
+          println("EVAL BIN")
+
+          val op1 = (binaryExpr.getOperand1 match {
+            case lit: IASTLiteralExpression => lit.getRawSignature.toInt
+            case id: IASTIdExpression => variableMap(id.getRawSignature).value.toInt
+          })
+
+          val op2 = binaryExpr.getOperand2 match {
+            case lit: IASTLiteralExpression => lit.getRawSignature.toInt
+            case id: IASTIdExpression => variableMap(id.getRawSignature).value.toInt
+          }
+
+          val result = binaryExpr.getOperator match {
+            case `op_multiply` =>
+              op1 * op2
+            case `op_plus` =>
+              op1 + op2
+            case `op_minus` =>
+              op1 - op2
+          }
+
+          integerStack.push(result)
         }
-
-        val result = binaryExpr.getOperator match {
-          case `op_multiply` =>
-            op1 * op2
-          case `op_plus` =>
-            op1 + op2
-          case `op_minus` =>
-            op1 - op2
-        }
-
-        integerStack.push(result)
     }
   }
 

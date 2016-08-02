@@ -61,23 +61,28 @@ object Utils {
   def getPath(tUnit: IASTTranslationUnit): Seq[Path] = {
 
     def getDescendants(node: IASTNode): Seq[IASTNode] = {
-      node.getChildren.filter{ child => !child.isInstanceOf[IASTIdExpression] }.flatMap(x => x +: getDescendants(x))
+      node.getChildren.flatMap(x => x +: getDescendants(x))
     }
 
     def recurse(node: IASTNode): Seq[Path] = {
-      val children = node.getChildren.filter{ child => !child.isInstanceOf[IASTIdExpression] }
+      val children = node.getChildren
       Seq(Path(node, Entering)) ++ children.flatMap { child =>
         val descendants = getDescendants(child)
-        if (descendants.size > 1) {
-          recurse(child) ++ Seq(Path(node, Exiting))
-        } else if (descendants.size == 1) {
+
+        if (descendants.size == child.getChildren.size && !child.getChildren.isEmpty) {
           Seq(Path(child, Visiting)) ++ Seq(Path(node, Exiting))
+        } else if (descendants.size > 1) {
+          recurse(child) ++ Seq(Path(node, Exiting))
         } else {
           Seq()
         }
       }
     }
 
-    recurse(tUnit)
+    val result = recurse(tUnit)
+
+    result.foreach(println)
+
+    result
   }
 }
