@@ -8,6 +8,13 @@ import org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage
 import org.eclipse.cdt.core.parser.{DefaultLogService, FileContent, IncludeFileContentProvider, ScannerInfo}
 import scala.collection.mutable.ListBuffer
 
+sealed trait Direction
+object Entering extends Direction
+object Exiting extends Direction
+object Visiting extends Direction
+
+case class Path(node: IASTNode, direction: Direction)
+
 object Utils {
 
   def parse(code: String, offset: Int): IASTCompletionNode = {
@@ -51,37 +58,47 @@ object Utils {
     GCCLanguage.getDefault().getASTTranslationUnit(fileContent, info, includes, null, opts, log)
   }
 
-  def getPath(tUnit: IASTTranslationUnit): Seq[IASTNode] = {
+  def getPath(tUnit: IASTTranslationUnit): Seq[Path] = {
 
-    val results = new ListBuffer[IASTNode]()
+    def getDescendants(node: IASTNode): Seq[IASTNode] = {
+      node.getChildren.filter{ child => !child.isInstanceOf[IASTIdExpression] }.flatMap(x => x +: getDescendants(x))
+    }
 
-    def recurse(node: IASTNode): Seq[IASTNode] = {
-      node.getChildren.flatMap { child =>
-        if (!child.isInstanceOf[IASTIdExpression]) {
-          val x = recurse(child)
-          if (!x.isEmpty) {
-            Seq(node) ++ recurse(child) ++ Seq(node)
-          } else {
-            Seq(node)
-          }
+    def recurse(node: IASTNode, isFirst: Boolean): Seq[Path] = {
+      val children = node.getChildren.filter{ child => !child.isInstanceOf[IASTIdExpression] }
+      Seq(Path(node, Entering)) ++ children.flatMap { child =>
+        val descendants = getDescendants(child)
+        if (descendants.size > 1) {
+          recurse(child, false) ++ Seq(Path(node, Exiting))
+        } else if (descendants.size == 1) {
+          Seq(Path(child, Visiting)) ++ Seq(Path(node, Exiting))
         } else {
-          Seq(node)
+          Seq()
         }
       }
     }
 
-    val crudeList = recurse(tUnit)
-    println(crudeList.size)
+    val crudePath = recurse(tUnit, true)
 
-    var lastItem: IASTNode = null
+    var lastItem: Path = null
 
-    crudeList.foreach{item =>
-      if (lastItem != item) {
-        results += item
-      }
-      lastItem = item
-    }
+    var skipNext = false
 
-    results
+//    val results = crudePath.zip(crudePath.tail) flatMap {
+//      case (left, right) if !skipNext =>
+//        if (left == right) {
+//          skipNext = true
+//          Some(Path(left.node, Visiting))
+//        } else {
+//          Some(left)
+//        }
+//      case _ =>
+//        skipNext = !skipNext
+//        None
+//    }
+
+    crudePath.foreach(println)
+
+    crudePath
   }
 }
