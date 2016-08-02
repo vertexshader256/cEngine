@@ -45,9 +45,8 @@ class Executor(code: String) {
   val integerStack = new Stack[Int]()
   val variableMap = scala.collection.mutable.Map[String, IntPrimitive]()
   val functionMap = scala.collection.mutable.Map[String, Int]()
-  var isRunningFunction = false
 
-  var functionReturnPoint: Int = 0
+  var functionReturnStack = new Stack[Int]()
 
   def step(current: Path, next: Path, wholePath: Seq[Path]) = {
 
@@ -67,9 +66,9 @@ class Executor(code: String) {
         }
       case fcnDef: IASTFunctionDefinition =>
         if (direction == Exiting) {
-          if (isRunningFunction) {
-            currentIndex = functionReturnPoint
-            isRunningFunction = false
+          if (!functionReturnStack.isEmpty) {
+            // We are exiting a function we're currently executing
+            currentIndex = functionReturnStack.pop
           }
         } else if (direction == Entering) {
           functionMap += (fcnDef.getDeclarator.getName.getRawSignature -> currentIndex)
@@ -95,10 +94,9 @@ class Executor(code: String) {
               stdout += variableMap(args(1).getRawSignature).value.toString
             }
           } else {
-            functionReturnPoint = currentIndex + 1
+            functionReturnStack.push(currentIndex + 1)
             currentIndex = functionMap(name)
             //println("JUMPING TO: " + currentIndex)
-            isRunningFunction = true
           }
         }
       case lit: IASTLiteralExpression =>
@@ -423,23 +421,23 @@ class BasicTest extends FlatSpec with ShouldMatchers {
     executor.stdout.headOption should equal (Some("11"))
   }
 
-//  "triple nested function calls" should "print the correct results" in {
-//    val code = """
-//      int x = 5;
-//      void test2() {
-//        x = 10;
-//      }
-//      void test() {
-//        test2();
-//        x = x + 5;
-//      }
-//      void main() {
-//        test();
-//        printf("%d\n", x);
-//      }"""
-//
-//    val executor = new Executor(code)
-//    executor.execute
-//    executor.stdout.headOption should equal (Some("15"))
-//  }
+  "chained function calls" should "print the correct results" in {
+    val code = """
+      int x = 5;
+      void test2() {
+        x = 10;
+      }
+      void test() {
+        test2();
+        x = x + 5;
+      }
+      void main() {
+        test();
+        printf("%d\n", x);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("15"))
+  }
 }
