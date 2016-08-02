@@ -33,28 +33,15 @@ class Scope(outerScope: Scope) {
 class Executor(code: String) {
 
   val tUnit = Utils.getTranslationUnit(code)
-  val functions = Utils.findFunctions(tUnit)
-  val main = functions.filter{fcn => fcn.getDeclarator.getName.getRawSignature == "main"}.head
 
   val stdout = new ListBuffer[String]()
-  
-  var nestingLevel = 0
-  var inFunction = false
-  var inFunctionCall = false
-  var functionBeingCalled = ""
-
   var currentScope: IScope = tUnit.getScope
-  var isLeavingNode = false
 
- // var main: IASTFunctionDefinition = null
   val globalScope = new Scope(null)
-
   val path = Utils.getPath(tUnit)
 
   val integerStack = new Stack[Int]()
   val variableMap = scala.collection.mutable.Map[String, IntPrimitive]()
-
-  var currentName = ""
 
   def step(path: Path) = {
 
@@ -63,14 +50,13 @@ class Executor(code: String) {
     path.node match {
       case unary: IASTUnaryExpression =>
       case id: IASTIdExpression =>
-        currentName = id.getName.getRawSignature
       case tUnit: IASTTranslationUnit =>
       case simple: IASTSimpleDeclaration =>
       case fcnDec: IASTFunctionDeclarator =>
       case decl: IASTDeclarator =>
         if (direction == Exiting) {
           val value = integerStack.pop
-          println("ADDING VAR: " + decl.getName.getRawSignature + ", " + value)
+          //println("ADDING VAR: " + decl.getName.getRawSignature + ", " + value)
           variableMap += (decl.getName.getRawSignature -> IntPrimitive(decl.getName.getRawSignature, value))
         }
       case fcnDef: IASTFunctionDefinition =>
@@ -78,7 +64,7 @@ class Executor(code: String) {
       case call: IASTFunctionCallExpression =>
 
         // only evaluate after leaving
-        if (direction == Exiting || call.getArguments()(1).isInstanceOf[IASTLiteralExpression] || call.getArguments()(1).isInstanceOf[IASTIdExpression]) {
+        if (direction == Exiting) {
           val name = call.getFunctionNameExpression.getRawSignature
           val args = call.getArguments
 
@@ -96,8 +82,6 @@ class Executor(code: String) {
             }
           }
         }
-
-
       case lit: IASTLiteralExpression =>
       case decl: IASTDeclarationStatement =>
       case compound: IASTCompoundStatement =>
@@ -106,13 +90,11 @@ class Executor(code: String) {
         equalsInit.getInitializerClause match {
           case lit: IASTLiteralExpression =>
             integerStack.push(lit.getRawSignature.toInt)
-          case _ =>
+          case _ => // dont do anything
         }
       case binaryExpr: IASTBinaryExpression =>
 
         if (direction == Exiting || direction == Visiting) {
-
-          println("EVAL BIN")
 
           val op1 = (binaryExpr.getOperand1 match {
             case lit: IASTLiteralExpression => lit.getRawSignature.toInt
@@ -128,18 +110,18 @@ class Executor(code: String) {
             case bin: IASTUnaryExpression => integerStack.pop
           }
 
-          val result = binaryExpr.getOperator match {
+          binaryExpr.getOperator match {
             case `op_multiply` =>
-              op1 * op2
+              integerStack.push(op1 * op2)
             case `op_plus` =>
-              op1 + op2
+              integerStack.push(op1 + op2)
             case `op_minus` =>
-              op1 - op2
+              integerStack.push(op1 - op2)
             case `op_divide` =>
-              op1 / op2
+              integerStack.push(op1 / op2)
+            case `op_assign` =>
+              variableMap += (binaryExpr.getOperand1.getRawSignature -> IntPrimitive(binaryExpr.getOperand1.getRawSignature, op2))
           }
-
-          integerStack.push(result)
         }
     }
   }
@@ -151,13 +133,6 @@ class Executor(code: String) {
 }
 
 class BasicTest extends FlatSpec with ShouldMatchers {
-
-  def resolveDeclStatement(statement: CASTDeclarationStatement) = {
-    statement.getDeclaration match {
-      case simple: CASTSimpleDeclaration =>
-        
-    }
-  }
 
   "Hello world" should "print the correct results" in {
     val code = """
@@ -351,5 +326,32 @@ class BasicTest extends FlatSpec with ShouldMatchers {
     val executor = new Executor(code)
     executor.execute
     executor.stdout.headOption should equal (Some("9"))
+  }
+
+  "A simple local variable reassignment" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 10;
+        x = 5;
+        printf("%d\n", x);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("5"))
+  }
+
+  "A more complex local variable reassignment" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 10;
+        int y = 3;
+        x = 5 * y;
+        printf("%d\n", x);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("15"))
   }
 }
