@@ -157,16 +157,16 @@ class BasicTest extends FlatSpec with ShouldMatchers {
     }
   }
 
-//  "Hello world" should "print the correct results" in {
-//    val code = """
-//      void main() {
-//        printf("%s\n", "Hello world!");
-//      }"""
-//
-//    val executor = new Executor(code)
-//    executor.execute
-//    executor.stdout.headOption should equal (Some("Hello world!"))
-//  }
+  "Hello world" should "print the correct results" in {
+    val code = """
+      void main() {
+        printf("%s\n", "Hello world!");
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("Hello world!"))
+  }
 
   "A simple integer global reference" should "print the correct results" in {
     val code = """
@@ -179,44 +179,44 @@ class BasicTest extends FlatSpec with ShouldMatchers {
     executor.execute
     executor.stdout.headOption should equal (Some("1"))
   }
-//
-//  "A simple function-scoped integer reference" should "print the correct results" in {
-//    val code = """
-//      void main() {
-//        int x = 1;
-//        printf("%d\n", x);
-//      }"""
-//
-//    val executor = new Executor(code)
-//    executor.execute
-//    executor.stdout.headOption should equal (Some("1"))
-//  }
-//
-//  "A simple math expression with addition and one inner var" should "print the correct results" in {
-//    val code = """
-//      void main() {
-//        int x = 1 + 2;
-//        printf("%d\n", x);
-//      }"""
-//
-//    val executor = new Executor(code)
-//    executor.execute
-//    executor.stdout.headOption should equal (Some("3"))
-//  }
-//
-//  "A simple math expression with addition and one global var" should "print the correct results" in {
-//    val code = """
-//      int x = 1 + 2;
-//
-//      void main() {
-//        printf("%d\n", x);
-//      }"""
-//
-//    val executor = new Executor(code)
-//    executor.execute
-//    executor.stdout.headOption should equal (Some("3"))
-//  }
-//
+
+  "A simple function-scoped integer reference" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 1;
+        printf("%d\n", x);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("1"))
+  }
+
+  "A simple math expression with addition and one inner var" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 1 + 2;
+        printf("%d\n", x);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("3"))
+  }
+
+  "A simple math expression with addition and one global var" should "print the correct results" in {
+    val code = """
+      int x = 1 + 2;
+
+      void main() {
+        printf("%d\n", x);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("3"))
+  }
+
 //  "A simple math expression with addition and two global vars" should "print the correct results" in {
 //    val code = """
 //      int x = 1 + 2;

@@ -78,27 +78,6 @@ object Utils {
       }
     }
 
-    val crudePath = recurse(tUnit, true)
-
-    var lastItem: Path = null
-
-    var skipNext = false
-
-//    val results = crudePath.zip(crudePath.tail) flatMap {
-//      case (left, right) if !skipNext =>
-//        if (left == right) {
-//          skipNext = true
-//          Some(Path(left.node, Visiting))
-//        } else {
-//          Some(left)
-//        }
-//      case _ =>
-//        skipNext = !skipNext
-//        None
-//    }
-
-    crudePath.foreach(println)
-
-    crudePath
+    recurse(tUnit, true)
   }
 }
