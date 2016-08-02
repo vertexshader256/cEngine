@@ -36,18 +36,24 @@ class Executor(code: String) {
 
   val stdout = new ListBuffer[String]()
   var currentScope: IScope = tUnit.getScope
+  var currentNode: IASTNode = null
+  var currentIndex = 0
 
   val globalScope = new Scope(null)
   val path = Utils.getPath(tUnit)
 
   val integerStack = new Stack[Int]()
   val variableMap = scala.collection.mutable.Map[String, IntPrimitive]()
+  val functionMap = scala.collection.mutable.Map[String, Int]()
+  var isRunningFunction = false
 
-  def step(path: Path) = {
+  var functionReturnPoint: Int = 0
 
-    val direction = path.direction
+  def step(current: Path, next: Path, wholePath: Seq[Path]) = {
 
-    path.node match {
+    val direction = current.direction
+
+    current.node match {
       case unary: IASTUnaryExpression =>
       case id: IASTIdExpression =>
       case tUnit: IASTTranslationUnit =>
@@ -60,6 +66,14 @@ class Executor(code: String) {
           variableMap += (decl.getName.getRawSignature -> IntPrimitive(decl.getName.getRawSignature, value))
         }
       case fcnDef: IASTFunctionDefinition =>
+        if (direction == Exiting) {
+          if (isRunningFunction) {
+            currentIndex = functionReturnPoint
+            isRunningFunction = false
+          }
+        } else if (direction == Entering) {
+          functionMap += (fcnDef.getDeclarator.getName.getRawSignature -> currentIndex)
+        }
       case decl: IASTSimpleDeclaration =>
       case call: IASTFunctionCallExpression =>
 
@@ -80,6 +94,11 @@ class Executor(code: String) {
               // the argument is just a variable reference
               stdout += variableMap(args(1).getRawSignature).value.toString
             }
+          } else {
+            functionReturnPoint = currentIndex + 1
+            currentIndex = functionMap(name)
+            //println("JUMPING TO: " + currentIndex)
+            isRunningFunction = true
           }
         }
       case lit: IASTLiteralExpression =>
@@ -128,7 +147,23 @@ class Executor(code: String) {
 
   def execute = {
     //path.foreach{ node => println(node.getClass.getSimpleName)}
-    path.foreach{ node => step(node)}
+
+
+
+    var isDone = false
+    var currentNode = path.head.node
+
+    while (!isDone) {
+      if (currentIndex == path.size - 1) {
+        step(path(currentIndex), null, path)
+        currentIndex += 1
+      } else if (currentIndex == path.size) {
+        isDone = true
+      } else {
+        step(path(currentIndex), path(currentIndex + 1), path)
+        currentIndex += 1
+      }
+    }
   }
 }
 
@@ -354,4 +389,57 @@ class BasicTest extends FlatSpec with ShouldMatchers {
     executor.execute
     executor.stdout.headOption should equal (Some("15"))
   }
+
+  "A simple function call" should "print the correct results" in {
+    val code = """
+      int x = 5;
+      void test() {
+        x = 10;
+      }
+      void main() {
+        test();
+        printf("%d\n", x);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("10"))
+  }
+
+  "A simple function call testing return point" should "print the correct results" in {
+    val code = """
+      int x = 5;
+      void test() {
+        x = 10;
+      }
+      void main() {
+        test();
+        x = x + 1;
+        printf("%d\n", x);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("11"))
+  }
+
+//  "triple nested function calls" should "print the correct results" in {
+//    val code = """
+//      int x = 5;
+//      void test2() {
+//        x = 10;
+//      }
+//      void test() {
+//        test2();
+//        x = x + 5;
+//      }
+//      void main() {
+//        test();
+//        printf("%d\n", x);
+//      }"""
+//
+//    val executor = new Executor(code)
+//    executor.execute
+//    executor.stdout.headOption should equal (Some("15"))
+//  }
 }
