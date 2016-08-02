@@ -212,19 +212,19 @@ class BasicTest extends FlatSpec with ShouldMatchers {
     executor.stdout.headOption should equal (Some("3"))
   }
 
-//  "A simple math expression with addition and two global vars" should "print the correct results" in {
-//    val code = """
-//      int x = 1 + 2;
-//      int y = 5 - 3;
-//
-//      void main() {
-//        printf("%d\n", x * y);
-//      }"""
-//
-//    val executor = new Executor(code)
-//    executor.execute
-//    executor.stdout.headOption should equal (Some("6"))
-//  }
+  "A simple math expression with addition and two global vars" should "print the correct results" in {
+    val code = """
+      int x = 1 + 2;
+      int y = 5 - 3;
+
+      void main() {
+        printf("%d\n", x * y);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("6"))
+  }
 
 //  "A simple inlined math expression with addition" should "print the correct results" in {
 //    val code = """

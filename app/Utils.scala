@@ -70,13 +70,13 @@ object Utils {
         val descendants = getDescendants(child)
 
         if (descendants.size == child.getChildren.size && !child.getChildren.isEmpty) {
-          Seq(Path(child, Visiting)) ++ Seq(Path(node, Exiting))
+          Seq(Path(child, Visiting))
         } else if (descendants.size > 1) {
-          recurse(child) ++ Seq(Path(node, Exiting))
+          recurse(child)
         } else {
           Seq()
         }
-      }
+      }++ Seq(Path(node, Exiting))
     }
 
     val result = recurse(tUnit)
