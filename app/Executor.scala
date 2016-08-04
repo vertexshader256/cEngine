@@ -43,6 +43,7 @@ class Executor(code: String) {
 
   var isRunning = false
   var isDone = false
+  var isVarInitialized = false
 
   def prestep(current: Path, next: Path, wholePath: Seq[Path]): Unit = {
 
@@ -54,13 +55,21 @@ class Executor(code: String) {
           functionMap += (fcnDef.getDeclarator.getName.getRawSignature -> currentPath)
           jumpToExit()
         }
+      case fcnDecl: IASTFunctionDeclarator =>
       case decl: IASTDeclarator =>
-        if (direction == Exiting) {
-          // find any globals
-          val value = integerStack.pop
+        if (direction == Exiting || direction == Visiting) {
+          var value = 0 // init to zero
+          if (isVarInitialized) {
+            value = integerStack.pop
+          }
+          //println("ADDING GLOBAL VAR: " + decl.getName.getRawSignature + ", " + value)
           variableMap += (decl.getName.getRawSignature -> IntPrimitive(decl.getName.getRawSignature, value))
+        } else {
+          isVarInitialized = false
         }
       case equalsInit: IASTEqualsInitializer =>
+        isVarInitialized = true
+
         equalsInit.getInitializerClause match {
           case lit: IASTLiteralExpression =>
             integerStack.push(lit.getRawSignature.toInt)
@@ -79,7 +88,8 @@ class Executor(code: String) {
     current.node match {
       case param: IASTParameterDeclaration =>
         if (direction == Exiting) {
-          functionArgumentMap += (param.getDeclarator.getName.getRawSignature -> integerStack.pop)
+          val arg = integerStack.pop
+          functionArgumentMap += (param.getDeclarator.getName.getRawSignature -> arg)
         }
       case unary: IASTUnaryExpression =>
       case id: IASTIdExpression =>
@@ -93,10 +103,15 @@ class Executor(code: String) {
           case _ =>
         }
       case decl: IASTDeclarator =>
-        if (direction == Exiting) {
-          val value = integerStack.pop
+        if ((direction == Exiting || direction == Visiting) && !decl.getParent.isInstanceOf[IASTParameterDeclaration]) {
+          var value = 0 // init to zero
+          if (isVarInitialized) {
+            value = integerStack.pop
+          }
           //println("ADDING VAR: " + decl.getName.getRawSignature + ", " + value)
           variableMap += (decl.getName.getRawSignature -> IntPrimitive(decl.getName.getRawSignature, value))
+        } else {
+          isVarInitialized = false
         }
       case fcnDef: IASTFunctionDefinition =>
         if (direction == Exiting) {
@@ -151,6 +166,7 @@ class Executor(code: String) {
       case compound: IASTCompoundStatement =>
       case exprStatement: IASTExpressionStatement =>
       case equalsInit: IASTEqualsInitializer =>
+        isVarInitialized = true
         equalsInit.getInitializerClause match {
           case lit: IASTLiteralExpression =>
             integerStack.push(lit.getRawSignature.toInt)

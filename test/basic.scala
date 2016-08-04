@@ -21,7 +21,7 @@ class BasicTest extends FlatSpec with ShouldMatchers {
     executor.stdout.headOption should equal (Some("Hello world!"))
   }
 
-  "A simple integer global reference" should "print the correct results" in {
+  "A simple integer initialized global reference" should "print the correct results" in {
     val code = """
       int x = 1;
       void main() {
@@ -31,6 +31,33 @@ class BasicTest extends FlatSpec with ShouldMatchers {
     val executor = new Executor(code)
     executor.execute
     executor.stdout.headOption should equal (Some("1"))
+  }
+
+  "A simple integer uninitialized global reference" should "print the correct results" in {
+    val code = """
+      int x;
+
+      void main() {
+        x = 2;
+        printf("%d\n", x);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("2"))
+  }
+
+  "A simple integer uninitialized local reference" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x;
+        x = 2;
+        printf("%d\n", x);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("2"))
   }
 
   "A simple function-scoped integer reference" should "print the correct results" in {
