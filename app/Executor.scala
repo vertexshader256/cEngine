@@ -44,12 +44,14 @@ class Executor(code: String) {
   var isRunning = false
   var isDone = false
   var isVarInitialized = false
+  var arraySize = 0
 
   def prestep(current: Path, next: Path, wholePath: Seq[Path]): Unit = {
 
     val direction = current.direction
 
     current.node match {
+      case array: IASTArrayModifier =>
       case fcnDef: IASTFunctionDefinition =>
         if (direction == Entering) {
           functionMap += (fcnDef.getDeclarator.getName.getRawSignature -> currentPath)
@@ -88,6 +90,8 @@ class Executor(code: String) {
     current.node match {
       case subscript: IASTArraySubscriptExpression =>
       case array: IASTArrayModifier =>
+        arraySize = array.getConstantExpression.getRawSignature.toInt
+        println("MOD")
       case param: IASTParameterDeclaration =>
         if (direction == Exiting) {
           val arg = integerStack.pop
@@ -110,9 +114,15 @@ class Executor(code: String) {
           if (isVarInitialized) {
             value = integerStack.pop
           }
-          //println("ADDING VAR: " + decl.getName.getRawSignature + ", " + value)
-          variableMap += (decl.getName.getRawSignature -> value)
+          if (arraySize > 0) {
+            println("adding array")
+            variableMap += (decl.getName.getRawSignature -> Array.fill(arraySize)(0))
+          } else {
+            //println("ADDING GLOBAL VAR: " + decl.getName.getRawSignature + ", " + value)
+            variableMap += (decl.getName.getRawSignature -> value)
+          }
         } else {
+          arraySize = 0
           isVarInitialized = false
         }
       case fcnDef: IASTFunctionDefinition =>
@@ -197,6 +207,8 @@ class Executor(code: String) {
             functionArgumentMap(id.getRawSignature)
           }
         }
+        case sub: IASTArraySubscriptExpression =>
+          variableMap(sub.getArrayExpression.getRawSignature).asInstanceOf[Array[_]](sub.getArgument.getRawSignature.toInt).asInstanceOf[Int]
         case bin: IASTBinaryExpression => integerStack.pop
         case bin: IASTUnaryExpression => integerStack.pop
         case fcn: IASTFunctionCallExpression => integerStack.pop
@@ -211,6 +223,8 @@ class Executor(code: String) {
             functionArgumentMap(id.getRawSignature)
           }
         }
+        case sub: IASTArraySubscriptExpression =>
+          variableMap(sub.getArrayExpression.getRawSignature).asInstanceOf[Array[_]](sub.getArgument.getRawSignature.toInt).asInstanceOf[Int]
         case bin: IASTBinaryExpression => integerStack.pop
         case bin: IASTUnaryExpression => integerStack.pop
         case fcn: IASTFunctionCallExpression => integerStack.pop
