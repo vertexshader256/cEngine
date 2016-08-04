@@ -41,17 +41,34 @@ class FunctionTest extends FlatSpec with ShouldMatchers {
     executor.stdout.headOption should equal (Some("15"))
   }
 
-//  "a function with a return value" should "print the correct results" in {
-//    val code = """
-//      int test() {
-//        return 10;
-//      }
-//      void main() {
-//        printf("%d\n", test());
-//      }"""
-//
-//    val executor = new Executor(code)
-//    executor.execute
-//    executor.stdout.headOption should equal (Some("10"))
-//  }
+  "a function with a return value" should "print the correct results" in {
+    val code = """
+      int test() {
+        return 10;
+      }
+      void main() {
+        printf("%d\n", test());
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("10"))
+  }
+
+  "chained return value" should "print the correct results" in {
+    val code = """
+      int test() {
+        return 8;
+      }
+      int test2() {
+        return test();
+      }
+      void main() {
+        printf("%d\n", test2());
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("8"))
+  }
 }

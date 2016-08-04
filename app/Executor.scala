@@ -82,14 +82,17 @@ class Executor(code: String) {
 
         // only evaluate after leaving
         if (direction == Exiting) {
-          val name = call.getFunctionNameExpression.getRawSignature
+          val name = call.getFunctionNameExpression match {
+            case x: IASTIdExpression => x.getName.getRawSignature
+            case _ => "Error"
+          }
           val args = call.getArguments
 
           if (name == "printf") {
             val secondArg = args(1).getRawSignature
             if (secondArg.head == '\"' || secondArg.last == '\"') {
               stdout += args(1).getRawSignature.tail.reverse.tail.reverse
-            } else if (args(1).isInstanceOf[IASTBinaryExpression]) {
+            } else if (args(1).isInstanceOf[IASTBinaryExpression] || args(1).isInstanceOf[IASTFunctionCallExpression]) {
               // the argument is an expression
 
               stdout += integerStack.pop.toString
@@ -98,7 +101,7 @@ class Executor(code: String) {
               stdout += variableMap(args(1).getRawSignature).value.toString
             }
           } else {
-            functionReturnStack.push(currentIndex + 1)
+            functionReturnStack.push(currentIndex)
             currentIndex = functionMap(name)
             //println("JUMPING TO: " + currentIndex)
           }
