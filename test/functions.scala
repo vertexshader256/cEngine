@@ -4,6 +4,25 @@ import org.scalatest._
 
 class FunctionTest extends FlatSpec with ShouldMatchers {
 
+//  "A function prototype" should "print the correct results" in {
+//    val code = """
+//      int x = 5;
+//      void test();
+//
+//      void main() {
+//        test();
+//        x = x + 1;
+//        printf("%d\n", x);
+//      }
+//      void test() {
+//         x = 10;
+//      }"""
+//
+//    val executor = new Executor(code)
+//    executor.execute
+//    executor.stdout.headOption should equal (Some("11"))
+//  }
+
   "A simple function call testing return point" should "print the correct results" in {
     val code = """
       int x = 5;
@@ -98,5 +117,19 @@ class FunctionTest extends FlatSpec with ShouldMatchers {
     val executor = new Executor(code)
     executor.execute
     executor.stdout.headOption should equal (Some("25"))
+  }
+
+  "a function with two arguments" should "print the correct results" in {
+    val code = """
+      int add(int x, int y) {
+        return x + y;
+      }
+      void main() {
+        printf("%d\n", add(13, 26));
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("39"))
   }
 }

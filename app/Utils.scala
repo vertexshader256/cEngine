@@ -13,7 +13,7 @@ object Entering extends Direction
 object Exiting extends Direction
 object Visiting extends Direction
 
-case class Path(node: IASTNode, direction: Direction)
+case class Path(node: IASTNode, direction: Direction, index: Int)
 
 object Utils {
 
@@ -60,23 +60,32 @@ object Utils {
 
   def getPath(tUnit: IASTTranslationUnit): Seq[Path] = {
 
+    var index = 0
+
     def getDescendants(node: IASTNode): Seq[IASTNode] = {
       node.getChildren.flatMap(x => x +: getDescendants(x))
     }
 
     def recurse(node: IASTNode): Seq[Path] = {
       val children = node.getChildren
-      Seq(Path(node, Entering)) ++ children.flatMap { child =>
+
+      val start = Seq(Path(node, Entering, index))
+      index += 1
+      val result = start ++ children.flatMap { child =>
         val descendants = getDescendants(child)
 
         if (descendants.size == child.getChildren.size && !child.getChildren.isEmpty) {
-          Seq(Path(child, Visiting))
+          val node = Seq(Path(child, Visiting, index))
+          index += 1
+          node
         } else if (descendants.size > 1) {
           recurse(child)
         } else {
           Seq()
         }
-      }++ Seq(Path(node, Exiting))
+      } ++ Seq(Path(node, Exiting, index))
+      index += 1
+      result
     }
 
     val result = recurse(tUnit)
