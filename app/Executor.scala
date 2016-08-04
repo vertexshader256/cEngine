@@ -34,7 +34,7 @@ class Executor(code: String) {
   val path = Utils.getPath(tUnit)
 
   val integerStack = new Stack[Int]()
-  val variableMap = scala.collection.mutable.Map[String, IntPrimitive]()
+  val variableMap = scala.collection.mutable.Map[String, Any]()
   val functionMap = scala.collection.mutable.Map[String, Path]()
 
   var functionReturnStack = new Stack[Path]()
@@ -63,7 +63,7 @@ class Executor(code: String) {
             value = integerStack.pop
           }
           //println("ADDING GLOBAL VAR: " + decl.getName.getRawSignature + ", " + value)
-          variableMap += (decl.getName.getRawSignature -> IntPrimitive(decl.getName.getRawSignature, value))
+          variableMap += (decl.getName.getRawSignature -> value)
         } else {
           isVarInitialized = false
         }
@@ -86,6 +86,8 @@ class Executor(code: String) {
     val direction = current.direction
 
     current.node match {
+      case subscript: IASTArraySubscriptExpression =>
+      case array: IASTArrayModifier =>
       case param: IASTParameterDeclaration =>
         if (direction == Exiting) {
           val arg = integerStack.pop
@@ -109,7 +111,7 @@ class Executor(code: String) {
             value = integerStack.pop
           }
           //println("ADDING VAR: " + decl.getName.getRawSignature + ", " + value)
-          variableMap += (decl.getName.getRawSignature -> IntPrimitive(decl.getName.getRawSignature, value))
+          variableMap += (decl.getName.getRawSignature -> value)
         } else {
           isVarInitialized = false
         }
@@ -150,7 +152,7 @@ class Executor(code: String) {
               stdout += integerStack.pop.toString
             } else {
               // the argument is just a variable reference
-              stdout += variableMap(args(1).getRawSignature).value.toString
+              stdout += variableMap(args(1).getRawSignature).asInstanceOf[Int].toString
             }
           } else {
             functionReturnStack.push(currentPath)
@@ -190,7 +192,7 @@ class Executor(code: String) {
         case lit: IASTLiteralExpression => lit.getRawSignature.toInt
         case id: IASTIdExpression => {
           if (variableMap.contains(id.getRawSignature)) {
-            variableMap(id.getRawSignature).value.toInt
+            variableMap(id.getRawSignature).asInstanceOf[Int]
           } else {
             functionArgumentMap(id.getRawSignature)
           }
@@ -204,7 +206,7 @@ class Executor(code: String) {
         case lit: IASTLiteralExpression => lit.getRawSignature.toInt
         case id: IASTIdExpression => {
           if (variableMap.contains(id.getRawSignature)) {
-            variableMap(id.getRawSignature).value.toInt
+            variableMap(id.getRawSignature).asInstanceOf[Int]
           } else {
             functionArgumentMap(id.getRawSignature)
           }
@@ -224,7 +226,7 @@ class Executor(code: String) {
         case `op_divide` =>
           integerStack.push(op1 / op2)
         case `op_assign` =>
-          variableMap += (binaryExpr.getOperand1.getRawSignature -> IntPrimitive(binaryExpr.getOperand1.getRawSignature, op2))
+          variableMap += (binaryExpr.getOperand1.getRawSignature -> op2)
       }
     }
   }
