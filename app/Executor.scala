@@ -40,6 +40,8 @@ class Executor(code: String) {
 
   var functionReturnStack = new Stack[Int]()
 
+  val functionArgumentMap = scala.collection.mutable.Map[String, Int]()
+
   var isRunning = false
 
   def step(current: Path, next: Path, wholePath: Seq[Path]) = {
@@ -47,6 +49,10 @@ class Executor(code: String) {
     val direction = current.direction
 
     current.node match {
+      case param: IASTParameterDeclaration =>
+        if (direction == Exiting) {
+          functionArgumentMap += (param.getDeclarator.getName.getRawSignature -> integerStack.pop)
+        }
       case unary: IASTUnaryExpression =>
       case id: IASTIdExpression =>
       case tUnit: IASTTranslationUnit =>
@@ -69,6 +75,7 @@ class Executor(code: String) {
           if (!functionReturnStack.isEmpty) {
             // We are exiting a function we're currently executing
             currentIndex = functionReturnStack.pop
+            functionArgumentMap.clear
           }
         } else if (direction == Entering) {
           functionMap += (fcnDef.getDeclarator.getName.getRawSignature -> currentIndex)
@@ -94,7 +101,6 @@ class Executor(code: String) {
               stdout += args(1).getRawSignature.tail.reverse.tail.reverse
             } else if (args(1).isInstanceOf[IASTBinaryExpression] || args(1).isInstanceOf[IASTFunctionCallExpression]) {
               // the argument is an expression
-
               stdout += integerStack.pop.toString
             } else {
               // the argument is just a variable reference
@@ -103,7 +109,10 @@ class Executor(code: String) {
           } else {
             functionReturnStack.push(currentIndex)
             currentIndex = functionMap(name)
-            //println("JUMPING TO: " + currentIndex)
+
+            args.foreach{ arg =>
+              integerStack.push(arg.getRawSignature.toInt)
+            }
           }
         }
       case lit: IASTLiteralExpression =>
@@ -122,14 +131,26 @@ class Executor(code: String) {
 
           val op1 = (binaryExpr.getOperand1 match {
             case lit: IASTLiteralExpression => lit.getRawSignature.toInt
-            case id: IASTIdExpression => variableMap(id.getRawSignature).value.toInt
+            case id: IASTIdExpression => {
+              if (variableMap.contains(id.getRawSignature)) {
+                variableMap(id.getRawSignature).value.toInt
+              } else {
+                functionArgumentMap(id.getRawSignature)
+              }
+            }
             case bin: IASTBinaryExpression => integerStack.pop
             case bin: IASTUnaryExpression => integerStack.pop
           })
 
           val op2 = binaryExpr.getOperand2 match {
             case lit: IASTLiteralExpression => lit.getRawSignature.toInt
-            case id: IASTIdExpression => variableMap(id.getRawSignature).value.toInt
+            case id: IASTIdExpression => {
+              if (variableMap.contains(id.getRawSignature)) {
+                variableMap(id.getRawSignature).value.toInt
+              } else {
+                functionArgumentMap(id.getRawSignature)
+              }
+            }
             case bin: IASTBinaryExpression => integerStack.pop
             case bin: IASTUnaryExpression => integerStack.pop
           }
