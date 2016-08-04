@@ -195,40 +195,29 @@ class Executor(code: String) {
     }
   }
 
+  def parseBinaryOperand(op: IASTExpression) = {
+    op match {
+      case lit: IASTLiteralExpression => lit.getRawSignature.toInt
+      case id: IASTIdExpression => {
+        if (variableMap.contains(id.getRawSignature)) {
+          variableMap(id.getRawSignature).asInstanceOf[Int]
+        } else {
+          functionArgumentMap(id.getRawSignature)
+        }
+      }
+      case sub: IASTArraySubscriptExpression =>
+        variableMap(sub.getArrayExpression.getRawSignature).asInstanceOf[Array[_]](sub.getArgument.getRawSignature.toInt).asInstanceOf[Int]
+      case bin: IASTBinaryExpression => integerStack.pop
+      case bin: IASTUnaryExpression => integerStack.pop
+      case fcn: IASTFunctionCallExpression => integerStack.pop
+    }
+  }
+
   def parseBinaryExpr(binaryExpr: IASTBinaryExpression, direction: Direction) = {
     if (direction == Exiting || direction == Visiting) {
 
-      val op1 = (binaryExpr.getOperand1 match {
-        case lit: IASTLiteralExpression => lit.getRawSignature.toInt
-        case id: IASTIdExpression => {
-          if (variableMap.contains(id.getRawSignature)) {
-            variableMap(id.getRawSignature).asInstanceOf[Int]
-          } else {
-            functionArgumentMap(id.getRawSignature)
-          }
-        }
-        case sub: IASTArraySubscriptExpression =>
-          variableMap(sub.getArrayExpression.getRawSignature).asInstanceOf[Array[_]](sub.getArgument.getRawSignature.toInt).asInstanceOf[Int]
-        case bin: IASTBinaryExpression => integerStack.pop
-        case bin: IASTUnaryExpression => integerStack.pop
-        case fcn: IASTFunctionCallExpression => integerStack.pop
-      })
-
-      val op2 = binaryExpr.getOperand2 match {
-        case lit: IASTLiteralExpression => lit.getRawSignature.toInt
-        case id: IASTIdExpression => {
-          if (variableMap.contains(id.getRawSignature)) {
-            variableMap(id.getRawSignature).asInstanceOf[Int]
-          } else {
-            functionArgumentMap(id.getRawSignature)
-          }
-        }
-        case sub: IASTArraySubscriptExpression =>
-          variableMap(sub.getArrayExpression.getRawSignature).asInstanceOf[Array[_]](sub.getArgument.getRawSignature.toInt).asInstanceOf[Int]
-        case bin: IASTBinaryExpression => integerStack.pop
-        case bin: IASTUnaryExpression => integerStack.pop
-        case fcn: IASTFunctionCallExpression => integerStack.pop
-      }
+      val op1 = parseBinaryOperand(binaryExpr.getOperand1)
+      val op2 = parseBinaryOperand(binaryExpr.getOperand2)
 
       binaryExpr.getOperator match {
         case `op_multiply` =>
