@@ -147,17 +147,41 @@ class FunctionTest extends FlatSpec with ShouldMatchers {
     executor.stdout.headOption should equal (Some("29"))
   }
 
-//  "a chained function with two arguments" should "print the correct results" in {
-//    val code = """
-//      int add(int x, int y) {
-//        return x + y;
-//      }
-//      void main() {
-//        printf("%d\n", add(13, add(1, 5)));
-//      }"""
-//
-//    val executor = new Executor(code)
-//    executor.execute
-//    executor.stdout.headOption should equal (Some("19"))
-//  }
+  "a chained function with two arguments" should "print the correct results" in {
+    val code = """
+      int add(int x, int y) {
+        return x + y;
+      }
+      void main() {
+        printf("%d\n", add(13, add(1, 5)));
+      }"""
+
+    var executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("19"))
+
+    val code2 = """
+      int add(int x, int y) {
+        return x + y;
+      }
+      void main() {
+        printf("%d\n", add(add(1, 5), 13));
+      }"""
+
+    executor = new Executor(code2)
+    executor.execute
+    executor.stdout.headOption should equal (Some("19"))
+
+    val code3 = """
+      int add(int x, int y) {
+        return x + y;
+      }
+      void main() {
+        printf("%d\n", add(add(1, add(3, 2)), add(add(5, 5), 3)));
+      }"""
+
+    executor = new Executor(code3)
+    executor.execute
+    executor.stdout.headOption should equal (Some("19"))
+  }
 }

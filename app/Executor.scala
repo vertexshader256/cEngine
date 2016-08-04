@@ -157,7 +157,12 @@ class Executor(code: String) {
             currentPath = functionMap(name)
 
             args.foreach{ arg =>
-              integerStack.push(arg.getRawSignature.toInt)
+              arg match {
+                case x: IASTLiteralExpression =>
+                  integerStack.push(arg.getRawSignature.toInt)
+                case _ =>
+              }
+
             }
           }
         }
