@@ -176,6 +176,7 @@ class Executor(code: String) {
         }
         case bin: IASTBinaryExpression => integerStack.pop
         case bin: IASTUnaryExpression => integerStack.pop
+        case fcn: IASTFunctionCallExpression => integerStack.pop
       })
 
       val op2 = binaryExpr.getOperand2 match {
@@ -189,6 +190,7 @@ class Executor(code: String) {
         }
         case bin: IASTBinaryExpression => integerStack.pop
         case bin: IASTUnaryExpression => integerStack.pop
+        case fcn: IASTFunctionCallExpression => integerStack.pop
       }
 
       binaryExpr.getOperator match {
