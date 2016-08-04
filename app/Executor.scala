@@ -28,6 +28,7 @@ class Executor(code: String) {
   val stdout = new ListBuffer[String]()
   var currentScope: IScope = tUnit.getScope
   var currentNode: IASTNode = null
+  var currentPath: Path = null
   var currentIndex = 0
 
   //val globalScope = new Scope(null)
@@ -38,6 +39,8 @@ class Executor(code: String) {
   val functionMap = scala.collection.mutable.Map[String, Int]()
 
   var functionReturnStack = new Stack[Int]()
+
+  var isRunning = false
 
   def step(current: Path, next: Path, wholePath: Seq[Path]) = {
 
@@ -69,6 +72,10 @@ class Executor(code: String) {
           }
         } else if (direction == Entering) {
           functionMap += (fcnDef.getDeclarator.getName.getRawSignature -> currentIndex)
+
+          if (fcnDef.getDeclarator.getName.getRawSignature != "main") { // don't skip the main function
+            jumpToExit()
+          }
         }
       case decl: IASTSimpleDeclaration =>
       case call: IASTFunctionCallExpression =>
@@ -77,6 +84,7 @@ class Executor(code: String) {
         if (direction == Exiting) {
           val name = call.getFunctionNameExpression.getRawSignature
           val args = call.getArguments
+
           if (name == "printf") {
             val secondArg = args(1).getRawSignature
             if (secondArg.head == '\"' || secondArg.last == '\"') {
@@ -139,6 +147,18 @@ class Executor(code: String) {
     }
   }
 
+  def jumpToExit() = {
+    val start = currentPath
+    if (start.direction == Entering) {
+      while (currentPath.node != start.node || currentPath.direction != Exiting) {
+        currentIndex += 1
+        currentPath = path(currentIndex)
+      }
+    } else {
+      throw new Exception("Cannot jump if not entering")
+    }
+  }
+
   def execute = {
     var isDone = false
     var currentNode = path.head.node
@@ -150,6 +170,7 @@ class Executor(code: String) {
       } else if (currentIndex == path.size) {
         isDone = true
       } else {
+        currentPath = path(currentIndex)
         step(path(currentIndex), path(currentIndex + 1), path)
         currentIndex += 1
       }
