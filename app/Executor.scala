@@ -66,16 +66,7 @@ class Executor(code: String) {
         }
       case fcnDecl: IASTFunctionDeclarator =>
       case decl: IASTDeclarator =>
-        if (direction == Exiting || direction == Visiting) {
-          var value: Any = null // init to zero
-          if (isVarInitialized) {
-            value = stack.pop
-          }
-          //println("ADDING GLOBAL VAR: " + decl.getName.getRawSignature + ", " + value)
-          variableMap += (decl.getName.getRawSignature -> value)
-        } else {
-          isVarInitialized = false
-        }
+        parseDeclarator(decl, direction)
       case eq: IASTEqualsInitializer =>
         parseEqualsInitializer(eq)
       case bin: IASTBinaryExpression =>
@@ -110,21 +101,7 @@ class Executor(code: String) {
           case _ =>
         }
       case decl: IASTDeclarator =>
-        if ((direction == Exiting || direction == Visiting) && !decl.getParent.isInstanceOf[IASTParameterDeclaration]) {
-          var value: Any = null // init to zero
-          if (isVarInitialized) {
-            value = stack.pop
-          }
-          if (arraySize > 0) {
-            variableMap += (decl.getName.getRawSignature -> Array.fill(arraySize)(0))
-          } else {
-            //println("ADDING GLOBAL VAR: " + decl.getName.getRawSignature + ", " + value)
-            variableMap += (decl.getName.getRawSignature -> value)
-          }
-        } else {
-          arraySize = 0
-          isVarInitialized = false
-        }
+        parseDeclarator(decl, direction)
       case fcnDef: IASTFunctionDefinition =>
         if (direction == Exiting) {
           if (fcnDef.getDeclarator.getName.getRawSignature == "main") {
@@ -187,6 +164,24 @@ class Executor(code: String) {
       case bin: IASTBinaryExpression =>
         parseBinaryExpr(bin, direction)
 
+    }
+  }
+
+  def parseDeclarator(decl: IASTDeclarator, direction: Direction) = {
+    if ((direction == Exiting || direction == Visiting) && !decl.getParent.isInstanceOf[IASTParameterDeclaration]) {
+      var value: Any = null // init to zero
+      if (isVarInitialized) {
+        value = stack.pop
+      }
+      if (arraySize > 0) {
+        variableMap += (decl.getName.getRawSignature -> Array.fill(arraySize)(0))
+      } else {
+        //println("ADDING GLOBAL VAR: " + decl.getName.getRawSignature + ", " + value)
+        variableMap += (decl.getName.getRawSignature -> value)
+      }
+    } else {
+      arraySize = 0
+      isVarInitialized = false
     }
   }
 
