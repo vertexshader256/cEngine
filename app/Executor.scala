@@ -76,18 +76,8 @@ class Executor(code: String) {
         } else {
           isVarInitialized = false
         }
-      case equalsInit: IASTEqualsInitializer =>
-        isVarInitialized = true
-
-        equalsInit.getInitializerClause match {
-          case lit: IASTLiteralExpression =>
-            if (isLongNumber(lit.getRawSignature)) {
-              stack.push(lit.getRawSignature.toInt)
-            } else {
-              stack.push(lit.getRawSignature.toDouble)
-            }
-          case _ => // dont do anything
-        }
+      case eq: IASTEqualsInitializer =>
+        parseEqualsInitializer(eq)
       case bin: IASTBinaryExpression =>
         parseBinaryExpr(bin, direction)
       case _ =>
@@ -192,20 +182,24 @@ class Executor(code: String) {
       case decl: IASTDeclarationStatement =>
       case compound: IASTCompoundStatement =>
       case exprStatement: IASTExpressionStatement =>
-      case equalsInit: IASTEqualsInitializer =>
-        isVarInitialized = true
-        equalsInit.getInitializerClause match {
-          case lit: IASTLiteralExpression =>
-            if (isLongNumber(lit.getRawSignature)) {
-              stack.push(lit.getRawSignature.toInt)
-            } else {
-              stack.push(lit.getRawSignature.toDouble)
-            }
-          case _ => // dont do anything
-        }
+      case eq: IASTEqualsInitializer =>
+        parseEqualsInitializer(eq)
       case bin: IASTBinaryExpression =>
         parseBinaryExpr(bin, direction)
 
+    }
+  }
+
+  def parseEqualsInitializer(eq: IASTEqualsInitializer) = {
+    isVarInitialized = true
+    eq.getInitializerClause match {
+      case lit: IASTLiteralExpression =>
+        if (isLongNumber(lit.getRawSignature)) {
+          stack.push(lit.getRawSignature.toInt)
+        } else {
+          stack.push(lit.getRawSignature.toDouble)
+        }
+      case _ => // dont do anything
     }
   }
 
