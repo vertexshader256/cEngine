@@ -5,6 +5,9 @@ import org.eclipse.cdt.core.dom.ast.{IASTEqualsInitializer, _}
 
 import scala.astViewer.{IntPrimitive, Path, Utils}
 import scala.collection.mutable.{ListBuffer, Stack}
+import scala.util.control.Exception.allCatch
+
+
 
 trait PrimitiveType
 case class IntPrimitive(name: String, value: Long) extends PrimitiveType
@@ -33,18 +36,22 @@ class Executor(code: String) {
   //val globalScope = new Scope(null)
   val path = Utils.getPath(tUnit)
 
-  val integerStack = new Stack[Int]()
+  val stack = new Stack[Any]()
   val variableMap = scala.collection.mutable.Map[String, Any]()
   val functionMap = scala.collection.mutable.Map[String, Path]()
 
   var functionReturnStack = new Stack[Path]()
 
-  val functionArgumentMap = scala.collection.mutable.Map[String, Int]()
+  val functionArgumentMap = scala.collection.mutable.Map[String, Any]()
 
   var isRunning = false
   var isDone = false
   var isVarInitialized = false
   var arraySize = 0
+
+  def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
+
+  def isDoubleNumber(s: String): Boolean = (allCatch opt s.toDouble).isDefined
 
   def prestep(current: Path, next: Path, wholePath: Seq[Path]): Unit = {
 
@@ -60,9 +67,9 @@ class Executor(code: String) {
       case fcnDecl: IASTFunctionDeclarator =>
       case decl: IASTDeclarator =>
         if (direction == Exiting || direction == Visiting) {
-          var value = 0 // init to zero
+          var value: Any = null // init to zero
           if (isVarInitialized) {
-            value = integerStack.pop
+            value = stack.pop
           }
           //println("ADDING GLOBAL VAR: " + decl.getName.getRawSignature + ", " + value)
           variableMap += (decl.getName.getRawSignature -> value)
@@ -74,7 +81,11 @@ class Executor(code: String) {
 
         equalsInit.getInitializerClause match {
           case lit: IASTLiteralExpression =>
-            integerStack.push(lit.getRawSignature.toInt)
+            if (isLongNumber(lit.getRawSignature)) {
+              stack.push(lit.getRawSignature.toInt)
+            } else {
+              stack.push(lit.getRawSignature.toDouble)
+            }
           case _ => // dont do anything
         }
       case bin: IASTBinaryExpression =>
@@ -94,7 +105,7 @@ class Executor(code: String) {
         println("MOD")
       case param: IASTParameterDeclaration =>
         if (direction == Exiting) {
-          val arg = integerStack.pop
+          val arg = stack.pop
           functionArgumentMap += (param.getDeclarator.getName.getRawSignature -> arg)
         }
       case unary: IASTUnaryExpression =>
@@ -105,17 +116,16 @@ class Executor(code: String) {
       case ret: IASTReturnStatement =>
         ret.getReturnValue match {
           case lit: IASTLiteralExpression =>
-            integerStack.push(lit.getRawSignature.toInt)
+            stack.push(lit.getRawSignature.toInt)
           case _ =>
         }
       case decl: IASTDeclarator =>
         if ((direction == Exiting || direction == Visiting) && !decl.getParent.isInstanceOf[IASTParameterDeclaration]) {
-          var value = 0 // init to zero
+          var value: Any = null // init to zero
           if (isVarInitialized) {
-            value = integerStack.pop
+            value = stack.pop
           }
           if (arraySize > 0) {
-            println("adding array")
             variableMap += (decl.getName.getRawSignature -> Array.fill(arraySize)(0))
           } else {
             //println("ADDING GLOBAL VAR: " + decl.getName.getRawSignature + ", " + value)
@@ -159,10 +169,10 @@ class Executor(code: String) {
               stdout += args(1).getRawSignature.tail.reverse.tail.reverse
             } else if (args(1).isInstanceOf[IASTBinaryExpression] || args(1).isInstanceOf[IASTFunctionCallExpression]) {
               // the argument is an expression
-              stdout += integerStack.pop.toString
+              stdout += stack.pop.toString
             } else {
               // the argument is just a variable reference
-              stdout += variableMap(args(1).getRawSignature).asInstanceOf[Int].toString
+              stdout += variableMap(args(1).getRawSignature).toString
             }
           } else {
             functionReturnStack.push(currentPath)
@@ -171,7 +181,7 @@ class Executor(code: String) {
             args.foreach{ arg =>
               arg match {
                 case x: IASTLiteralExpression =>
-                  integerStack.push(arg.getRawSignature.toInt)
+                  stack.push(arg.getRawSignature.toInt)
                 case _ =>
               }
 
@@ -186,7 +196,11 @@ class Executor(code: String) {
         isVarInitialized = true
         equalsInit.getInitializerClause match {
           case lit: IASTLiteralExpression =>
-            integerStack.push(lit.getRawSignature.toInt)
+            if (isLongNumber(lit.getRawSignature)) {
+              stack.push(lit.getRawSignature.toInt)
+            } else {
+              stack.push(lit.getRawSignature.toDouble)
+            }
           case _ => // dont do anything
         }
       case bin: IASTBinaryExpression =>
@@ -195,21 +209,21 @@ class Executor(code: String) {
     }
   }
 
-  def parseBinaryOperand(op: IASTExpression) = {
+  def parseBinaryOperand(op: IASTExpression): Any = {
     op match {
       case lit: IASTLiteralExpression => lit.getRawSignature.toInt
       case id: IASTIdExpression => {
         if (variableMap.contains(id.getRawSignature)) {
-          variableMap(id.getRawSignature).asInstanceOf[Int]
+          variableMap(id.getRawSignature)
         } else {
           functionArgumentMap(id.getRawSignature)
         }
       }
       case sub: IASTArraySubscriptExpression =>
-        variableMap(sub.getArrayExpression.getRawSignature).asInstanceOf[Array[_]](sub.getArgument.getRawSignature.toInt).asInstanceOf[Int]
-      case bin: IASTBinaryExpression => integerStack.pop
-      case bin: IASTUnaryExpression => integerStack.pop
-      case fcn: IASTFunctionCallExpression => integerStack.pop
+        variableMap(sub.getArrayExpression.getRawSignature).asInstanceOf[Array[_]](sub.getArgument.getRawSignature.toInt)
+      case bin: IASTBinaryExpression => stack.pop
+      case bin: IASTUnaryExpression => stack.pop
+      case fcn: IASTFunctionCallExpression => stack.pop
     }
   }
 
@@ -221,13 +235,49 @@ class Executor(code: String) {
 
       binaryExpr.getOperator match {
         case `op_multiply` =>
-          integerStack.push(op1 * op2)
+          (op1, op2) match {
+            case (x: Int, y: Int) =>
+              stack.push(x * y)
+            case (x: Double, y: Int) =>
+              stack.push(x * y)
+            case (x: Int, y: Double) =>
+              stack.push(x * y)
+            case (x: Double, y: Double) =>
+              stack.push(x * y)
+          }
         case `op_plus` =>
-          integerStack.push(op1 + op2)
+          (op1, op2) match {
+            case (x: Int, y: Int) =>
+              stack.push(x + y)
+            case (x: Double, y: Int) =>
+              stack.push(x + y)
+            case (x: Int, y: Double) =>
+              stack.push(x + y)
+            case (x: Double, y: Double) =>
+              stack.push(x + y)
+          }
         case `op_minus` =>
-          integerStack.push(op1 - op2)
+          (op1, op2) match {
+            case (x: Int, y: Int) =>
+              stack.push(x - y)
+            case (x: Double, y: Int) =>
+              stack.push(x - y)
+            case (x: Int, y: Double) =>
+              stack.push(x - y)
+            case (x: Double, y: Double) =>
+              stack.push(x - y)
+          }
         case `op_divide` =>
-          integerStack.push(op1 / op2)
+          (op1, op2) match {
+            case (x: Int, y: Int) =>
+              stack.push(x / y)
+            case (x: Double, y: Int) =>
+              stack.push(x / y)
+            case (x: Int, y: Double) =>
+              stack.push(x / y)
+            case (x: Double, y: Double) =>
+              stack.push(x / y)
+          }
         case `op_assign` =>
           variableMap += (binaryExpr.getOperand1.getRawSignature -> op2)
       }
@@ -260,7 +310,7 @@ class Executor(code: String) {
     }
 
     currentPath = functionMap("main") // start from main
-    integerStack.clear
+    stack.clear
 
     while (!isDone) {
         step(currentPath, path(currentPath.index + 1), path)
