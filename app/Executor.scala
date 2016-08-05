@@ -97,7 +97,7 @@ class Executor(code: String) {
       case ret: IASTReturnStatement =>
         ret.getReturnValue match {
           case lit: IASTLiteralExpression =>
-            stack.push(lit.getRawSignature.toInt)
+            stack.push(lit.getRawSignature)
           case _ =>
         }
       case decl: IASTDeclarator =>
@@ -189,18 +189,23 @@ class Executor(code: String) {
     isVarInitialized = true
     eq.getInitializerClause match {
       case lit: IASTLiteralExpression =>
-        if (isLongNumber(lit.getRawSignature)) {
-          stack.push(lit.getRawSignature.toInt)
-        } else {
-          stack.push(lit.getRawSignature.toDouble)
-        }
+        stack.push(castLiteral(lit))
       case _ => // dont do anything
+    }
+  }
+
+  def castLiteral(lit: IASTLiteralExpression): Any = {
+    val string = lit.getRawSignature
+    if (isLongNumber(string)) {
+      string.toInt
+    } else {
+      string.toDouble
     }
   }
 
   def parseBinaryOperand(op: IASTExpression): Any = {
     op match {
-      case lit: IASTLiteralExpression => lit.getRawSignature.toInt
+      case lit: IASTLiteralExpression => castLiteral(lit)
       case id: IASTIdExpression => {
         if (variableMap.contains(id.getRawSignature)) {
           variableMap(id.getRawSignature)
