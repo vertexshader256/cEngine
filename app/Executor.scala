@@ -24,24 +24,24 @@ class Scope(outerScope: Scope) {
   }
 }
 
+class Context(node: IASTNode) {
+  var currentPath: Path = null
+  val stack = new Stack[Any]()
+  val variableMap = scala.collection.mutable.Map[String, Any]()
+  val path = Utils.getPath(node)
+}
+
 class Executor(code: String) {
 
   val tUnit = Utils.getTranslationUnit(code)
 
   val stdout = new ListBuffer[String]()
-  var currentScope: IScope = tUnit.getScope
-  var currentNode: IASTNode = null
-  var currentPath: Path = null
 
-  //val globalScope = new Scope(null)
-  val path = Utils.getPath(tUnit)
+  val mainContext = new Context(tUnit)
 
-  val stack = new Stack[Any]()
-  val variableMap = scala.collection.mutable.Map[String, Any]()
   val functionMap = scala.collection.mutable.Map[String, Path]()
 
   var functionReturnStack = new Stack[Path]()
-
   val functionArgumentMap = scala.collection.mutable.Map[String, Any]()
 
   var isRunning = false
@@ -49,30 +49,31 @@ class Executor(code: String) {
   var isVarInitialized = false
   var arraySize = 0
 
+  val exeStack = new ListBuffer[Context]()
+  exeStack += mainContext
+
   def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
 
   def isDoubleNumber(s: String): Boolean = (allCatch opt s.toDouble).isDefined
 
-  def prestep(current: Path, next: Path, wholePath: Seq[Path]): Unit = {
+  def prestep(current: Path): Unit = {
 
     val direction = current.direction
 
     current.node match {
       case array: IASTArrayModifier =>
       case fcnDef: IASTFunctionDefinition =>
-        if (direction == Entering) {
-          functionMap += (fcnDef.getDeclarator.getName.getRawSignature -> currentPath)
-          jumpToExit()
-        }
+        functionMap += (fcnDef.getDeclarator.getName.getRawSignature -> mainContext.currentPath)
+        jumpToExit(mainContext)
       case fcnDecl: IASTFunctionDeclarator =>
       case decl: IASTDeclarator =>
-        parseDeclarator(decl, direction)
+        parseDeclarator(decl, direction, mainContext)
       case eq: IASTEqualsInitializer =>
-        parseEqualsInitializer(eq)
+        parseEqualsInitializer(eq, mainContext)
       case bin: IASTBinaryExpression =>
-        val result = parseBinaryExpr(bin, direction)
+        val result = parseBinaryExpr(bin, direction, mainContext)
         if (result != null) {
-          stack.push(result)
+          mainContext.stack.push(result)
         }
       case _ =>
     }
@@ -80,7 +81,7 @@ class Executor(code: String) {
 
 
 
-  def printf(args: Array[IASTInitializerClause]) = {
+  def printf(args: Array[IASTInitializerClause], context: Context) = {
     val formatString = args(0).getRawSignature.replaceAll("^\"|\"$", "")
     var currentArg = 1
 
@@ -90,10 +91,10 @@ class Executor(code: String) {
         arg
       } else if (args(currentArg).isInstanceOf[IASTBinaryExpression] || args(currentArg).isInstanceOf[IASTFunctionCallExpression]) {
         // the argument is an expression
-        stack.pop.toString
+        context.stack.pop.toString
       } else {
         // the argument is just a variable reference
-        variableMap(arg).toString
+        context.variableMap(arg).toString
       }
       currentArg += 1
       result
@@ -113,13 +114,13 @@ class Executor(code: String) {
     result.split("""\\n""").foreach(line => stdout += line)
   }
 
-  def parseStatement(statement: IASTStatement) = statement match {
+  def parseStatement(statement: IASTStatement, context: Context) = statement match {
     case ifStatement: IASTIfStatement =>
 
     case ret: IASTReturnStatement =>
       ret.getReturnValue match {
         case lit: IASTLiteralExpression =>
-          stack.push(lit.getRawSignature)
+          context.stack.push(lit.getRawSignature)
         case _ =>
       }
     case decl: IASTDeclarationStatement =>
@@ -127,7 +128,7 @@ class Executor(code: String) {
     case exprStatement: IASTExpressionStatement =>
   }
 
-  def parseExpression(expr: IASTExpression, direction: Direction) = expr match {
+  def parseExpression(expr: IASTExpression, direction: Direction, context: Context) = expr match {
     case subscript: IASTArraySubscriptExpression =>
     case unary: IASTUnaryExpression =>
     case lit: IASTLiteralExpression =>
@@ -142,55 +143,55 @@ class Executor(code: String) {
         val args = call.getArguments
 
         if (name == "printf") {
-          printf(args)
+          printf(args, context)
         } else {
-          functionReturnStack.push(currentPath)
-          currentPath = functionMap(name)
+          functionReturnStack.push(context.currentPath)
+          context.currentPath = functionMap(name)
 
           args.foreach{ arg =>
             arg match {
               case x: IASTLiteralExpression =>
-                stack.push(arg.getRawSignature.toInt)
+                context.stack.push(arg.getRawSignature.toInt)
               case _ =>
             }
           }
         }
       }
     case bin: IASTBinaryExpression =>
-      val result = parseBinaryExpr(bin, direction)
+      val result = parseBinaryExpr(bin, direction, context)
       if (result != null) {
-        stack.push(result)
+        context.stack.push(result)
       }
   }
 
-  def step(current: Path, next: Path, wholePath: Seq[Path]) = {
+  def step(current: Path, context: Context) = {
 
     val direction = current.direction
 
     current.node match {
       case statement: IASTStatement =>
-        parseStatement(statement)
+        parseStatement(statement, context)
       case expression: IASTExpression =>
-        parseExpression(expression, direction)
+        parseExpression(expression, direction, context)
       case array: IASTArrayModifier =>
         arraySize = array.getConstantExpression.getRawSignature.toInt
       case param: IASTParameterDeclaration =>
         if (direction == Exiting) {
-          val arg = stack.pop
+          val arg = context.stack.pop
           functionArgumentMap += (param.getDeclarator.getName.getRawSignature -> arg)
         }
       case tUnit: IASTTranslationUnit =>
       case simple: IASTSimpleDeclaration =>
       case fcnDec: IASTFunctionDeclarator =>
       case decl: IASTDeclarator =>
-        parseDeclarator(decl, direction)
+        parseDeclarator(decl, direction, context)
       case fcnDef: IASTFunctionDefinition =>
         if (direction == Exiting) {
           if (fcnDef.getDeclarator.getName.getRawSignature == "main") {
             isDone = true
           } else if (!functionReturnStack.isEmpty) {
             // We are exiting a function we're currently executing
-            currentPath = functionReturnStack.pop
+            context.currentPath = functionReturnStack.pop
             functionArgumentMap.clear
           }
         }
@@ -198,26 +199,26 @@ class Executor(code: String) {
           //functionMap += (fcnDef.getDeclarator.getName.getRawSignature -> currentIndex)
 
           if (fcnDef.getDeclarator.getName.getRawSignature != "main") { // don't skip the main function
-            jumpToExit()
+            jumpToExit(context)
           }
         }
       case decl: IASTSimpleDeclaration =>
       case eq: IASTEqualsInitializer =>
-        parseEqualsInitializer(eq)
+        parseEqualsInitializer(eq, context)
     }
   }
 
-  def parseDeclarator(decl: IASTDeclarator, direction: Direction) = {
+  def parseDeclarator(decl: IASTDeclarator, direction: Direction, context: Context) = {
     if ((direction == Exiting || direction == Visiting) && !decl.getParent.isInstanceOf[IASTParameterDeclaration]) {
       var value: Any = null // init to zero
       if (isVarInitialized) {
-        value = stack.pop
+        value = context.stack.pop
       }
       if (arraySize > 0) {
-        variableMap += (decl.getName.getRawSignature -> Array.fill(arraySize)(0))
+        context.variableMap += (decl.getName.getRawSignature -> Array.fill(arraySize)(0))
       } else {
         //println("ADDING GLOBAL VAR: " + decl.getName.getRawSignature + ", " + value)
-        variableMap += (decl.getName.getRawSignature -> value)
+        context.variableMap += (decl.getName.getRawSignature -> value)
       }
     } else {
       arraySize = 0
@@ -225,11 +226,11 @@ class Executor(code: String) {
     }
   }
 
-  def parseEqualsInitializer(eq: IASTEqualsInitializer) = {
+  def parseEqualsInitializer(eq: IASTEqualsInitializer, context: Context) = {
     isVarInitialized = true
     eq.getInitializerClause match {
       case lit: IASTLiteralExpression =>
-        stack.push(castLiteral(lit))
+        context.stack.push(castLiteral(lit))
       case _ => // dont do anything
     }
   }
@@ -243,29 +244,29 @@ class Executor(code: String) {
     }
   }
 
-  def parseBinaryOperand(op: IASTExpression): Any = {
+  def parseBinaryOperand(op: IASTExpression, context: Context): Any = {
     op match {
       case lit: IASTLiteralExpression => castLiteral(lit)
       case id: IASTIdExpression => {
-        if (variableMap.contains(id.getRawSignature)) {
-          variableMap(id.getRawSignature)
+        if (context.variableMap.contains(id.getRawSignature)) {
+          context.variableMap(id.getRawSignature)
         } else {
           functionArgumentMap(id.getRawSignature)
         }
       }
       case sub: IASTArraySubscriptExpression =>
-        variableMap(sub.getArrayExpression.getRawSignature).asInstanceOf[Array[_]](sub.getArgument.getRawSignature.toInt)
-      case bin: IASTBinaryExpression => stack.pop
-      case bin: IASTUnaryExpression => stack.pop
-      case fcn: IASTFunctionCallExpression => stack.pop
+        context.variableMap(sub.getArrayExpression.getRawSignature).asInstanceOf[Array[_]](sub.getArgument.getRawSignature.toInt)
+      case bin: IASTBinaryExpression => context.stack.pop
+      case bin: IASTUnaryExpression => context.stack.pop
+      case fcn: IASTFunctionCallExpression => context.stack.pop
     }
   }
 
-  def parseBinaryExpr(binaryExpr: IASTBinaryExpression, direction: Direction): Any = {
+  def parseBinaryExpr(binaryExpr: IASTBinaryExpression, direction: Direction, context: Context): Any = {
     if (direction == Exiting || direction == Visiting) {
 
-      val op1 = parseBinaryOperand(binaryExpr.getOperand1)
-      val op2 = parseBinaryOperand(binaryExpr.getOperand2)
+      val op1 = parseBinaryOperand(binaryExpr.getOperand1, context)
+      val op2 = parseBinaryOperand(binaryExpr.getOperand2, context)
 
       binaryExpr.getOperator match {
         case `op_multiply` =>
@@ -313,7 +314,7 @@ class Executor(code: String) {
               x / y
           }
         case `op_assign` =>
-          variableMap += (binaryExpr.getOperand1.getRawSignature -> op2)
+          context.variableMap += (binaryExpr.getOperand1.getRawSignature -> op2)
           null
         case _ => null
       }
@@ -322,11 +323,11 @@ class Executor(code: String) {
     }
   }
 
-  def jumpToExit() = {
-    val start = currentPath
+  def jumpToExit(context: Context) = {
+    val start = context.currentPath
     if (start.direction == Entering) {
-      while (currentPath.node != start.node || currentPath.direction != Exiting) {
-        currentPath = path(currentPath.index + 1)
+      while ( context.currentPath.node != start.node ||  context.currentPath.direction != Exiting) {
+        context.currentPath = context.path( context.currentPath.index + 1)
       }
     } else {
       throw new Exception("Cannot jump if not entering")
@@ -336,23 +337,24 @@ class Executor(code: String) {
   def execute = {
 
     var isDonePreprocessing = false
-    currentPath = path.head
+    mainContext.currentPath = mainContext.path.head
 
     while (!isDonePreprocessing) {
-      if (currentPath.index == path.size - 1) {
+      if (mainContext.currentPath.index == mainContext.path.size - 1) {
         isDonePreprocessing = true
       } else {
-        prestep(currentPath, path(currentPath.index + 1), path)
-        currentPath = path(currentPath.index + 1)
+        prestep(mainContext.currentPath)
+        mainContext.currentPath = mainContext.path(mainContext.currentPath.index + 1)
       }
     }
 
-    currentPath = functionMap("main") // start from main
-    stack.clear
+    mainContext.currentPath = functionMap("main") // start from main
+    mainContext.stack.clear
 
     while (!isDone) {
-        step(currentPath, path(currentPath.index + 1), path)
-        currentPath = path(currentPath.index + 1)
+        val context = exeStack.last
+        step(context.currentPath, context)
+        context.currentPath = context.path(context.currentPath.index + 1)
     }
   }
 }

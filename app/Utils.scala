@@ -58,7 +58,7 @@ object Utils {
     GCCLanguage.getDefault().getASTTranslationUnit(fileContent, info, includes, null, opts, log)
   }
 
-  def getPath(tUnit: IASTTranslationUnit): Seq[Path] = {
+  def getPath(tUnit: IASTNode): Seq[Path] = {
 
     var index = 0
 
