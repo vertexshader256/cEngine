@@ -24,11 +24,11 @@ class Scope(outerScope: Scope) {
   }
 }
 
-class Context(node: IASTNode) {
+case class Context(startNode: IASTNode) {
   var currentPath: Path = null
   val stack = new Stack[Any]()
   val variableMap = scala.collection.mutable.Map[String, Any]()
-  val path = Utils.getPath(node)
+  val path = Utils.getPath(startNode)
 }
 
 class Executor(code: String) {
@@ -44,7 +44,6 @@ class Executor(code: String) {
   var functionReturnStack = new Stack[Path]()
   val functionArgumentMap = scala.collection.mutable.Map[String, Any]()
 
-  var isDone = false
   var isVarInitialized = false
   var arraySize = 0
 
@@ -187,9 +186,7 @@ class Executor(code: String) {
         parseDeclarator(decl, direction, context)
       case fcnDef: IASTFunctionDefinition =>
         if (direction == Exiting) {
-          if (fcnDef.getDeclarator.getName.getRawSignature == "main") {
-            isDone = true
-          } else if (!functionReturnStack.isEmpty) {
+          if (!functionReturnStack.isEmpty) {
             // We are exiting a function we're currently executing
             context.currentPath = functionReturnStack.pop
             functionArgumentMap.clear
@@ -344,10 +341,19 @@ class Executor(code: String) {
     mainContext.currentPath = functionMap("main") // start from main
     mainContext.stack.clear
 
-    while (!isDone) {
-        val context = exeStack.last
-        step(context.currentPath, context)
-        context.currentPath = context.path(context.currentPath.index + 1)
+    var context = exeStack.last
+    while (!exeStack.isEmpty) {
+      // while there is still an execution context to run
+      step(context.currentPath, context)
+      context.currentPath = context.path(context.currentPath.index + 1)
+
+      if (context.currentPath.node == context.startNode) {
+        // execution for this is complete, pop off the end
+        exeStack -= exeStack.last
+        if (!exeStack.isEmpty) {
+          context = exeStack.last
+        }
+      }
     }
   }
 }
