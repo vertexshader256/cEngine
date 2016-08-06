@@ -70,23 +70,15 @@ class Executor(code: String) {
       case eq: IASTEqualsInitializer =>
         parseEqualsInitializer(eq)
       case bin: IASTBinaryExpression =>
-        parseBinaryExpr(bin, direction)
+        val result = parseBinaryExpr(bin, direction)
+        if (result != null) {
+          stack.push(result)
+        }
       case _ =>
     }
   }
 
-  def parseStatement(statement: IASTStatement) = statement match {
-    case ifStatement: IASTIfStatement =>
-    case ret: IASTReturnStatement =>
-      ret.getReturnValue match {
-        case lit: IASTLiteralExpression =>
-          stack.push(lit.getRawSignature)
-        case _ =>
-      }
-    case decl: IASTDeclarationStatement =>
-    case compound: IASTCompoundStatement =>
-    case exprStatement: IASTExpressionStatement =>
-  }
+
 
   def printf(args: Array[IASTInitializerClause]) = {
     val formatString = args(0).getRawSignature.replaceAll("^\"|\"$", "")
@@ -121,6 +113,20 @@ class Executor(code: String) {
     result.split("""\\n""").foreach(line => stdout += line)
   }
 
+  def parseStatement(statement: IASTStatement) = statement match {
+    case ifStatement: IASTIfStatement =>
+
+    case ret: IASTReturnStatement =>
+      ret.getReturnValue match {
+        case lit: IASTLiteralExpression =>
+          stack.push(lit.getRawSignature)
+        case _ =>
+      }
+    case decl: IASTDeclarationStatement =>
+    case compound: IASTCompoundStatement =>
+    case exprStatement: IASTExpressionStatement =>
+  }
+
   def parseExpression(expr: IASTExpression, direction: Direction) = expr match {
     case subscript: IASTArraySubscriptExpression =>
     case unary: IASTUnaryExpression =>
@@ -151,7 +157,10 @@ class Executor(code: String) {
         }
       }
     case bin: IASTBinaryExpression =>
-      parseBinaryExpr(bin, direction)
+      val result = parseBinaryExpr(bin, direction)
+      if (result != null) {
+        stack.push(result)
+      }
   }
 
   def step(current: Path, next: Path, wholePath: Seq[Path]) = {
@@ -252,7 +261,7 @@ class Executor(code: String) {
     }
   }
 
-  def parseBinaryExpr(binaryExpr: IASTBinaryExpression, direction: Direction) = {
+  def parseBinaryExpr(binaryExpr: IASTBinaryExpression, direction: Direction): Any = {
     if (direction == Exiting || direction == Visiting) {
 
       val op1 = parseBinaryOperand(binaryExpr.getOperand1)
@@ -262,50 +271,54 @@ class Executor(code: String) {
         case `op_multiply` =>
           (op1, op2) match {
             case (x: Int, y: Int) =>
-              stack.push(x * y)
+              x * y
             case (x: Double, y: Int) =>
-              stack.push(x * y)
+              x * y
             case (x: Int, y: Double) =>
-              stack.push(x * y)
+              x * y
             case (x: Double, y: Double) =>
-              stack.push(x * y)
+              x * y
           }
         case `op_plus` =>
           (op1, op2) match {
             case (x: Int, y: Int) =>
-              stack.push(x + y)
+              x + y
             case (x: Double, y: Int) =>
-              stack.push(x + y)
+              x + y
             case (x: Int, y: Double) =>
-              stack.push(x + y)
+              x + y
             case (x: Double, y: Double) =>
-              stack.push(x + y)
+              x + y
           }
         case `op_minus` =>
           (op1, op2) match {
             case (x: Int, y: Int) =>
-              stack.push(x - y)
+              x - y
             case (x: Double, y: Int) =>
-              stack.push(x - y)
+              x - y
             case (x: Int, y: Double) =>
-              stack.push(x - y)
+              x - y
             case (x: Double, y: Double) =>
-              stack.push(x - y)
+              x - y
           }
         case `op_divide` =>
           (op1, op2) match {
             case (x: Int, y: Int) =>
-              stack.push(x / y)
+              x / y
             case (x: Double, y: Int) =>
-              stack.push(x / y)
+              x / y
             case (x: Int, y: Double) =>
-              stack.push(x / y)
+              x / y
             case (x: Double, y: Double) =>
-              stack.push(x / y)
+              x / y
           }
         case `op_assign` =>
           variableMap += (binaryExpr.getOperand1.getRawSignature -> op2)
+          null
+        case _ => null
       }
+    } else {
+      null
     }
   }
 
