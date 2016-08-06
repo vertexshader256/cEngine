@@ -8,7 +8,7 @@ class ArrayTest extends FlatSpec with ShouldMatchers {
       void main() {
         int x[5];
         x[2] = 5;
-        printf("%s\n", x[2]);
+        printf("%d\n", x[2]);
       }"""
 
     val executor = new Executor(code)

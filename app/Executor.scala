@@ -80,6 +80,7 @@ class Executor(code: String) {
     val direction = current.direction
 
     current.node match {
+      case ifStatement: IASTIfStatement =>
       case subscript: IASTArraySubscriptExpression =>
       case array: IASTArrayModifier =>
         arraySize = array.getConstantExpression.getRawSignature.toInt
@@ -130,17 +131,39 @@ class Executor(code: String) {
           }
           val args = call.getArguments
 
+
+
           if (name == "printf") {
-            val secondArg = args(1).getRawSignature
-            if (secondArg.head == '\"' || secondArg.last == '\"') {
-              stdout += args(1).getRawSignature.tail.reverse.tail.reverse
-            } else if (args(1).isInstanceOf[IASTBinaryExpression] || args(1).isInstanceOf[IASTFunctionCallExpression]) {
-              // the argument is an expression
-              stdout += stack.pop.toString
-            } else {
-              // the argument is just a variable reference
-              stdout += variableMap(args(1).getRawSignature).toString
+
+            val formatString = args(0).getRawSignature.replaceAll("^\"|\"$", "")
+            var currentArg = 1
+
+            def getNumericArg() = {
+              val arg = args(currentArg).getRawSignature
+              val result = if (args(currentArg).isInstanceOf[IASTBinaryExpression] || args(currentArg).isInstanceOf[IASTFunctionCallExpression]) {
+                // the argument is an expression
+                stack.pop.toString
+              } else {
+                // the argument is just a variable reference
+                variableMap(arg).toString
+              }
+              currentArg += 1
+              result
             }
+
+            def getStringArg() = {
+              val arg = args(currentArg).getRawSignature.replaceAll("^\"|\"$", "")
+              currentArg += 1
+              arg
+            }
+
+            val result = formatString.split("""%d""").reduce{_ + getNumericArg + _}
+                                     .split("""%s""").reduce{_ + getStringArg + _}
+                                     .split("""%f""").reduce{_ + getNumericArg + _}
+
+
+            result.split("""\\n""").foreach(line => stdout += line)
+
           } else {
             functionReturnStack.push(currentPath)
             currentPath = functionMap(name)
