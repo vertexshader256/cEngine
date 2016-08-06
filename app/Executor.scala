@@ -88,6 +88,72 @@ class Executor(code: String) {
     case exprStatement: IASTExpressionStatement =>
   }
 
+  def printf(args: Array[IASTInitializerClause]) = {
+    val formatString = args(0).getRawSignature.replaceAll("^\"|\"$", "")
+    var currentArg = 1
+
+    def getNumericArg() = {
+      val arg = args(currentArg).getRawSignature
+      val result = if (args(currentArg).isInstanceOf[IASTLiteralExpression]) {
+        arg
+      } else if (args(currentArg).isInstanceOf[IASTBinaryExpression] || args(currentArg).isInstanceOf[IASTFunctionCallExpression]) {
+        // the argument is an expression
+        stack.pop.toString
+      } else {
+        // the argument is just a variable reference
+        variableMap(arg).toString
+      }
+      currentArg += 1
+      result
+    }
+
+    def getStringArg() = {
+      val arg = args(currentArg).getRawSignature.replaceAll("^\"|\"$", "")
+      currentArg += 1
+      arg
+    }
+
+    val result = formatString.split("""%d""").reduce{_ + getNumericArg + _}
+      .split("""%s""").reduce{_ + getStringArg + _}
+      .split("""%f""").reduce{_ + getNumericArg + _}
+
+
+    result.split("""\\n""").foreach(line => stdout += line)
+  }
+
+  def parseExpression(expr: IASTExpression, direction: Direction) = expr match {
+    case subscript: IASTArraySubscriptExpression =>
+    case unary: IASTUnaryExpression =>
+    case lit: IASTLiteralExpression =>
+    case id: IASTIdExpression =>
+    case call: IASTFunctionCallExpression =>
+      // only evaluate after leaving
+      if (direction == Exiting) {
+        val name = call.getFunctionNameExpression match {
+          case x: IASTIdExpression => x.getName.getRawSignature
+          case _ => "Error"
+        }
+        val args = call.getArguments
+
+        if (name == "printf") {
+          printf(args)
+        } else {
+          functionReturnStack.push(currentPath)
+          currentPath = functionMap(name)
+
+          args.foreach{ arg =>
+            arg match {
+              case x: IASTLiteralExpression =>
+                stack.push(arg.getRawSignature.toInt)
+              case _ =>
+            }
+          }
+        }
+      }
+    case bin: IASTBinaryExpression =>
+      parseBinaryExpr(bin, direction)
+  }
+
   def step(current: Path, next: Path, wholePath: Seq[Path]) = {
 
     val direction = current.direction
@@ -95,7 +161,8 @@ class Executor(code: String) {
     current.node match {
       case statement: IASTStatement =>
         parseStatement(statement)
-      case subscript: IASTArraySubscriptExpression =>
+      case expression: IASTExpression =>
+        parseExpression(expression, direction)
       case array: IASTArrayModifier =>
         arraySize = array.getConstantExpression.getRawSignature.toInt
       case param: IASTParameterDeclaration =>
@@ -103,8 +170,6 @@ class Executor(code: String) {
           val arg = stack.pop
           functionArgumentMap += (param.getDeclarator.getName.getRawSignature -> arg)
         }
-      case unary: IASTUnaryExpression =>
-      case id: IASTIdExpression =>
       case tUnit: IASTTranslationUnit =>
       case simple: IASTSimpleDeclaration =>
       case fcnDec: IASTFunctionDeclarator =>
@@ -128,71 +193,8 @@ class Executor(code: String) {
           }
         }
       case decl: IASTSimpleDeclaration =>
-      case call: IASTFunctionCallExpression =>
-
-        // only evaluate after leaving
-        if (direction == Exiting) {
-          val name = call.getFunctionNameExpression match {
-            case x: IASTIdExpression => x.getName.getRawSignature
-            case _ => "Error"
-          }
-          val args = call.getArguments
-
-
-
-          if (name == "printf") {
-
-            val formatString = args(0).getRawSignature.replaceAll("^\"|\"$", "")
-            var currentArg = 1
-
-            def getNumericArg() = {
-              val arg = args(currentArg).getRawSignature
-              val result = if (args(currentArg).isInstanceOf[IASTLiteralExpression]) {
-                 arg
-              } else if (args(currentArg).isInstanceOf[IASTBinaryExpression] || args(currentArg).isInstanceOf[IASTFunctionCallExpression]) {
-                // the argument is an expression
-                stack.pop.toString
-              } else {
-                // the argument is just a variable reference
-                variableMap(arg).toString
-              }
-              currentArg += 1
-              result
-            }
-
-            def getStringArg() = {
-              val arg = args(currentArg).getRawSignature.replaceAll("^\"|\"$", "")
-              currentArg += 1
-              arg
-            }
-
-            val result = formatString.split("""%d""").reduce{_ + getNumericArg + _}
-                                     .split("""%s""").reduce{_ + getStringArg + _}
-                                     .split("""%f""").reduce{_ + getNumericArg + _}
-
-
-            result.split("""\\n""").foreach(line => stdout += line)
-
-          } else {
-            functionReturnStack.push(currentPath)
-            currentPath = functionMap(name)
-
-            args.foreach{ arg =>
-              arg match {
-                case x: IASTLiteralExpression =>
-                  stack.push(arg.getRawSignature.toInt)
-                case _ =>
-              }
-
-            }
-          }
-        }
-      case lit: IASTLiteralExpression =>
       case eq: IASTEqualsInitializer =>
         parseEqualsInitializer(eq)
-      case bin: IASTBinaryExpression =>
-        parseBinaryExpr(bin, direction)
-
     }
   }
 
