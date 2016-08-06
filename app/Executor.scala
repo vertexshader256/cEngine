@@ -75,16 +75,29 @@ class Executor(code: String) {
     }
   }
 
+  def parseStatement(statement: IASTStatement) = statement match {
+    case ifStatement: IASTIfStatement =>
+    case ret: IASTReturnStatement =>
+      ret.getReturnValue match {
+        case lit: IASTLiteralExpression =>
+          stack.push(lit.getRawSignature)
+        case _ =>
+      }
+    case decl: IASTDeclarationStatement =>
+    case compound: IASTCompoundStatement =>
+    case exprStatement: IASTExpressionStatement =>
+  }
+
   def step(current: Path, next: Path, wholePath: Seq[Path]) = {
 
     val direction = current.direction
 
     current.node match {
-      case ifStatement: IASTIfStatement =>
+      case statement: IASTStatement =>
+        parseStatement(statement)
       case subscript: IASTArraySubscriptExpression =>
       case array: IASTArrayModifier =>
         arraySize = array.getConstantExpression.getRawSignature.toInt
-        println("MOD")
       case param: IASTParameterDeclaration =>
         if (direction == Exiting) {
           val arg = stack.pop
@@ -95,12 +108,6 @@ class Executor(code: String) {
       case tUnit: IASTTranslationUnit =>
       case simple: IASTSimpleDeclaration =>
       case fcnDec: IASTFunctionDeclarator =>
-      case ret: IASTReturnStatement =>
-        ret.getReturnValue match {
-          case lit: IASTLiteralExpression =>
-            stack.push(lit.getRawSignature)
-          case _ =>
-        }
       case decl: IASTDeclarator =>
         parseDeclarator(decl, direction)
       case fcnDef: IASTFunctionDefinition =>
@@ -181,9 +188,6 @@ class Executor(code: String) {
           }
         }
       case lit: IASTLiteralExpression =>
-      case decl: IASTDeclarationStatement =>
-      case compound: IASTCompoundStatement =>
-      case exprStatement: IASTExpressionStatement =>
       case eq: IASTEqualsInitializer =>
         parseEqualsInitializer(eq)
       case bin: IASTBinaryExpression =>
