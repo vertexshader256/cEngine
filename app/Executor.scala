@@ -140,7 +140,9 @@ class Executor(code: String) {
 
             def getNumericArg() = {
               val arg = args(currentArg).getRawSignature
-              val result = if (args(currentArg).isInstanceOf[IASTBinaryExpression] || args(currentArg).isInstanceOf[IASTFunctionCallExpression]) {
+              val result = if (args(currentArg).isInstanceOf[IASTLiteralExpression]) {
+                 arg
+              } else if (args(currentArg).isInstanceOf[IASTBinaryExpression] || args(currentArg).isInstanceOf[IASTFunctionCallExpression]) {
                 // the argument is an expression
                 stack.pop.toString
               } else {
