@@ -44,7 +44,6 @@ class Executor(code: String) {
   var functionReturnStack = new Stack[Path]()
   val functionArgumentMap = scala.collection.mutable.Map[String, Any]()
 
-  var isRunning = false
   var isDone = false
   var isVarInitialized = false
   var arraySize = 0
@@ -148,6 +147,7 @@ class Executor(code: String) {
           functionReturnStack.push(context.currentPath)
           context.currentPath = functionMap(name)
 
+          // push the arguments onto the stack before calling
           args.foreach{ arg =>
             arg match {
               case x: IASTLiteralExpression =>
@@ -193,13 +193,6 @@ class Executor(code: String) {
             // We are exiting a function we're currently executing
             context.currentPath = functionReturnStack.pop
             functionArgumentMap.clear
-          }
-        }
-        else if (direction == Entering) {
-          //functionMap += (fcnDef.getDeclarator.getName.getRawSignature -> currentIndex)
-
-          if (fcnDef.getDeclarator.getName.getRawSignature != "main") { // don't skip the main function
-            jumpToExit(context)
           }
         }
       case decl: IASTSimpleDeclaration =>
