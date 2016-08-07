@@ -47,9 +47,6 @@ class Executor(code: String) {
   var isVarInitialized = false
   var arraySize = 0
 
-  val exeStack = new ListBuffer[Context]()
-  exeStack += mainContext
-
   def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
 
   def isDoubleNumber(s: String): Boolean = (allCatch opt s.toDouble).isDefined
@@ -114,7 +111,6 @@ class Executor(code: String) {
 
   def parseStatement(statement: IASTStatement, context: Context) = statement match {
     case ifStatement: IASTIfStatement =>
-
     case ret: IASTReturnStatement =>
       ret.getReturnValue match {
         case lit: IASTLiteralExpression =>
@@ -341,18 +337,15 @@ class Executor(code: String) {
     mainContext.currentPath = functionMap("main") // start from main
     mainContext.stack.clear
 
-    var context = exeStack.last
-    while (!exeStack.isEmpty) {
+    var isDone = false
+    while (!isDone) {
       // while there is still an execution context to run
-      step(context.currentPath, context)
-      context.currentPath = context.path(context.currentPath.index + 1)
+      step(mainContext.currentPath, mainContext)
+      mainContext.currentPath = mainContext.path(mainContext.currentPath.index + 1)
 
-      if (context.currentPath.node == context.startNode) {
+      if (mainContext.currentPath.node == mainContext.startNode) {
         // execution for this is complete, pop off the end
-        exeStack -= exeStack.last
-        if (!exeStack.isEmpty) {
-          context = exeStack.last
-        }
+        isDone = true
       }
     }
   }

@@ -8,6 +8,21 @@ import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.Stack
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 
+class HelloWorld extends FlatSpec with ShouldMatchers {
+
+  "Hello world" should "print the correct results" in {
+    val code =
+      """
+      void main() {
+        printf("%s\n", "Hello world!");
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal(Some("Hello world!"))
+  }
+}
+
 class BasicTest extends FlatSpec with ShouldMatchers {
 
   "Hello world" should "print the correct results" in {
