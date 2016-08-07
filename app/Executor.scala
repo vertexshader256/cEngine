@@ -109,24 +109,45 @@ class Executor(code: String) {
     result.split("""\\n""").foreach(line => stdout += line)
   }
 
-  def parseStatement(statement: IASTStatement, context: Context) = statement match {
+  def parseStatement(statement: IASTStatement, context: Context, direction: Direction): Seq[IASTNode] = statement match {
     case ifStatement: IASTIfStatement =>
+      Seq()
     case ret: IASTReturnStatement =>
       ret.getReturnValue match {
         case lit: IASTLiteralExpression =>
           context.stack.push(lit.getRawSignature)
         case _ =>
       }
+      Seq()
     case decl: IASTDeclarationStatement =>
+      if (direction == Entering) {
+        Seq(decl.getDeclaration)
+      } else {
+        Seq()
+      }
     case compound: IASTCompoundStatement =>
+      if (direction == Entering) {
+        compound.getStatements
+      } else {
+        Seq()
+      }
     case exprStatement: IASTExpressionStatement =>
+      if (direction == Entering) {
+        Seq(exprStatement.getExpression)
+      } else {
+        Seq()
+      }
   }
 
-  def parseExpression(expr: IASTExpression, direction: Direction, context: Context) = expr match {
+  def parseExpression(expr: IASTExpression, direction: Direction, context: Context): Seq[IASTNode] = expr match {
     case subscript: IASTArraySubscriptExpression =>
+      Seq()
     case unary: IASTUnaryExpression =>
+      Seq(unary.getOperand)
     case lit: IASTLiteralExpression =>
+      Seq()
     case id: IASTIdExpression =>
+      Seq()
     case call: IASTFunctionCallExpression =>
       // only evaluate after leaving
       if (direction == Exiting) {
@@ -151,33 +172,49 @@ class Executor(code: String) {
             }
           }
         }
+        Seq()
+      } else {
+        call.getArguments
       }
+
     case bin: IASTBinaryExpression =>
-      val result = parseBinaryExpr(bin, direction, context)
-      if (result != null) {
-        context.stack.push(result)
+      if (direction == Exiting) {
+        val result = parseBinaryExpr(bin, direction, context)
+        if (result != null) {
+          context.stack.push(result)
+        }
+        Seq()
+      } else {
+        Seq(bin.getOperand1, bin.getOperand2)
       }
   }
 
-  def step(current: Path, context: Context) = {
+  def step(current: IASTNode, context: Context, direction: Direction): Seq[IASTNode] = {
 
-    val direction = current.direction
-
-    current.node match {
+    current match {
       case statement: IASTStatement =>
-        parseStatement(statement, context)
+        parseStatement(statement, context, direction)
       case expression: IASTExpression =>
         parseExpression(expression, direction, context)
       case array: IASTArrayModifier =>
         arraySize = array.getConstantExpression.getRawSignature.toInt
+        Seq()
       case param: IASTParameterDeclaration =>
         if (direction == Exiting) {
           val arg = context.stack.pop
           functionArgumentMap += (param.getDeclarator.getName.getRawSignature -> arg)
         }
+        Seq()
       case tUnit: IASTTranslationUnit =>
+        Seq()
       case simple: IASTSimpleDeclaration =>
+        if (direction == Entering) {
+          simple.getDeclarators
+        } else {
+          Seq()
+        }
       case fcnDec: IASTFunctionDeclarator =>
+        Seq()
       case decl: IASTDeclarator =>
         parseDeclarator(decl, direction, context)
       case fcnDef: IASTFunctionDefinition =>
@@ -187,14 +224,23 @@ class Executor(code: String) {
             context.currentPath = functionReturnStack.pop
             functionArgumentMap.clear
           }
+          Seq()
+        } else {
+          Seq(fcnDef.getDeclarator, fcnDef.getBody)
         }
       case decl: IASTSimpleDeclaration =>
+        Seq()
       case eq: IASTEqualsInitializer =>
         parseEqualsInitializer(eq, context)
+        if (direction == Entering) {
+          Seq(eq.getInitializerClause)
+        } else {
+          Seq()
+        }
     }
   }
 
-  def parseDeclarator(decl: IASTDeclarator, direction: Direction, context: Context) = {
+  def parseDeclarator(decl: IASTDeclarator, direction: Direction, context: Context): Seq[IASTNode] = {
     if ((direction == Exiting || direction == Visiting) && !decl.getParent.isInstanceOf[IASTParameterDeclaration]) {
       var value: Any = null // init to zero
       if (isVarInitialized) {
@@ -206,10 +252,17 @@ class Executor(code: String) {
         //println("ADDING GLOBAL VAR: " + decl.getName.getRawSignature + ", " + value)
         context.variableMap += (decl.getName.getRawSignature -> value)
       }
+      Seq()
     } else {
       arraySize = 0
       isVarInitialized = false
+      if (decl.getInitializer != null) {
+        Seq(decl.getInitializer)
+      } else {
+        Seq()
+      }
     }
+
   }
 
   def parseEqualsInitializer(eq: IASTEqualsInitializer, context: Context) = {
@@ -337,16 +390,17 @@ class Executor(code: String) {
     mainContext.currentPath = functionMap("main") // start from main
     mainContext.stack.clear
 
-    var isDone = false
-    while (!isDone) {
+    def runProgram(current: IASTNode, direction: Direction): Unit = {
+      //println(current.getClass.getSimpleName)
       // while there is still an execution context to run
-      step(mainContext.currentPath, mainContext)
-      mainContext.currentPath = mainContext.path(mainContext.currentPath.index + 1)
+      val newPaths = step(current, mainContext, direction)
 
-      if (mainContext.currentPath.node == mainContext.startNode) {
-        // execution for this is complete, pop off the end
-        isDone = true
+      if (!newPaths.isEmpty && direction == Entering) {
+        newPaths.foreach { x => runProgram(x, Entering) }
+        newPaths.reverse.foreach { x => runProgram(x, Exiting) }
       }
     }
+
+    runProgram(functionMap("main").node, Entering)
   }
 }
