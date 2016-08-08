@@ -143,7 +143,11 @@ class Executor(code: String) {
     case subscript: IASTArraySubscriptExpression =>
       Seq()
     case unary: IASTUnaryExpression =>
-      Seq(unary.getOperand)
+      if (direction == Entering) {
+        Seq(unary.getOperand)
+      } else {
+        Seq()
+      }
     case lit: IASTLiteralExpression =>
       Seq()
     case id: IASTIdExpression =>
@@ -395,7 +399,7 @@ class Executor(code: String) {
       // while there is still an execution context to run
       val newPaths = step(current, mainContext, direction)
 
-      if (!newPaths.isEmpty && direction == Entering) {
+      if (!newPaths.isEmpty) {
         newPaths.foreach { x => runProgram(x, Entering) }
         newPaths.reverse.foreach { x => runProgram(x, Exiting) }
       }
