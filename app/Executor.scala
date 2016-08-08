@@ -111,7 +111,15 @@ class Executor(code: String) {
 
   def parseStatement(statement: IASTStatement, context: Context, direction: Direction): Seq[IASTNode] = statement match {
     case ifStatement: IASTIfStatement =>
-      Seq()
+      if (direction == Entering) {
+        Seq(ifStatement.getConditionExpression)
+      } else {
+        if (context.stack.pop == "1") {
+          Seq(ifStatement.getThenClause)
+        } else {
+          Seq(ifStatement.getElseClause)
+        }
+      }
     case ret: IASTReturnStatement =>
       ret.getReturnValue match {
         case lit: IASTLiteralExpression =>
@@ -149,6 +157,11 @@ class Executor(code: String) {
         Seq()
       }
     case lit: IASTLiteralExpression =>
+      //   HACK ALERT
+      //   FIX THIS (dont have it specific to IF statements)
+      if (lit.getParent.isInstanceOf[IASTIfStatement]) {
+        context.stack.push(lit.getRawSignature)
+      }
       Seq()
     case id: IASTIdExpression =>
       Seq()
