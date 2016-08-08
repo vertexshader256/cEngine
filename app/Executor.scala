@@ -114,7 +114,11 @@ class Executor(code: String) {
       if (direction == Entering) {
         Seq(ifStatement.getConditionExpression)
       } else {
-        if (context.stack.pop == "1") {
+        val conditionResult = context.stack.pop match {
+          case x: Int => x == 1
+          case x: Boolean => x
+        }
+        if (conditionResult) {
           Seq(ifStatement.getThenClause)
         } else {
           Seq(ifStatement.getElseClause)
@@ -160,7 +164,7 @@ class Executor(code: String) {
       //   HACK ALERT
       //   FIX THIS (dont have it specific to IF statements)
       if (lit.getParent.isInstanceOf[IASTIfStatement]) {
-        context.stack.push(lit.getRawSignature)
+        context.stack.push(castLiteral(lit))
       }
       Seq()
     case id: IASTIdExpression =>
@@ -372,7 +376,18 @@ class Executor(code: String) {
         case `op_assign` =>
           context.variableMap += (binaryExpr.getOperand1.getRawSignature -> op2)
           null
-        case _ => null
+        case `op_equals` =>
+          (op1, op2) match {
+            case (x: Int, y: Int) =>
+              x == y
+            case (x: Double, y: Int) =>
+              x == y
+            case (x: Int, y: Double) =>
+              x == y
+            case (x: Double, y: Double) =>
+              x == y
+          }
+        case _ => throw new Exception("unhandled binary operator"); null
       }
     } else {
       null
