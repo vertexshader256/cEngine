@@ -49,6 +49,36 @@ class IfStatement extends FlatSpec with ShouldMatchers {
     executor.stdout.headOption should equal (Some("1"))
   }
 
+  "A simple if statement with boolean variable" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 1 == 2;
+        if (x) {
+          printf("%d\n", 1);
+        } else {
+          printf("%d\n", 2);
+        }
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("2"))
+
+    val code2 = """
+      void main() {
+        int x = 2 == 2;
+        if (x) {
+          printf("%d\n", 1);
+        } else {
+          printf("%d\n", 2);
+        }
+      }"""
+
+    val executor2 = new Executor(code2)
+    executor2.execute
+    executor2.stdout.headOption should equal (Some("1"))
+  }
+
   "A simple if statement with false binary comparison" should "print the correct results" in {
     val code = """
       void main() {
