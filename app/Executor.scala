@@ -42,24 +42,14 @@ class Executor(code: String) {
 
   val functionMap = scala.collection.mutable.Map[String, IASTNode]()
 
-  var functionReturnStack = new Stack[Path]()
+  var functionReturnStack = new Stack[IASTFunctionCallExpression]()
   val functionArgumentMap = scala.collection.mutable.Map[String, Any]()
 
   var isVarInitialized = false
   var arraySize = 0
 
   def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
-
   def isDoubleNumber(s: String): Boolean = (allCatch opt s.toDouble).isDefined
-
-  def parseEqualsInitializer(eq: IASTEqualsInitializer, context: Context) = {
-    isVarInitialized = true
-    eq.getInitializerClause match {
-      case lit: IASTLiteralExpression =>
-        context.stack.push(castLiteral(lit))
-      case _ => // dont do anything
-    }
-  }
 
   case class IASTPath(node: IASTNode, direction: Direction)
 
@@ -111,12 +101,11 @@ class Executor(code: String) {
         }
       }
     case ret: IASTReturnStatement =>
-      ret.getReturnValue match {
-        case lit: IASTLiteralExpression =>
-          context.stack.push(lit.getRawSignature)
-        case _ =>
+      if (direction == Entering) {
+        Seq(IASTPath(ret.getReturnValue, Entering))
+      } else {
+        Seq()
       }
-      Seq()
     case decl: IASTDeclarationStatement =>
       if (direction == Entering) {
         Seq(IASTPath(decl.getDeclaration, Entering))
@@ -175,17 +164,7 @@ class Executor(code: String) {
           printf(context)
           Seq()
         } else {
-          functionReturnStack.push(context.currentPath)
-
-          // push the arguments onto the stack before calling
-          call.getArguments.foreach{ arg =>
-            arg match {
-              case x: IASTLiteralExpression =>
-                context.stack.push(arg.getRawSignature.toInt)
-              case _ =>
-            }
-          }
-
+          functionReturnStack.push(call)
           Seq(IASTPath(functionMap(name), Entering))
         }
 
@@ -219,8 +198,11 @@ class Executor(code: String) {
         if (direction == Exiting) {
           val arg = context.stack.pop
           functionArgumentMap += (param.getDeclarator.getName.getRawSignature -> arg)
+          Seq()
+        } else {
+          Seq(IASTPath(param.getDeclarator, Entering))
         }
-        Seq()
+
       case tUnit: IASTTranslationUnit =>
         if (direction == Entering) {
           tUnit.getDeclarations.map{x => IASTPath(x, Entering)}
@@ -234,7 +216,11 @@ class Executor(code: String) {
           Seq()
         }
       case fcnDec: IASTFunctionDeclarator =>
-        Seq()
+        if (direction == Entering) {
+          fcnDec.getChildren.filter(x => !x.isInstanceOf[IASTName]).map{x => IASTPath(x, Entering)}
+        } else {
+          Seq()
+        }
       case decl: IASTDeclarator =>
         parseDeclarator(decl, direction, context)
       case fcnDef: IASTFunctionDefinition =>
@@ -244,10 +230,11 @@ class Executor(code: String) {
         } else if (direction == Exiting) {
           if (!functionReturnStack.isEmpty) {
             // We are exiting a function we're currently executing
-            context.currentPath = functionReturnStack.pop
             functionArgumentMap.clear
+            Seq(IASTPath(functionReturnStack.pop, Exiting))
+          } else {
+            Seq()
           }
-          Seq()
         } else {
           Seq(IASTPath(fcnDef.getDeclarator, Entering), IASTPath(fcnDef.getBody, Entering))
         }
@@ -395,10 +382,11 @@ class Executor(code: String) {
       //println(current.getClass.getSimpleName)
       // while there is still an execution context to run
       val newPaths = step(current, mainContext, direction)
+      val forwardPaths = newPaths.filter{x => x.direction == Entering}
 
       if (!newPaths.isEmpty) {
-        newPaths.foreach { case IASTPath(node, dir) => runProgram(node, Entering) }
-        newPaths.reverse.foreach { case IASTPath(node, dir) => runProgram(node, Exiting) }
+        forwardPaths.foreach { case IASTPath(node, dir) => runProgram(node, Entering) }
+        forwardPaths.reverse.foreach { case IASTPath(node, dir) => runProgram(node, Exiting) }
       }
     }
 

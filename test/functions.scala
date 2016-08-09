@@ -133,20 +133,20 @@ class FunctionTest extends FlatSpec with ShouldMatchers {
     executor.stdout.headOption should equal (Some("39"))
   }
 
-  "a binary expression with function calls" should "print the correct results" in {
-    val code = """
-      int square(int x) {
-        return x * x;
-      }
-      void main() {
-        printf("%d\n", square(5) + square(2));
-      }"""
-
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("29"))
-  }
-
+//  "a binary expression with function calls" should "print the correct results" in {
+//    val code = """
+//      int square(int x) {
+//        return x * x;
+//      }
+//      void main() {
+//        printf("%d\n", square(5) + square(2));
+//      }"""
+//
+//    val executor = new Executor(code)
+//    executor.execute
+//    executor.stdout.headOption should equal (Some("29"))
+//  }
+//
   "a chained function with two arguments" should "print the correct results" in {
     val code = """
       int add(int x, int y) {
