@@ -24,7 +24,7 @@ class Scope(outerScope: Scope) {
   }
 }
 
-case class Context(startNode: IASTNode) {
+case class IASTContext(startNode: IASTNode) {
   var currentPath: Path = null
   val stack = new Stack[Any]()
   val variableMap = scala.collection.mutable.Map[String, Any]()
@@ -38,7 +38,7 @@ class Executor(code: String) {
 
   val stdout = new ListBuffer[String]()
 
-  val mainContext = new Context(tUnit)
+  val mainContext = new IASTContext(tUnit)
 
   val functionMap = scala.collection.mutable.Map[String, IASTNode]()
 
@@ -51,7 +51,7 @@ class Executor(code: String) {
   def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
   def isDoubleNumber(s: String): Boolean = (allCatch opt s.toDouble).isDefined
 
-  def printf(context: Context) = {
+  def printf(context: IASTContext) = {
     var current = context.stack.pop
     val formatString = current.asInstanceOf[String].replaceAll("^\"|\"$", "")
 
@@ -73,7 +73,7 @@ class Executor(code: String) {
     result.split("""\\n""").foreach(line => stdout += line)
   }
 
-  def parseStatement(statement: IASTStatement, context: Context, direction: Direction): Seq[IASTNode] = statement match {
+  def parseStatement(statement: IASTStatement, context: IASTContext, direction: Direction): Seq[IASTNode] = statement match {
     case ifStatement: IASTIfStatement =>
       if (direction == Entering) {
         Seq(ifStatement.getConditionExpression)
@@ -114,7 +114,7 @@ class Executor(code: String) {
       }
   }
 
-  def parseExpression(expr: IASTExpression, direction: Direction, context: Context): Seq[IASTNode] = expr match {
+  def parseExpression(expr: IASTExpression, direction: Direction, context: IASTContext): Seq[IASTNode] = expr match {
     case subscript: IASTArraySubscriptExpression =>
       Seq()
     case unary: IASTUnaryExpression =>
@@ -172,7 +172,7 @@ class Executor(code: String) {
       }
   }
 
-  def step(current: IASTNode, context: Context, direction: Direction): Seq[IASTNode] = {
+  def step(current: IASTNode, context: IASTContext, direction: Direction): Seq[IASTNode] = {
 
     current match {
       case statement: IASTStatement =>
@@ -238,7 +238,7 @@ class Executor(code: String) {
     }
   }
 
-  def parseDeclarator(decl: IASTDeclarator, direction: Direction, context: Context): Seq[IASTNode] = {
+  def parseDeclarator(decl: IASTDeclarator, direction: Direction, context: IASTContext): Seq[IASTNode] = {
     if ((direction == Exiting || direction == Visiting) && !decl.getParent.isInstanceOf[IASTParameterDeclaration]) {
       var value: Any = null // init to zero
       if (isVarInitialized) {
@@ -274,7 +274,7 @@ class Executor(code: String) {
     }
   }
 
-  def parseBinaryOperand(op: IASTExpression, context: Context): Any = {
+  def parseBinaryOperand(op: IASTExpression, context: IASTContext): Any = {
     op match {
       case lit: IASTLiteralExpression => castLiteral(lit)
       case id: IASTIdExpression => {
@@ -292,7 +292,7 @@ class Executor(code: String) {
     }
   }
 
-  def parseBinaryExpr(binaryExpr: IASTBinaryExpression, direction: Direction, context: Context): Any = {
+  def parseBinaryExpr(binaryExpr: IASTBinaryExpression, direction: Direction, context: IASTContext): Any = {
     if (direction == Exiting || direction == Visiting) {
 
       val op1 = context.stack.pop //parseBinaryOperand(binaryExpr.getOperand1, context)
