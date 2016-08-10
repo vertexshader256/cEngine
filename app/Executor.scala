@@ -46,7 +46,7 @@ class Executor(code: String) {
   val functionArgumentMap = scala.collection.mutable.Map[String, Any]()
 
   var isVarInitialized = false
-  var arraySize = 0
+  var isArrayDeclaration = false
 
   def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
   def isDoubleNumber(s: String): Boolean = (allCatch opt s.toDouble).isDefined
@@ -78,7 +78,14 @@ class Executor(code: String) {
       if (direction == Entering) {
         Seq(ifStatement.getConditionExpression)
       } else {
-        val conditionResult = context.stack.pop match {
+        val x = context.stack.pop
+        
+        val value = if (x.isInstanceOf[String] && context.variableMap.contains(x.toString)) {
+          context.variableMap(x.toString)
+        } else {
+          x
+        }
+        val conditionResult = value match {
           case x: Int => x == 1
           case x: Boolean => x
         }
@@ -116,7 +123,17 @@ class Executor(code: String) {
 
   def parseExpression(expr: IASTExpression, direction: Direction, context: IASTContext): Seq[IASTNode] = expr match {
     case subscript: IASTArraySubscriptExpression =>
-      Seq()
+      if (direction == Entering) {
+        Seq(subscript.getArrayExpression, subscript.getArgument)
+      } else {
+        if (subscript.getParent.isInstanceOf[IASTFunctionCallExpression]) {
+          val index = context.stack.pop.asInstanceOf[Int]
+          val varName = context.stack.pop.toString
+          val arrayValue = context.variableMap(varName).asInstanceOf[Array[Int]](index)
+          context.stack.push(arrayValue)
+        }
+        Seq()
+      }
     case unary: IASTUnaryExpression =>
       if (direction == Entering) {
         Seq(unary.getOperand)
@@ -134,11 +151,14 @@ class Executor(code: String) {
       Seq()
     case id: IASTIdExpression =>
       if (direction == Exiting) {
-        context.stack.push(if (context.variableMap.contains(id.getRawSignature)) {
-          context.variableMap(id.getRawSignature)
-        } else {
-          functionArgumentMap(id.getRawSignature)
-        })
+//        if (id.getParent.isInstanceOf[IASTArraySubscriptExpression]) {
+//          context.stack.push(id.getName.getRawSignature)
+//        } else if (context.variableMap.contains(id.getRawSignature)) {
+//          context.stack.push(context.variableMap(id.getRawSignature))
+//        } else {
+//          context.stack.push(functionArgumentMap(id.getRawSignature))
+//        }
+        context.stack.push(id.getName.getRawSignature)
       }
       Seq()
     case call: IASTFunctionCallExpression =>
@@ -148,6 +168,18 @@ class Executor(code: String) {
           case x: IASTIdExpression => x.getName.getRawSignature
           case _ => "Error"
         }
+        
+        val argList = call.getArguments.map { arg => (arg, context.stack.pop) }
+        
+        val resolved = argList.map { case (arg, value) => 
+          arg match {
+            case id: IASTIdExpression =>
+               context.variableMap(value.toString)
+            case _ => value
+          }
+        }
+        
+        resolved.reverse.foreach { arg => context.stack.push(arg)}
 
         if (name == "printf") {
           printf(context)
@@ -181,8 +213,13 @@ class Executor(code: String) {
       case expression: IASTExpression =>
         parseExpression(expression, direction, context)
       case array: IASTArrayModifier =>
-        arraySize = array.getConstantExpression.getRawSignature.toInt
-        Seq()
+        if (direction == Exiting) {
+          isArrayDeclaration = true
+          Seq()
+        } else {
+          Seq(array.getConstantExpression)
+        }
+
       case param: IASTParameterDeclaration =>
         if (direction == Exiting) {
           val arg = context.stack.pop
@@ -240,26 +277,37 @@ class Executor(code: String) {
   }
 
   def parseDeclarator(decl: IASTDeclarator, direction: Direction, context: IASTContext): Seq[IASTNode] = {
-    if ((direction == Exiting || direction == Visiting) && !decl.getParent.isInstanceOf[IASTParameterDeclaration]) {
+    if ((direction == Exiting) && !decl.getParent.isInstanceOf[IASTParameterDeclaration]) {
       var value: Any = null // init to zero
       if (isVarInitialized) {
         value = context.stack.pop
       }
-      if (arraySize > 0) {
-        context.variableMap += (decl.getName.getRawSignature -> Array.fill(arraySize)(0))
+      if (isArrayDeclaration) {
+        val size = context.stack.pop.asInstanceOf[Int]
+        println("DECL ARRAY: " + size)
+        context.variableMap += (decl.getName.getRawSignature -> Array.fill(size)(0))
       } else {
         //println("ADDING GLOBAL VAR: " + decl.getName.getRawSignature + ", " + value)
         context.variableMap += (decl.getName.getRawSignature -> value)
       }
       Seq()
     } else {
-      arraySize = 0
+      isArrayDeclaration = false
       isVarInitialized = false
-      if (decl.getInitializer != null) {
-        Seq(decl.getInitializer)
-      } else {
-        Seq()
+      
+      decl match {
+        case array: IASTArrayDeclarator =>
+          array.getArrayModifiers
+        case _ =>
+          if (decl.getInitializer != null) {
+            Seq(decl.getInitializer)
+          } else {
+            Seq()
+          }
       }
+      
+      
+      
     }
 
   }
@@ -275,32 +323,36 @@ class Executor(code: String) {
     }
   }
 
-  def parseBinaryOperand(op: IASTExpression, context: IASTContext): Any = {
-    op match {
-      case lit: IASTLiteralExpression => castLiteral(lit)
-      case id: IASTIdExpression => {
-        if (context.variableMap.contains(id.getRawSignature)) {
-          context.variableMap(id.getRawSignature)
-        } else {
-          functionArgumentMap(id.getRawSignature)
-        }
-      }
-      case sub: IASTArraySubscriptExpression =>
-        context.variableMap(sub.getArrayExpression.getRawSignature).asInstanceOf[Array[_]](sub.getArgument.getRawSignature.toInt)
-      case bin: IASTBinaryExpression => context.stack.pop
-      case bin: IASTUnaryExpression => context.stack.pop
-      case fcn: IASTFunctionCallExpression => context.stack.pop
-    }
-  }
-
   def parseBinaryExpr(binaryExpr: IASTBinaryExpression, direction: Direction, context: IASTContext): Any = {
     if (direction == Exiting || direction == Visiting) {
 
-      val op2 = context.stack.pop //parseBinaryOperand(binaryExpr.getOperand1, context)
-      val op1 = context.stack.pop //parseBinaryOperand(binaryExpr.getOperand2, context)
+      var op2: Any = context.stack.pop //parseBinaryOperand(binaryExpr.getOperand1, context)
+      var op1: Any = context.stack.pop //parseBinaryOperand(binaryExpr.getOperand2, context)
+      
+      def resolveOp1() = op1 match {
+        case str: String => 
+          if (context.variableMap.contains(str)) {
+            op1 = context.variableMap(str)
+          } else {
+            op1 = functionArgumentMap(str)
+          }
+        case _ =>
+      }
+      
+      def resolveOp2() = op2 match {
+        case str: String =>
+          if (context.variableMap.contains(str)) {
+            op2 = context.variableMap(str)
+          } else {
+            op2 = functionArgumentMap(str)
+          }
+        case _ =>
+      }
 
       binaryExpr.getOperator match {
         case `op_multiply` =>
+          resolveOp1()
+          resolveOp2()
           (op1, op2) match {
             case (x: Int, y: Int) =>
               x * y
@@ -312,6 +364,8 @@ class Executor(code: String) {
               x * y
           }
         case `op_plus` =>
+          resolveOp1()
+          resolveOp2()
           (op1, op2) match {
             case (x: Int, y: Int) =>
               x + y
@@ -323,6 +377,8 @@ class Executor(code: String) {
               x + y
           }
         case `op_minus` =>
+          resolveOp1()
+          resolveOp2()
           (op1, op2) match {
             case (x: Int, y: Int) =>
               x - y
@@ -334,6 +390,8 @@ class Executor(code: String) {
               x - y
           }
         case `op_divide` =>
+          resolveOp1()
+          resolveOp2()
           (op1, op2) match {
             case (x: Int, y: Int) =>
               x / y
@@ -345,10 +403,20 @@ class Executor(code: String) {
               x / y
           }
         case `op_assign` =>
-          println("SETTING: " + binaryExpr.getOperand1.getRawSignature + " to " + op2)
-          context.variableMap += (binaryExpr.getOperand1.getRawSignature -> op2)
+          
+          resolveOp2()
+          
+          op1 match {
+            case varName: String => context.variableMap(varName) = op2
+            case index: Int => 
+              val varName = context.stack.pop.toString
+              context.variableMap(varName).asInstanceOf[Array[Int]](index) = op2.asInstanceOf[Int]
+          }
+
           null
         case `op_equals` =>
+          resolveOp1()
+          resolveOp2()
           (op1, op2) match {
             case (x: Int, y: Int) =>
               x == y
@@ -358,6 +426,19 @@ class Executor(code: String) {
               x == y
             case (x: Double, y: Double) =>
               x == y
+          }
+        case `op_greaterThan` =>
+          resolveOp1()
+          resolveOp2()
+          (op1, op2) match {
+            case (x: Int, y: Int) =>
+              x > y
+            case (x: Double, y: Int) =>
+              x > y
+            case (x: Int, y: Double) =>
+              x > y
+            case (x: Double, y: Double) =>
+              x > y
           }
         case _ => throw new Exception("unhandled binary operator"); null
       }
