@@ -128,6 +128,7 @@ class Executor(code: String) {
       //   FIX THIS (dont have it specific to IF statements)
       //if (lit.getParent.isInstanceOf[IASTIfStatement]) {
       if (direction == Exiting) {
+        println("PUSHING LIT: " + castLiteral(lit))
         context.stack.push(castLiteral(lit))
       }
       Seq()
@@ -157,7 +158,7 @@ class Executor(code: String) {
         }
 
       } else {
-        call.getArguments
+        call.getArguments.reverse
       }
 
     case bin: IASTBinaryExpression =>
@@ -295,8 +296,8 @@ class Executor(code: String) {
   def parseBinaryExpr(binaryExpr: IASTBinaryExpression, direction: Direction, context: IASTContext): Any = {
     if (direction == Exiting || direction == Visiting) {
 
-      val op1 = context.stack.pop //parseBinaryOperand(binaryExpr.getOperand1, context)
-      val op2 = context.stack.pop //parseBinaryOperand(binaryExpr.getOperand2, context)
+      val op2 = context.stack.pop //parseBinaryOperand(binaryExpr.getOperand1, context)
+      val op1 = context.stack.pop //parseBinaryOperand(binaryExpr.getOperand2, context)
 
       binaryExpr.getOperator match {
         case `op_multiply` =>
@@ -344,6 +345,7 @@ class Executor(code: String) {
               x / y
           }
         case `op_assign` =>
+          println("SETTING: " + binaryExpr.getOperand1.getRawSignature + " to " + op2)
           context.variableMap += (binaryExpr.getOperand1.getRawSignature -> op2)
           null
         case `op_equals` =>
@@ -371,9 +373,9 @@ class Executor(code: String) {
       // while there is still an execution context to run
       val newPaths = step(current, mainContext, direction)
 
-      if (!newPaths.isEmpty) {
-        newPaths.foreach { node => runProgram(node, Entering) }
-        newPaths.reverse.foreach { node => runProgram(node, Exiting) }
+      newPaths.foreach{ node =>
+        runProgram(node, Entering)
+        runProgram(node, Exiting)
       }
     }
 
