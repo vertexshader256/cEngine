@@ -45,7 +45,6 @@ class Executor(code: String) {
   var functionReturnStack = new Stack[IASTFunctionCallExpression]()
   val functionArgumentMap = scala.collection.mutable.Map[String, Any]()
 
-  var isVarInitialized = false
   var isArrayDeclaration = false
 
   def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
@@ -141,9 +140,6 @@ class Executor(code: String) {
         Seq()
       }
     case lit: IASTLiteralExpression =>
-      //   HACK ALERT
-      //   FIX THIS (dont have it specific to IF statements)
-      //if (lit.getParent.isInstanceOf[IASTIfStatement]) {
       if (direction == Exiting) {
         println("PUSHING LIT: " + castLiteral(lit))
         context.stack.push(castLiteral(lit))
@@ -151,13 +147,6 @@ class Executor(code: String) {
       Seq()
     case id: IASTIdExpression =>
       if (direction == Exiting) {
-//        if (id.getParent.isInstanceOf[IASTArraySubscriptExpression]) {
-//          context.stack.push(id.getName.getRawSignature)
-//        } else if (context.variableMap.contains(id.getRawSignature)) {
-//          context.stack.push(context.variableMap(id.getRawSignature))
-//        } else {
-//          context.stack.push(functionArgumentMap(id.getRawSignature))
-//        }
         context.stack.push(id.getName.getRawSignature)
       }
       Seq()
@@ -268,7 +257,6 @@ class Executor(code: String) {
         Seq()
       case eq: IASTEqualsInitializer =>
         if (direction == Entering) {
-          isVarInitialized = true
           Seq(eq.getInitializerClause)
         } else {
           Seq()
@@ -278,23 +266,18 @@ class Executor(code: String) {
 
   def parseDeclarator(decl: IASTDeclarator, direction: Direction, context: IASTContext): Seq[IASTNode] = {
     if ((direction == Exiting) && !decl.getParent.isInstanceOf[IASTParameterDeclaration]) {
-      var value: Any = null // init to zero
-      if (isVarInitialized) {
-        value = context.stack.pop
-      }
+      
       if (isArrayDeclaration) {
         val size = context.stack.pop.asInstanceOf[Int]
-        println("DECL ARRAY: " + size)
         context.variableMap += (decl.getName.getRawSignature -> Array.fill(size)(0))
-      } else {
-        //println("ADDING GLOBAL VAR: " + decl.getName.getRawSignature + ", " + value)
-        context.variableMap += (decl.getName.getRawSignature -> value)
+      } else if (!context.stack.isEmpty) {
+        // initial value is on the stack, set it
+        context.variableMap += (decl.getName.getRawSignature -> context.stack.pop)
       }
       Seq()
     } else {
       isArrayDeclaration = false
-      isVarInitialized = false
-      
+
       decl match {
         case array: IASTArrayDeclarator =>
           array.getArrayModifiers
