@@ -1,6 +1,6 @@
-import org.scalatest._
+package scala.astViewer
 
-import scala.astViewer.Executor
+import org.scalatest._
 
 class IfStatement extends FlatSpec with ShouldMatchers {
   "A simple if statement with true literal" should "print the correct results" in {

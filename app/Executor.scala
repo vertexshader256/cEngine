@@ -126,7 +126,7 @@ class Executor(code: String) {
       if (direction == Entering) {
         Seq(subscript.getArrayExpression, subscript.getArgument)
       } else {
-        if (subscript.getParent.isInstanceOf[IASTFunctionCallExpression]) {
+        if (Utils.getAncestors(subscript).exists{ _.isInstanceOf[IASTFunctionCallExpression]}) {
           val index = context.stack.pop.asInstanceOf[Int]
           val varName = context.stack.pop.toString
           val arrayValue = context.variableMap(varName).asInstanceOf[Array[Int]](index)
@@ -324,10 +324,12 @@ class Executor(code: String) {
   }
 
   def parseBinaryExpr(binaryExpr: IASTBinaryExpression, direction: Direction, context: IASTContext): Any = {
-    if (direction == Exiting || direction == Visiting) {
+    if (direction == Exiting) {
 
       var op2: Any = context.stack.pop //parseBinaryOperand(binaryExpr.getOperand1, context)
       var op1: Any = context.stack.pop //parseBinaryOperand(binaryExpr.getOperand2, context)
+      
+      println(op1.getClass.getSimpleName)
       
       def resolveOp1() = op1 match {
         case str: String => 
@@ -336,7 +338,9 @@ class Executor(code: String) {
           } else {
             op1 = functionArgumentMap(str)
           }
-        case _ =>
+        case int: Int => 
+        case bool: Boolean =>
+        case double: Double =>
       }
       
       def resolveOp2() = op2 match {
@@ -346,7 +350,9 @@ class Executor(code: String) {
           } else {
             op2 = functionArgumentMap(str)
           }
-        case _ =>
+        case int: Int => 
+        case bool: Boolean =>
+        case double: Double =>
       }
 
       binaryExpr.getOperator match {
@@ -439,6 +445,20 @@ class Executor(code: String) {
               x > y
             case (x: Double, y: Double) =>
               x > y
+          }
+        case `op_logicalAnd` =>
+          resolveOp1()
+          resolveOp2()
+          (op1, op2) match {
+            case (x: Boolean, y: Boolean) =>
+              x && y
+          }
+        case `op_logicalOr` =>
+          resolveOp1()
+          resolveOp2()
+          (op1, op2) match {
+            case (x: Boolean, y: Boolean) =>
+              x || y
           }
         case _ => throw new Exception("unhandled binary operator"); null
       }

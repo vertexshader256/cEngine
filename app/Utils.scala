@@ -27,6 +27,16 @@ object Utils {
   def findFunctions(node: IASTTranslationUnit): Seq[IASTFunctionDefinition] = {
     node.getDeclarations.collect{case decl: IASTFunctionDefinition => decl}
   }
+  
+  def getAncestors(node: IASTNode): Seq[IASTNode] = {
+    var current = node.getParent
+    val results = new ListBuffer[IASTNode]()
+    while (current != null) {
+      results += current
+      current = current.getParent
+    }
+    results
+  }
 
   def findVariable(scope: IScope, name: String, tUnit: IASTTranslationUnit): Option[IVariable] = {
     var currentScope = scope

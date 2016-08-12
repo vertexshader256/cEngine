@@ -1,6 +1,6 @@
-import org.scalatest._
+package scala.astViewer
 
-import scala.astViewer.Executor
+import org.scalatest._
 
 class FloatingPoint extends FlatSpec with ShouldMatchers {
   "A simple double initialized global reference" should "print the correct results" in {
