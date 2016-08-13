@@ -214,6 +214,7 @@ class Executor(code: String) {
       case param: IASTParameterDeclaration =>
         if (direction == Exiting) {
           val arg = context.stack.pop
+          println("SETTING " + param.getDeclarator.getName.getRawSignature + " to " + arg)
           functionArgumentMap += (param.getDeclarator.getName.getRawSignature -> arg)
           Seq()
         } else {
@@ -469,27 +470,18 @@ class Executor(code: String) {
     def tick(): Unit = {
       val direction = if (visited.contains(current)) Exiting else Entering
       
-      if (direction == Entering && current.isInstanceOf[IASTFunctionDefinition]) {
-        clearVisited(current)
-        println("CLEARING!!!!!!!!!!!!!!!!!!!!!!!")
-      }
-      
       println("BEGIN: " + current.getClass.getSimpleName + ":" + direction)   
       
       val paths: Seq[IASTNode] = step(current, mainContext, direction)    
-
-      if (direction == Entering) {
-        visited += current
-      }
       
       if (direction == Exiting && current.isInstanceOf[IASTFunctionDefinition] && !isPreprocessing) {
         clearVisited(current)
       }
       
-      if (paths.isEmpty && direction == Entering) {
-
-      } else if (direction == Exiting) {
+      if (direction == Exiting) {
         pathStack.pop
+      } else {
+        visited += current
       }
       
       paths.reverse.foreach{path => pathStack.push(path)}
