@@ -171,6 +171,7 @@ class Executor(code: String) {
         resolved.reverse.foreach { arg => context.stack.push(arg)}
 
         if (name == "printf") {
+          println("CALLING PRINT")
           printf(context)
           Seq()
         } else {
@@ -451,22 +452,58 @@ class Executor(code: String) {
   }
 
   def execute = {
+    
+    val pathStack = new Stack[IASTNode]()
+    val visited = new ListBuffer[IASTNode]()
+  
+    var current: IASTNode = null
 
-    def runProgram(current: IASTNode, direction: Direction): Unit = {
-      //println(current.getClass.getSimpleName)
-      // while there is still an execution context to run
-      val newPaths = step(current, mainContext, direction)
+    def tick(): Unit = {
+      val direction = if (visited.contains(current)) Exiting else Entering
+      
+      println("BEGIN: " + current.getClass.getSimpleName + ":" + direction)   
+      
+      val paths: Seq[IASTNode] = step(current, mainContext, direction)
+      
+      paths.reverse.foreach{path => pathStack.push(path)}
 
-      newPaths.foreach{ node =>
-        runProgram(node, Entering)
-        runProgram(node, Exiting)
+      if (direction == Entering) {
+        visited += current
+      }
+      
+      if (paths.isEmpty && direction == Entering) {
+
+      } else if (paths.isEmpty && direction == Exiting) {
+        pathStack.pop
+      }
+      
+      if (!pathStack.isEmpty) {
+        current = pathStack.head
+      } else {
+        current = null
       }
     }
+    
+    def runProgram() = {
+      while (current != null) {
+        tick()
+      }
+    }
+    
+    current = tUnit
 
-    runProgram(tUnit, Entering)
+    runProgram()
     //println("RUNNING PROGRAM")
     isPreprocessing = false
     mainContext.stack.clear
-    runProgram(functionMap("main"), Entering)
+    
+    println("_----------------------------------------------_")
+    
+    visited.clear
+    pathStack.clear
+    pathStack.push(functionMap("main"))
+    current = pathStack.head
+
+    runProgram()
   }
 }
