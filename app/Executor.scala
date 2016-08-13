@@ -46,6 +46,7 @@ class Executor(code: String) {
   val functionArgumentMap = scala.collection.mutable.Map[String, Any]()
 
   var isArrayDeclaration = false
+  var previousNode: IASTNode = null
 
   def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
   def isDoubleNumber(s: String): Boolean = (allCatch opt s.toDouble).isDefined
@@ -152,7 +153,11 @@ class Executor(code: String) {
       Seq()
     case call: IASTFunctionCallExpression =>
       // only evaluate after leaving
-      if (direction == Exiting) {
+      if (previousNode.isInstanceOf[IASTFunctionDefinition]) {
+        // do nothing, we're just returning from a call
+        println("RETURNING FROM CALL")
+        Seq()
+      } else if (direction == Exiting) {
         val name = call.getFunctionNameExpression match {
           case x: IASTIdExpression => x.getName.getRawSignature
           case _ => "Error"
@@ -187,6 +192,7 @@ class Executor(code: String) {
       if (direction == Exiting) {
         val result = parseBinaryExpr(bin, direction, context)
         if (result != null) {
+          println("RETURNING FROM BIN EXPR: " + result)
           context.stack.push(result)
         }
         Seq()
@@ -457,27 +463,46 @@ class Executor(code: String) {
     val visited = new ListBuffer[IASTNode]()
   
     var current: IASTNode = null
+    
+    def clearVisited(parent: IASTNode) {
+        visited -= parent
+        parent.getChildren.foreach { node =>
+          clearVisited(node)
+        }
+    }
 
     def tick(): Unit = {
       val direction = if (visited.contains(current)) Exiting else Entering
+      
+      if (direction == Entering && current.isInstanceOf[IASTFunctionDefinition]) {
+        clearVisited(current)
+        println("CLEARING!!!!!!!!!!!!!!!!!!!!!!!")
+      }
       
       println("BEGIN: " + current.getClass.getSimpleName + ":" + direction)   
       
       val paths: Seq[IASTNode] = step(current, mainContext, direction)
       
-      paths.reverse.foreach{path => pathStack.push(path)}
+      
 
       if (direction == Entering) {
         visited += current
       }
       
+      if (direction == Exiting && current.isInstanceOf[IASTFunctionDefinition] && !isPreprocessing) {
+        clearVisited(current)
+      }
+      
       if (paths.isEmpty && direction == Entering) {
 
-      } else if (paths.isEmpty && direction == Exiting) {
+      } else if (direction == Exiting) {
         pathStack.pop
       }
       
+      paths.reverse.foreach{path => pathStack.push(path)}
+      
       if (!pathStack.isEmpty) {
+        previousNode = current
         current = pathStack.head
       } else {
         current = null
