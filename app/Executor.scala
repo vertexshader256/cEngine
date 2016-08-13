@@ -46,7 +46,6 @@ class Executor(code: String) {
   val functionArgumentMap = scala.collection.mutable.Map[String, Any]()
 
   var isArrayDeclaration = false
-  var previousNode: IASTNode = null
 
   def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
   def isDoubleNumber(s: String): Boolean = (allCatch opt s.toDouble).isDefined
@@ -153,11 +152,7 @@ class Executor(code: String) {
       Seq()
     case call: IASTFunctionCallExpression =>
       // only evaluate after leaving
-      if (previousNode.isInstanceOf[IASTFunctionDefinition]) {
-        // do nothing, we're just returning from a call
-        println("RETURNING FROM CALL")
-        Seq()
-      } else if (direction == Exiting) {
+      if (direction == Exiting) {
         val name = call.getFunctionNameExpression match {
           case x: IASTIdExpression => x.getName.getRawSignature
           case _ => "Error"
@@ -481,9 +476,7 @@ class Executor(code: String) {
       
       println("BEGIN: " + current.getClass.getSimpleName + ":" + direction)   
       
-      val paths: Seq[IASTNode] = step(current, mainContext, direction)
-      
-      
+      val paths: Seq[IASTNode] = step(current, mainContext, direction)    
 
       if (direction == Entering) {
         visited += current
@@ -502,7 +495,6 @@ class Executor(code: String) {
       paths.reverse.foreach{path => pathStack.push(path)}
       
       if (!pathStack.isEmpty) {
-        previousNode = current
         current = pathStack.head
       } else {
         current = null
