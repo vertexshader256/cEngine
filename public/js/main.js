@@ -55,6 +55,8 @@ function initNode(node) {
 function color(d) {
   if (d == root) {
     return "#ff0000"
+  } else if (d.type == "CASTBinaryExpression") {
+	return "#00FF00"
   } else if (d._children.length > 0) {
     return "#3182bd";
   } else if (d.children.length > 0) {

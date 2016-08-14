@@ -46,6 +46,9 @@ class Executor(code: String) {
   val functionArgumentMap = scala.collection.mutable.Map[String, Any]()
 
   var isArrayDeclaration = false
+  
+  val visitedStack = new Stack[ListBuffer[IASTNode]]()
+  var currentVisited = new ListBuffer[IASTNode]()
 
   def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
   def isDoubleNumber(s: String): Boolean = (allCatch opt s.toDouble).isDefined
@@ -175,6 +178,9 @@ class Executor(code: String) {
           printf(context)
           Seq()
         } else {
+          visitedStack.push(currentVisited)
+          currentVisited = new ListBuffer[IASTNode]()
+          println("GOING TO FUNCTIONNNNNNNNNNNNNNNNNNNN")
           functionReturnStack.push(call)
           Seq(functionMap(name))
         }
@@ -246,14 +252,16 @@ class Executor(code: String) {
           functionMap += (fcnDef.getDeclarator.getName.getRawSignature -> fcnDef)
           Seq()
         } else if (direction == Exiting) {
+          currentVisited = visitedStack.pop
           if (!functionReturnStack.isEmpty) {
             // We are exiting a function we're currently executing
-            functionArgumentMap.clear
+            //functionArgumentMap.clear
             Seq()
           } else {
             Seq()
           }
         } else {
+          
           Seq(fcnDef.getDeclarator, fcnDef.getBody)
         }
       case decl: IASTSimpleDeclaration =>
@@ -456,32 +464,28 @@ class Executor(code: String) {
   def execute = {
     
     val pathStack = new Stack[IASTNode]()
-    val visited = new ListBuffer[IASTNode]()
+    
   
     var current: IASTNode = null
     
     def clearVisited(parent: IASTNode) {
-        visited -= parent
+        currentVisited -= parent
         parent.getChildren.foreach { node =>
           clearVisited(node)
         }
     }
 
     def tick(): Unit = {
-      val direction = if (visited.contains(current)) Exiting else Entering
+      val direction = if (currentVisited.contains(current)) Exiting else Entering
       
       println("BEGIN: " + current.getClass.getSimpleName + ":" + direction)   
       
-      val paths: Seq[IASTNode] = step(current, mainContext, direction)    
-      
-      if (direction == Exiting && current.isInstanceOf[IASTFunctionDefinition] && !isPreprocessing) {
-        clearVisited(current)
-      }
+      val paths: Seq[IASTNode] = step(current, mainContext, direction)        
       
       if (direction == Exiting) {
         pathStack.pop
       } else {
-        visited += current
+        currentVisited += current
       }
       
       paths.reverse.foreach{path => pathStack.push(path)}
@@ -508,7 +512,9 @@ class Executor(code: String) {
     
     println("_----------------------------------------------_")
     
-    visited.clear
+    currentVisited.clear
+    visitedStack.clear
+    visitedStack.push(new ListBuffer[IASTNode]()) // load initial stack
     pathStack.clear
     pathStack.push(functionMap("main"))
     current = pathStack.head
