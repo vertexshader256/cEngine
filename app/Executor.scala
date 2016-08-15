@@ -31,6 +31,8 @@ case class IASTContext(startNode: IASTNode) {
   val path = Utils.getPath(startNode)
 }
 
+case class Visited(nodes: ListBuffer[IASTNode], functionArgs: scala.collection.mutable.Map[String, Any])
+
 class Executor(code: String) {
 
   var isPreprocessing = true
@@ -43,12 +45,11 @@ class Executor(code: String) {
   val functionMap = scala.collection.mutable.Map[String, IASTNode]()
 
   var functionReturnStack = new Stack[IASTFunctionCallExpression]()
-  val functionArgumentMap = scala.collection.mutable.Map[String, Any]()
 
   var isArrayDeclaration = false
   
-  val visitedStack = new Stack[ListBuffer[IASTNode]]()
-  var currentVisited = new ListBuffer[IASTNode]()
+  val visitedStack = new Stack[Visited]()
+  var currentVisited: Visited = null
 
   def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
   def isDoubleNumber(s: String): Boolean = (allCatch opt s.toDouble).isDefined
@@ -179,7 +180,7 @@ class Executor(code: String) {
           Seq()
         } else {
           visitedStack.push(currentVisited)
-          currentVisited = new ListBuffer[IASTNode]()
+          currentVisited = Visited(new ListBuffer[IASTNode](), scala.collection.mutable.Map[String, Any]())
           println("GOING TO FUNCTIONNNNNNNNNNNNNNNNNNNN")
           functionReturnStack.push(call)
           Seq(functionMap(name))
@@ -221,7 +222,7 @@ class Executor(code: String) {
         if (direction == Exiting) {
           val arg = context.stack.pop
           println("SETTING " + param.getDeclarator.getName.getRawSignature + " to " + arg)
-          functionArgumentMap += (param.getDeclarator.getName.getRawSignature -> arg)
+          currentVisited.functionArgs += (param.getDeclarator.getName.getRawSignature -> arg)
           Seq()
         } else {
           Seq(param.getDeclarator)
@@ -330,7 +331,7 @@ class Executor(code: String) {
           if (context.variableMap.contains(str)) {
             op1 = context.variableMap(str)
           } else {
-            op1 = functionArgumentMap(str)
+            op1 = currentVisited.functionArgs(str)
           }
         case int: Int => 
         case bool: Boolean =>
@@ -342,7 +343,7 @@ class Executor(code: String) {
           if (context.variableMap.contains(str)) {
             op2 = context.variableMap(str)
           } else {
-            op2 = functionArgumentMap(str)
+            op2 = currentVisited.functionArgs(str)
           }
         case int: Int => 
         case bool: Boolean =>
@@ -469,14 +470,14 @@ class Executor(code: String) {
     var current: IASTNode = null
     
     def clearVisited(parent: IASTNode) {
-        currentVisited -= parent
+        currentVisited.nodes -= parent
         parent.getChildren.foreach { node =>
           clearVisited(node)
         }
     }
 
     def tick(): Unit = {
-      val direction = if (currentVisited.contains(current)) Exiting else Entering
+      val direction = if (currentVisited.nodes.contains(current)) Exiting else Entering
       
       println("BEGIN: " + current.getClass.getSimpleName + ":" + direction)   
       
@@ -485,7 +486,7 @@ class Executor(code: String) {
       if (direction == Exiting) {
         pathStack.pop
       } else {
-        currentVisited += current
+        currentVisited.nodes += current
       }
       
       paths.reverse.foreach{path => pathStack.push(path)}
@@ -504,6 +505,9 @@ class Executor(code: String) {
     }
     
     current = tUnit
+    
+    visitedStack.push(Visited(new ListBuffer[IASTNode](), scala.collection.mutable.Map[String, Any]())) // load initial stack
+    currentVisited = visitedStack.head
 
     runProgram()
     //println("RUNNING PROGRAM")
@@ -512,9 +516,9 @@ class Executor(code: String) {
     
     println("_----------------------------------------------_")
     
-    currentVisited.clear
     visitedStack.clear
-    visitedStack.push(new ListBuffer[IASTNode]()) // load initial stack
+    visitedStack.push(Visited(new ListBuffer[IASTNode](), scala.collection.mutable.Map[String, Any]())) // load initial stack
+    currentVisited = visitedStack.head
     pathStack.clear
     pathStack.push(functionMap("main"))
     current = pathStack.head
