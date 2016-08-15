@@ -1,6 +1,6 @@
 package scala.astViewer
 
-import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
+
 import org.eclipse.cdt.core.dom.ast.{IASTEqualsInitializer, _}
 
 import scala.astViewer.{IntPrimitive, Path, Utils}
@@ -98,6 +98,34 @@ class Executor(code: String) {
           Seq(ifStatement.getElseClause)
         }
       }
+    case forLoop: IASTForStatement =>
+      if (direction == Entering) {
+        Seq(forLoop.getInitializerStatement, forLoop.getConditionExpression)
+      } else {
+        val x = context.stack.pop
+        
+        val value = if (x.isInstanceOf[String] && context.variableMap.contains(x.toString)) {
+          context.variableMap(x.toString)
+        } else {
+          x
+        }
+        
+        val shouldKeepLooping = value match {
+          case x: Int => x == 1
+          case x: Boolean => x
+        }
+        
+        clearVisited(forLoop.getBody)
+        clearVisited(forLoop.getIterationExpression)
+        clearVisited(forLoop.getConditionExpression)
+        
+        if (shouldKeepLooping) {
+          println("LOOPING AGAIN: " + value)
+          Seq(forLoop.getBody, forLoop.getIterationExpression, forLoop.getConditionExpression, forLoop)
+        } else {
+          Seq()
+        }
+      }
     case ret: IASTReturnStatement =>
       if (direction == Entering) {
         Seq(ret.getReturnValue)
@@ -138,9 +166,28 @@ class Executor(code: String) {
         Seq()
       }
     case unary: IASTUnaryExpression =>
+      import org.eclipse.cdt.core.dom.ast.IASTUnaryExpression._
+      
       if (direction == Entering) {
         Seq(unary.getOperand)
       } else {
+        unary.getOperator match {
+          case `op_postFixIncr` => {
+            val value = context.stack.pop.toString
+            if (context.variableMap.contains(value)) {
+              val intVal = context.variableMap(value).asInstanceOf[Int]
+              context.variableMap(value) = intVal + 1
+            }
+          }
+          case `op_postFixDecr` => {
+            val value = context.stack.pop.toString
+            if (context.variableMap.contains(value)) {
+              val intVal = context.variableMap(value).asInstanceOf[Int]
+              context.variableMap(value) = intVal - 1
+            }
+          }
+          case `op_bracketedPrimary` => // not sure what this is for
+        }
         Seq()
       }
     case lit: IASTLiteralExpression =>
@@ -319,12 +366,12 @@ class Executor(code: String) {
   }
 
   def parseBinaryExpr(binaryExpr: IASTBinaryExpression, direction: Direction, context: IASTContext): Any = {
+    import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
+    
     if (direction == Exiting) {
 
       var op2: Any = context.stack.pop //parseBinaryOperand(binaryExpr.getOperand1, context)
       var op1: Any = context.stack.pop //parseBinaryOperand(binaryExpr.getOperand2, context)
-      
-      println(op1.getClass.getSimpleName)
       
       def resolveOp1() = op1 match {
         case str: String => 
@@ -441,6 +488,29 @@ class Executor(code: String) {
             case (x: Double, y: Double) =>
               x > y
           }
+        case `op_lessThan` =>
+          resolveOp1()
+          resolveOp2()
+          (op1, op2) match {
+            case (x: Int, y: Int) =>
+              x < y
+            case (x: Double, y: Int) =>
+              x < y
+            case (x: Int, y: Double) =>
+              x < y
+            case (x: Double, y: Double) =>
+              x < y
+          }
+        case `op_plusAssign` =>
+          resolveOp2()
+          op1 match {
+            case varName: String => context.variableMap(varName) = context.variableMap(varName).asInstanceOf[Int] + op2.asInstanceOf[Int]
+          }
+        case `op_minusAssign` =>
+          resolveOp2()
+          op1 match {
+            case varName: String => context.variableMap(varName) = context.variableMap(varName).asInstanceOf[Int] - op2.asInstanceOf[Int]
+          }
         case `op_logicalAnd` =>
           resolveOp1()
           resolveOp2()
@@ -461,6 +531,13 @@ class Executor(code: String) {
       null
     }
   }
+  
+  def clearVisited(parent: IASTNode) {
+        currentVisited.nodes -= parent
+        parent.getChildren.foreach { node =>
+          clearVisited(node)
+        }
+    }
 
   def execute = {
     
@@ -468,13 +545,6 @@ class Executor(code: String) {
     
   
     var current: IASTNode = null
-    
-    def clearVisited(parent: IASTNode) {
-        currentVisited.nodes -= parent
-        parent.getChildren.foreach { node =>
-          clearVisited(node)
-        }
-    }
 
     def tick(): Unit = {
       val direction = if (currentVisited.nodes.contains(current)) Exiting else Entering
