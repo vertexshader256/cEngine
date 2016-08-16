@@ -92,4 +92,17 @@ class BinaryExpr extends FlatSpec with ShouldMatchers {
     executor.execute
     executor.stdout.headOption should equal (Some("3"))
   }
+  
+  "A more complex decrement test" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 5;
+        x -= (x * 4) / 2 + (2 + x) * 2;
+        printf("%d\n", x);
+      }"""
+
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal (Some("-19"))
+  }
 }
