@@ -1,31 +1,11 @@
 package scala.astViewer
 
-
 import org.eclipse.cdt.core.dom.ast.{IASTEqualsInitializer, _}
 
-import scala.astViewer.{IntPrimitive, Path, Utils}
 import scala.collection.mutable.{ListBuffer, Stack}
 import scala.util.control.Exception.allCatch
 
-
-
-trait PrimitiveType
-case class IntPrimitive(name: String, value: Long) extends PrimitiveType
-
-class Scope(outerScope: Scope) {
-  val integers = new ListBuffer[IntPrimitive]()
-
-  def getVariableValue(name: String): String = {
-    if (outerScope != null) {
-      (outerScope.integers ++ integers).filter(_.name == name).head.value.toString
-    } else {
-      integers.filter(_.name == name).head.value.toString
-    }
-  }
-}
-
 case class IASTContext(startNode: IASTNode) {
-  var currentPath: Path = null
   val stack = new Stack[Any]()
   val variableMap = scala.collection.mutable.Map[String, Any]()
   val path = Utils.getPath(startNode)
@@ -43,21 +23,15 @@ class Executor(code: String) {
   val mainContext = new IASTContext(tUnit)
 
   val functionMap = scala.collection.mutable.Map[String, IASTNode]()
-
   var functionReturnStack = new Stack[IASTFunctionCallExpression]()
-
   var isArrayDeclaration = false
   
   val visitedStack = new Stack[Visited]()
   var currentVisited: Visited = null
 
-  def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
-  def isDoubleNumber(s: String): Boolean = (allCatch opt s.toDouble).isDefined
-
   def printf(context: IASTContext) = {
     var current = context.stack.pop
     val formatString = current.asInstanceOf[String].replaceAll("^\"|\"$", "")
-
 
     def getNumericArg() = {
       context.stack.pop
@@ -114,13 +88,12 @@ class Executor(code: String) {
           case x: Int => x == 1
           case x: Boolean => x
         }
-        
-        clearVisited(forLoop.getBody)
-        clearVisited(forLoop.getIterationExpression)
-        clearVisited(forLoop.getConditionExpression)
-        
+ 
         if (shouldKeepLooping) {
-          println("LOOPING AGAIN: " + value)
+          clearVisited(forLoop.getBody)
+          clearVisited(forLoop.getIterationExpression)
+          clearVisited(forLoop.getConditionExpression)
+          
           Seq(forLoop.getBody, forLoop.getIterationExpression, forLoop.getConditionExpression, forLoop)
         } else {
           Seq()
@@ -198,6 +171,7 @@ class Executor(code: String) {
       Seq()
     case id: IASTIdExpression =>
       if (direction == Exiting) {
+        println("PUSHING ID: " + id.getName.getRawSignature)
         context.stack.push(id.getName.getRawSignature)
       }
       Seq()
@@ -222,7 +196,6 @@ class Executor(code: String) {
         resolved.reverse.foreach { arg => context.stack.push(arg)}
 
         if (name == "printf") {
-          println("CALLING PRINT")
           printf(context)
           Seq()
         } else {
@@ -272,7 +245,7 @@ class Executor(code: String) {
           currentVisited.functionArgs += (param.getDeclarator.getName.getRawSignature -> arg)
           Seq()
         } else {
-          Seq(param.getDeclarator)
+          Seq()
         }
 
       case tUnit: IASTTranslationUnit =>
@@ -324,7 +297,7 @@ class Executor(code: String) {
   }
 
   def parseDeclarator(decl: IASTDeclarator, direction: Direction, context: IASTContext): Seq[IASTNode] = {
-    if ((direction == Exiting) && !decl.getParent.isInstanceOf[IASTParameterDeclaration]) {
+    if (direction == Exiting) {
       
       if (isArrayDeclaration) {
         val size = context.stack.pop.asInstanceOf[Int]
@@ -341,20 +314,16 @@ class Executor(code: String) {
         case array: IASTArrayDeclarator =>
           array.getArrayModifiers
         case _ =>
-          if (decl.getInitializer != null) {
-            Seq(decl.getInitializer)
-          } else {
-            Seq()
-          }
+          Seq(Option(decl.getInitializer)).flatten
       }
-      
-      
-      
     }
-
   }
 
   def castLiteral(lit: IASTLiteralExpression): Any = {
+    
+    def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
+    def isDoubleNumber(s: String): Boolean = (allCatch opt s.toDouble).isDefined
+    
     val string = lit.getRawSignature
     if (string.head == '\"' && string.last == '\"') {
       string
@@ -370,8 +339,8 @@ class Executor(code: String) {
     
     if (direction == Exiting) {
 
-      var op2: Any = context.stack.pop //parseBinaryOperand(binaryExpr.getOperand1, context)
-      var op1: Any = context.stack.pop //parseBinaryOperand(binaryExpr.getOperand2, context)
+      var op2: Any = context.stack.pop
+      var op1: Any = context.stack.pop
       
       def resolveOp1() = op1 match {
         case str: String => 
@@ -580,7 +549,6 @@ class Executor(code: String) {
     currentVisited = visitedStack.head
 
     runProgram()
-    //println("RUNNING PROGRAM")
     isPreprocessing = false
     mainContext.stack.clear
     
