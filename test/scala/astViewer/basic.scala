@@ -15,11 +15,7 @@ class HelloWorld extends StandardTest {
         printf("%s\n", "Hello world!");
       }"""
 
-    val gccOutput = Gcc.compileAndGetOutput(code)
-    
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal(Some(gccOutput.head))
+    checkResults(code)
   }
 }
 
