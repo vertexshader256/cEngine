@@ -5,7 +5,7 @@ class FloatingPoint extends StandardTest {
     val code = """
       double x = 1.5;
       void main() {
-        printf("%.2f\n", x);
+        printf("%.1f\n", x);
       }"""
 
     checkResults(code)

@@ -1,5 +1,17 @@
 package scala.astViewer
 
+class ArrayInitTest extends StandardTest {
+  "A array assignment with an init list" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x[5] = {1, 2, 3, 4, 5};
+        printf("%d %d %d %d %d\n", x[0], x[1], x[2], x[3], x[4]);
+      }"""
+
+    checkResults(code)
+  }
+}
+
 class ArrayTest extends StandardTest {
   "A trivial array assignment" should "print the correct results" in {
     val code = """
@@ -32,6 +44,28 @@ class ArrayTest extends StandardTest {
         x[1] = 3;
         x[3] = 12;
         printf("%d\n", x[y - 2 + x[1]]);
+      }"""
+
+    checkResults(code)
+  }
+  
+  "An array prefixed subscript" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x[5] = {3, 68, 44, 29, 45};
+        int y = 0;
+        printf("%d %d\n", x[++y], y);
+      }"""
+
+    checkResults(code)
+  }
+  
+  "An array postfixed subscript" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x[5] = {3, 68, 44, 29, 45};
+        int y = 0;
+        printf("%d %d\n", x[y++], y);
       }"""
 
     checkResults(code)

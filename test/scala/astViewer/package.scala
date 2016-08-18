@@ -4,7 +4,7 @@ import org.scalatest._
 import scala.astViewer._
 
 package object astViewer {
-  class StandardTest extends FlatSpec with ShouldMatchers {
+  class StandardTest extends FlatSpec with ShouldMatchers with ParallelTestExecution {
     def checkResults(code: String) = {
       val gccOutput = Gcc.compileAndGetOutput(code)
     

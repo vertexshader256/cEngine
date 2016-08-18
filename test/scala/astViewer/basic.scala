@@ -15,11 +15,15 @@ class HelloWorld extends StandardTest {
         printf("%s\n", "Hello world!");
       }"""
 
-    checkResults(code)
+    val gccOutput = Gcc.compileAndGetOutput(code)
+    
+    val executor = new Executor(code)
+    executor.execute
+    executor.stdout.headOption should equal(Some(gccOutput.head))
   }
 }
 
-class BasicTest extends StandardTest {
+class SimpleInitTest extends StandardTest {
 
   "A simple integer initialized global reference" should "print the correct results" in {
     val code = """
@@ -30,6 +34,32 @@ class BasicTest extends StandardTest {
     
     checkResults(code)
   }
+}
+
+class ComplexInitTest extends StandardTest {
+  "A simple function-scoped multi-var init" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 454, y = 65, z = 23;
+        printf("%d %d %d\n", x, y, z);
+      }"""
+
+    checkResults(code)
+  }
+  
+  "A cascaded multi-var init" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x, y, z;
+        x = y = z = 30;
+        printf("%d %d %d\n", x, y, z);
+      }"""
+
+    checkResults(code)
+  }
+}
+
+class BasicTest extends StandardTest {
 
   "A simple integer uninitialized global reference" should "print the correct results" in {
     val code = """

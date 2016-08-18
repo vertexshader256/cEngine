@@ -23,4 +23,26 @@ class UnaryTest extends StandardTest {
 
     checkResults(code)
   }
+  
+  "A simple prefix init test" should "print the correct results" in {
+    val code = """
+      void main() {
+        int a = 0;
+        int b = ++a;
+        printf("%d %d\n", a, b);
+      }"""
+
+    checkResults(code)
+  }
+  
+  "A simple postfix init test" should "print the correct results" in {
+    val code = """
+      void main() {
+        int a = 0;
+        int b = a++;
+        printf("%d %d\n", a, b);
+      }"""
+
+    checkResults(code)
+  }
 }

@@ -4,6 +4,8 @@ import org.eclipse.cdt.core.dom.ast._
 
 import scala.collection.mutable.{ListBuffer, Stack}
 import scala.util.control.Exception.allCatch
+import java.util.Formatter;
+import java.util.Locale;
 
 case class IASTContext(startNode: IASTNode) {
   val stack = new Stack[Any]()
@@ -39,26 +41,31 @@ class Executor(code: String) {
   
   val visitedStack = new Stack[Visited]()
   var currentVisited: Visited = null
+  var currentType: IASTDeclSpecifier = null
+  
+  def getSize(theType: Any): Int = theType match {
+      case array: Array[Variable] => array.length * getSize(array.head.value)
+      case int: Int => 4
+      case doub: Double => 8
+      case flt: Float => 4
+      case bool: Boolean => 4
+      case char: Char => 1
+  }
 
-  def printf(context: IASTContext) = {
-    var current = context.stack.pop
-    val formatString = current.asInstanceOf[String].replaceAll("^\"|\"$", "")
-
-    def getNumericArg() = {
-      context.stack.pop
-    }
-
-    def getStringArg() = {
-      current = context.stack.pop
-      val arg = current.asInstanceOf[String].replaceAll("^\"|\"$", "")
-      arg
-    }
-
-    val result = formatString.split("""%d""").reduce{_ + getNumericArg + _}
-      .split("""%s""").reduce{_ + getStringArg + _}
-      .split("""%f""").reduce{_ + getNumericArg + _}
-
-    result.split("""\\n""").foreach(line => stdout += line)
+  def printf(context: IASTContext, args: Seq[Object]) = {
+    val formatString = args.head.asInstanceOf[String].replaceAll("^\"|\"$", "")
+ 
+    val buffer = new StringBuffer();
+    val formatter = new Formatter(buffer, Locale.US);
+    
+    val resolvedStrings = args.tail.map{ _ match {
+      case str: String => str.split("""\"""").mkString
+      case x => x 
+    }}.toArray
+    
+    formatter.format(formatString, resolvedStrings: _*)
+    
+    stdout ++= buffer.toString.split("""\\n""")
   }
 
   def parseStatement(statement: IASTStatement, context: IASTContext, direction: Direction): Seq[IASTNode] = statement match {
@@ -152,34 +159,64 @@ class Executor(code: String) {
         Seq(unary.getOperand)
       } else {
         unary.getOperator match {
-          case `op_postFixIncr` => {           
+          case `op_postFixIncr` =>         
+            context.stack.pop match {
+              case VarRef(name) =>
+                context.stack.push(context.getVariable(name).value)
+                context.getVariable(name).value = context.getVariable(name).value.asInstanceOf[Int] + 1  
+            }
+          case `op_postFixDecr` =>
+            context.stack.pop match {
+              case VarRef(name) =>
+                context.stack.push(context.getVariable(name).value)
+                context.getVariable(name).value = context.getVariable(name).value.asInstanceOf[Int] - 1
+            }
+          case `op_prefixIncr` =>         
             context.stack.pop match {
               case VarRef(name) =>
                 context.getVariable(name).value = context.getVariable(name).value.asInstanceOf[Int] + 1
+                context.stack.push(context.getVariable(name).value)
             }
-          }
-          case `op_postFixDecr` => {
+          case `op_prefixDecr` =>
             context.stack.pop match {
               case VarRef(name) =>
                 context.getVariable(name).value = context.getVariable(name).value.asInstanceOf[Int] - 1
+                context.stack.push(context.getVariable(name).value)
             }
-          }
+          case `op_sizeof` =>
+            context.stack.pop match {
+              case VarRef(name) =>
+                context.stack.push(getSize(context.getVariable(name).value))
+            }
           case `op_bracketedPrimary` => // not sure what this is for
         }
         Seq()
       }
     case lit: IASTLiteralExpression =>
       if (direction == Exiting) {
-        println("PUSHING LIT: " + castLiteral(lit))
+        //println("PUSHING LIT: " + castLiteral(lit))
         context.stack.push(castLiteral(lit))
       }
       Seq()
     case id: IASTIdExpression =>
       if (direction == Exiting) {
-        println("PUSHING ID: " + id.getName.getRawSignature)
+        //println("PUSHING ID: " + id.getName.getRawSignature)
         context.stack.push(VarRef(id.getName.getRawSignature))
       }
       Seq()
+    case typeExpr: IASTTypeIdExpression =>
+      // used for sizeof calls on a type
+      if (direction == Entering) {
+        Seq(typeExpr.getTypeId)
+      } else {
+        context.stack.push(context.stack.pop match {
+          case "int" => 4
+          case "bool" => 4
+          case "double" => 8
+          case "float" => 4
+        })
+        Seq()
+      }
     case call: IASTFunctionCallExpression =>
       // only evaluate after leaving
       if (direction == Exiting) {
@@ -199,16 +236,14 @@ class Executor(code: String) {
             case _ => value
           }
         }
-        
-        resolved.reverse.foreach { arg => context.stack.push(arg)}
 
         if (name == "printf") {
-          printf(context)
+          printf(context, resolved.map(_.asInstanceOf[Object]))
           Seq()
         } else {
+          resolved.reverse.foreach { arg => context.stack.push(arg)}
           visitedStack.push(currentVisited)
           currentVisited = Visited(new ListBuffer[IASTNode](), scala.collection.mutable.Map[String, Any]())
-          println("GOING TO FUNCTIONNNNNNNNNNNNNNNNNNNN")
           functionReturnStack.push(call)
           Seq(functionMap(name))
         }
@@ -221,7 +256,6 @@ class Executor(code: String) {
       if (direction == Exiting) {
         val result = parseBinaryExpr(bin, direction, context)
         if (result != null) {
-          println("RETURNING FROM BIN EXPR: " + result)
           context.stack.push(result)
         }
         Seq()
@@ -248,7 +282,6 @@ class Executor(code: String) {
       case param: IASTParameterDeclaration =>
         if (direction == Exiting) {
           val arg = context.stack.pop
-          println("SETTING " + param.getDeclarator.getName.getRawSignature + " to " + arg)
           currentVisited.functionArgs += (param.getDeclarator.getName.getRawSignature -> arg)
           Seq()
         } else {
@@ -262,9 +295,11 @@ class Executor(code: String) {
           Seq()
         }
       case simple: IASTSimpleDeclaration =>
-        if (direction == Entering) {
+        if (direction == Entering) { 
+          currentType = simple.getDeclSpecifier
           simple.getDeclarators
         } else {
+          
           Seq()
         }
       case fcnDec: IASTFunctionDeclarator =>
@@ -298,28 +333,78 @@ class Executor(code: String) {
         } else {
           Seq()
         }
+      case initList: IASTInitializerList =>
+        if (direction == Entering) {
+          initList.getClauses
+        } else {
+          Seq()
+        }
+      case typeId: IASTTypeId =>
+        if (direction == Exiting) {
+           context.stack.push(typeId.getDeclSpecifier.getRawSignature)
+        }
+        Seq()
+      case spec: IASTSimpleDeclSpecifier =>
+         println("PUSHING TYPE SIG")
+        if (direction == Entering) {
+          Seq()
+        } else {
+         
+          context.stack.push(spec.getRawSignature)
+          Seq()
+        }
     }
   }
 
   def parseDeclarator(decl: IASTDeclarator, direction: Direction, context: IASTContext): Seq[IASTNode] = {
     if (direction == Exiting) {
+      context.stack.push(decl.getName.getRawSignature)
+      
+      val typeName = currentType.getRawSignature
+      
+      val initial = typeName match {
+          case "int" => 0.toInt
+          case "double" => 0.0.toDouble
+          case "char" => 0.toChar
+          case _ => throw new Exception("No match for " + typeName)
+      }
       
       if (isArrayDeclaration) {
+        
+        val name = context.stack.pop.asInstanceOf[String]
+        
         val size = context.stack.pop.asInstanceOf[Int]
-        context.variables += Variable(decl.getName.getRawSignature, Array.fill(size)(Variable("", 0)))
-      } else if (!context.stack.isEmpty) {
-        // initial value is on the stack, set it
-        context.variables += Variable(decl.getName.getRawSignature, context.stack.pop)
-      } else {
-        context.variables += Variable(decl.getName.getRawSignature, 0)
+       
+        val initialArray = Array.fill(size)(Variable("", initial))
+        
+        if (!context.stack.isEmpty) { 
+          var i = 0
+          
+          for (i <- (size - 1) to 0 by -1) {
+            initialArray(i).value = context.stack.pop
+          }
+        }
+        
+        context.variables += Variable(name, initialArray)
+      } else {   
+        
+        val name = context.stack.pop.asInstanceOf[String]
+
+        if (!context.stack.isEmpty) {
+          // initial value is on the stack, set it
+          context.variables += Variable(name, context.stack.pop)
+        } else {
+          context.variables += Variable(name, initial)
+        }
       }
+      
       Seq()
     } else {
       isArrayDeclaration = false
 
       decl match {
         case array: IASTArrayDeclarator =>
-          array.getArrayModifiers
+          Seq(Option(decl.getInitializer)).flatten ++ array.getArrayModifiers
         case _ =>
           Seq(Option(decl.getInitializer)).flatten
       }
@@ -439,7 +524,7 @@ class Executor(code: String) {
               context.getVariable(name).value = op2
           }
 
-          null
+          op2
         case `op_equals` =>
           resolveOp1()
           resolveOp2()
@@ -527,7 +612,7 @@ class Executor(code: String) {
     def tick(): Unit = {
       val direction = if (currentVisited.nodes.contains(current)) Exiting else Entering
       
-      println("BEGIN: " + current.getClass.getSimpleName + ":" + direction)   
+      //println("BEGIN: " + current.getClass.getSimpleName + ":" + direction)   
       
       val paths: Seq[IASTNode] = step(current, mainContext, direction)        
       
