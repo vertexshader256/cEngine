@@ -1,8 +1,6 @@
 package scala.astViewer
 
-import org.scalatest._
-
-class IfStatement extends FlatSpec with ShouldMatchers {
+class IfStatement extends StandardTest {
   "A simple if statement with true literal" should "print the correct results" in {
     val code = """
       void main() {
@@ -13,9 +11,7 @@ class IfStatement extends FlatSpec with ShouldMatchers {
         }
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("1"))
+    checkResults(code)
   }
 
   "A simple if statement with false literal" should "print the correct results" in {
@@ -28,9 +24,7 @@ class IfStatement extends FlatSpec with ShouldMatchers {
         }
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("2"))
+    checkResults(code)
   }
 
   "A simple if statement with false variable" should "print the correct results" in {
@@ -44,9 +38,7 @@ class IfStatement extends FlatSpec with ShouldMatchers {
         }
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("1"))
+    checkResults(code)
   }
 
   "A simple if statement with boolean variable" should "print the correct results" in {
@@ -60,9 +52,7 @@ class IfStatement extends FlatSpec with ShouldMatchers {
         }
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("2"))
+    checkResults(code)
 
     val code2 = """
       void main() {
@@ -74,9 +64,7 @@ class IfStatement extends FlatSpec with ShouldMatchers {
         }
       }"""
 
-    val executor2 = new Executor(code2)
-    executor2.execute
-    executor2.stdout.headOption should equal (Some("1"))
+    checkResults(code2)
   }
 
   "A simple if statement with false binary comparison" should "print the correct results" in {
@@ -90,9 +78,7 @@ class IfStatement extends FlatSpec with ShouldMatchers {
         }
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("7"))
+    checkResults(code)
 
     val code2 = """
       void main() {
@@ -104,9 +90,7 @@ class IfStatement extends FlatSpec with ShouldMatchers {
         }
       }"""
 
-    val executor2 = new Executor(code2)
-    executor2.execute
-    executor2.stdout.headOption should equal (Some("2"))
+    checkResults(code2)
   }
 
   "simple nested if statements" should "print the correct results" in {
@@ -114,17 +98,15 @@ class IfStatement extends FlatSpec with ShouldMatchers {
       void main() {
         if (1) {
           if (0) {
-            printf("%f\n", 1);
+            printf("%d\n", 1);
           } else {
-            printf("%f\n", 3);
+            printf("%d\n", 3);
           }
         } else {
-          printf("%f\n", 2);
+          printf("%d\n", 2);
         }
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("3"))
+    checkResults(code)
   }
 }

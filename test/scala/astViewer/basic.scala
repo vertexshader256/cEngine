@@ -1,14 +1,12 @@
 package scala.astViewer
 
-import org.scalatest._
-
 import org.eclipse.cdt.core.dom.ast._
 
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.Stack
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 
-class HelloWorld extends FlatSpec with ShouldMatchers {
+class HelloWorld extends StandardTest {
 
   "Hello world" should "print the correct results" in {
     val code =
@@ -17,13 +15,11 @@ class HelloWorld extends FlatSpec with ShouldMatchers {
         printf("%s\n", "Hello world!");
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal(Some("Hello world!"))
+    checkResults(code)
   }
 }
 
-class BasicTest extends FlatSpec with ShouldMatchers {
+class BasicTest extends StandardTest {
 
   "A simple integer initialized global reference" should "print the correct results" in {
     val code = """
@@ -31,10 +27,8 @@ class BasicTest extends FlatSpec with ShouldMatchers {
       void main() {
         printf("%d\n", x);
       }"""
-
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("1"))
+    
+    checkResults(code)
   }
 
   "A simple integer uninitialized global reference" should "print the correct results" in {
@@ -46,9 +40,7 @@ class BasicTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("2"))
+    checkResults(code)
   }
 
   "A simple integer uninitialized local reference" should "print the correct results" in {
@@ -59,9 +51,7 @@ class BasicTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("2"))
+    checkResults(code)
   }
 
   "A simple function-scoped integer reference" should "print the correct results" in {
@@ -71,9 +61,7 @@ class BasicTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("1"))
+    checkResults(code)
   }
 
   "A simple math expression with addition and one inner var" should "print the correct results" in {
@@ -83,9 +71,7 @@ class BasicTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("3"))
+    checkResults(code)
   }
 
   "A simple math expression with addition and one global var" should "print the correct results" in {
@@ -96,9 +82,7 @@ class BasicTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("3"))
+    checkResults(code)
   }
 
   "A simple math expression with addition and two global vars" should "print the correct results" in {
@@ -110,9 +94,7 @@ class BasicTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x * y);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("6"))
+    checkResults(code)
   }
 
   "A simple inlined math expression with addition" should "print the correct results" in {
@@ -121,9 +103,7 @@ class BasicTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", 1 + 2);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("3"))
+    checkResults(code)
   }
 
   "A simple math expression with addition and two variables" should "print the correct results" in {
@@ -134,9 +114,7 @@ class BasicTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x + y);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("7"))
+    checkResults(code)
   }
 
   "A simple math expression with addition, a variable, and a literal" should "print the correct results" in {
@@ -146,9 +124,7 @@ class BasicTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x + 4);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("8"))
+    checkResults(code)
   }
 
   "A simple 3-literal math expression" should "print the correct results" in {
@@ -158,9 +134,7 @@ class BasicTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("6"))
+    checkResults(code)
   }
 
   "A simple math expression with substraction" should "print the correct results" in {
@@ -170,9 +144,7 @@ class BasicTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("3"))
+    checkResults(code)
   }
 
   "A simple math expression with multiplication" should "print the correct results" in {
@@ -182,9 +154,7 @@ class BasicTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("70"))
+    checkResults(code)
   }
 
   "A simple math expression with division" should "print the correct results" in {
@@ -194,9 +164,7 @@ class BasicTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("9"))
+    checkResults(code)
   }
 
   "Order of operations test 1" should "print the correct results" in {
@@ -206,9 +174,7 @@ class BasicTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("5"))
+    checkResults(code)
   }
 
   "Order of operations test 2" should "print the correct results" in {
@@ -218,9 +184,7 @@ class BasicTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("7"))
+    checkResults(code)
   }
 
   "Order of operations test 3" should "print the correct results" in {
@@ -230,9 +194,7 @@ class BasicTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("9"))
+    checkResults(code)
   }
 
   "A simple local variable reassignment" should "print the correct results" in {
@@ -243,9 +205,7 @@ class BasicTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("5"))
+    checkResults(code)
   }
 
   "A more complex local variable reassignment" should "print the correct results" in {
@@ -257,8 +217,6 @@ class BasicTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("15"))
+    checkResults(code)
   }
 }

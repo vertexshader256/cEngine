@@ -1,8 +1,6 @@
 package scala.astViewer
 
-import org.scalatest._
-
-class UnaryTest extends FlatSpec with ShouldMatchers {
+class UnaryTest extends StandardTest {
   "A simple postfix increment test" should "print the correct results" in {
     val code = """
       void main() {
@@ -11,9 +9,7 @@ class UnaryTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("1"))
+    checkResults(code)
   }
   
   
@@ -25,8 +21,6 @@ class UnaryTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("4"))
+    checkResults(code)
   }
 }

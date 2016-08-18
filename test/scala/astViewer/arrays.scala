@@ -1,8 +1,6 @@
 package scala.astViewer
 
-import org.scalatest._
-
-class ArrayTest extends FlatSpec with ShouldMatchers {
+class ArrayTest extends StandardTest {
   "A trivial array assignment" should "print the correct results" in {
     val code = """
       void main() {
@@ -11,9 +9,7 @@ class ArrayTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x[2]);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("5"))
+    checkResults(code)
   }
   
   "A trivial array binary expression" should "print the correct results" in {
@@ -25,8 +21,19 @@ class ArrayTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x[2] * x[3]);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("15"))
+    checkResults(code)
+  }
+  
+  "An array subscript with advanced binary expression" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x[5];
+        int y = 2;
+        x[1] = 3;
+        x[3] = 12;
+        printf("%d\n", x[y - 2 + x[1]]);
+      }"""
+
+    checkResults(code)
   }
 }

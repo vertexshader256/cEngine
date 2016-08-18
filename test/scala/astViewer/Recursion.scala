@@ -1,8 +1,6 @@
 package scala.astViewer
 
-import org.scalatest._
-
-class Recursion extends FlatSpec with ShouldMatchers {
+class Recursion extends StandardTest {
   "Recursion test 1" should "print the correct results" in {
     val code = """
 
@@ -18,9 +16,7 @@ class Recursion extends FlatSpec with ShouldMatchers {
         printf("%d\n", sums(0));
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("0"))
+    checkResults(code)
   }
   
   "Recursion test 2" should "print the correct results" in {
@@ -38,9 +34,7 @@ class Recursion extends FlatSpec with ShouldMatchers {
         printf("%d\n", sums(1));
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("1"))
+    checkResults(code)
   }
   
   "Recursion test 3" should "print the correct results" in {
@@ -58,8 +52,6 @@ class Recursion extends FlatSpec with ShouldMatchers {
         printf("%d\n", sums(5));
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("15"))
+    checkResults(code)
   }
 }

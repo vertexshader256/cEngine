@@ -1,15 +1,26 @@
 package scala.astViewer
 
-import org.eclipse.cdt.core.dom.ast.{IASTEqualsInitializer, _}
+import org.eclipse.cdt.core.dom.ast._
 
 import scala.collection.mutable.{ListBuffer, Stack}
 import scala.util.control.Exception.allCatch
 
 case class IASTContext(startNode: IASTNode) {
   val stack = new Stack[Any]()
-  val variableMap = scala.collection.mutable.Map[String, Any]()
+  val variables = new ListBuffer[Variable]()
   val path = Utils.getPath(startNode)
+  
+  def doesVariableExist(name: String): Boolean = {
+    variables.exists(_.name == name)
+  }
+  
+  def getVariable(name: String): Variable = {
+    variables.find(_.name == name).get
+  }
 }
+
+case class Variable(name: String, var value: Any)
+case class VarRef(name: String) extends AnyVal
 
 case class Visited(nodes: ListBuffer[IASTNode], functionArgs: scala.collection.mutable.Map[String, Any])
 
@@ -55,13 +66,14 @@ class Executor(code: String) {
       if (direction == Entering) {
         Seq(ifStatement.getConditionExpression)
       } else {
-        val x = context.stack.pop
+        val result = context.stack.pop
         
-        val value = if (x.isInstanceOf[String] && context.variableMap.contains(x.toString)) {
-          context.variableMap(x.toString)
-        } else {
-          x
+        val value = result match {
+          case VarRef(name) =>
+            context.getVariable(name).value
+          case x => x
         }
+
         val conditionResult = value match {
           case x: Int => x == 1
           case x: Boolean => x
@@ -76,19 +88,8 @@ class Executor(code: String) {
       if (direction == Entering) {
         Seq(forLoop.getInitializerStatement, forLoop.getConditionExpression)
       } else {
-        val x = context.stack.pop
-        
-        val value = if (x.isInstanceOf[String] && context.variableMap.contains(x.toString)) {
-          context.variableMap(x.toString)
-        } else {
-          x
-        }
-        
-        val shouldKeepLooping = value match {
-          case x: Int => x == 1
-          case x: Boolean => x
-        }
- 
+        val shouldKeepLooping = context.stack.pop.asInstanceOf[Boolean]
+      
         if (shouldKeepLooping) {
           clearVisited(forLoop.getBody)
           clearVisited(forLoop.getIterationExpression)
@@ -130,13 +131,19 @@ class Executor(code: String) {
       if (direction == Entering) {
         Seq(subscript.getArrayExpression, subscript.getArgument)
       } else {
-        if (Utils.getAncestors(subscript).exists{ _.isInstanceOf[IASTFunctionCallExpression]}) {
-          val index = context.stack.pop.asInstanceOf[Int]
-          val varName = context.stack.pop.toString
-          val arrayValue = context.variableMap(varName).asInstanceOf[Array[Int]](index)
-          context.stack.push(arrayValue)
-        }
-        Seq()
+          val inputs = (context.stack.pop, context.stack.pop)
+        
+          inputs match {
+            case (VarRef(indexVarName), VarRef(name)) => 
+               val index = context.getVariable(indexVarName).value.asInstanceOf[Int]
+               val arrayValue = context.getVariable(name).value.asInstanceOf[Array[Variable]](index)
+               context.stack.push(arrayValue)
+            case (index: Int, VarRef(name)) => 
+              val arrayValue = context.getVariable(name).value.asInstanceOf[Array[Variable]](index)
+              context.stack.push(arrayValue)
+          }
+
+          Seq()
       }
     case unary: IASTUnaryExpression =>
       import org.eclipse.cdt.core.dom.ast.IASTUnaryExpression._
@@ -145,18 +152,16 @@ class Executor(code: String) {
         Seq(unary.getOperand)
       } else {
         unary.getOperator match {
-          case `op_postFixIncr` => {
-            val value = context.stack.pop.toString
-            if (context.variableMap.contains(value)) {
-              val intVal = context.variableMap(value).asInstanceOf[Int]
-              context.variableMap(value) = intVal + 1
+          case `op_postFixIncr` => {           
+            context.stack.pop match {
+              case VarRef(name) =>
+                context.getVariable(name).value = context.getVariable(name).value.asInstanceOf[Int] + 1
             }
           }
           case `op_postFixDecr` => {
-            val value = context.stack.pop.toString
-            if (context.variableMap.contains(value)) {
-              val intVal = context.variableMap(value).asInstanceOf[Int]
-              context.variableMap(value) = intVal - 1
+            context.stack.pop match {
+              case VarRef(name) =>
+                context.getVariable(name).value = context.getVariable(name).value.asInstanceOf[Int] - 1
             }
           }
           case `op_bracketedPrimary` => // not sure what this is for
@@ -172,7 +177,7 @@ class Executor(code: String) {
     case id: IASTIdExpression =>
       if (direction == Exiting) {
         println("PUSHING ID: " + id.getName.getRawSignature)
-        context.stack.push(id.getName.getRawSignature)
+        context.stack.push(VarRef(id.getName.getRawSignature))
       }
       Seq()
     case call: IASTFunctionCallExpression =>
@@ -186,9 +191,11 @@ class Executor(code: String) {
         val argList = call.getArguments.map { arg => (arg, context.stack.pop) }
         
         val resolved = argList.map { case (arg, value) => 
-          arg match {
-            case id: IASTIdExpression =>
-               context.variableMap(value.toString)
+          value match {
+            case VarRef(name) =>
+               context.getVariable(name).value
+            case Variable(_, value) =>
+               value
             case _ => value
           }
         }
@@ -285,8 +292,6 @@ class Executor(code: String) {
           
           Seq(fcnDef.getDeclarator, fcnDef.getBody)
         }
-      case decl: IASTSimpleDeclaration =>
-        Seq()
       case eq: IASTEqualsInitializer =>
         if (direction == Entering) {
           Seq(eq.getInitializerClause)
@@ -301,10 +306,12 @@ class Executor(code: String) {
       
       if (isArrayDeclaration) {
         val size = context.stack.pop.asInstanceOf[Int]
-        context.variableMap += (decl.getName.getRawSignature -> Array.fill(size)(0))
+        context.variables += Variable(decl.getName.getRawSignature, Array.fill(size)(Variable("", 0)))
       } else if (!context.stack.isEmpty) {
         // initial value is on the stack, set it
-        context.variableMap += (decl.getName.getRawSignature -> context.stack.pop)
+        context.variables += Variable(decl.getName.getRawSignature, context.stack.pop)
+      } else {
+        context.variables += Variable(decl.getName.getRawSignature, 0)
       }
       Seq()
     } else {
@@ -342,28 +349,30 @@ class Executor(code: String) {
       var op2: Any = context.stack.pop
       var op1: Any = context.stack.pop
       
-      def resolveOp1() = op1 match {
-        case str: String => 
-          if (context.variableMap.contains(str)) {
-            op1 = context.variableMap(str)
+      def resolveOp1() = op1 = op1 match {
+        case VarRef(name) => 
+          if (context.doesVariableExist(name)) {
+            context.getVariable(name).value
           } else {
-            op1 = currentVisited.functionArgs(str)
+            currentVisited.functionArgs(name)
           }
-        case int: Int => 
-        case bool: Boolean =>
-        case double: Double =>
+        case Variable(_, value) => value
+        case int: Int => int
+        case bool: Boolean => bool
+        case double: Double => double
       }
       
-      def resolveOp2() = op2 match {
-        case str: String =>
-          if (context.variableMap.contains(str)) {
-            op2 = context.variableMap(str)
+      def resolveOp2() = op2 = op2 match {
+        case VarRef(name) => 
+          if (context.doesVariableExist(name)) {
+            context.getVariable(name).value
           } else {
-            op2 = currentVisited.functionArgs(str)
+            currentVisited.functionArgs(name)
           }
-        case int: Int => 
-        case bool: Boolean =>
-        case double: Double =>
+        case Variable(_, value) => value
+        case int: Int => int
+        case bool: Boolean => bool
+        case double: Double => double
       }
 
       binaryExpr.getOperator match {
@@ -424,10 +433,10 @@ class Executor(code: String) {
           resolveOp2()
           
           op1 match {
-            case varName: String => context.variableMap(varName) = op2
-            case index: Int => 
-              val varName = context.stack.pop.toString
-              context.variableMap(varName).asInstanceOf[Array[Int]](index) = op2.asInstanceOf[Int]
+            case variable: Variable =>
+              variable.value = op2
+            case VarRef(name) =>
+              context.getVariable(name).value = op2
           }
 
           null
@@ -473,12 +482,12 @@ class Executor(code: String) {
         case `op_plusAssign` =>
           resolveOp2()
           op1 match {
-            case varName: String => context.variableMap(varName) = context.variableMap(varName).asInstanceOf[Int] + op2.asInstanceOf[Int]
+            case VarRef(name) => context.getVariable(name).value = context.getVariable(name).value.asInstanceOf[Int] + op2.asInstanceOf[Int]
           }
         case `op_minusAssign` =>
           resolveOp2()
           op1 match {
-            case varName: String => context.variableMap(varName) = context.variableMap(varName).asInstanceOf[Int] - op2.asInstanceOf[Int]
+            case VarRef(name) => context.getVariable(name).value = context.getVariable(name).value.asInstanceOf[Int] - op2.asInstanceOf[Int]
           }
         case `op_logicalAnd` =>
           resolveOp1()

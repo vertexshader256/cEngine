@@ -1,8 +1,6 @@
 package scala.astViewer
 
-import org.scalatest._
-
-class FunctionTest extends FlatSpec with ShouldMatchers {
+class FunctionTest extends StandardTest {
 
   "A function prototype" should "print the correct results" in {
     val code = """
@@ -18,9 +16,7 @@ class FunctionTest extends FlatSpec with ShouldMatchers {
          x = 10;
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("11"))
+    checkResults(code)
   }
 
   "A simple function call testing return point" should "print the correct results" in {
@@ -35,9 +31,7 @@ class FunctionTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("11"))
+    checkResults(code)
   }
 
   "chained function calls" should "print the correct results" in {
@@ -55,9 +49,7 @@ class FunctionTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("15"))
+    checkResults(code)
   }
 
   "a function with a return value" should "print the correct results" in {
@@ -69,9 +61,7 @@ class FunctionTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", test());
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("10"))
+    checkResults(code)
   }
 
   "chained return value" should "print the correct results" in {
@@ -86,9 +76,7 @@ class FunctionTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", test2());
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("8"))
+    checkResults(code)
   }
 
   "a function with a complex return value" should "print the correct results" in {
@@ -100,9 +88,7 @@ class FunctionTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", test());
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("24"))
+    checkResults(code)
   }
 
   "a function with a argument" should "print the correct results" in {
@@ -114,9 +100,7 @@ class FunctionTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", square(5));
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("25"))
+    checkResults(code)
   }
 
   "a function with two arguments" should "print the correct results" in {
@@ -128,9 +112,7 @@ class FunctionTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", add(13, 26));
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("39"))
+    checkResults(code)
   }
 
   "a binary expression with function calls" should "print the correct results" in {
@@ -142,9 +124,7 @@ class FunctionTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", square(5) + square(2));
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("29"))
+    checkResults(code)
   }
 
   "a chained function with two arguments" should "print the correct results" in {
@@ -156,9 +136,7 @@ class FunctionTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", add(13, add(1, 5)));
       }"""
 
-    var executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("19"))
+    checkResults(code)
 
     val code2 = """
       int add(int x, int y) {
@@ -168,9 +146,7 @@ class FunctionTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", add(add(1, 5), 13));
       }"""
 
-    executor = new Executor(code2)
-    executor.execute
-    executor.stdout.headOption should equal (Some("19"))
+    checkResults(code2)
 
     val code3 = """
       int add(int x, int y) {
@@ -180,8 +156,6 @@ class FunctionTest extends FlatSpec with ShouldMatchers {
         printf("%d\n", add(add(1, add(3, 2)), add(add(5, 5), 3)));
       }"""
 
-    executor = new Executor(code3)
-    executor.execute
-    executor.stdout.headOption should equal (Some("19"))
+    checkResults(code3)
   }
 }

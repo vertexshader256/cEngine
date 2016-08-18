@@ -1,18 +1,14 @@
 package scala.astViewer
 
-import org.scalatest._
-
-class FloatingPoint extends FlatSpec with ShouldMatchers {
+class FloatingPoint extends StandardTest {
   "A simple double initialized global reference" should "print the correct results" in {
     val code = """
       double x = 1.5;
       void main() {
-        printf("%f\n", x);
+        printf("%.2f\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("1.5"))
+    checkResults(code)
   }
 
   "A simple double global reassignment" should "print the correct results" in {
@@ -23,9 +19,7 @@ class FloatingPoint extends FlatSpec with ShouldMatchers {
         printf("%f\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("3.45"))
+    checkResults(code)
   }
 
   "A simple uninitialized double global reassignment" should "print the correct results" in {
@@ -36,9 +30,7 @@ class FloatingPoint extends FlatSpec with ShouldMatchers {
         printf("%f\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("5.12"))
+    checkResults(code)
   }
 
   "A simple function returning a double" should "print the correct results" in {
@@ -51,9 +43,7 @@ class FloatingPoint extends FlatSpec with ShouldMatchers {
         printf("%f\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("4.34"))
+    checkResults(code)
   }
 
   "A simple expression with doubles" should "print the correct results" in {
@@ -62,8 +52,6 @@ class FloatingPoint extends FlatSpec with ShouldMatchers {
         printf("%f\n", 1.5 * 1.5);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("2.25"))
+    checkResults(code)
   }
 }

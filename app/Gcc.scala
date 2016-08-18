@@ -9,11 +9,25 @@ import java.io.InputStream
 
 object Gcc {
   
-  val logger = new SyntaxLogger
+  var count = 0
   
-  def checkSyntax(code: String) = {
+  def compileAndGetOutput(code: String): Seq[String] = {
     
-    val file = File("temp.c")
+    val logger = new SyntaxLogger
+    val linkerLogger = new LinkerLogger
+    val runLogger = new RunLogger
+    
+    var myCount = 0;
+    
+    synchronized {
+      myCount = count
+      count += 1
+    }
+    
+    val file = File("temp" + myCount + ".c")
+    val objectFile = File("temp" + myCount + ".o")
+    val exeFile = File("temp" + myCount + ".exe")
+
     file.overwrite(code)
     
     val sourceFileTokens = Seq("-c", file.path.toString)
@@ -25,7 +39,33 @@ object Gcc {
     val compile = builder.run(logger.process)
     compile.exitValue()
     
-    logger.errors.foreach(println)
+    val numErrors = logger.errors.filter(_.errorType == "error").length
+
+    val result = if (numErrors == 0) {    
+      val linkTokens = Seq("gcc") ++ Seq("-o", exeFile.path.toString, objectFile.path.toString)
+      
+      val linker = Process(linkTokens, File("").toJava)
+      val link = linker.run(linkerLogger.process)
+      link.exitValue()
+      
+      Thread.sleep(200)
+      
+      val runner = Process(Seq(exeFile.path.toString), File("").toJava)
+      val run = runner.run(runLogger.process)
+      run.exitValue()
+      
+      
+
+      runLogger.stdout
+    } else {
+      logger.errors.filter(_.errorType == "error").map(_.error)
+    }
+    
+    file.delete(true)
+    objectFile.delete(true)
+    exeFile.delete(true)
+    
+    result
   } 
   
   def parseGccErrorString(error: String, function: String, path: Seq[String]): Option[BuildError] = {
@@ -149,6 +189,104 @@ class SyntaxLogger extends Logger {
       }
 
       addErrors(fixedFileNameErrors)
+    }
+  }
+}
+
+class RunLogger {
+  
+  def process = new ProcessIO(in, out, err)
+
+  val stdout = new ListBuffer[String]()
+  
+  def recordStdOut(lines: Seq[String]) = {
+    stdout ++= lines
+  }
+  
+  def in(stream: OutputStream) = {}
+  def out(stream: InputStream) = {
+    recordStdOut(scala.io.Source.fromInputStream(stream).getLines.toSeq)
+  }
+  def err(stream: InputStream) = {
+    val lines = scala.io.Source.fromInputStream(stream).getLines.toSeq
+  }
+}
+
+class LinkerLogger extends Logger {
+  
+  val errors = new ListBuffer[BuildError]()
+
+  def addErrors(newErrors: Seq[BuildError]) = {
+    errors ++= newErrors
+  }
+
+ def parseLinkerErrorStrings(error: String, functionName: String): Option[BuildError] = {
+
+    if (error.contains("cannot open output") ||
+        error.contains("cannot find") ||
+        error.contains("final link failed")) {
+        val tokens = error.split("ld.exe:")
+        val rawMsg = tokens.last.trim
+        val msg = if (rawMsg.contains("Permission denied")) {
+          rawMsg + " (Is the app running?)"
+        } else {
+          rawMsg
+        }
+        if (msg.startsWith("Warning:")) {
+          Some(BuildError(Seq(), Some(functionName), "warning", msg))
+        } else {
+          Some(BuildError(Seq(), Some(functionName), "linker error", msg))
+        }
+    } else if (error.contains("(.text")) {
+      val tokens = error.split(":")
+      val rawMsg = tokens.last.trim
+      val fileName = tokens(2)
+      Some(BuildError(Seq(ErrorLocation(File(fileName), 0, 0)), Some(functionName), "linker error", rawMsg))
+    } else if (error.contains("undefined reference")) {
+      val tokens = error.split(":")
+      val rawMsg = tokens.last.trim
+      val filePath = tokens(0) + ":" + tokens(1)
+      Some(BuildError(Seq(ErrorLocation(File(filePath), 0, 0)), Some(functionName), "linker error", rawMsg))
+    } else if (error.contains("In function") && !error.contains("At top level:")) {
+      if (error.startsWith("Warning:")) {
+          Some(BuildError(Seq(), Some(functionName), "warning", error))
+        } else {
+          Some(BuildError(Seq(), Some(functionName), "linker error", error))
+        }
+    } else {
+      None
+    }
+  }
+  
+  private def checkForLinkerErrors(error: String): Option[BuildError] = {
+    if (error contains "In function") {
+      val start = error.indexOf("`") + 1 // its really weird, the linker emits a backtick, but the compiler emits a single quote "'"
+      val end = error.size - 2
+      currentFunction = error.substring(start, end)
+      None
+    } else if (!error.contains("<command-line>")) {
+      parseLinkerErrorStrings(error, currentFunction)
+    } else {
+      None
+    }
+  }
+  
+  def getLinkerErrors(lines: Seq[String]): Seq[BuildError] = {
+    for {
+      errorString <- lines
+      error <- checkForLinkerErrors(errorString)
+    } yield error
+  }
+  
+  def in(stream: OutputStream) = {}
+  def out(stream: InputStream) = { scala.io.Source.fromInputStream(stream).getLines }
+  def err(stream: InputStream) = {
+
+    val lines = scala.io.Source.fromInputStream(stream).getLines.toSeq
+
+    if (!lines.isEmpty) {
+      lines.foreach(x => println("LINKER ERROR: " + x))
+      addErrors(getLinkerErrors(lines.toSeq))
     }
   }
 }

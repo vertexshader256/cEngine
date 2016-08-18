@@ -155,8 +155,6 @@ class AppLoader extends ApplicationLoader {
         Future {
           val tUnit = Utils.getTranslationUnit(code)
           
-          Gcc.checkSyntax(code)
-          
           Ok(AstUtils.getAllChildren(tUnit))
         }
       }

@@ -1,8 +1,6 @@
 package scala.astViewer
 
-import org.scalatest._
-
-class BinaryExpr extends FlatSpec with ShouldMatchers {
+class BinaryExpr extends StandardTest {
   "Order of operations test 3" should "print the correct results" in {
     val code = """
       void main() {
@@ -13,9 +11,7 @@ class BinaryExpr extends FlatSpec with ShouldMatchers {
         }
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("SUCCESS"))
+    checkResults(code)
   }
 
   "Two expressions ANDed" should "print the correct results" in {
@@ -28,9 +24,7 @@ class BinaryExpr extends FlatSpec with ShouldMatchers {
         }
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("SUCCESS"))
+    checkResults(code)
   }
 
   "Two expressions ORed" should "print the correct results" in {
@@ -43,9 +37,7 @@ class BinaryExpr extends FlatSpec with ShouldMatchers {
         }
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("SUCCESS"))
+    checkResults(code)
   }
 
   "Two expressions ORed with a function call" should "print the correct results" in {
@@ -62,9 +54,7 @@ class BinaryExpr extends FlatSpec with ShouldMatchers {
         }
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("SUCCESS"))
+    checkResults(code)
   }
   
   "A simple increment test" should "print the correct results" in {
@@ -75,9 +65,7 @@ class BinaryExpr extends FlatSpec with ShouldMatchers {
         printf("%d\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("1"))
+    checkResults(code)
   }
   
   "A simple decrement test" should "print the correct results" in {
@@ -88,9 +76,7 @@ class BinaryExpr extends FlatSpec with ShouldMatchers {
         printf("%d\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("3"))
+    checkResults(code)
   }
   
   "A more complex decrement test" should "print the correct results" in {
@@ -101,8 +87,6 @@ class BinaryExpr extends FlatSpec with ShouldMatchers {
         printf("%d\n", x);
       }"""
 
-    val executor = new Executor(code)
-    executor.execute
-    executor.stdout.headOption should equal (Some("-19"))
+    checkResults(code)
   }
 }
