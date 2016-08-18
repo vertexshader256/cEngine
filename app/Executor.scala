@@ -21,7 +21,17 @@ case class IASTContext(startNode: IASTNode) {
   }
 }
 
-case class Variable(name: String, var value: Any)
+case class Variable(name: String, var value: Any) {
+  val sizeof: Int = value match {
+      case array: Array[Variable] => array.length * array.head.sizeof
+      case int: Int => 4
+      case doub: Double => 8
+      case flt: Float => 4
+      case bool: Boolean => 4
+      case char: Char => 1
+  }
+}
+
 case class VarRef(name: String) extends AnyVal
 
 case class Visited(nodes: ListBuffer[IASTNode], functionArgs: scala.collection.mutable.Map[String, Any])
@@ -42,15 +52,6 @@ class Executor(code: String) {
   val visitedStack = new Stack[Visited]()
   var currentVisited: Visited = null
   var currentType: IASTDeclSpecifier = null
-  
-  def getSize(theType: Any): Int = theType match {
-      case array: Array[Variable] => array.length * getSize(array.head.value)
-      case int: Int => 4
-      case doub: Double => 8
-      case flt: Float => 4
-      case bool: Boolean => 4
-      case char: Char => 1
-  }
 
   def printf(context: IASTContext, args: Seq[Object]) = {
     val formatString = args.head.asInstanceOf[String].replaceAll("^\"|\"$", "")
@@ -186,7 +187,7 @@ class Executor(code: String) {
           case `op_sizeof` =>
             context.stack.pop match {
               case VarRef(name) =>
-                context.stack.push(getSize(context.getVariable(name).value))
+                context.stack.push(context.getVariable(name).sizeof)
             }
           case `op_bracketedPrimary` => // not sure what this is for
         }
