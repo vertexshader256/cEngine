@@ -105,23 +105,20 @@ class Executor(code: String) {
       isBreaking = true
       Seq()
     case whileLoop: IASTWhileStatement =>
-      println("WHILE")
       if (direction == Entering) {
         Seq(whileLoop.getCondition)
       } else {
-        val shouldKeepLooping = context.stack.pop match {
+        val shouldLoop = context.stack.pop match {
           case x: Int => x == 1
           case x: Boolean => x
         }
       
-        if (shouldKeepLooping) {
-          println("LOOPING")
+        if (shouldLoop) {
           context.clearVisited(whileLoop.getBody)
           context.clearVisited(whileLoop.getCondition)
           
           Seq(whileLoop.getBody, whileLoop.getCondition, whileLoop)
         } else {
-          println("DONE LOOOPING")
           Seq()
         }
       }
@@ -143,8 +140,10 @@ class Executor(code: String) {
         }
         if (conditionResult) {
           Seq(ifStatement.getThenClause)
-        } else {
+        } else if (ifStatement.getElseClause != null) {
           Seq(ifStatement.getElseClause)
+        } else {
+          Seq()
         }
       }
     case forLoop: IASTForStatement =>
