@@ -69,26 +69,30 @@ object Expression {
           case `op_postFixIncr` =>         
             context.stack.pop match {
               case VarRef(name) =>
-                context.stack.push(context.getVariable(name).value)
-                context.getVariable(name).value = context.getVariable(name).value.asInstanceOf[Int] + 1  
+                val variable = context.resolveId(name)
+                context.stack.push(variable.value)
+                variable.value = variable.value.asInstanceOf[Int] + 1  
             }
           case `op_postFixDecr` =>
             context.stack.pop match {
               case VarRef(name) =>
-                context.stack.push(context.getVariable(name).value)
-                context.getVariable(name).value = context.getVariable(name).value.asInstanceOf[Int] - 1
+                val variable = context.resolveId(name)
+                context.stack.push(variable.value)
+                variable.value = variable.value.asInstanceOf[Int] - 1
             }
           case `op_prefixIncr` =>         
             context.stack.pop match {
               case VarRef(name) =>
-                context.getVariable(name).value = context.getVariable(name).value.asInstanceOf[Int] + 1
-                context.stack.push(context.getVariable(name).value)
+                val variable = context.resolveId(name)
+                variable.value = variable.value.asInstanceOf[Int] + 1
+                context.stack.push(variable.value)
             }
-          case `op_prefixDecr` =>
+         case `op_prefixDecr` =>         
             context.stack.pop match {
               case VarRef(name) =>
-                context.getVariable(name).value = context.getVariable(name).value.asInstanceOf[Int] - 1
-                context.stack.push(context.getVariable(name).value)
+                val variable = context.resolveId(name)
+                variable.value = variable.value.asInstanceOf[Int] - 1
+                context.stack.push(variable.value)
             }
           case `op_sizeof` =>
             context.stack.pop match {

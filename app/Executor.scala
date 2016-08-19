@@ -38,6 +38,14 @@ case class IASTContext(startNode: IASTNode) {
     Seq(functionMap(name))
   }
   
+  def resolveId(id: String) = {
+    if (doesVariableExist(id)) {
+      getVariable(id)
+    } else {
+      currentVisited.getArg(id)
+    }
+  }
+  
   def clearVisited(parent: IASTNode) {
     currentVisited.nodes -= parent
     parent.getChildren.foreach { node =>
