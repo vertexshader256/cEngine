@@ -10,7 +10,7 @@ package object astViewer {
     
       val executor = new Executor(code)
       executor.execute
-      executor.mainContext.stdout.headOption should equal (Some(gccOutput.head))
+      executor.mainContext.stdout should equal (gccOutput)
     }
   }
 }

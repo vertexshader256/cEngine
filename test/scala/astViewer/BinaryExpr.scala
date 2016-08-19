@@ -5,9 +5,9 @@ class BinaryExpr extends StandardTest {
     val code = """
       void main() {
         if ((1 + 2) * (5 - 2) == 9) {
-          printf("%s\n", "SUCCESS");
+          printf("path1\n");
         } else {
-          printf("%s\n", "FAIL");
+          printf("path2\n");
         }
       }"""
 
@@ -18,9 +18,15 @@ class BinaryExpr extends StandardTest {
     val code = """
       void main() {
         if (1 == 1 && 2 == 3) {
-          printf("%s\n", "FAIL");
+          printf("path1\n");
         } else {
-          printf("%s\n", "SUCCESS");
+          printf("path2\n");
+        }
+        
+        if (5 < 10 && 3 == 3) {
+          printf("path1\n");
+        } else {
+          printf("path2\n");
         }
       }"""
 
@@ -30,38 +36,52 @@ class BinaryExpr extends StandardTest {
   "Two expressions ORed" should "print the correct results" in {
     val code = """
       void main() {
+      
+        // first expr is true
         if (1 == 1 || 2 == 3) {
-          printf("%s\n", "SUCCESS");
+          printf("path1\n");
         } else {
-          printf("%s\n", "FAIL");
+          printf("path2\n");
+        }
+        
+        // second expr is true
+        if (1 == 0 || 7 > 3) {
+          printf("path1\n");
+        } else {
+          printf("path2\n");
         }
       }"""
 
     checkResults(code)
-    
-    val code2 = """
-      void main() {
-        if (1 == 0 || 7 > 3) {
-          printf("%s\n", "FAIL");
-        } else {
-          printf("%s\n", "SUCCESS");
-        }
-      }"""
-
-    checkResults(code2)
   }
 
-  "Two expressions ORed with a function call" should "print the correct results" in {
+  "Function calls as expressions" should "print the correct results" in {
     val code = """
       int test() {
         return 2;
       }
+      
+      int test2() {
+        return 3;
+      }
 
       void main() {
         if (1 == 1 || 2 == test()) {
-          printf("%s\n", "SUCCESS");
+          printf("path1\n");
         } else {
-          printf("%s\n", "FAIL");
+          printf("path2\n");
+        }
+        
+        if (2 == test() || 1 == 0) {
+          printf("path1\n");
+        } else {
+          printf("path2\n");
+        }
+        
+        if (test() == test2() - 1) {
+          printf("path1\n");
+        } else {
+          printf("path2\n");
         }
       }"""
 

@@ -149,48 +149,22 @@ class FunctionTest extends StandardTest {
     checkResults(code)
   }
 
-  "a binary expression with function calls" should "print the correct results" in {
+  "complex function calls" should "print the correct results" in {
     val code = """
+      int add(int x, int y) {
+        return x + y;
+      }
       int square(int x) {
         return x * x;
       }
       void main() {
         printf("%d\n", square(5) + square(2));
-      }"""
-
-    checkResults(code)
-  }
-
-  "a chained function with two arguments" should "print the correct results" in {
-    val code = """
-      int add(int x, int y) {
-        return x + y;
-      }
-      void main() {
         printf("%d\n", add(13, add(1, 5)));
-      }"""
-
-    checkResults(code)
-
-    val code2 = """
-      int add(int x, int y) {
-        return x + y;
-      }
-      void main() {
         printf("%d\n", add(add(1, 5), 13));
-      }"""
-
-    checkResults(code2)
-
-    val code3 = """
-      int add(int x, int y) {
-        return x + y;
-      }
-      void main() {
         printf("%d\n", add(add(1, add(3, 2)), add(add(5, 5), 3)));
       }"""
 
-    checkResults(code3)
+    checkResults(code)
   }
 }
 
