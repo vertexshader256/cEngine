@@ -18,12 +18,7 @@ object BinaryExpression {
       var op1: Any = context.stack.pop
       
       def resolveOp1() = op1 = op1 match {
-        case VarRef(name) => 
-          if (context.doesVariableExist(name)) {
-            context.getVariable(name).value
-          } else {
-            context.currentVisited.getArg(name).value
-          }
+        case VarRef(name) => context.resolveId(name).value
         case Variable(_, value) => value
         case int: Int => int
         case bool: Boolean => bool
@@ -31,12 +26,7 @@ object BinaryExpression {
       }
       
       def resolveOp2() = op2 = op2 match {
-        case VarRef(name) => 
-          if (context.doesVariableExist(name)) {
-            context.getVariable(name).value
-          } else {
-            context.currentVisited.getArg(name).value
-          }
+        case VarRef(name) => context.resolveId(name).value
         case Variable(_, value) => value
         case int: Int => int
         case bool: Boolean => bool
