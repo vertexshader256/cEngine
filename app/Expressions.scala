@@ -68,10 +68,19 @@ object Expression {
         unary.getOperator match {
           case `op_postFixIncr` =>         
             context.stack.pop match {
+              case otherVar @ Variable(_, _) =>
+                    context.stack.push(otherVar.value)
+                    otherVar.value = otherVar.value.asInstanceOf[Int] + 1  
               case VarRef(name) =>
                 val variable = context.resolveId(name)
-                context.stack.push(variable.value)
-                variable.value = variable.value.asInstanceOf[Int] + 1  
+                variable.value match {
+                  case otherVar @ Variable(_, _) =>
+                    context.stack.push(otherVar.value)
+                    otherVar.value = otherVar.value.asInstanceOf[Int] + 1  
+                  case _ => 
+                    context.stack.push(variable.value)
+                    variable.value = variable.value.asInstanceOf[Int] + 1  
+                } 
             }
           case `op_postFixDecr` =>
             context.stack.pop match {
