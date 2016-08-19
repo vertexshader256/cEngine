@@ -95,6 +95,16 @@ object Expression {
               case VarRef(name) =>
                 context.stack.push(context.getVariable(name).sizeof)
             }
+          case `op_amper` =>
+            context.stack.pop match {
+              case VarRef(name) =>
+                context.stack.push(context.getVariable(name))
+            }
+          case `op_star` =>
+            context.stack.pop match {
+              case VarRef(varName) =>
+                context.stack.push(context.getVariable(varName).value)
+            }
           case `op_bracketedPrimary` => // not sure what this is for
         }
         Seq()

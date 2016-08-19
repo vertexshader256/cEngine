@@ -9,7 +9,7 @@ import java.util.Locale;
 
 case class IASTContext(startNode: IASTNode) {
   val stack = new Stack[Any]()
-  val variables = new ListBuffer[Variable]()
+  val variables = new ListBuffer[Var]()
   val path = Utils.getPath(startNode)
   val visitedStack = new Stack[Visited]()
   var currentVisited: Visited = null
@@ -21,7 +21,7 @@ case class IASTContext(startNode: IASTNode) {
     variables.exists(_.name == name)
   }
   
-  def getVariable(name: String): Variable = {
+  def getVariable(name: String): Var = {
     variables.find(_.name == name).get
   }
   
@@ -46,16 +46,23 @@ case class IASTContext(startNode: IASTNode) {
   }
 }
 
-case class Variable(name: String, var value: Any) {
-  val sizeof: Int = value match {
-      case array: Array[Variable] => array.length * array.head.sizeof
-      case _: Int => 4
-      case _: Double => 8
-      case _: Float => 4
-      case _: Boolean => 4
-      case _: Char => 1
+trait Var {
+  def name: String
+  var value: Any
+  
+  def sizeof: Int = value match {
+    case Pointer(_,_) => 4
+    case array: Array[Variable] => array.length * array.head.sizeof
+    case _: Int => 4
+    case _: Double => 8
+    case _: Float => 4
+    case _: Boolean => 4
+    case _: Char => 1
   }
 }
+
+case class Variable(val name: String, var value: Any) extends Var
+case class Pointer(val name: String, var value: Any) extends Var
 
 case class VarRef(name: String) extends AnyVal
 
@@ -258,7 +265,7 @@ class Executor(code: String) {
         
         val size = context.stack.pop.asInstanceOf[Int]
        
-        val initialArray = Array.fill(size)(Variable("", initial))
+        val initialArray = Array.fill(size)(new Variable("", initial))
         
         if (!context.stack.isEmpty) { 
           var i = 0
@@ -268,16 +275,25 @@ class Executor(code: String) {
           }
         }
         
-        context.variables += Variable(name, initialArray)
+        context.variables += new Variable(name, initialArray)
       } else {   
         
         val name = context.stack.pop.asInstanceOf[String]
-
-        if (!context.stack.isEmpty) {
-          // initial value is on the stack, set it
-          context.variables += Variable(name, context.stack.pop)
+        
+        if (!decl.getPointerOperators.isEmpty) {
+          if (!context.stack.isEmpty) {
+            // initial value is on the stack, set it
+            context.variables += Pointer(name, context.stack.pop.asInstanceOf[Variable])
+          } else {
+            context.variables += Pointer(name, null)
+          }
         } else {
-          context.variables += Variable(name, initial)
+          if (!context.stack.isEmpty) {
+            // initial value is on the stack, set it
+            context.variables += new Variable(name, context.stack.pop)
+          } else {
+            context.variables += new Variable(name, initial)
+          }
         }
       }
       
