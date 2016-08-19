@@ -17,10 +17,8 @@ class Recursion extends StandardTest {
       }"""
 
     checkResults(code)
-  }
-  
-  "Recursion test 2" should "print the correct results" in {
-    val code = """
+    
+    val code2 = """
 
       int sums(int x) {
          if (x > 0) {
@@ -34,11 +32,9 @@ class Recursion extends StandardTest {
         printf("%d\n", sums(1));
       }"""
 
-    checkResults(code)
-  }
-  
-  "Recursion test 3" should "print the correct results" in {
-    val code = """
+    checkResults(code2)
+    
+    val code3 = """
 
       int sums(int x) {
          if (x > 0) {
@@ -52,6 +48,6 @@ class Recursion extends StandardTest {
         printf("%d\n", sums(5));
       }"""
 
-    checkResults(code)
+    checkResults(code3)
   }
 }

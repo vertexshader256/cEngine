@@ -42,11 +42,21 @@ object BinaryExpression {
         case bool: Boolean => bool
         case double: Double => double
       }
+      
+      val op = binaryExpr.getOperator
+      
+      // resolve Op1 only if not assignment
+      
+      if (op != op_assign &&
+          op != op_plusAssign &&
+          op != op_minusAssign) {
+        resolveOp1()
+      }
+      
+      resolveOp2()
 
       binaryExpr.getOperator match {
         case `op_multiply` =>
-          resolveOp1()
-          resolveOp2()
           (op1, op2) match {
             case (x: Int, y: Int) =>
               x * y
@@ -58,8 +68,6 @@ object BinaryExpression {
               x * y
           }
         case `op_plus` =>
-          resolveOp1()
-          resolveOp2()
           (op1, op2) match {
             case (x: Int, y: Int) =>
               x + y
@@ -71,8 +79,6 @@ object BinaryExpression {
               x + y
           }
         case `op_minus` =>
-          resolveOp1()
-          resolveOp2()
           (op1, op2) match {
             case (x: Int, y: Int) =>
               x - y
@@ -84,8 +90,6 @@ object BinaryExpression {
               x - y
           }
         case `op_divide` =>
-          resolveOp1()
-          resolveOp2()
           (op1, op2) match {
             case (x: Int, y: Int) =>
               x / y
@@ -97,9 +101,6 @@ object BinaryExpression {
               x / y
           }
         case `op_assign` =>
-          
-          resolveOp2()
-          
           op1 match {
             case variable: Variable =>
               variable.value = op2
@@ -109,8 +110,6 @@ object BinaryExpression {
 
           op2
         case `op_equals` =>
-          resolveOp1()
-          resolveOp2()
           (op1, op2) match {
             case (x: Int, y: Int) =>
               x == y
@@ -122,8 +121,6 @@ object BinaryExpression {
               x == y
           }
         case `op_greaterThan` =>
-          resolveOp1()
-          resolveOp2()
           (op1, op2) match {
             case (x: Int, y: Int) =>
               x > y
@@ -135,8 +132,6 @@ object BinaryExpression {
               x > y
           }
         case `op_lessThan` =>
-          resolveOp1()
-          resolveOp2()
           (op1, op2) match {
             case (x: Int, y: Int) =>
               x < y
@@ -148,25 +143,19 @@ object BinaryExpression {
               x < y
           }
         case `op_plusAssign` =>
-          resolveOp2()
           op1 match {
             case VarRef(name) => context.getVariable(name).value = context.getVariable(name).value.asInstanceOf[Int] + op2.asInstanceOf[Int]
           }
         case `op_minusAssign` =>
-          resolveOp2()
           op1 match {
             case VarRef(name) => context.getVariable(name).value = context.getVariable(name).value.asInstanceOf[Int] - op2.asInstanceOf[Int]
           }
         case `op_logicalAnd` =>
-          resolveOp1()
-          resolveOp2()
           (op1, op2) match {
             case (x: Boolean, y: Boolean) =>
               x && y
           }
         case `op_logicalOr` =>
-          resolveOp1()
-          resolveOp2()
           (op1, op2) match {
             case (x: Boolean, y: Boolean) =>
               x || y

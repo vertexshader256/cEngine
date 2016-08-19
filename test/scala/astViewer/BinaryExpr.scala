@@ -38,6 +38,17 @@ class BinaryExpr extends StandardTest {
       }"""
 
     checkResults(code)
+    
+    val code2 = """
+      void main() {
+        if (1 == 0 || 7 > 3) {
+          printf("%s\n", "FAIL");
+        } else {
+          printf("%s\n", "SUCCESS");
+        }
+      }"""
+
+    checkResults(code2)
   }
 
   "Two expressions ORed with a function call" should "print the correct results" in {
