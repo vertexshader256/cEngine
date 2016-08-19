@@ -108,6 +108,7 @@ object Expression {
             context.stack.pop match {
               case VarRef(varName) =>
                 context.stack.push(context.getVariable(varName).value)
+              case int: Int => int
             }
           case `op_bracketedPrimary` => // not sure what this is for
         }
