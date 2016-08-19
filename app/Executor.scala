@@ -92,6 +92,7 @@ class Executor(code: String) {
   
   
   var isArrayDeclaration = false
+  var isBreaking = false;
   
   
   
@@ -100,6 +101,30 @@ class Executor(code: String) {
   
 
   def parseStatement(statement: IASTStatement, context: IASTContext, direction: Direction): Seq[IASTNode] = statement match {
+    case breakStatement: IASTBreakStatement =>
+      isBreaking = true
+      Seq()
+    case whileLoop: IASTWhileStatement =>
+      println("WHILE")
+      if (direction == Entering) {
+        Seq(whileLoop.getCondition)
+      } else {
+        val shouldKeepLooping = context.stack.pop match {
+          case x: Int => x == 1
+          case x: Boolean => x
+        }
+      
+        if (shouldKeepLooping) {
+          println("LOOPING")
+          context.clearVisited(whileLoop.getBody)
+          context.clearVisited(whileLoop.getCondition)
+          
+          Seq(whileLoop.getBody, whileLoop.getCondition, whileLoop)
+        } else {
+          println("DONE LOOOPING")
+          Seq()
+        }
+      }
     case ifStatement: IASTIfStatement =>
       if (direction == Entering) {
         Seq(ifStatement.getConditionExpression)
@@ -152,6 +177,8 @@ class Executor(code: String) {
       }
     case compound: IASTCompoundStatement =>
       if (direction == Entering) {
+        println("COMPOUND: ")
+        compound.getStatements.foreach(println)
         compound.getStatements
       } else {
         Seq()
@@ -333,7 +360,16 @@ class Executor(code: String) {
       
       //println("BEGIN: " + current.getClass.getSimpleName + ":" + direction)   
       
-      val paths: Seq[IASTNode] = step(current, mainContext, direction)        
+      val paths: Seq[IASTNode] = step(current, mainContext, direction)   
+      
+      if (isBreaking) {
+        // unroll the path stack until we meet the first parent which is a loop
+        var reverse = pathStack.pop
+        while (!reverse.isInstanceOf[IASTWhileStatement] && !reverse.isInstanceOf[IASTWhileStatement]) {
+          reverse = pathStack.pop
+        }
+        isBreaking = false
+      }
       
       if (direction == Exiting) {
         pathStack.pop

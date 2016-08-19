@@ -1,5 +1,68 @@
 package scala.astViewer
 
+class WhileStatement extends StandardTest {
+  "A simple while statement" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 0;
+        while (x < 10) {
+          x++;
+        }
+        printf("%d\n", x);
+      }"""
+
+    checkResults(code)
+  }
+  
+  "A simple while statement with a break" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 0;
+        while (1) {
+          break;
+          x++;
+        }
+        printf("%d\n", x);
+      }"""
+
+    checkResults(code)
+  }
+  
+  "Nested while statements with break" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 0;
+        while (1) {
+          while (1) {
+            break;
+            x++;
+          }
+          x++;
+          break;
+        }
+        printf("%d\n", x);
+      }"""
+
+    checkResults(code)
+  }
+  
+//  "A simple while statement with a break" should "print the correct results" in {
+//    val code = """
+//      void main() {
+//        int x = 0;
+//        while (1) {
+//          if (x > 5) {
+//            break;
+//          }
+//          x++;
+//        }
+//        printf("%d\n", x);
+//      }"""
+//
+//    checkResults(code)
+//  }
+}
+
 class IfStatement extends StandardTest {
   "A simple if statement with true literal" should "print the correct results" in {
     val code = """
