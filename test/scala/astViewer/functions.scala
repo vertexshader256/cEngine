@@ -193,3 +193,20 @@ class FunctionTest extends StandardTest {
     checkResults(code3)
   }
 }
+
+class ComplexFunctionTest extends StandardTest {
+  "a function with out-of-order references to arguments" should "print the correct results" in {
+    val code = """
+      int func(int x, int y) {
+        int z = x + 3;
+        int x2 = x - 2;
+        int x3 = y - x;
+        return x3 + x2 + z;
+      }
+      void main() {
+        printf("%d\n", func(1, 2));
+      }"""
+
+    checkResults(code)
+  }
+}

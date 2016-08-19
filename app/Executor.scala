@@ -27,7 +27,7 @@ case class IASTContext(startNode: IASTNode) {
   
   def callFunction(call: IASTFunctionCallExpression) = {
     visitedStack.push(currentVisited)
-    currentVisited = Visited(new ListBuffer[IASTNode](), scala.collection.mutable.Map[String, Any]())
+    currentVisited = Visited(new ListBuffer[IASTNode](), new ListBuffer[Var]())
     functionReturnStack.push(call)
     
     val name = call.getFunctionNameExpression match {
@@ -66,7 +66,11 @@ case class Pointer(val name: String, var value: Any) extends Var
 
 case class VarRef(name: String) extends AnyVal
 
-case class Visited(nodes: ListBuffer[IASTNode], functionArgs: scala.collection.mutable.Map[String, Any])
+case class Visited(nodes: ListBuffer[IASTNode], functionArgs: ListBuffer[Var]) {
+  def getArg(name: String): Var = {
+    functionArgs.find(_.name == name).get
+  }
+}
 
 class Executor(code: String) {
 
@@ -172,7 +176,7 @@ class Executor(code: String) {
       case param: IASTParameterDeclaration =>
         if (direction == Exiting) {
           val arg = context.stack.pop
-          context.currentVisited.functionArgs += (param.getDeclarator.getName.getRawSignature -> arg)
+          context.currentVisited.functionArgs += Variable(param.getDeclarator.getName.getRawSignature, arg)
           Seq()
         } else {
           Seq()
@@ -346,7 +350,7 @@ class Executor(code: String) {
     
     current = tUnit
     
-    mainContext.visitedStack.push(Visited(new ListBuffer[IASTNode](), scala.collection.mutable.Map[String, Any]())) // load initial stack
+    mainContext.visitedStack.push(Visited(new ListBuffer[IASTNode](), new ListBuffer[Var]())) // load initial stack
     mainContext.currentVisited = mainContext.visitedStack.head
 
     runProgram()
@@ -356,7 +360,7 @@ class Executor(code: String) {
     println("_----------------------------------------------_")
     
     mainContext.visitedStack.clear
-    mainContext.visitedStack.push(Visited(new ListBuffer[IASTNode](), scala.collection.mutable.Map[String, Any]())) // load initial stack
+    mainContext.visitedStack.push(Visited(new ListBuffer[IASTNode](), new ListBuffer[Var]())) // load initial stack
     mainContext.currentVisited = mainContext.visitedStack.head
     pathStack.clear
     pathStack.push(mainContext.functionMap("main"))

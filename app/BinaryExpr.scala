@@ -22,7 +22,7 @@ object BinaryExpression {
           if (context.doesVariableExist(name)) {
             context.getVariable(name).value
           } else {
-            context.currentVisited.functionArgs(name)
+            context.currentVisited.getArg(name).value
           }
         case Variable(_, value) => value
         case int: Int => int
@@ -35,7 +35,7 @@ object BinaryExpression {
           if (context.doesVariableExist(name)) {
             context.getVariable(name).value
           } else {
-            context.currentVisited.functionArgs(name)
+            context.currentVisited.getArg(name).value
           }
         case Variable(_, value) => value
         case int: Int => int
