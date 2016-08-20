@@ -56,7 +56,7 @@ trait Var {
   val typeName: String
   
   def sizeof: Int = value match {
-    case Pointer(_,_,_) => 4
+    case Variable(_,_,_) => 4 // its a pointer
     case array: Array[Variable] => array.length * array.head.sizeof
     case _ => 
       TypeHelper.sizeof(typeName)
@@ -64,7 +64,6 @@ trait Var {
 }
 
 case class Variable(val name: String, var value: Any, val typeName: String) extends Var
-case class Pointer(val name: String, var value: Any, val typeName: String) extends Var
 
 case class VarRef(name: String) extends AnyVal
 
