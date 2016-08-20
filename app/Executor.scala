@@ -50,39 +50,41 @@ object TypeHelper {
   }
 }
 
-trait Var {
-  def name: String
+object Variable {
+  def unapply(vari: Variable): Option[Any] = if (vari eq null) None else Some(vari.value)
+}
+
+abstract class Variable {
+  val name: String
   var value: Any
   val typeName: String
   
   def sizeof: Int = value match {
-    case Variable(_,_,_) => 4 // its a pointer
+    case Variable(theValue) => 4 // its a pointer
     case array: Array[Variable] => array.length * array.head.sizeof
     case _ => 
       TypeHelper.sizeof(typeName)
   }
 }
 
-case class Variable(val name: String, var value: Any, val typeName: String) extends Var
-
-case class VarRef(name: String) extends AnyVal
+case class VarRef(name: String)
 
 class Visited(parent: Visited) {
   
   val nodes = new ListBuffer[IASTNode]()
-  private val functionArgs = new ListBuffer[Var]()
-  private val variables: ListBuffer[Var] = ListBuffer[Var]() ++ Option(parent).map(x => x.variables).getOrElse(Seq())
+  private val functionArgs = new ListBuffer[Variable]()
+  private val variables: ListBuffer[Variable] = ListBuffer[Variable]() ++ Option(parent).map(x => x.variables).getOrElse(Seq())
   
-  def addArg(name: String, value: Any, typeName: String) = {
-    functionArgs += Variable(name, value, typeName)
+  def addArg(theName: String, theValue: Any, theTypeName: String) = {
+    functionArgs += new Variable { val name = theName; var value = theValue; val typeName = theTypeName }
   }
   
-  def getArg(name: String): Var = {
+  def getArg(name: String): Variable = {
     functionArgs.find(_.name == name).get
   }
   
-  def addVariable(name: String, value: Any, typeName: String) = {
-    variables += Variable(name, value, typeName)
+  def addVariable(theName: String, theValue: Any, theTypeName: String) = {
+    variables += new Variable { val name = theName; var value = theValue; val typeName = theTypeName }
   }
   
   def resolveId(id: String) = {
@@ -306,13 +308,13 @@ class Executor(code: String) {
     if (direction == Exiting) {
       context.stack.push(decl.getName.getRawSignature)
       
-      val typeName = context.currentType.getRawSignature
+      val theTypeName = context.currentType.getRawSignature
       
-      val initial = typeName match {
+      val initial = theTypeName match {
           case "int" => 0.toInt
           case "double" => 0.0.toDouble
           case "char" => 0.toChar
-          case _ => throw new Exception("No match for " + typeName)
+          case _ => throw new Exception("No match for " + theTypeName)
       }
       
       if (isArrayDeclaration) {
@@ -321,7 +323,7 @@ class Executor(code: String) {
         
         val size = context.stack.pop.asInstanceOf[Int]
        
-        val initialArray = Array.fill(size)(new Variable("", initial, typeName))
+        val initialArray = Array.fill(size)(new Variable { val name = ""; var value: Any = initial; val typeName = theTypeName })
         
         if (!context.stack.isEmpty) { 
           var i = 0
@@ -331,7 +333,7 @@ class Executor(code: String) {
           }
         }
         
-        context.vars.addVariable(name, initialArray, typeName)
+        context.vars.addVariable(name, initialArray, theTypeName)
       } else {   
         
         val name = context.stack.pop.asInstanceOf[String]
@@ -339,16 +341,16 @@ class Executor(code: String) {
         if (!decl.getPointerOperators.isEmpty) {
           if (!context.stack.isEmpty) {
             // initial value is on the stack, set it
-            context.vars.addVariable(name, context.stack.pop.asInstanceOf[Variable], typeName)
+            context.vars.addVariable(name, context.stack.pop.asInstanceOf[Variable], theTypeName)
           } else {
-            context.vars.addVariable(name, null, typeName)
+            context.vars.addVariable(name, null, theTypeName)
           }
         } else {
           if (!context.stack.isEmpty) {
             // initial value is on the stack, set it
-            context.vars.addVariable(name, context.stack.pop, typeName)
+            context.vars.addVariable(name, context.stack.pop, theTypeName)
           } else {
-            context.vars.addVariable(name, initial, typeName)
+            context.vars.addVariable(name, initial, theTypeName)
           }
         }
       }

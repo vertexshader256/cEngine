@@ -62,14 +62,14 @@ object Expressions {
     case unary: IASTUnaryExpression =>
       import org.eclipse.cdt.core.dom.ast.IASTUnaryExpression._
       
-      def resolveVar(variable: Any, func: (Var) => Unit) = {
+      def resolveVar(variable: Any, func: (Variable) => Unit) = {
         variable match {
-          case otherVar @ Variable(_, _, _) =>
+          case otherVar @ Variable(value) =>
             func(otherVar)
           case VarRef(name) =>
             val variable = context.vars.resolveId(name)
             variable.value match {
-              case otherVar @ Variable(_, _, _) =>
+              case otherVar @ Variable(value) =>
                 func(otherVar)
               case _ => 
                 func(variable)
@@ -175,7 +175,7 @@ object Expressions {
           value match {
             case VarRef(name) =>
                context.vars.resolveId(name).value
-            case Variable(_, value, _) =>
+            case Variable(value) =>
                value
             case _ => value
           }
