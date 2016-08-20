@@ -55,9 +55,16 @@ object Variable {
 }
 
 abstract class Variable {
+  
+  var realValue: Any = null
+  
   val name: String
-  var value: Any
+  def value: Any = realValue
   val typeName: String
+  
+  def setValue(newVal: Any) = {
+    realValue = newVal
+  }
   
   def sizeof: Int = value match {
     case Variable(theValue) => 4 // its a pointer
@@ -76,7 +83,7 @@ class Visited(parent: Visited) {
   private val variables: ListBuffer[Variable] = ListBuffer[Variable]() ++ Option(parent).map(x => x.variables).getOrElse(Seq())
   
   def addArg(theName: String, theValue: Any, theTypeName: String) = {
-    functionArgs += new Variable { val name = theName; var value = theValue; val typeName = theTypeName }
+    functionArgs += new Variable { val name = theName; realValue = theValue; val typeName = theTypeName }
   }
   
   def getArg(name: String): Variable = {
@@ -84,7 +91,7 @@ class Visited(parent: Visited) {
   }
   
   def addVariable(theName: String, theValue: Any, theTypeName: String) = {
-    variables += new Variable { val name = theName; var value = theValue; val typeName = theTypeName }
+    variables += new Variable { val name = theName; realValue = theValue; val typeName = theTypeName }
   }
   
   def resolveId(id: String) = {
@@ -323,13 +330,13 @@ class Executor(code: String) {
         
         val size = context.stack.pop.asInstanceOf[Int]
        
-        val initialArray = Array.fill(size)(new Variable { val name = ""; var value: Any = initial; val typeName = theTypeName })
+        val initialArray = Array.fill(size)(new Variable { val name = ""; realValue = initial; val typeName = theTypeName })
         
         if (!context.stack.isEmpty) { 
           var i = 0
           
           for (i <- (size - 1) to 0 by -1) {
-            initialArray(i).value = context.stack.pop
+            initialArray(i).setValue(context.stack.pop)
           }
         }
         

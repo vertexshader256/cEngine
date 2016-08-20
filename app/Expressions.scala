@@ -95,21 +95,21 @@ object Expressions {
           case `op_postFixIncr` =>     
             resolveVar(context.stack.pop, (otherVar) => {
               context.stack.push(otherVar.value)
-              otherVar.value = otherVar.value.asInstanceOf[Int] + 1
+              otherVar.setValue(otherVar.value.asInstanceOf[Int] + 1)
             })
           case `op_postFixDecr` =>
             resolveVar(context.stack.pop, (otherVar) => {
               context.stack.push(otherVar.value)
-              otherVar.value = otherVar.value.asInstanceOf[Int] - 1
+              otherVar.setValue(otherVar.value.asInstanceOf[Int] - 1)
             })
           case `op_prefixIncr` =>  
             resolveVar(context.stack.pop, (otherVar) => {
-              otherVar.value = otherVar.value.asInstanceOf[Int] + 1
+              otherVar.setValue(otherVar.value.asInstanceOf[Int] + 1)
               context.stack.push(otherVar.value)
             })
          case `op_prefixDecr` =>  
            resolveVar(context.stack.pop, (otherVar) => {
-              otherVar.value = otherVar.value.asInstanceOf[Int] - 1
+              otherVar.setValue(otherVar.value.asInstanceOf[Int] - 1)
               context.stack.push(otherVar.value)
             })
           case `op_sizeof` =>

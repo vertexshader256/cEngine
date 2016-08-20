@@ -83,7 +83,7 @@ object BinaryExpression {
           }
           
           println("SETTING " + newVal.name + " to " + newVal.value)
-          newVal.value = op2
+          newVal.setValue(op2)
           op2
         case `op_equals` =>
           (op1, op2) match {
@@ -117,24 +117,24 @@ object BinaryExpression {
           op1 match {
             case VarRef(name) => 
               val vari = context.vars.resolveId(name)
-              (vari.value, op2) match {
-                case (x: Int, y: Int) => vari.value = x + y
-                case (x: Double, y: Int) => vari.value = x + y
-                case (x: Int, y: Double) => vari.value = x + y
-                case (x: Double, y: Double) => vari.value = x + y
-              }
+              vari.setValue((vari.value, op2) match {
+                case (x: Int, y: Int) => x + y
+                case (x: Double, y: Int) => x + y
+                case (x: Int, y: Double) => x + y
+                case (x: Double, y: Double) => x + y
+              })
               
           }
         case `op_minusAssign` =>
           op1 match {
             case VarRef(name) => 
               val vari = context.vars.resolveId(name)
-              (vari.value, op2) match {
-                case (x: Int, y: Int) => vari.value = x - y
-                case (x: Double, y: Int) => vari.value = x - y
-                case (x: Int, y: Double) => vari.value = x - y
-                case (x: Double, y: Double) => vari.value = x - y
-              }
+              vari.setValue((vari.value, op2) match {
+                case (x: Int, y: Int) => x - y
+                case (x: Double, y: Int) => x - y
+                case (x: Int, y: Double) => x - y
+                case (x: Double, y: Double) => x - y
+              })
           }
         case `op_logicalAnd` =>
           (op1, op2) match {
