@@ -135,7 +135,16 @@ object Expression {
     case lit: IASTLiteralExpression =>
       if (direction == Exiting) {
         //println("PUSHING LIT: " + castLiteral(lit))
-        context.stack.push(castLiteral(lit))
+        if (context.currentType == null) {
+          context.stack.push(castLiteral(lit))
+        } else {
+          context.currentType.getRawSignature match {
+            case "double" => context.stack.push(lit.getRawSignature.toDouble)
+            case "int" => context.stack.push(lit.getRawSignature.toInt)
+            case "float" => context.stack.push(lit.getRawSignature.toFloat)
+            case _ => context.stack.push(castLiteral(lit))
+          }
+        }
       }
       Seq()
     case id: IASTIdExpression =>

@@ -16,6 +16,7 @@ case class IASTContext(startNode: IASTNode) {
   var functionReturnStack = new Stack[IASTFunctionCallExpression]()
   val functionMap = scala.collection.mutable.Map[String, IASTNode]()
   val stdout = new ListBuffer[String]()
+  var currentType: IASTDeclSpecifier = null
   
   def doesVariableExist(name: String): Boolean = {
     variables.exists(_.name == name)
@@ -96,7 +97,7 @@ class Executor(code: String) {
   
   
   
-  var currentType: IASTDeclSpecifier = null
+  
 
   
 
@@ -243,10 +244,10 @@ class Executor(code: String) {
         }
       case simple: IASTSimpleDeclaration =>
         if (direction == Entering) { 
-          currentType = simple.getDeclSpecifier
+          context.currentType = simple.getDeclSpecifier
           simple.getDeclarators
         } else {
-          
+          context.currentType = null
           Seq()
         }
       case fcnDec: IASTFunctionDeclarator =>
@@ -307,7 +308,7 @@ class Executor(code: String) {
     if (direction == Exiting) {
       context.stack.push(decl.getName.getRawSignature)
       
-      val typeName = currentType.getRawSignature
+      val typeName = context.currentType.getRawSignature
       
       val initial = typeName match {
           case "int" => 0.toInt

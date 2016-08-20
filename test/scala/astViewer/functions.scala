@@ -96,6 +96,16 @@ class FunctionTest extends StandardTest {
       }"""
 
     checkResults(code)
+    
+    val code2 = """
+      double test() {
+        return 10.5;
+      }
+      void main() {
+        printf("%f\n", test());
+      }"""
+
+    checkResults(code2)
   }
 
   "chained return value" should "print the correct results" in {

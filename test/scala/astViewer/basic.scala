@@ -6,6 +6,20 @@ import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.Stack
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 
+class AssignmentTest extends StandardTest {
+  "A simple math expression with double assigned to integer" should "print the correct results" in {
+    val code = """
+      void main() {
+        double x = 1;
+        double y = 2;
+        x = x + y;
+        printf("%f\n", x);
+      }"""
+
+    checkResults(code)
+  }
+}
+
 class HelloWorld extends StandardTest {
 
   "Hello world" should "print the correct results" in {
@@ -99,7 +113,19 @@ class BasicTest extends StandardTest {
 
     checkResults(code)
   }
+  
+  "A simple math expression with double reassignment" should "print the correct results" in {
+    val code = """
+      void main() {
+        double x = 1.4;
+        double y = 2.4;
+        x = x + y;
+        printf("%f\n", x);
+      }"""
 
+    checkResults(code)
+  }
+  
   "A simple math expression with addition and one global var" should "print the correct results" in {
     val code = """
       int x = 1 + 2;
