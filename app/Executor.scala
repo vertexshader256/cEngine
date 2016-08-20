@@ -9,20 +9,11 @@ import java.util.Locale;
 
 case class IASTContext(startNode: IASTNode) {
   val stack = new Stack[Any]()
-  val path = Utils.getPath(startNode)
   val visitedStack = new Stack[Visited]()
   var currentVisited: Visited = null
   val functionMap = scala.collection.mutable.Map[String, IASTNode]()
   val stdout = new ListBuffer[String]()
   var currentType: IASTDeclSpecifier = null
-  
-  def doesVariableExist(name: String): Boolean = {
-    currentVisited.variables.exists(_.name == name)
-  }
-  
-  def getVariable(name: String): Var = {
-    currentVisited.variables.find(_.name == name).get
-  }
   
   def callFunction(call: IASTFunctionCallExpression) = {
     visitedStack.push(currentVisited)
@@ -37,8 +28,8 @@ case class IASTContext(startNode: IASTNode) {
   }
   
   def resolveId(id: String) = {
-    if (doesVariableExist(id)) {
-      getVariable(id)
+    if (currentVisited.variables.exists(_.name == id)) {
+      currentVisited.variables.find(_.name == id).get
     } else {
       currentVisited.getArg(id)
     }
@@ -146,7 +137,7 @@ class Executor(code: String) {
         
         val value = result match {
           case VarRef(name) =>
-            context.getVariable(name).value
+            context.resolveId(name).value
           case x => x
         }
 
