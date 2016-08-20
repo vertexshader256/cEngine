@@ -12,7 +12,6 @@ case class IASTContext(startNode: IASTNode) {
   val path = Utils.getPath(startNode)
   val visitedStack = new Stack[Visited]()
   var currentVisited: Visited = null
-  var functionReturnStack = new Stack[IASTFunctionCallExpression]()
   val functionMap = scala.collection.mutable.Map[String, IASTNode]()
   val stdout = new ListBuffer[String]()
   var currentType: IASTDeclSpecifier = null
@@ -28,7 +27,6 @@ case class IASTContext(startNode: IASTNode) {
   def callFunction(call: IASTFunctionCallExpression) = {
     visitedStack.push(currentVisited)
     currentVisited = Visited(new ListBuffer[IASTNode](), new ListBuffer[Var](), currentVisited.variables.clone)
-    functionReturnStack.push(call)
     
     val name = call.getFunctionNameExpression match {
       case x: IASTIdExpression => x.getName.getRawSignature
@@ -263,13 +261,7 @@ class Executor(code: String) {
           Seq()
         } else if (direction == Exiting) {
           context.currentVisited = context.visitedStack.pop
-          if (!context.functionReturnStack.isEmpty) {
-            // We are exiting a function we're currently executing
-            //functionArgumentMap.clear
-            Seq()
-          } else {
-            Seq()
-          }
+          Seq()
         } else {
           
           Seq(fcnDef.getDeclarator, fcnDef.getBody)
