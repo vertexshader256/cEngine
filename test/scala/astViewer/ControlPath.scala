@@ -1,5 +1,33 @@
 package scala.astViewer
 
+class DoWhileStatement extends StandardTest {
+  "A simple do..while statement" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 0;
+        do {
+          x++;
+        } while (x < 10);
+        printf("%d\n", x);
+      }"""
+
+    checkResults(code)
+  }
+  
+  "An immediately exited do..while statement" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 0;
+        do {
+          x++;
+        } while (x == -1);
+        printf("%d\n", x);
+      }"""
+
+    checkResults(code)
+  }
+}
+
 class WhileStatement extends StandardTest {
   "A simple while statement" should "print the correct results" in {
     val code = """
@@ -52,9 +80,9 @@ class IfStatement extends StandardTest {
     val code = """
       void main() {
         if (1) {
-          printf("%d\n", 1);
+          printf("1\n");
         } else {
-          printf("%d\n", 2);
+          printf("2\n");
         }
       }"""
 
@@ -65,7 +93,7 @@ class IfStatement extends StandardTest {
     val code = """
       void main() {
         if (0) {
-          printf("%d\n", 1);
+          printf("1\n");
         }
       }"""
 
@@ -92,9 +120,9 @@ class IfStatement extends StandardTest {
     val code = """
       void main() {
         if (0) {
-          printf("%d\n", 1);
+          printf("1\n");
         } else {
-          printf("%d\n", 2);
+          printf("2\n");
         }
       }"""
 
@@ -106,9 +134,9 @@ class IfStatement extends StandardTest {
       void main() {
         int x = 1;
         if (x) {
-          printf("%d\n", 1);
+          printf("1\n");
         } else {
-          printf("%d\n", 2);
+          printf("2\n");
         }
       }"""
 
@@ -148,9 +176,9 @@ class IfStatement extends StandardTest {
       void main() {
         int x = 1 == 2;
         if (x) {
-          printf("%d\n", 1);
+          printf("1\n");
         } else {
-          printf("%d\n", 2);
+          printf("2\n");
         }
       }"""
 
@@ -160,9 +188,9 @@ class IfStatement extends StandardTest {
       void main() {
         int x = 2 == 2;
         if (x) {
-          printf("%d\n", 1);
+          printf("1\n");
         } else {
-          printf("%d\n", 2);
+          printf("2\n");
         }
       }"""
 
@@ -174,9 +202,9 @@ class IfStatement extends StandardTest {
       void main() {
         int x = 5;
         if (x == 5) {
-          printf("%d\n", 7);
+          printf("1\n");
         } else {
-          printf("%d\n", 2);
+          printf("2\n");
         }
       }"""
 
@@ -186,9 +214,9 @@ class IfStatement extends StandardTest {
       void main() {
         int x = 4;
         if (x == 5) {
-          printf("%d\n", 7);
+          printf("1\n");
         } else {
-          printf("%d\n", 2);
+          printf("2\n");
         }
       }"""
 
@@ -200,12 +228,12 @@ class IfStatement extends StandardTest {
       void main() {
         if (1) {
           if (0) {
-            printf("%d\n", 1);
+            printf("1\n");
           } else {
-            printf("%d\n", 3);
+            printf("2\n");
           }
         } else {
-          printf("%d\n", 2);
+          printf("3\n");
         }
       }"""
 

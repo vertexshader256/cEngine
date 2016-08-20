@@ -9,6 +9,8 @@ class printf extends StandardTest {
         printf("%s %s\n", "Hello", "World!");
         printf("%d\n", 1);
         printf("%s\n", "Hello World!");
+        printf("%.2f\n", 1.47453);
+        printf("%.1f\n", 1.47453);
       }"""
 
     checkResults(code)

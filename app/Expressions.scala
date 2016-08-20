@@ -62,61 +62,70 @@ object Expression {
     case unary: IASTUnaryExpression =>
       import org.eclipse.cdt.core.dom.ast.IASTUnaryExpression._
       
+      def resolveVar(variable: Any, func: (Var) => Unit) = {
+        variable match {
+          case otherVar @ Variable(_, _) =>
+            func(otherVar)
+          case VarRef(name) =>
+            val variable = context.resolveId(name)
+            variable.value match {
+              case otherVar @ Variable(_, _) =>
+                func(otherVar)
+              case _ => 
+                func(variable)
+            } 
+        }
+      }
+      
       if (direction == Entering) {
         Seq(unary.getOperand)
       } else {
         unary.getOperator match {
-          case `op_postFixIncr` =>         
+          case `op_minus` =>  
             context.stack.pop match {
-              case otherVar @ Variable(_, _) =>
-                    context.stack.push(otherVar.value)
-                    otherVar.value = otherVar.value.asInstanceOf[Int] + 1  
-              case VarRef(name) =>
-                val variable = context.resolveId(name)
-                variable.value match {
-                  case otherVar @ Variable(_, _) =>
-                    context.stack.push(otherVar.value)
-                    otherVar.value = otherVar.value.asInstanceOf[Int] + 1  
-                  case _ => 
-                    context.stack.push(variable.value)
-                    variable.value = variable.value.asInstanceOf[Int] + 1  
-                } 
+              case int: Int => context.stack.push(-int)
+              case doub: Double => context.stack.push(-doub)
+              case x => resolveVar(x, (otherVar) => {
+                context.stack.push(otherVar.value match {
+                  case int: Int => -int
+                  case doub: Double => -doub
+                })
+              })
             }
+          case `op_postFixIncr` =>     
+            resolveVar(context.stack.pop, (otherVar) => {
+              context.stack.push(otherVar.value)
+              otherVar.value = otherVar.value.asInstanceOf[Int] + 1
+            })
           case `op_postFixDecr` =>
-            context.stack.pop match {
-              case VarRef(name) =>
-                val variable = context.resolveId(name)
-                context.stack.push(variable.value)
-                variable.value = variable.value.asInstanceOf[Int] - 1
-            }
-          case `op_prefixIncr` =>         
-            context.stack.pop match {
-              case VarRef(name) =>
-                val variable = context.resolveId(name)
-                variable.value = variable.value.asInstanceOf[Int] + 1
-                context.stack.push(variable.value)
-            }
-         case `op_prefixDecr` =>         
-            context.stack.pop match {
-              case VarRef(name) =>
-                val variable = context.resolveId(name)
-                variable.value = variable.value.asInstanceOf[Int] - 1
-                context.stack.push(variable.value)
-            }
+            resolveVar(context.stack.pop, (otherVar) => {
+              context.stack.push(otherVar.value)
+              otherVar.value = otherVar.value.asInstanceOf[Int] - 1
+            })
+          case `op_prefixIncr` =>  
+            resolveVar(context.stack.pop, (otherVar) => {
+              otherVar.value = otherVar.value.asInstanceOf[Int] + 1
+              context.stack.push(otherVar.value)
+            })
+         case `op_prefixDecr` =>  
+           resolveVar(context.stack.pop, (otherVar) => {
+              otherVar.value = otherVar.value.asInstanceOf[Int] - 1
+              context.stack.push(otherVar.value)
+            })
           case `op_sizeof` =>
             context.stack.pop match {
               case VarRef(name) =>
-                context.stack.push(context.getVariable(name).sizeof)
+                context.stack.push(context.resolveId(name).sizeof)
             }
           case `op_amper` =>
             context.stack.pop match {
               case VarRef(name) =>
-                context.stack.push(context.getVariable(name))
+                context.stack.push(context.resolveId(name))
             }
           case `op_star` =>
             context.stack.pop match {
               case VarRef(varName) =>
-                context.stack.push(context.getVariable(varName).value)
+                context.stack.push(context.resolveId(varName).value)
               case int: Int => int
             }
           case `op_bracketedPrimary` => // not sure what this is for

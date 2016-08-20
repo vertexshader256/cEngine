@@ -104,6 +104,24 @@ class Executor(code: String) {
     case breakStatement: IASTBreakStatement =>
       isBreaking = true
       Seq()
+    case doWhileLoop: IASTDoStatement =>
+      if (direction == Entering) {
+        Seq(doWhileLoop.getBody, doWhileLoop.getCondition)
+      } else {
+        val shouldLoop = context.stack.pop match {
+          case x: Int => x == 1
+          case x: Boolean => x
+        }
+      
+        if (shouldLoop) {
+          context.clearVisited(doWhileLoop.getBody)
+          context.clearVisited(doWhileLoop.getCondition)
+          
+          Seq(doWhileLoop.getBody, doWhileLoop.getCondition, doWhileLoop)
+        } else {
+          Seq()
+        }
+      }
     case whileLoop: IASTWhileStatement =>
       if (direction == Entering) {
         Seq(whileLoop.getCondition)
@@ -210,6 +228,7 @@ class Executor(code: String) {
       case param: IASTParameterDeclaration =>
         if (direction == Exiting) {
           val arg = context.stack.pop
+          println("PUSHING ARG: " + arg)
           context.currentVisited.functionArgs += Variable(param.getDeclarator.getName.getRawSignature, arg)
           Seq()
         } else {

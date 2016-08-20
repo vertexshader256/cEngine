@@ -45,4 +45,24 @@ class UnaryTest extends StandardTest {
 
     checkResults(code)
   }
+  
+  "A a negative number and variable" should "print the correct results" in {
+    val code = """
+      
+      int func() {
+        return 5;
+      }
+      
+      double func2() {
+        return 5.5;
+      }
+      
+      void main() {
+        int a = 5;
+        double x = 4.2;
+        printf("%d %d %d %f %f\n", -6, -a, -func(), -func2(), -x);
+      }"""
+
+    checkResults(code)
+  }
 }
