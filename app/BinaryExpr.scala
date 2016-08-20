@@ -48,47 +48,31 @@ object BinaryExpression {
       binaryExpr.getOperator match {
         case `op_multiply` =>
           (op1, op2) match {
-            case (x: Int, y: Int) =>
-              x * y
-            case (x: Double, y: Int) =>
-              x * y
-            case (x: Int, y: Double) =>
-              x * y
-            case (x: Double, y: Double) =>
-              x * y
+            case (x: Int, y: Int) => x * y
+            case (x: Double, y: Int) => x * y
+            case (x: Int, y: Double) => x * y
+            case (x: Double, y: Double) => x * y
           }
         case `op_plus` =>
           (op1, op2) match {
-            case (x: Int, y: Int) =>
-              x + y
-            case (x: Double, y: Int) =>
-              x + y
-            case (x: Int, y: Double) =>
-              x + y
-            case (x: Double, y: Double) =>
-              x + y
+            case (x: Int, y: Int) => x + y
+            case (x: Double, y: Int) => x + y
+            case (x: Int, y: Double) => x + y
+            case (x: Double, y: Double) => x + y
           }
         case `op_minus` =>
           (op1, op2) match {
-            case (x: Int, y: Int) =>
-              x - y
-            case (x: Double, y: Int) =>
-              x - y
-            case (x: Int, y: Double) =>
-              x - y
-            case (x: Double, y: Double) =>
-              x - y
+            case (x: Int, y: Int) => x - y
+            case (x: Double, y: Int) => x - y
+            case (x: Int, y: Double) => x - y
+            case (x: Double, y: Double) => x - y
           }
         case `op_divide` =>
           (op1, op2) match {
-            case (x: Int, y: Int) =>
-              x / y
-            case (x: Double, y: Int) =>
-              x / y
-            case (x: Int, y: Double) =>
-              x / y
-            case (x: Double, y: Double) =>
-              x / y
+            case (x: Int, y: Int) => x / y
+            case (x: Double, y: Int) => x / y
+            case (x: Int, y: Double) => x / y
+            case (x: Double, y: Double) => x / y
           }
         case `op_assign` =>
           op1 match {
@@ -101,56 +85,62 @@ object BinaryExpression {
           op2
         case `op_equals` =>
           (op1, op2) match {
-            case (x: Int, y: Int) =>
-              x == y
-            case (x: Double, y: Int) =>
-              x == y
-            case (x: Int, y: Double) =>
-              x == y
-            case (x: Double, y: Double) =>
-              x == y
+            case (x: Int, y: Int) => x == y
+            case (x: Double, y: Int) => x == y
+            case (x: Int, y: Double) => x == y
+            case (x: Double, y: Double) => x == y
+          }
+        case `op_notequals` =>
+          (op1, op2) match {
+            case (x: Int, y: Int) => x != y
+            case (x: Double, y: Int) => x != y
+            case (x: Int, y: Double) => x != y
+            case (x: Double, y: Double) => x != y
           }
         case `op_greaterThan` =>
           (op1, op2) match {
-            case (x: Int, y: Int) =>
-              x > y
-            case (x: Double, y: Int) =>
-              x > y
-            case (x: Int, y: Double) =>
-              x > y
-            case (x: Double, y: Double) =>
-              x > y
+            case (x: Int, y: Int) => x > y
+            case (x: Double, y: Int) => x > y
+            case (x: Int, y: Double) => x > y
+            case (x: Double, y: Double) => x > y
           }
         case `op_lessThan` =>
           (op1, op2) match {
-            case (x: Int, y: Int) =>
-              x < y
-            case (x: Double, y: Int) =>
-              x < y
-            case (x: Int, y: Double) =>
-              x < y
-            case (x: Double, y: Double) =>
-              x < y
+            case (x: Int, y: Int) => x < y
+            case (x: Double, y: Int) => x < y
+            case (x: Int, y: Double) => x < y
+            case (x: Double, y: Double) => x < y
           }
         case `op_plusAssign` =>
           op1 match {
-            case VarRef(name) => context.getVariable(name).value = context.getVariable(name).value.asInstanceOf[Int] + op2.asInstanceOf[Int]
+            case VarRef(name) => 
+              (context.getVariable(name).value, op2) match {
+                case (x: Int, y: Int) => context.getVariable(name).value = x + y
+                case (x: Double, y: Int) => context.getVariable(name).value = x + y
+                case (x: Int, y: Double) => context.getVariable(name).value = x + y
+                case (x: Double, y: Double) => context.getVariable(name).value = x + y
+              }
+              
           }
         case `op_minusAssign` =>
           op1 match {
-            case VarRef(name) => context.getVariable(name).value = context.getVariable(name).value.asInstanceOf[Int] - op2.asInstanceOf[Int]
+            case VarRef(name) => 
+              (context.getVariable(name).value, op2) match {
+                case (x: Int, y: Int) => context.getVariable(name).value = x - y
+                case (x: Double, y: Int) => context.getVariable(name).value = x - y
+                case (x: Int, y: Double) => context.getVariable(name).value = x - y
+                case (x: Double, y: Double) => context.getVariable(name).value = x - y
+              }
           }
         case `op_logicalAnd` =>
           (op1, op2) match {
-            case (x: Boolean, y: Boolean) =>
-              x && y
+            case (x: Boolean, y: Boolean) => x && y
           }
         case `op_logicalOr` =>
           (op1, op2) match {
-            case (x: Boolean, y: Boolean) =>
-              x || y
+            case (x: Boolean, y: Boolean) => x || y
           }
-        case _ => throw new Exception("unhandled binary operator"); null
+        case _ => throw new Exception("unhandled binary operator: " + binaryExpr.getOperator); null
       }
     } else {
       null
