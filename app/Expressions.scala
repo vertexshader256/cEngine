@@ -1,4 +1,4 @@
-package scala.astViewer
+package app.astViewer
 
 import org.eclipse.cdt.core.dom.ast._
 
@@ -7,7 +7,7 @@ import scala.util.control.Exception.allCatch
 import java.util.Formatter;
 import java.util.Locale;
 
-object Expression {
+object Expressions {
   
   private def castLiteral(lit: IASTLiteralExpression): Any = {
     

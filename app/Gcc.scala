@@ -1,4 +1,4 @@
-package scala.astViewer
+package app.astViewer
 
 import scala.sys.process.ProcessIO
 import scala.sys.process._

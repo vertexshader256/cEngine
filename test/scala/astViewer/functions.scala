@@ -177,27 +177,37 @@ class FunctionTest extends StandardTest {
     checkResults(code)
   }
   
-//  "returning a variable value" should "print the correct results" in {
-//    val code = """
-//
-//      double sq_root(double x)
-//      {
-//        double rt = 1;
-//        rt = ((x/rt) + rt) / 2;
-//        return rt;
-//      }
-//  
-//      void main()
-//      {
-//        printf("square root of %f\n",sq_root(9.0));
-//       // printf("square root of %f\n",sq_root(3.0));       
-//       // printf("square root of %f\n",sq_root(15.0));
-//        return 0;
-//      }
-//      """
-//
-//    checkResults(code)
-//  }
+  "returning a variable value" should "print the correct results" in {
+    val code = """
+
+      double y = 4.56;
+      double ret1(double x)
+      {
+        double rt = 1;
+        return rt;
+      }
+      
+      double ret2(double x)
+      {
+        return x;
+      }
+      
+      double ret3()
+      {
+        return y;
+      }
+  
+      void main()
+      {
+        printf("%f\n",ret1(9.0));
+        printf("%f\n",ret2(3.0));
+        printf("%f\n",ret3());
+        return 0;
+      }
+      """
+
+    checkResults(code)
+  }
 }
 
 class ComplexFunctionTest extends StandardTest {

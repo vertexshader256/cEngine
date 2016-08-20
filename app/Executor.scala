@@ -1,4 +1,4 @@
-package scala.astViewer
+package app.astViewer
 
 import org.eclipse.cdt.core.dom.ast._
 
@@ -182,6 +182,13 @@ class Executor(code: String) {
       if (direction == Entering) {
         Seq(ret.getReturnValue)
       } else {
+        // resolve everything before returning
+        val returnVal = context.stack.pop
+        context.stack.push(returnVal match {
+          case VarRef(id) => context.resolveId(id).value
+          case int: Int => int
+          case doub: Double => doub
+        })
         Seq()
       }
     case decl: IASTDeclarationStatement =>
@@ -192,8 +199,6 @@ class Executor(code: String) {
       }
     case compound: IASTCompoundStatement =>
       if (direction == Entering) {
-        println("COMPOUND: ")
-        compound.getStatements.foreach(println)
         compound.getStatements
       } else {
         Seq()
@@ -214,7 +219,7 @@ class Executor(code: String) {
       case statement: IASTStatement =>
         parseStatement(statement, context, direction)
       case expression: IASTExpression =>
-        Expression.parse(expression, direction, context)
+        Expressions.parse(expression, direction, context)
       case array: IASTArrayModifier =>
         if (direction == Exiting) {
           isArrayDeclaration = true
@@ -226,7 +231,6 @@ class Executor(code: String) {
       case param: IASTParameterDeclaration =>
         if (direction == Exiting) {
           val arg = context.stack.pop
-          println("PUSHING ARG: " + arg)
           context.currentVisited.functionArgs += Variable(param.getDeclarator.getName.getRawSignature, arg)
           Seq()
         } else {
@@ -284,11 +288,9 @@ class Executor(code: String) {
         }
         Seq()
       case spec: IASTSimpleDeclSpecifier =>
-         println("PUSHING TYPE SIG")
         if (direction == Entering) {
           Seq()
         } else {
-         
           context.stack.push(spec.getRawSignature)
           Seq()
         }
@@ -364,9 +366,11 @@ class Executor(code: String) {
     val pathStack = new Stack[IASTNode]()
   
     var current: IASTNode = null
+    
+    var direction: Direction = Entering
 
     def tick(): Unit = {
-      val direction = if (mainContext.currentVisited.nodes.contains(current)) Exiting else Entering
+      direction = if (mainContext.currentVisited.nodes.contains(current)) Exiting else Entering
       
       //println("BEGIN: " + current.getClass.getSimpleName + ":" + direction)   
       
@@ -398,6 +402,7 @@ class Executor(code: String) {
     
     def runProgram() = {
       while (current != null) {
+        //println(current.getClass.getSimpleName + ":" + direction)
         tick()
       }
     }

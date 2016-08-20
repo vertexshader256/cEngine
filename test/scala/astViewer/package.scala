@@ -1,7 +1,7 @@
 package scala
 
 import org.scalatest._
-import scala.astViewer._
+import app.astViewer._
 
 package object astViewer {
   class StandardTest extends FlatSpec with ShouldMatchers with ParallelTestExecution {

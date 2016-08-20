@@ -1,4 +1,4 @@
-package scala.astViewer
+package app.astViewer
 
 import play.api.ApplicationLoader.Context
 import play.api._

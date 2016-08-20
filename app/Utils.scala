@@ -1,4 +1,4 @@
-package scala.astViewer
+package app.astViewer
 
 import java.io.File
 import java.util.HashMap

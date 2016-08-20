@@ -1,4 +1,4 @@
-package scala.astViewer
+package app.astViewer
 
 import org.eclipse.cdt.core.dom.ast._
 
