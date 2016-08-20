@@ -75,13 +75,15 @@ object BinaryExpression {
             case (x: Double, y: Double) => x / y
           }
         case `op_assign` =>
-          op1 match {
+          val newVal = op1 match {
             case variable: Variable =>
-              variable.value = op2
+              variable
             case VarRef(name) =>
-              context.resolveId(name).value = op2
+              context.resolveId(name)
           }
-
+          
+          println("SETTING " + newVal.name + " to " + newVal.value)
+          newVal.value = op2
           op2
         case `op_equals` =>
           (op1, op2) match {
