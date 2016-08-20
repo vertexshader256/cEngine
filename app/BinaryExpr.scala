@@ -18,7 +18,7 @@ object BinaryExpression {
       var op1: Any = context.stack.pop
       
       def resolveOp1() = op1 = op1 match {
-        case VarRef(name) => context.resolveId(name).value
+        case VarRef(name) => context.vars.resolveId(name).value
         case Variable(_, value) => value
         case int: Int => int
         case bool: Boolean => bool
@@ -26,7 +26,7 @@ object BinaryExpression {
       }
       
       def resolveOp2() = op2 = op2 match {
-        case VarRef(name) => context.resolveId(name).value
+        case VarRef(name) => context.vars.resolveId(name).value
         case Variable(_, value) => value
         case int: Int => int
         case bool: Boolean => bool
@@ -79,7 +79,7 @@ object BinaryExpression {
             case variable: Variable =>
               variable
             case VarRef(name) =>
-              context.resolveId(name)
+              context.vars.resolveId(name)
           }
           
           println("SETTING " + newVal.name + " to " + newVal.value)
@@ -116,7 +116,7 @@ object BinaryExpression {
         case `op_plusAssign` =>
           op1 match {
             case VarRef(name) => 
-              val vari = context.resolveId(name)
+              val vari = context.vars.resolveId(name)
               (vari.value, op2) match {
                 case (x: Int, y: Int) => vari.value = x + y
                 case (x: Double, y: Int) => vari.value = x + y
@@ -128,7 +128,7 @@ object BinaryExpression {
         case `op_minusAssign` =>
           op1 match {
             case VarRef(name) => 
-              val vari = context.resolveId(name)
+              val vari = context.vars.resolveId(name)
               (vari.value, op2) match {
                 case (x: Int, y: Int) => vari.value = x - y
                 case (x: Double, y: Int) => vari.value = x - y

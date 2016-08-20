@@ -10,14 +10,14 @@ import java.util.Locale;
 case class IASTContext(startNode: IASTNode) {
   val stack = new Stack[Any]()
   val visitedStack = new Stack[Visited]()
-  var currentVisited: Visited = null
+  var vars: Visited = null
   val functionMap = scala.collection.mutable.Map[String, IASTNode]()
   val stdout = new ListBuffer[String]()
   var currentType: IASTDeclSpecifier = null
   
   def callFunction(call: IASTFunctionCallExpression) = {
-    visitedStack.push(currentVisited)
-    currentVisited = Visited(new ListBuffer[IASTNode](), new ListBuffer[Var](), currentVisited.variables.clone)
+    visitedStack.push(vars)
+    vars = Visited(new ListBuffer[IASTNode](), new ListBuffer[Var](), vars.variables.clone)
     
     val name = call.getFunctionNameExpression match {
       case x: IASTIdExpression => x.getName.getRawSignature
@@ -27,16 +27,10 @@ case class IASTContext(startNode: IASTNode) {
     Seq(functionMap(name))
   }
   
-  def resolveId(id: String) = {
-    if (currentVisited.variables.exists(_.name == id)) {
-      currentVisited.variables.find(_.name == id).get
-    } else {
-      currentVisited.getArg(id)
-    }
-  }
+  
   
   def clearVisited(parent: IASTNode) {
-    currentVisited.nodes -= parent
+    vars.nodes -= parent
     parent.getChildren.foreach { node =>
       clearVisited(node)
     }
@@ -66,6 +60,14 @@ case class VarRef(name: String) extends AnyVal
 case class Visited(nodes: ListBuffer[IASTNode], functionArgs: ListBuffer[Var], variables: ListBuffer[Var]) {
   def getArg(name: String): Var = {
     functionArgs.find(_.name == name).get
+  }
+  
+  def resolveId(id: String) = {
+    if (variables.exists(_.name == id)) {
+      variables.find(_.name == id).get
+    } else {
+      getArg(id)
+    }
   }
 }
 
@@ -137,7 +139,7 @@ class Executor(code: String) {
         
         val value = result match {
           case VarRef(name) =>
-            context.resolveId(name).value
+            context.vars.resolveId(name).value
           case x => x
         }
 
@@ -176,7 +178,7 @@ class Executor(code: String) {
         // resolve everything before returning
         val returnVal = context.stack.pop
         context.stack.push(returnVal match {
-          case VarRef(id) => context.resolveId(id).value
+          case VarRef(id) => context.vars.resolveId(id).value
           case int: Int => int
           case doub: Double => doub
         })
@@ -222,7 +224,7 @@ class Executor(code: String) {
       case param: IASTParameterDeclaration =>
         if (direction == Exiting) {
           val arg = context.stack.pop
-          context.currentVisited.functionArgs += Variable(param.getDeclarator.getName.getRawSignature, arg)
+          context.vars.functionArgs += Variable(param.getDeclarator.getName.getRawSignature, arg)
           Seq()
         } else {
           Seq()
@@ -255,7 +257,7 @@ class Executor(code: String) {
           context.functionMap += (fcnDef.getDeclarator.getName.getRawSignature -> fcnDef)
           Seq()
         } else if (direction == Exiting) {
-          context.currentVisited = context.visitedStack.pop
+          context.vars = context.visitedStack.pop
           Seq()
         } else {
           
@@ -317,7 +319,7 @@ class Executor(code: String) {
           }
         }
         
-        context.currentVisited.variables += new Variable(name, initialArray)
+        context.vars.variables += new Variable(name, initialArray)
       } else {   
         
         val name = context.stack.pop.asInstanceOf[String]
@@ -325,16 +327,16 @@ class Executor(code: String) {
         if (!decl.getPointerOperators.isEmpty) {
           if (!context.stack.isEmpty) {
             // initial value is on the stack, set it
-            context.currentVisited.variables += Pointer(name, context.stack.pop.asInstanceOf[Variable])
+            context.vars.variables += Pointer(name, context.stack.pop.asInstanceOf[Variable])
           } else {
-            context.currentVisited.variables += Pointer(name, null)
+            context.vars.variables += Pointer(name, null)
           }
         } else {
           if (!context.stack.isEmpty) {
             // initial value is on the stack, set it
-            context.currentVisited.variables += new Variable(name, context.stack.pop)
+            context.vars.variables += new Variable(name, context.stack.pop)
           } else {
-            context.currentVisited.variables += new Variable(name, initial)
+            context.vars.variables += new Variable(name, initial)
           }
         }
       }
@@ -361,7 +363,7 @@ class Executor(code: String) {
     var direction: Direction = Entering
 
     def tick(): Unit = {
-      direction = if (mainContext.currentVisited.nodes.contains(current)) Exiting else Entering
+      direction = if (mainContext.vars.nodes.contains(current)) Exiting else Entering
       
       //println("BEGIN: " + current.getClass.getSimpleName + ":" + direction)   
       
@@ -379,7 +381,7 @@ class Executor(code: String) {
       if (direction == Exiting) {
         pathStack.pop
       } else {
-        mainContext.currentVisited.nodes += current
+        mainContext.vars.nodes += current
       }
       
       paths.reverse.foreach{path => pathStack.push(path)}
@@ -401,7 +403,7 @@ class Executor(code: String) {
     current = tUnit
     
     mainContext.visitedStack.push(Visited(new ListBuffer[IASTNode](), new ListBuffer[Var](), new ListBuffer[Var]())) // load initial stack
-    mainContext.currentVisited = mainContext.visitedStack.head
+    mainContext.vars = mainContext.visitedStack.head
 
     runProgram()
     isPreprocessing = false
@@ -410,8 +412,8 @@ class Executor(code: String) {
     println("_----------------------------------------------_")
     
     mainContext.visitedStack.clear
-    mainContext.visitedStack.push(Visited(new ListBuffer[IASTNode](), new ListBuffer[Var](), mainContext.currentVisited.variables.clone)) // load initial stack
-    mainContext.currentVisited = mainContext.visitedStack.head
+    mainContext.visitedStack.push(Visited(new ListBuffer[IASTNode](), new ListBuffer[Var](), mainContext.vars.variables.clone)) // load initial stack
+    mainContext.vars = mainContext.visitedStack.head
     pathStack.clear
     pathStack.push(mainContext.functionMap("main"))
     current = pathStack.head

@@ -49,11 +49,11 @@ object Expressions {
         
           inputs match {
             case (VarRef(indexVarName), VarRef(name)) => 
-               val index = context.resolveId(indexVarName).value.asInstanceOf[Int]
-               val arrayValue = context.resolveId(name).value.asInstanceOf[Array[Variable]](index)
+               val index = context.vars.resolveId(indexVarName).value.asInstanceOf[Int]
+               val arrayValue = context.vars.resolveId(name).value.asInstanceOf[Array[Variable]](index)
                context.stack.push(arrayValue)
             case (index: Int, VarRef(name)) => 
-              val arrayValue = context.resolveId(name).value.asInstanceOf[Array[Variable]](index)
+              val arrayValue = context.vars.resolveId(name).value.asInstanceOf[Array[Variable]](index)
               context.stack.push(arrayValue)
           }
 
@@ -67,7 +67,7 @@ object Expressions {
           case otherVar @ Variable(_, _) =>
             func(otherVar)
           case VarRef(name) =>
-            val variable = context.resolveId(name)
+            val variable = context.vars.resolveId(name)
             variable.value match {
               case otherVar @ Variable(_, _) =>
                 func(otherVar)
@@ -115,17 +115,17 @@ object Expressions {
           case `op_sizeof` =>
             context.stack.pop match {
               case VarRef(name) =>
-                context.stack.push(context.resolveId(name).sizeof)
+                context.stack.push(context.vars.resolveId(name).sizeof)
             }
           case `op_amper` =>
             context.stack.pop match {
               case VarRef(name) =>
-                context.stack.push(context.resolveId(name))
+                context.stack.push(context.vars.resolveId(name))
             }
           case `op_star` =>
             context.stack.pop match {
               case VarRef(varName) =>
-                context.stack.push(context.resolveId(varName).value)
+                context.stack.push(context.vars.resolveId(varName).value)
               case int: Int => int
             }
           case `op_bracketedPrimary` => // not sure what this is for
@@ -179,7 +179,7 @@ object Expressions {
         val resolved = argList.map { case (arg, value) => 
           value match {
             case VarRef(name) =>
-               context.resolveId(name).value
+               context.vars.resolveId(name).value
             case Variable(_, value) =>
                value
             case _ => value
