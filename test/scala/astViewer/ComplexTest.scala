@@ -15,10 +15,11 @@ class ComplexTest extends StandardTest {
         return rt;
       }
   
-      int main(void)
+      void main()
       {
-        double i = 25.0;
-        printf("square root of %d is %f\n",i, sq_root(i));
+        printf("square root of %f\n",sq_root(9.0));
+       // printf("square root of %f\n",sq_root(3.0));       
+       // printf("square root of %f\n",sq_root(15.0));
         return 0;
       }
       """

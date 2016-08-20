@@ -108,6 +108,15 @@ class BinaryExpr extends StandardTest {
       }"""
 
     checkResults(code)
+    
+    val code2 = """
+      void main() {
+        double x = 5;
+        x -= 2.0;
+        printf("%f\n", x);
+      }"""
+
+    checkResults(code2)
   }
   
   "A more complex decrement test" should "print the correct results" in {
