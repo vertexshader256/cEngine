@@ -49,11 +49,11 @@ object Expression {
         
           inputs match {
             case (VarRef(indexVarName), VarRef(name)) => 
-               val index = context.getVariable(indexVarName).value.asInstanceOf[Int]
-               val arrayValue = context.getVariable(name).value.asInstanceOf[Array[Variable]](index)
+               val index = context.resolveId(indexVarName).value.asInstanceOf[Int]
+               val arrayValue = context.resolveId(name).value.asInstanceOf[Array[Variable]](index)
                context.stack.push(arrayValue)
             case (index: Int, VarRef(name)) => 
-              val arrayValue = context.getVariable(name).value.asInstanceOf[Array[Variable]](index)
+              val arrayValue = context.resolveId(name).value.asInstanceOf[Array[Variable]](index)
               context.stack.push(arrayValue)
           }
 
@@ -179,7 +179,7 @@ object Expression {
         val resolved = argList.map { case (arg, value) => 
           value match {
             case VarRef(name) =>
-               context.getVariable(name).value
+               context.resolveId(name).value
             case Variable(_, value) =>
                value
             case _ => value

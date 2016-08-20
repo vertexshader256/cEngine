@@ -79,7 +79,7 @@ object BinaryExpression {
             case variable: Variable =>
               variable.value = op2
             case VarRef(name) =>
-              context.getVariable(name).value = op2
+              context.resolveId(name).value = op2
           }
 
           op2
@@ -114,22 +114,24 @@ object BinaryExpression {
         case `op_plusAssign` =>
           op1 match {
             case VarRef(name) => 
-              (context.getVariable(name).value, op2) match {
-                case (x: Int, y: Int) => context.getVariable(name).value = x + y
-                case (x: Double, y: Int) => context.getVariable(name).value = x + y
-                case (x: Int, y: Double) => context.getVariable(name).value = x + y
-                case (x: Double, y: Double) => context.getVariable(name).value = x + y
+              val vari = context.resolveId(name)
+              (vari.value, op2) match {
+                case (x: Int, y: Int) => vari.value = x + y
+                case (x: Double, y: Int) => vari.value = x + y
+                case (x: Int, y: Double) => vari.value = x + y
+                case (x: Double, y: Double) => vari.value = x + y
               }
               
           }
         case `op_minusAssign` =>
           op1 match {
             case VarRef(name) => 
-              (context.getVariable(name).value, op2) match {
-                case (x: Int, y: Int) => context.getVariable(name).value = x - y
-                case (x: Double, y: Int) => context.getVariable(name).value = x - y
-                case (x: Int, y: Double) => context.getVariable(name).value = x - y
-                case (x: Double, y: Double) => context.getVariable(name).value = x - y
+              val vari = context.resolveId(name)
+              (vari.value, op2) match {
+                case (x: Int, y: Int) => vari.value = x - y
+                case (x: Double, y: Int) => vari.value = x - y
+                case (x: Int, y: Double) => vari.value = x - y
+                case (x: Double, y: Double) => vari.value = x - y
               }
           }
         case `op_logicalAnd` =>
