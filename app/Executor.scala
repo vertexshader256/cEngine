@@ -17,7 +17,7 @@ case class IASTContext(startNode: IASTNode) {
   
   def callFunction(call: IASTFunctionCallExpression) = {
     visitedStack.push(vars)
-    vars = Visited(new ListBuffer[IASTNode](), new ListBuffer[Var](), vars.variables.clone)
+    vars = new Visited(vars)
     
     val name = call.getFunctionNameExpression match {
       case x: IASTIdExpression => x.getName.getRawSignature
@@ -68,9 +68,22 @@ case class Pointer(val name: String, var value: Any, val typeName: String) exten
 
 case class VarRef(name: String) extends AnyVal
 
-case class Visited(nodes: ListBuffer[IASTNode], functionArgs: ListBuffer[Var], variables: ListBuffer[Var]) {
+class Visited(parent: Visited) {
+  
+  val nodes = new ListBuffer[IASTNode]()
+  private val functionArgs = new ListBuffer[Var]()
+  private val variables: ListBuffer[Var] = ListBuffer[Var]() ++ Option(parent).map(x => x.variables).getOrElse(Seq())
+  
+  def addArg(name: String, value: Any, typeName: String) = {
+    functionArgs += Variable(name, value, typeName)
+  }
+  
   def getArg(name: String): Var = {
     functionArgs.find(_.name == name).get
+  }
+  
+  def addVariable(name: String, value: Any, typeName: String) = {
+    variables += Variable(name, value, typeName)
   }
   
   def resolveId(id: String) = {
@@ -224,7 +237,7 @@ class Executor(code: String) {
       case param: IASTParameterDeclaration =>
         if (direction == Exiting) {
           val arg = context.stack.pop
-          context.vars.functionArgs += Variable(param.getDeclarator.getName.getRawSignature, arg, param.getDeclSpecifier.getRawSignature)
+          context.vars.addArg(param.getDeclarator.getName.getRawSignature, arg, param.getDeclSpecifier.getRawSignature)
           Seq()
         } else {
           Seq()
@@ -319,7 +332,7 @@ class Executor(code: String) {
           }
         }
         
-        context.vars.variables += new Variable(name, initialArray, typeName)
+        context.vars.addVariable(name, initialArray, typeName)
       } else {   
         
         val name = context.stack.pop.asInstanceOf[String]
@@ -327,16 +340,16 @@ class Executor(code: String) {
         if (!decl.getPointerOperators.isEmpty) {
           if (!context.stack.isEmpty) {
             // initial value is on the stack, set it
-            context.vars.variables += Pointer(name, context.stack.pop.asInstanceOf[Variable], typeName)
+            context.vars.addVariable(name, context.stack.pop.asInstanceOf[Variable], typeName)
           } else {
-            context.vars.variables += Pointer(name, null, typeName)
+            context.vars.addVariable(name, null, typeName)
           }
         } else {
           if (!context.stack.isEmpty) {
             // initial value is on the stack, set it
-            context.vars.variables += new Variable(name, context.stack.pop, typeName)
+            context.vars.addVariable(name, context.stack.pop, typeName)
           } else {
-            context.vars.variables += new Variable(name, initial, typeName)
+            context.vars.addVariable(name, initial, typeName)
           }
         }
       }
@@ -402,7 +415,7 @@ class Executor(code: String) {
     
     current = tUnit
     
-    mainContext.visitedStack.push(Visited(new ListBuffer[IASTNode](), new ListBuffer[Var](), new ListBuffer[Var]())) // load initial stack
+    mainContext.visitedStack.push(new Visited(null)) // load initial stack
     mainContext.vars = mainContext.visitedStack.head
 
     runProgram()
@@ -412,7 +425,7 @@ class Executor(code: String) {
     println("_----------------------------------------------_")
     
     mainContext.visitedStack.clear
-    mainContext.visitedStack.push(Visited(new ListBuffer[IASTNode](), new ListBuffer[Var](), mainContext.vars.variables.clone)) // load initial stack
+    mainContext.visitedStack.push(new Visited(mainContext.vars)) // load initial stack
     mainContext.vars = mainContext.visitedStack.head
     pathStack.clear
     pathStack.push(mainContext.functionMap("main"))
