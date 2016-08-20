@@ -37,23 +37,34 @@ case class IASTContext(startNode: IASTNode) {
   }
 }
 
-trait Var {
-  def name: String
-  var value: Any
-  
-  def sizeof: Int = value match {
-    case Pointer(_,_) => 4
-    case array: Array[Variable] => array.length * array.head.sizeof
-    case _: Int => 4
-    case _: Double => 8
-    case _: Float => 4
-    case _: Boolean => 4
-    case _: Char => 1
+object TypeHelper {
+  val sizeof = new PartialFunction[String, Int] {
+    def apply(typeName: String) = typeName match {
+        case "int" => 4
+        case "double" => 8
+        case "float" => 4
+        case "bool" => 4
+        case "char" => 1
+      }
+    def isDefinedAt(typeName: String) = Seq("int", "double", "float", "bool", "char").contains(typeName)
   }
 }
 
-case class Variable(val name: String, var value: Any) extends Var
-case class Pointer(val name: String, var value: Any) extends Var
+trait Var {
+  def name: String
+  var value: Any
+  val typeName: String
+  
+  def sizeof: Int = value match {
+    case Pointer(_,_,_) => 4
+    case array: Array[Variable] => array.length * array.head.sizeof
+    case _ => 
+      TypeHelper.sizeof(typeName)
+  }
+}
+
+case class Variable(val name: String, var value: Any, val typeName: String) extends Var
+case class Pointer(val name: String, var value: Any, val typeName: String) extends Var
 
 case class VarRef(name: String) extends AnyVal
 
@@ -72,24 +83,13 @@ case class Visited(nodes: ListBuffer[IASTNode], functionArgs: ListBuffer[Var], v
 }
 
 class Executor(code: String) {
-
   var isPreprocessing = true
   val tUnit = Utils.getTranslationUnit(code)
 
-  
-
   val mainContext = new IASTContext(tUnit)
-
-  
   
   var isArrayDeclaration = false
   var isBreaking = false;
-  
-  
-  
-  
-
-  
 
   def parseStatement(statement: IASTStatement, context: IASTContext, direction: Direction): Seq[IASTNode] = statement match {
     case breakStatement: IASTBreakStatement =>
@@ -224,7 +224,7 @@ class Executor(code: String) {
       case param: IASTParameterDeclaration =>
         if (direction == Exiting) {
           val arg = context.stack.pop
-          context.vars.functionArgs += Variable(param.getDeclarator.getName.getRawSignature, arg)
+          context.vars.functionArgs += Variable(param.getDeclarator.getName.getRawSignature, arg, param.getDeclSpecifier.getRawSignature)
           Seq()
         } else {
           Seq()
@@ -309,7 +309,7 @@ class Executor(code: String) {
         
         val size = context.stack.pop.asInstanceOf[Int]
        
-        val initialArray = Array.fill(size)(new Variable("", initial))
+        val initialArray = Array.fill(size)(new Variable("", initial, typeName))
         
         if (!context.stack.isEmpty) { 
           var i = 0
@@ -319,7 +319,7 @@ class Executor(code: String) {
           }
         }
         
-        context.vars.variables += new Variable(name, initialArray)
+        context.vars.variables += new Variable(name, initialArray, typeName)
       } else {   
         
         val name = context.stack.pop.asInstanceOf[String]
@@ -327,16 +327,16 @@ class Executor(code: String) {
         if (!decl.getPointerOperators.isEmpty) {
           if (!context.stack.isEmpty) {
             // initial value is on the stack, set it
-            context.vars.variables += Pointer(name, context.stack.pop.asInstanceOf[Variable])
+            context.vars.variables += Pointer(name, context.stack.pop.asInstanceOf[Variable], typeName)
           } else {
-            context.vars.variables += Pointer(name, null)
+            context.vars.variables += Pointer(name, null, typeName)
           }
         } else {
           if (!context.stack.isEmpty) {
             // initial value is on the stack, set it
-            context.vars.variables += new Variable(name, context.stack.pop)
+            context.vars.variables += new Variable(name, context.stack.pop, typeName)
           } else {
-            context.vars.variables += new Variable(name, initial)
+            context.vars.variables += new Variable(name, initial, typeName)
           }
         }
       }

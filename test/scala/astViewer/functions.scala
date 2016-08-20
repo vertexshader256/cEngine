@@ -16,7 +16,7 @@ class SizeOfTest extends StandardTest {
   "A sizeof call on an int type" should "print the correct results" in {
     val code = """
       void main() {
-        printf("%d %d\n", sizeof(int), sizeof(double));
+        printf("%d %d %d %d\n", sizeof(int), sizeof(double), sizeof(float), sizeof(char));
       }"""
 
     checkResults(code)

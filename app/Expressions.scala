@@ -64,12 +64,12 @@ object Expressions {
       
       def resolveVar(variable: Any, func: (Var) => Unit) = {
         variable match {
-          case otherVar @ Variable(_, _) =>
+          case otherVar @ Variable(_, _, _) =>
             func(otherVar)
           case VarRef(name) =>
             val variable = context.vars.resolveId(name)
             variable.value match {
-              case otherVar @ Variable(_, _) =>
+              case otherVar @ Variable(_, _, _) =>
                 func(otherVar)
               case _ => 
                 func(variable)
@@ -158,12 +158,7 @@ object Expressions {
       if (direction == Entering) {
         Seq(typeExpr.getTypeId)
       } else {
-        context.stack.push(context.stack.pop match {
-          case "int" => 4
-          case "bool" => 4
-          case "double" => 8
-          case "float" => 4
-        })
+        context.stack.push(TypeHelper.sizeof(context.stack.pop.asInstanceOf[String]))
         Seq()
       }
     case call: IASTFunctionCallExpression =>
@@ -180,7 +175,7 @@ object Expressions {
           value match {
             case VarRef(name) =>
                context.vars.resolveId(name).value
-            case Variable(_, value) =>
+            case Variable(_, value, _) =>
                value
             case _ => value
           }

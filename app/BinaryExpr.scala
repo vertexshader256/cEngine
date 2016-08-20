@@ -19,7 +19,7 @@ object BinaryExpression {
       
       def resolveOp1() = op1 = op1 match {
         case VarRef(name) => context.vars.resolveId(name).value
-        case Variable(_, value) => value
+        case Variable(_, value, _) => value
         case int: Int => int
         case bool: Boolean => bool
         case double: Double => double
@@ -27,7 +27,7 @@ object BinaryExpression {
       
       def resolveOp2() = op2 = op2 match {
         case VarRef(name) => context.vars.resolveId(name).value
-        case Variable(_, value) => value
+        case Variable(_, value, _) => value
         case int: Int => int
         case bool: Boolean => bool
         case double: Double => double
