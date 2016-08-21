@@ -100,14 +100,16 @@ object BinaryExpression {
               } else {
                 theVar.value
               }
-            case x => x
+            case int: Int => int
+            case addy @ Address(_,_) => addy
+            case doub: Double => doub
           }
           
           val dest = context.vars.resolveAddress(destinationAddress)
           
           if (dest.numElements > 1) {
             val index = (destinationAddress.address - dest.address.address) / TypeHelper.sizeof(dest.typeName)
-            println("SETTING ARRAY INDEX: " + index)
+            println("SETTING ARRAY INDEX: " + index + " : " + index.getClass.getSimpleName)
             dest.setArrayValue(resolvedop2, index)
           } else {
             dest.setValue(resolvedop2)
