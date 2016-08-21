@@ -101,7 +101,18 @@ object BinaryExpression {
                 theVar.value
               }
             case int: Int => int
-            case addy @ Address(_,_) => addy
+            case addy @ Address(address, typeName) => 
+              op1 match {
+                case Address(_,_) => Variable.readVal(typeName, address)
+                case VarRef(name) => 
+                  if (context.vars.resolveId(name).refAddress == null) {
+                    // only if op1 is NOT a pointer, resolve op2
+                    Variable.readVal(typeName, address)
+                  } else {
+                    addy
+                  }
+                case _ => addy
+              }   
             case doub: Double => doub
           }
           
