@@ -138,11 +138,16 @@ object Expressions {
                 context.stack.push(context.vars.resolveId(name).address)
             }
           case `op_star` =>
+            
             context.stack.pop match {
               case VarRef(varName) =>
+                println("VAR NAME: " + varName)
                 val refAddress = context.vars.resolveId(varName).refAddress
+                println("STAR VAR: " + refAddress)
                 context.stack.push(refAddress)
-              case int: Int => int
+              case int: Int => 
+                println("STAR INT")
+                int
             }
           case `op_bracketedPrimary` => // not sure what this is for
         }
@@ -187,13 +192,11 @@ object Expressions {
         
         val argList = call.getArguments.map { arg => (arg, context.stack.pop) }
         
-        val resolved: Array[Any] = argList.map { case (arg, value) => 
+        val formattedOutputParams: Array[Any] = argList.map { case (arg, value) => 
           value match {
-            case VarRef(name) => context.vars.resolveId(name).value
-            case Variable(value) => value
-            case Address(addy, typeName) => 
-              println("ADDRESS: " + addy)
-              Variable.readVal(typeName, addy)
+            case VarRef(name) => context.vars.resolveId(name).address
+            case vari @ Variable(value) => vari.address
+            case address @ Address(addy, typeName) => address
             case str: String => str
             case int: Int => int
             case doub: Double => doub
@@ -201,10 +204,19 @@ object Expressions {
         }
 
         if (name == "printf") {
+          
+          // here we resolve the addresses coming in
+          val resolved = formattedOutputParams.map{x => x match {
+              case Address(addy, typeName) => Variable.readVal(typeName, addy)
+              case x => x
+            }
+          }
+          
           printf(context, resolved.map(_.asInstanceOf[Object]))
           Seq()
         } else {
-          resolved.reverse.foreach { arg => context.stack.push(arg)}
+          // load up the stack with the parameters
+          formattedOutputParams.reverse.foreach { arg => context.stack.push(arg)}
           context.callFunction(call)
         }
 

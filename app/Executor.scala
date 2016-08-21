@@ -156,6 +156,12 @@ class Visited(parent: Visited) {
     functionArgs += newArg
   }
   
+  def addArgPointer(theName: String, refAddress: Address, theTypeName: String) = {
+    val newArg = new Variable(theName, theTypeName, 1)
+    newArg.refAddress = refAddress
+    functionArgs += newArg
+  }
+  
   def getArg(name: String): Variable = {
     functionArgs.find(_.name == name).get
   }
@@ -334,7 +340,13 @@ class Executor(code: String) {
       case param: IASTParameterDeclaration =>
         if (direction == Exiting) {
           val arg = context.stack.pop
-          context.vars.addArg(param.getDeclarator.getName.getRawSignature, arg, param.getDeclSpecifier.getRawSignature)
+          
+          if (!param.getDeclarator.getPointerOperators.isEmpty) {
+            println("ADDING POINTER PARAM")
+             context.vars.addArgPointer(param.getDeclarator.getName.getRawSignature, arg.asInstanceOf[Address], param.getDeclSpecifier.getRawSignature)
+          } else {
+             context.vars.addArg(param.getDeclarator.getName.getRawSignature, arg, param.getDeclSpecifier.getRawSignature)
+          }
           Seq()
         } else {
           Seq()
