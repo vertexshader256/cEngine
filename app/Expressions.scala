@@ -45,19 +45,18 @@ object Expressions {
       if (direction == Entering) {
         Seq(subscript.getArrayExpression, subscript.getArgument)
       } else {
-          val inputs = (context.stack.pop, context.stack.pop)
-          
-          // resolve arrays down to their address
-        
-          inputs match {
-            case (VarRef(indexVarName), VarRef(name)) => 
-               val index = context.vars.resolveId(indexVarName).value.asInstanceOf[Int]
-               val arrayValue = context.vars.resolveId(name)
-               context.stack.push(Address(arrayValue.address.address + index * TypeHelper.sizeof(arrayValue.typeName), arrayValue.typeName))
-            case (index: Int, VarRef(name)) => 
-              val arrayVar = context.vars.resolveId(name)
-              context.stack.push(Address(arrayVar.address.address + index * TypeHelper.sizeof(arrayVar.typeName), arrayVar.typeName))
+
+          // index is first on the stack
+          val index = context.stack.pop match {
+            case VarRef(indexVarName) => 
+               context.vars.resolveId(indexVarName).value.asInstanceOf[Int]
+            case x: Int => 
+              x 
           }
+          
+          val name = context.stack.pop
+          val arrayVar = context.vars.resolveId(name.asInstanceOf[VarRef].name)
+          context.stack.push(Address(arrayVar.address.address + index * TypeHelper.sizeof(arrayVar.typeName), arrayVar.typeName))
 
           Seq()
       }
