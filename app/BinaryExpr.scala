@@ -14,20 +14,16 @@ object BinaryExpression {
     
     if (direction == Exiting) {
 
+      // read the two operands from right to left
       var op2: Any = context.stack.pop
       var op1: Any = context.stack.pop
       
       def resolve(op: Any) = op match {
         case VarRef(name) => 
-          println("VARREF RESOLUTION: " + name + " : " + context.vars.resolveId(name).value)
           context.vars.resolveId(name).value
         case Address(typeName, addy) => 
           val result = Variable.readVal(addy, typeName)
-          println("ADDRESS RESOLUTION: " + result)
           result
-        case Variable(value) => 
-          println("VARIABLE RESOLUTION: " + value)
-          value
         case int: Int => int
         case bool: Boolean => bool
         case double: Double => double
@@ -52,8 +48,6 @@ object BinaryExpression {
         resolveOp2()
       }
       
-      
-
       binaryExpr.getOperator match {
         case `op_multiply` =>
           (op1, op2) match {
@@ -85,8 +79,6 @@ object BinaryExpression {
           }
         case `op_assign` =>
           val destinationAddress: Address = op1 match {
-            case vari @ Variable(_) =>
-              vari.address
             case VarRef(name) =>
               context.vars.resolveId(name).address
             case addy @ Address(_,_) => addy
@@ -100,7 +92,6 @@ object BinaryExpression {
               } else {
                 theVar.value
               }
-            case int: Int => int
             case addy @ Address(address, typeName) => 
               op1 match {
                 case Address(_,_) => Variable.readVal(typeName, address)
@@ -112,7 +103,8 @@ object BinaryExpression {
                     addy
                   }
                 case _ => addy
-              }   
+              }  
+              case int: Int => int
             case doub: Double => doub
           }
           
@@ -120,7 +112,6 @@ object BinaryExpression {
           
           if (dest.numElements > 1) {
             val index = (destinationAddress.address - dest.address.address) / TypeHelper.sizeof(dest.typeName)
-            println("SETTING ARRAY INDEX: " + index + " : " + index.getClass.getSimpleName)
             dest.setArrayValue(resolvedop2, index)
           } else {
             dest.setValue(resolvedop2)

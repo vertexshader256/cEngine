@@ -116,7 +116,6 @@ class Variable(val name: String, val typeName: String, val numElements: Int) {
       }
     case array: Array[_] =>
       var i = 0
-      println("TYPENAME 2: " + typeName)
       array.foreach{element => 
         typeName match {
           case "int" => Variable.data.putInt(address.address + i, element.asInstanceOf[Int])
@@ -342,7 +341,6 @@ class Executor(code: String) {
           val arg = context.stack.pop
           
           if (!param.getDeclarator.getPointerOperators.isEmpty) {
-            println("ADDING POINTER PARAM")
              context.vars.addArgPointer(param.getDeclarator.getName.getRawSignature, arg.asInstanceOf[Address], param.getDeclSpecifier.getRawSignature)
           } else {
              context.vars.addArg(param.getDeclarator.getName.getRawSignature, arg, param.getDeclSpecifier.getRawSignature)
@@ -438,7 +436,6 @@ class Executor(code: String) {
           
           for (i <- (size - 1) to 0 by -1) {
             val newInit = context.stack.pop
-            println("NEW INIT TYPE: " + newInit.getClass.getSimpleName)
             initialArray(i) = newInit
           }
         }
@@ -488,9 +485,7 @@ class Executor(code: String) {
 
     def tick(): Unit = {
       direction = if (mainContext.vars.nodes.contains(current)) Exiting else Entering
-      
-      //println("BEGIN: " + current.getClass.getSimpleName + ":" + direction)   
-      
+
       val paths: Seq[IASTNode] = step(current, mainContext, direction)   
       
       if (isBreaking) {

@@ -46,16 +46,16 @@ object Expressions {
         Seq(subscript.getArrayExpression, subscript.getArgument)
       } else {
           val inputs = (context.stack.pop, context.stack.pop)
+          
+          // resolve arrays down to their address
         
           inputs match {
             case (VarRef(indexVarName), VarRef(name)) => 
                val index = context.vars.resolveId(indexVarName).value.asInstanceOf[Int]
                val arrayValue = context.vars.resolveId(name)
-               //context.stack.push(arrayValue)
                context.stack.push(Address(arrayValue.address.address + index * TypeHelper.sizeof(arrayValue.typeName), arrayValue.typeName))
             case (index: Int, VarRef(name)) => 
               val arrayVar = context.vars.resolveId(name)
-              println("INDEX: " + index)
               context.stack.push(Address(arrayVar.address.address + index * TypeHelper.sizeof(arrayVar.typeName), arrayVar.typeName))
           }
 
@@ -66,18 +66,10 @@ object Expressions {
       
       def resolveVar(variable: Any, func: (Address) => Unit) = {
         variable match {
-          case variable @ Variable(value) =>
-            if (variable.refAddress != null) {
-              println("POINTER DETECTED!!!!!!!!!!!!!")
-              func(variable.refAddress)
-            } else {
-              func(variable.address)
-            }
           case VarRef(name) =>
             val variable = context.vars.resolveId(name)
             
             if (variable.refAddress != null) {
-              println("POINTER DETECTED!!!!!!!!!!!!!")
               func(variable.refAddress)
             } else {
               func(variable.address)
@@ -92,7 +84,7 @@ object Expressions {
         unary.getOperator match {
           case `op_minus` =>  
             
-            def negativeResolver(variable: Variable) = resolveVar(variable, (address) => {
+            def negativeResolver(variable: Variable) = resolveVar(variable.address, (address) => {
                 context.stack.push(variable.typeName match {
                   case "int" => -Variable.data.getInt(address.address)
                   case "double" => -Variable.data.getDouble(address.address)
@@ -102,7 +94,7 @@ object Expressions {
            context.stack.pop match {
               case int: Int => context.stack.push(-int)
               case doub: Double => context.stack.push(-doub)
-              case variable @ Variable(_) => negativeResolver(variable)
+              //case variable @ Variable(_) => negativeResolver(variable)
               case VarRef(name) => 
                 val variable = context.vars.resolveId(name)
                 negativeResolver(variable)
@@ -141,13 +133,9 @@ object Expressions {
             
             context.stack.pop match {
               case VarRef(varName) =>
-                println("VAR NAME: " + varName)
                 val refAddress = context.vars.resolveId(varName).refAddress
-                println("STAR VAR: " + refAddress)
                 context.stack.push(refAddress)
-              case int: Int => 
-                println("STAR INT")
-                int
+              case int: Int => int
             }
           case `op_bracketedPrimary` => // not sure what this is for
         }
@@ -195,7 +183,6 @@ object Expressions {
         val formattedOutputParams: Array[Any] = argList.map { case (arg, value) => 
           value match {
             case VarRef(name) => context.vars.resolveId(name).address
-            case vari @ Variable(value) => vari.address
             case address @ Address(addy, typeName) => address
             case str: String => str
             case int: Int => int
