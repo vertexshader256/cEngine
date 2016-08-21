@@ -50,8 +50,9 @@ object Expressions {
           inputs match {
             case (VarRef(indexVarName), VarRef(name)) => 
                val index = context.vars.resolveId(indexVarName).value.asInstanceOf[Int]
-               val arrayValue = context.vars.resolveId(name).value.asInstanceOf[Array[Variable]](index)
-               context.stack.push(arrayValue)
+               val arrayValue = context.vars.resolveId(name)
+               //context.stack.push(arrayValue)
+               context.stack.push(Address(arrayValue.address.address + index * TypeHelper.sizeof(arrayValue.typeName), arrayValue.typeName))
             case (index: Int, VarRef(name)) => 
               val arrayVar = context.vars.resolveId(name)
               println("INDEX: " + index)
