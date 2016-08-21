@@ -48,26 +48,26 @@ class ArrayTest extends StandardTest {
 
     checkResults(code)
   }
-  
-  "An array prefixed subscript" should "print the correct results" in {
-    val code = """
-      void main() {
-        int x[5] = {3, 68, 44, 29, 45};
-        int y = 0;
-        printf("%d %d\n", x[++y], y);
-      }"""
-
-    checkResults(code)
-  }
-  
-  "An array postfixed subscript" should "print the correct results" in {
-    val code = """
-      void main() {
-        int x[5] = {3, 68, 44, 29, 45};
-        int y = 0;
-        printf("%d %d\n", x[y++], y);
-      }"""
-
-    checkResults(code)
-  }
+//  
+//  "An array prefixed subscript" should "print the correct results" in {
+//    val code = """
+//      void main() {
+//        int x[5] = {3, 68, 44, 29, 45};
+//        int y = 0;
+//        printf("%d %d\n", x[++y], y);
+//      }"""
+//
+//    checkResults(code)
+//  }
+//  
+//  "An array postfixed subscript" should "print the correct results" in {
+//    val code = """
+//      void main() {
+//        int x[5] = {3, 68, 44, 29, 45};
+//        int y = 0;
+//        printf("%d %d\n", x[y++], y);
+//      }"""
+//
+//    checkResults(code)
+//  }
 }

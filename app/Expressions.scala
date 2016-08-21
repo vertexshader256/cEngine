@@ -53,8 +53,8 @@ object Expressions {
                val arrayValue = context.vars.resolveId(name).value.asInstanceOf[Array[Variable]](index)
                context.stack.push(arrayValue)
             case (index: Int, VarRef(name)) => 
-              val arrayValue = context.vars.resolveId(name).value.asInstanceOf[Array[Variable]](index)
-              context.stack.push(arrayValue)
+              val arrayVar = context.vars.resolveId(name)
+              context.stack.push(Address(arrayVar.address.address + index * TypeHelper.sizeof(arrayVar.typeName), arrayVar.typeName))
           }
 
           Seq()
@@ -62,18 +62,25 @@ object Expressions {
     case unary: IASTUnaryExpression =>
       import org.eclipse.cdt.core.dom.ast.IASTUnaryExpression._
       
-      def resolveVar(variable: Any, func: (Variable) => Unit) = {
+      def resolveVar(variable: Any, func: (Address) => Unit) = {
         variable match {
-          case otherVar @ Variable(value) =>
-            func(otherVar)
+          case variable @ Variable(value) =>
+            if (variable.refAddress != null) {
+              println("POINTER DETECTED!!!!!!!!!!!!!")
+              func(variable.refAddress)
+            } else {
+              func(variable.address)
+            }
           case VarRef(name) =>
             val variable = context.vars.resolveId(name)
-            variable.value match {
-              case otherVar @ Variable(value) =>
-                func(otherVar)
-              case _ => 
-                func(variable)
-            } 
+            
+            if (variable.refAddress != null) {
+              println("POINTER DETECTED!!!!!!!!!!!!!")
+              func(variable.refAddress)
+            } else {
+              func(variable.address)
+            }
+          case x => x
         }
       }
       
@@ -85,32 +92,33 @@ object Expressions {
             context.stack.pop match {
               case int: Int => context.stack.push(-int)
               case doub: Double => context.stack.push(-doub)
-              case x => resolveVar(x, (otherVar) => {
-                context.stack.push(otherVar.value match {
-                  case int: Int => -int
-                  case doub: Double => -doub
+              case variable @ Variable(_) => resolveVar(variable, (address) => {
+                
+                context.stack.push(variable.typeName match {
+                  case "int" => -Variable.data.getInt(address.address)
+                  case "doub" => -Variable.data.getDouble(address.address)
                 })
               })
             }
           case `op_postFixIncr` =>     
-            resolveVar(context.stack.pop, (otherVar) => {
-              context.stack.push(otherVar.value)
-              otherVar.setValue(otherVar.value.asInstanceOf[Int] + 1)
+            resolveVar(context.stack.pop, (address) => {
+              context.stack.push(Variable.data.getInt(address.address))
+              Variable.data.putInt(address.address, Variable.data.getInt(address.address) + 1)
             })
           case `op_postFixDecr` =>
-            resolveVar(context.stack.pop, (otherVar) => {
-              context.stack.push(otherVar.value)
-              otherVar.setValue(otherVar.value.asInstanceOf[Int] - 1)
+            resolveVar(context.stack.pop, (address) => {
+              context.stack.push(Variable.data.getInt(address.address))
+              Variable.data.putInt(address.address, Variable.data.getInt(address.address) - 1)
             })
           case `op_prefixIncr` =>  
-            resolveVar(context.stack.pop, (otherVar) => {
-              otherVar.setValue(otherVar.value.asInstanceOf[Int] + 1)
-              context.stack.push(otherVar.value)
+            resolveVar(context.stack.pop, (address) => {
+              Variable.data.putInt(address.address, Variable.data.getInt(address.address) + 1)
+              context.stack.push(Variable.data.getInt(address.address))
             })
          case `op_prefixDecr` =>  
-           resolveVar(context.stack.pop, (otherVar) => {
-              otherVar.setValue(otherVar.value.asInstanceOf[Int] - 1)
-              context.stack.push(otherVar.value)
+           resolveVar(context.stack.pop, (address) => {
+              Variable.data.putInt(address.address, Variable.data.getInt(address.address) - 1)
+              context.stack.push(Variable.data.getInt(address.address))
             })
           case `op_sizeof` =>
             context.stack.pop match {
@@ -120,12 +128,13 @@ object Expressions {
           case `op_amper` =>
             context.stack.pop match {
               case VarRef(name) =>
-                context.stack.push(context.vars.resolveId(name))
+                context.stack.push(context.vars.resolveId(name).address)
             }
           case `op_star` =>
             context.stack.pop match {
               case VarRef(varName) =>
-                context.stack.push(context.vars.resolveId(varName).value)
+                val refAddress = context.vars.resolveId(varName).refAddress
+                context.stack.push(context.vars.resolveAddress(refAddress))
               case int: Int => int
             }
           case `op_bracketedPrimary` => // not sure what this is for
@@ -171,13 +180,14 @@ object Expressions {
         
         val argList = call.getArguments.map { arg => (arg, context.stack.pop) }
         
-        val resolved = argList.map { case (arg, value) => 
+        val resolved: Array[Any] = argList.map { case (arg, value) => 
           value match {
-            case VarRef(name) =>
-               context.vars.resolveId(name).value
-            case Variable(value) =>
-               value
-            case _ => value
+            case VarRef(name) => context.vars.resolveId(name).value
+            case Variable(value) => value
+            case Address(addy, typeName) => Variable.readVal(typeName, addy)
+            case str: String => str
+            case int: Int => int
+            case doub: Double => doub
           }
         }
 

@@ -19,6 +19,7 @@ object BinaryExpression {
       
       def resolveOp1() = op1 = op1 match {
         case VarRef(name) => context.vars.resolveId(name).value
+        case address @ Address(typeName, addy) => Variable.readVal(addy, typeName)
         case Variable(value) => value
         case int: Int => int
         case bool: Boolean => bool
@@ -27,6 +28,7 @@ object BinaryExpression {
       
       def resolveOp2() = op2 = op2 match {
         case VarRef(name) => context.vars.resolveId(name).value
+        case address @ Address(typeName, addy) => Variable.readVal(addy, typeName)
         case Variable(value) => value
         case int: Int => int
         case bool: Boolean => bool
@@ -41,9 +43,10 @@ object BinaryExpression {
           op != op_plusAssign &&
           op != op_minusAssign) {
         resolveOp1()
+        resolveOp2()
       }
       
-      resolveOp2()
+      
 
       binaryExpr.getOperator match {
         case `op_multiply` =>
@@ -75,16 +78,36 @@ object BinaryExpression {
             case (x: Double, y: Double) => x / y
           }
         case `op_assign` =>
-          val newVal = op1 match {
-            case variable: Variable =>
-              variable
+          val destinationAddress: Address = op1 match {
+            case vari @ Variable(_) =>
+              vari.address
             case VarRef(name) =>
-              context.vars.resolveId(name)
+              context.vars.resolveId(name).address
+            case addy @ Address(_,_) => addy
           }
           
-          println("SETTING " + newVal.name + " to " + newVal.value)
-          newVal.setValue(op2)
-          op2
+          val resolvedop2 = op2 match {
+            case VarRef(name) => 
+              val theVar = context.vars.resolveId(name)
+              if (theVar.refAddress != null) {
+                theVar.refAddress
+              } else {
+                theVar.value
+              }
+            case x => x
+          }
+          
+          val dest = context.vars.resolveAddress(destinationAddress)
+          
+          if (dest.numElements > 1) {
+            val index = (destinationAddress.address - dest.address.address) / TypeHelper.sizeof(dest.typeName)
+            println("SETTING ARRAY INDEX: " + index)
+            dest.setArrayValue(resolvedop2, index)
+          } else {
+            dest.setValue(resolvedop2)
+          }
+
+          resolvedop2
         case `op_equals` =>
           (op1, op2) match {
             case (x: Int, y: Int) => x == y
