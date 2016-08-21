@@ -81,7 +81,7 @@ object Expressions {
             } else {
               func(variable.address)
             }
-          case x => x
+          case addy @ Address(_,_) => func(addy)
         }
       }
       
@@ -90,16 +90,21 @@ object Expressions {
       } else {
         unary.getOperator match {
           case `op_minus` =>  
-            context.stack.pop match {
-              case int: Int => context.stack.push(-int)
-              case doub: Double => context.stack.push(-doub)
-              case variable @ Variable(_) => resolveVar(variable, (address) => {
-                
+            
+            def negativeResolver(variable: Variable) = resolveVar(variable, (address) => {
                 context.stack.push(variable.typeName match {
                   case "int" => -Variable.data.getInt(address.address)
-                  case "doub" => -Variable.data.getDouble(address.address)
+                  case "double" => -Variable.data.getDouble(address.address)
                 })
               })
+            
+           context.stack.pop match {
+              case int: Int => context.stack.push(-int)
+              case doub: Double => context.stack.push(-doub)
+              case variable @ Variable(_) => negativeResolver(variable)
+              case VarRef(name) => 
+                val variable = context.vars.resolveId(name)
+                negativeResolver(variable)
             }
           case `op_postFixIncr` =>     
             resolveVar(context.stack.pop, (address) => {
@@ -135,7 +140,7 @@ object Expressions {
             context.stack.pop match {
               case VarRef(varName) =>
                 val refAddress = context.vars.resolveId(varName).refAddress
-                context.stack.push(context.vars.resolveAddress(refAddress))
+                context.stack.push(refAddress)
               case int: Int => int
             }
           case `op_bracketedPrimary` => // not sure what this is for
