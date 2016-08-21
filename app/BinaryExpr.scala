@@ -17,22 +17,28 @@ object BinaryExpression {
       var op2: Any = context.stack.pop
       var op1: Any = context.stack.pop
       
-      def resolveOp1() = op1 = op1 match {
-        case VarRef(name) => context.vars.resolveId(name).value
-        case address @ Address(typeName, addy) => Variable.readVal(addy, typeName)
-        case Variable(value) => value
+      def resolve(op: Any) = op match {
+        case VarRef(name) => 
+          println("VARREF RESOLUTION: " + name + " : " + context.vars.resolveId(name).value)
+          context.vars.resolveId(name).value
+        case Address(typeName, addy) => 
+          val result = Variable.readVal(addy, typeName)
+          println("ADDRESS RESOLUTION: " + result)
+          result
+        case Variable(value) => 
+          println("VARIABLE RESOLUTION: " + value)
+          value
         case int: Int => int
         case bool: Boolean => bool
         case double: Double => double
       }
       
-      def resolveOp2() = op2 = op2 match {
-        case VarRef(name) => context.vars.resolveId(name).value
-        case address @ Address(typeName, addy) => Variable.readVal(addy, typeName)
-        case Variable(value) => value
-        case int: Int => int
-        case bool: Boolean => bool
-        case double: Double => double
+      def resolveOp1() = { 
+        op1 = resolve(op1)
+      }
+      
+      def resolveOp2() = { 
+        op2 = resolve(op2)
       }
       
       val op = binaryExpr.getOperator

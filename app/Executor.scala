@@ -58,9 +58,9 @@ object Variable {
   
   var insertIndex = 0
   
-  def addVariable(typeName: String): Address = {
+  def allocateSpace(typeName: String, numElements: Int): Address = {
     val result = insertIndex
-    insertIndex += TypeHelper.sizeof(typeName)
+    insertIndex += TypeHelper.sizeof(typeName) * numElements
     Address(result, typeName)
   }
   
@@ -77,7 +77,7 @@ case class Address(address: Int, typeName: String)
 
 class Variable(val name: String, val typeName: String, val numElements: Int) {
   
-  val address: Address = Variable.addVariable(typeName)
+  val address: Address = Variable.allocateSpace(typeName, numElements)
   var refAddress: Address = null // for pointers
   
   def value: Any = Variable.readVal(typeName, address.address)

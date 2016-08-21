@@ -54,6 +54,7 @@ object Expressions {
                context.stack.push(arrayValue)
             case (index: Int, VarRef(name)) => 
               val arrayVar = context.vars.resolveId(name)
+              println("INDEX: " + index)
               context.stack.push(Address(arrayVar.address.address + index * TypeHelper.sizeof(arrayVar.typeName), arrayVar.typeName))
           }
 
@@ -184,7 +185,9 @@ object Expressions {
           value match {
             case VarRef(name) => context.vars.resolveId(name).value
             case Variable(value) => value
-            case Address(addy, typeName) => Variable.readVal(typeName, addy)
+            case Address(addy, typeName) => 
+              println("ADDRESS: " + addy)
+              Variable.readVal(typeName, addy)
             case str: String => str
             case int: Int => int
             case doub: Double => doub
