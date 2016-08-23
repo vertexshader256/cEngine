@@ -7,7 +7,7 @@ import scala.util.control.Exception.allCatch
 import java.util.Formatter;
 import java.util.Locale;
 
-object BinaryExpression {
+object BinaryExpr {
   
   def parse(binaryExpr: IASTBinaryExpression, direction: Direction, context: IASTContext): Any = {
     import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._

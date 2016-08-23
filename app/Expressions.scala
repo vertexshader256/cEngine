@@ -163,7 +163,7 @@ object Expressions {
 
     case bin: IASTBinaryExpression =>
       if (direction == Exiting) {
-        val result = BinaryExpression.parse(bin, direction, context)
+        val result = BinaryExpr.parse(bin, direction, context)
         if (result != null) {
           context.stack.push(result)
         }
