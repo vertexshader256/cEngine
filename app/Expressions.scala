@@ -15,6 +15,7 @@ object Expressions {
     def isDoubleNumber(s: String): Boolean = (allCatch opt s.toDouble).isDefined
     
     val string = lit.getRawSignature
+    
     if (string.head == '\"' && string.last == '\"') {
       string
     } else if (isLongNumber(string)) {
@@ -24,21 +25,7 @@ object Expressions {
     }
   }
   
-  def printf(context: IASTContext, args: Seq[Object]) = {
-    val formatString = args.head.asInstanceOf[String].replaceAll("^\"|\"$", "")
- 
-    val buffer = new StringBuffer();
-    val formatter = new Formatter(buffer, Locale.US);
-    
-    val resolvedStrings = args.tail.map{ _ match {
-      case str: String => str.split("""\"""").mkString
-      case x => x 
-    }}.toArray
-    
-    formatter.format(formatString, resolvedStrings: _*)
-    
-    context.stdout ++= buffer.toString.split("""\\n""")
-  }
+  
   
   def parse(expr: IASTExpression, direction: Direction, context: IASTContext): Seq[IASTNode] = expr match {
     case subscript: IASTArraySubscriptExpression =>
@@ -170,45 +157,9 @@ object Expressions {
         Seq()
       }
     case call: IASTFunctionCallExpression =>
+      FunctionCallExpr.parse(call, direction, context)
       // only evaluate after leaving
-      if (direction == Exiting) {
-        val name = call.getFunctionNameExpression match {
-          case x: IASTIdExpression => x.getName.getRawSignature
-          case _ => "Error"
-        }
-        
-        val argList = call.getArguments.map { arg => (arg, context.stack.pop) }
-        
-        val formattedOutputParams: Array[Any] = argList.map { case (arg, value) => 
-          value match {
-            case VarRef(name) => context.vars.resolveId(name).address
-            case address @ Address(addy, typeName) => address
-            case str: String => str
-            case int: Int => int
-            case doub: Double => doub
-          }
-        }
-
-        if (name == "printf") {
-          
-          // here we resolve the addresses coming in
-          val resolved = formattedOutputParams.map{x => x match {
-              case Address(addy, typeName) => Variable.readVal(typeName, addy)
-              case x => x
-            }
-          }
-          
-          printf(context, resolved.map(_.asInstanceOf[Object]))
-          Seq()
-        } else {
-          // load up the stack with the parameters
-          formattedOutputParams.reverse.foreach { arg => context.stack.push(arg)}
-          context.callFunction(call)
-        }
-
-      } else {
-        call.getArguments.reverse
-      }
+      
 
     case bin: IASTBinaryExpression =>
       if (direction == Exiting) {

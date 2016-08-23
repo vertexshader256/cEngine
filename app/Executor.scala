@@ -203,7 +203,6 @@ class Executor(code: String) {
 
   val mainContext = new IASTContext(tUnit)
   
-  var isArrayDeclaration = false
   var isBreaking = false;
 
   def parseStatement(statement: IASTStatement, context: IASTContext, direction: Direction): Seq[IASTNode] = statement match {
@@ -330,16 +329,18 @@ class Executor(code: String) {
         Expressions.parse(expression, direction, context)
       case array: IASTArrayModifier =>
         if (direction == Exiting) {
-          isArrayDeclaration = true
           Seq()
         } else {
-          Seq(array.getConstantExpression)
+          if (array.getConstantExpression != null) {
+            Seq(array.getConstantExpression)
+          } else {
+            // e.g char str[] = "test"
+            Seq()
+          }
         }
-
       case param: IASTParameterDeclaration =>
         if (direction == Exiting) {
           val arg = context.stack.pop
-          
           if (!param.getDeclarator.getPointerOperators.isEmpty) {
              context.vars.addArgPointer(param.getDeclarator.getName.getRawSignature, arg.asInstanceOf[Address], param.getDeclSpecifier.getRawSignature)
           } else {
@@ -349,7 +350,6 @@ class Executor(code: String) {
         } else {
           Seq()
         }
-
       case tUnit: IASTTranslationUnit =>
         if (direction == Entering) {
           tUnit.getDeclarations
@@ -380,7 +380,6 @@ class Executor(code: String) {
           context.vars = context.visitedStack.pop
           Seq()
         } else {
-          
           Seq(fcnDef.getDeclarator, fcnDef.getBody)
         }
       case eq: IASTEqualsInitializer =>
@@ -415,7 +414,7 @@ class Executor(code: String) {
       context.stack.push(decl.getName.getRawSignature)
       
       val theTypeName = context.currentType.getRawSignature
-      
+
       val initial = theTypeName match {
           case "int" => 0.toInt
           case "double" => 0.0.toDouble
@@ -423,24 +422,25 @@ class Executor(code: String) {
           case _ => throw new Exception("No match for " + theTypeName)
       }
       
-      if (isArrayDeclaration) {
-        
+      if (decl.isInstanceOf[IASTArrayDeclarator]) {
         val name = context.stack.pop.asInstanceOf[String]
         
-        val size = context.stack.pop.asInstanceOf[Int]
-       
-        val initialArray = Array.fill[Any](size)(initial)
-        
-        if (!context.stack.isEmpty) { 
-          var i = 0
-          
-          for (i <- (size - 1) to 0 by -1) {
-            val newInit = context.stack.pop
-            initialArray(i) = newInit
-          }
+        context.stack.pop match {
+          case size: Int =>
+            val initialArray = Array.fill[Any](size)(initial)
+            
+            if (!context.stack.isEmpty) { 
+              var i = 0
+              for (i <- (size - 1) to 0 by -1) {
+                val newInit = context.stack.pop
+                initialArray(i) = newInit
+              }
+            }
+            context.vars.addVariable(name, initialArray, theTypeName)
+          case initString: String =>
+            val initialArray = initString.toCharArray() :+ 0.toChar // terminating null char
+            context.vars.addVariable(name, initialArray, theTypeName)
         }
-        
-        context.vars.addVariable(name, initialArray, theTypeName)
       } else {   
         
         val name = context.stack.pop.asInstanceOf[String]
@@ -464,8 +464,6 @@ class Executor(code: String) {
       
       Seq()
     } else {
-      isArrayDeclaration = false
-
       decl match {
         case array: IASTArrayDeclarator =>
           Seq(Option(decl.getInitializer)).flatten ++ array.getArrayModifiers
@@ -514,7 +512,7 @@ class Executor(code: String) {
     
     def runProgram() = {
       while (current != null) {
-        //println(current.getClass.getSimpleName + ":" + direction)
+        println(current.getClass.getSimpleName + ":" + direction)
         tick()
       }
     }

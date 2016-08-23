@@ -16,6 +16,17 @@ class printf extends StandardTest {
     checkResults(code)
   }
   
+  "printing a string" should "print the correct results" in {
+    val code = """
+      void main() {
+        char str[] = "Hello!\n";
+        printf("%s", str);
+        //printf("%s", &(str[0]));
+      }"""
+
+    checkResults(code)
+  }
+  
 //  "printing a string" should "print the correct results" in {
 //    val code = """
 //      void main() {
