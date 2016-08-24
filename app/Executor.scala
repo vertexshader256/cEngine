@@ -64,7 +64,7 @@ object Variable {
     Address(result, typeName)
   }
   
-  def readVal(typeName: String, address: Int): Any = typeName match {
+  def readVal(address: Int, typeName: String): Any = typeName match {
     case "int" => Variable.data.getInt(address)
     case "double" => Variable.data.getDouble(address)
     case "char" => Variable.data.getChar(address)
@@ -80,7 +80,7 @@ class Variable(val name: String, val typeName: String, val numElements: Int) {
   val address: Address = Variable.allocateSpace(typeName, numElements)
   var refAddress: Address = null // for pointers
   
-  def value: Any = Variable.readVal(typeName, address.address)
+  def value: Any = Variable.readVal(address.address, typeName)
   
   def getArray: Array[Any] = {
     var i = 0

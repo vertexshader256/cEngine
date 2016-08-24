@@ -21,7 +21,7 @@ object BinaryExpr {
       def resolve(op: Any) = op match {
         case VarRef(name) => 
           context.vars.resolveId(name).value
-        case Address(typeName, addy) => 
+        case Address(addy, typeName) => 
           val result = Variable.readVal(addy, typeName)
           result
         case int: Int => int
@@ -94,11 +94,11 @@ object BinaryExpr {
               }
             case addy @ Address(address, typeName) => 
               op1 match {
-                case Address(_,_) => Variable.readVal(typeName, address)
+                case Address(_,_) => Variable.readVal(address, typeName)
                 case VarRef(name) => 
                   if (context.vars.resolveId(name).refAddress == null) {
                     // only if op1 is NOT a pointer, resolve op2
-                    Variable.readVal(typeName, address)
+                    Variable.readVal(address, typeName)
                   } else {
                     addy
                   }

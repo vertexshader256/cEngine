@@ -34,26 +34,22 @@ object FunctionCallExpr {
           
           // here we resolve the addresses coming in
           val resolved = formattedOutputParams.map{x => x match {
-              case addy @ Address(address, typeName) =>
-                
-                val vari = context.vars.resolveAddress(addy)
-                
+              case Address(address, typeName) =>
+
                 typeName match {
                   case "char" => 
-                    if (vari.numElements > 1) {
                       var current: Char = 0
                       var stringBuilder = new ListBuffer[Char]()
                       var i = 0
                       do {
-                        current = Variable.readVal(typeName, address + i).asInstanceOf[Char]
+                        current = Variable.readVal(address + i, typeName).asInstanceOf[Char]
                         if (current != 0) {
                           stringBuilder += current
                           i += 1
                         }
                       } while (current != 0)
                       new String(stringBuilder.map(_.toByte).toArray, "UTF-8")
-                    }
-                  case _ => Variable.readVal(typeName, address)
+                  case _ => Variable.readVal(address, typeName)
                 }        
                 
               case x => x
