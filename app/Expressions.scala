@@ -50,17 +50,17 @@ object Expressions {
     case unary: IASTUnaryExpression =>
       import org.eclipse.cdt.core.dom.ast.IASTUnaryExpression._
       
-      def resolveVar(variable: Any, func: (Address) => Unit) = {
+      def resolveVar(variable: Any, func: (Int) => Unit) = {
         variable match {
           case VarRef(name) =>
             val variable = context.vars.resolveId(name)
             
             if (variable.isPointer) {
-              func(variable.refAddress)
+              func(variable.refAddress.address)
             } else {
-              func(variable.address)
+              func(variable.address.address)
             }
-          case addy @ Address(_,_) => func(addy)
+          case addy @ Address(_,_) => func(addy.address)
         }
       }
       
@@ -72,8 +72,8 @@ object Expressions {
             
             def negativeResolver(variable: Variable) = resolveVar(variable.address, (address) => {
                 context.stack.push(variable.typeName match {
-                  case "int" => -Variable.data.getInt(address.address)
-                  case "double" => -Variable.data.getDouble(address.address)
+                  case "int" => -Variable.data.getInt(address)
+                  case "double" => -Variable.data.getDouble(address)
                 })
               })
             
@@ -87,23 +87,23 @@ object Expressions {
             }
           case `op_postFixIncr` =>     
             resolveVar(context.stack.pop, (address) => {
-              context.stack.push(Variable.data.getInt(address.address))
-              Variable.data.putInt(address.address, Variable.data.getInt(address.address) + 1)
+              context.stack.push(Variable.data.getInt(address))
+              Variable.data.putInt(address, Variable.data.getInt(address) + 1)
             })
           case `op_postFixDecr` =>
             resolveVar(context.stack.pop, (address) => {
-              context.stack.push(Variable.data.getInt(address.address))
-              Variable.data.putInt(address.address, Variable.data.getInt(address.address) - 1)
+              context.stack.push(Variable.data.getInt(address))
+              Variable.data.putInt(address, Variable.data.getInt(address) - 1)
             })
           case `op_prefixIncr` =>  
             resolveVar(context.stack.pop, (address) => {
-              Variable.data.putInt(address.address, Variable.data.getInt(address.address) + 1)
-              context.stack.push(Variable.data.getInt(address.address))
+              Variable.data.putInt(address, Variable.data.getInt(address) + 1)
+              context.stack.push(Variable.data.getInt(address))
             })
          case `op_prefixDecr` =>  
            resolveVar(context.stack.pop, (address) => {
-              Variable.data.putInt(address.address, Variable.data.getInt(address.address) - 1)
-              context.stack.push(Variable.data.getInt(address.address))
+              Variable.data.putInt(address, Variable.data.getInt(address) - 1)
+              context.stack.push(Variable.data.getInt(address))
             })
           case `op_sizeof` =>
             context.stack.pop match {
