@@ -78,7 +78,6 @@ case class Address(address: Int, typeName: String)
 class Variable(val name: String, val typeName: String, val numElements: Int, val isPointer: Boolean) {
   
   val address: Address = Variable.allocateSpace(typeName, numElements)
-  var refAddress: Address = null // for pointers
   
   def value: Any = Variable.readVal(address.address, typeName)
   
@@ -96,18 +95,18 @@ class Variable(val name: String, val typeName: String, val numElements: Int, val
   }
   
   def derefernce: Any = typeName match {
-    case "int" => Variable.data.getInt(refAddress.address)
-    case "double" => Variable.data.getDouble(refAddress.address)
-    case "char" => Variable.data.getChar(refAddress.address)
+    case "int" => Variable.data.getInt(value.asInstanceOf[Int])
+    case "double" => Variable.data.getDouble(value.asInstanceOf[Int])
+    case "char" => Variable.data.getChar(value.asInstanceOf[Int])
   }
   
   
-  def setValue(newVal: Any) = newVal match {
+  def setValue(newVal: Any): Unit = newVal match {
     case newVal: Int => Variable.data.putInt(address.address, newVal)
     case newVal: Double => Variable.data.putDouble(address.address, newVal)
     case newVal: Char => Variable.data.putChar(address.address, newVal)
     case newVal: Boolean => Variable.data.putChar(address.address, if (newVal) 1 else 0)
-    case address @ Address(addy, _) => refAddress = address
+    case address @ Address(addy, _) => setValue(addy)
     case array: Array[_] =>
       var i = 0
       array.foreach{element => 
@@ -151,7 +150,7 @@ class Visited(parent: Visited) {
   
   def addArgPointer(theName: String, refAddress: Address, theTypeName: String) = {
     val newArg = new Variable(theName, theTypeName, 1, true)
-    newArg.refAddress = refAddress
+    newArg.setValue(refAddress.address)
     functionArgs += newArg
   }
   
@@ -170,7 +169,7 @@ class Visited(parent: Visited) {
   
   def addPointer(theName: String, refAddress: Address, theTypeName: String) = {
     val newVar = new Variable(theName, theTypeName, 1, true)
-    newVar.refAddress = refAddress
+    newVar.setValue(refAddress.address)
     variables += newVar
   }
   

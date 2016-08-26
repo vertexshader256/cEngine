@@ -56,11 +56,12 @@ object Expressions {
             val variable = context.vars.resolveId(name)
             
             if (variable.isPointer) {
-              func(variable.refAddress.address)
+              func(variable.value.asInstanceOf[Int])
             } else {
               func(variable.address.address)
             }
           case addy @ Address(_,_) => func(addy.address)
+          case int: Int => int
         }
       }
       
@@ -119,9 +120,9 @@ object Expressions {
             
             context.stack.pop match {
               case VarRef(varName) =>
-                val refAddress = context.vars.resolveId(varName).refAddress
+                val ptr = context.vars.resolveId(varName)
+                val refAddress = context.vars.resolveAddress(Address(ptr.value.asInstanceOf[Int], ptr.typeName)).address
                 context.stack.push(refAddress)
-              case int: Int => int
             }
           case `op_bracketedPrimary` => // not sure what this is for
         }

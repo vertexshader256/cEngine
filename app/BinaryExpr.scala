@@ -20,7 +20,7 @@ object BinaryExpr {
       case VarRef(name) => 
         val theVar = context.vars.resolveId(name)
         if (theVar.isPointer) {
-          theVar.refAddress
+          theVar.value
         } else {
           theVar.value
         }
