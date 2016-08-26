@@ -108,12 +108,6 @@ class Variable(val name: String, val typeName: String, val numElements: Int) {
     case newVal: Char => Variable.data.putChar(address.address, newVal)
     case newVal: Boolean => Variable.data.putChar(address.address, if (newVal) 1 else 0)
     case address @ Address(addy, _) => refAddress = address
-    case vari @ Variable(_) =>
-      if (vari.refAddress != null && refAddress != null) {
-        refAddress = vari.refAddress
-      } else {
-        throw new Exception("WHOOPS")
-      }
     case array: Array[_] =>
       var i = 0
       array.foreach{element => 
@@ -512,7 +506,7 @@ class Executor(code: String) {
     
     def runProgram() = {
       while (current != null) {
-        println(current.getClass.getSimpleName + ":" + direction)
+       // println(current.getClass.getSimpleName + ":" + direction)
         tick()
       }
     }
