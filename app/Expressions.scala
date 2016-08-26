@@ -55,7 +55,7 @@ object Expressions {
           case VarRef(name) =>
             val variable = context.vars.resolveId(name)
             
-            if (variable.refAddress != null) {
+            if (variable.isPointer) {
               func(variable.refAddress)
             } else {
               func(variable.address)

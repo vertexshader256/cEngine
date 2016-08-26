@@ -19,7 +19,7 @@ object BinaryExpr {
     val resolvedop2 = op2 match {
       case VarRef(name) => 
         val theVar = context.vars.resolveId(name)
-        if (theVar.refAddress != null) {
+        if (theVar.isPointer) {
           theVar.refAddress
         } else {
           theVar.value
@@ -28,7 +28,7 @@ object BinaryExpr {
         op1 match {
           case Address(_,_) => Variable.readVal(address, typeName)
           case VarRef(name) => 
-            if (context.vars.resolveId(name).refAddress == null) {
+            if (!context.vars.resolveId(name).isPointer) {
               // only if op1 is NOT a pointer, resolve op2
               Variable.readVal(address, typeName)
             } else {
