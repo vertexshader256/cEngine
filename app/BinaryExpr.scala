@@ -47,33 +47,21 @@ object BinaryExpr {
     var op1: Any = context.stack.pop
     
     def resolve(op: Any) = op match {
-      case VarRef(name) => 
-        context.vars.resolveId(name).value
-      case Address(addy, typeName) => 
-        val result = Variable.readVal(addy, typeName)
-        result
+      case VarRef(name) => context.vars.resolveId(name).value
+      case Address(addy, typeName) => Variable.readVal(addy, typeName)
       case int: Int => int
       case bool: Boolean => bool
       case double: Double => double
     }
-    
-    def resolveOp1() = { 
-      op1 = resolve(op1)
-    }
-    
-    def resolveOp2() = { 
-      op2 = resolve(op2)
-    }
-    
+
     val op = binaryExpr.getOperator
     
     // resolve Op1 only if not assignment
     
-    if (op != op_assign &&
-        op != op_plusAssign &&
+    if (op != op_plusAssign &&
         op != op_minusAssign) {
-      resolveOp1()
-      resolveOp2()
+      op1 = resolve(op1)
+      op2 = resolve(op2)
     }
     
     binaryExpr.getOperator match {
