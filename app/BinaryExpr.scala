@@ -53,7 +53,7 @@ object BinaryExpr {
         val theVar = context.vars.resolveId(name)
         if (theVar.isPointer) {
           isOp1Pointer = true
-          theVar.address
+          Address(theVar.value.asInstanceOf[Int])
         } else {
           theVar.value  
         }

@@ -59,7 +59,12 @@ class VarStack {
   private val records = new ListBuffer[MemRange]()
   
   def getType(address: Address): String = {
-    records.find{range => range.start <= address.address && range.end > address.address}.get.typeName
+    records.find{range => range.start <= address.address && range.end >= address.address}.get.typeName
+  }
+  
+  def getSize(address: Address): Int = {
+    val range = records.find{range => range.start <= address.address && range.end >= address.address}.get
+    range.end - range.start + 1
   }
   
   var insertIndex = 0
@@ -69,7 +74,7 @@ class VarStack {
   def allocateSpace(typeName: String, numElements: Int): Address = {
     val result = insertIndex
     insertIndex += TypeHelper.sizeof(typeName) * numElements
-    records += MemRange(result, insertIndex, typeName)
+    records += MemRange(result, insertIndex - 1, typeName)
     Address(result)
   }
   
@@ -132,15 +137,11 @@ protected class Variable(stack: VarStack, val name: String, val typeName: String
     stack.setValue(value, Address(address.address + index * TypeHelper.sizeof(typeName)))
   }
   
-  def sizeof: Int = {
+  def sizeof: Int = {  
     if (isPointer) {
-      if (numElements > 1) {
-        TypeHelper.sizeof(typeName) * numElements
-      } else {
-        4
-      }
+      stack.getSize(Address(value.asInstanceOf[Int]))
     } else {
-      TypeHelper.sizeof(typeName) * numElements
+      stack.getSize(address)
     }
   }
 }
@@ -164,11 +165,22 @@ class Visited(parent: Visited) {
   }
   
   def addVariable(stack: VarStack, theName: String, theValue: Any, theTypeName: String, isPointer: Boolean) = {
+    
+    val resolvedType = if (isPointer) "int" else theTypeName
+    
     val newVar = theValue match {
-      case array: Array[_] => new Variable(stack, theName, theTypeName, array.length, true)
-      case _ => new Variable(stack, theName, theTypeName, 1, isPointer)
+      case array: Array[_] =>
+        val theArray = new Variable(stack, theName + "_array", theTypeName, array.length, false)
+        theArray.setValue(theValue)
+        val theArrayPtr = new Variable(stack, theName, "int", 1, true)
+        theArrayPtr.setValue(theArray.address)
+        theArrayPtr
+      case _ =>
+        val newVar = new Variable(stack, theName, resolvedType, 1, isPointer)
+        newVar.setValue(theValue)
+        newVar
     }
-    newVar.setValue(theValue)
+    
     variables += newVar
   }
 

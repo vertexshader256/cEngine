@@ -22,8 +22,17 @@ object FunctionCallExpr {
         
         val formattedOutputParams: Array[Any] = argList.map { case (arg, value) => 
           value match {
-            case VarRef(name) => context.vars.resolveId(name).address
-            case address @ Address(addy) => address
+            case VarRef(name) => 
+              val theVar = context.vars.resolveId(name)
+              if (theVar.isPointer) {
+                Address(theVar.value.asInstanceOf[Int])
+              } else {
+                theVar.address
+              } 
+            case address @ Address(addy) => 
+              println("RESOLVING ADDY: " + addy)
+              
+              address
             case str: String => str
             case int: Int => int
             case doub: Double => doub
@@ -35,6 +44,7 @@ object FunctionCallExpr {
           // here we resolve the addresses coming in
           val resolved = formattedOutputParams.map{x => x match {
               case addy @ Address(address) =>
+                println("ARRAY ADDR: " + address)
                 val typeName = stack.getType(addy)
                 typeName match {
                   case "char" => 

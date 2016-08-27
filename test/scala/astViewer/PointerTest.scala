@@ -103,4 +103,15 @@ class PointerTest extends StandardTest {
     
     checkResults(code)
   }
+  
+  "some basic pointer arithmetic" should "print the correct results" in {
+    val code = """
+      void main() {
+        char str[] = "Hello!\n";
+        char *x = str + 1;
+        printf("%s", x);
+      }"""
+
+    checkResults(code)
+  }
 }

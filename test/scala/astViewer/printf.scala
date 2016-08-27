@@ -16,7 +16,7 @@ class printf extends StandardTest {
     checkResults(code)
   }
   
-  "printing a string" should "print the correct results" in {
+  "printing a string with inline pointer arithmetic" should "print the correct results" in {
     val code = """
       void main() {
         char str[] = "Hello!\n";

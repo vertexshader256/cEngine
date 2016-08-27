@@ -42,8 +42,10 @@ object Expressions {
           }
           
           val name = context.stack.pop
-          val arrayVar = context.vars.resolveId(name.asInstanceOf[VarRef].name)
-          context.stack.push(Address(arrayVar.address.address + index * TypeHelper.sizeof(arrayVar.typeName)))
+          val arrayVarPtr = context.vars.resolveId(name.asInstanceOf[VarRef].name)
+          val arrayAddress = arrayVarPtr.value.asInstanceOf[Int]
+          val arrayType = stack.getType(Address(arrayAddress))
+          context.stack.push(Address(arrayAddress + index * TypeHelper.sizeof(arrayType)))
 
           Seq()
       }
