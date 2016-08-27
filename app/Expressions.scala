@@ -140,7 +140,11 @@ object Expressions {
     case lit: IASTLiteralExpression =>
       if (direction == Exiting) {
         //println("PUSHING LIT: " + castLiteral(lit))
-        if (context.currentType == null) {
+        
+        if (lit.getParent.isInstanceOf[IASTArrayModifier]) {
+          // ignore currentType for array modifiers
+          context.stack.push(castLiteral(lit))
+        } else if (context.currentType == null) {
           context.stack.push(castLiteral(lit))
         } else {
           context.currentType.getRawSignature match {
