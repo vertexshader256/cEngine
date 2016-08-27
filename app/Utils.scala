@@ -28,6 +28,10 @@ object Utils {
     node.getDeclarations.collect{case decl: IASTFunctionDefinition => decl}
   }
   
+  def stripQuotes(str: String): String = {
+    str.tail.reverse.tail.reverse
+  }
+  
   def getAncestors(node: IASTNode): Seq[IASTNode] = {
     var current = node.getParent
     val results = new ListBuffer[IASTNode]()

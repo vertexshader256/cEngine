@@ -46,8 +46,17 @@ object BinaryExpr {
     var op2: Any = context.stack.pop
     var op1: Any = context.stack.pop
     
+    var isOp1Pointer = false
+    
     def resolve(op: Any) = op match {
-      case VarRef(name) => context.vars.resolveId(name).value
+      case VarRef(name) => 
+        val theVar = context.vars.resolveId(name)
+        if (theVar.isPointer) {
+          isOp1Pointer = true
+          theVar.address.address
+        } else {
+          theVar.value  
+        }
       case Address(addy, typeName) => Variable.readVal(addy, typeName)
       case int: Int => int
       case bool: Boolean => bool
@@ -64,7 +73,7 @@ object BinaryExpr {
       op2 = resolve(op2)
     }
     
-    binaryExpr.getOperator match {
+    val result: Any = binaryExpr.getOperator match {
       case `op_multiply` =>
         (op1, op2) match {
           case (x: Int, y: Int) => x * y
@@ -156,5 +165,13 @@ object BinaryExpr {
         }
       case _ => throw new Exception("unhandled binary operator: " + binaryExpr.getOperator); null
     }
+    
+    if (isOp1Pointer) {
+      println(result.asInstanceOf[Int])
+      Address(result.asInstanceOf[Int], "char") // does this need to be char?
+    } else {
+      result
+    }
+    
   }
 }

@@ -29,8 +29,6 @@ case class IASTContext(startNode: IASTNode) {
     Seq(functionMap(name))
   }
   
-  
-  
   def clearVisited(parent: IASTNode) {
     vars.nodes -= parent
     parent.getChildren.foreach { node =>
@@ -86,7 +84,9 @@ protected class Variable(val name: String, val typeName: String, val numElements
   
   val address: Address = Variable.allocateSpace(typeName, numElements)
   
-  def value: Any = Variable.readVal(address.address, typeName)
+  def value: Any = {
+    Variable.readVal(address.address, typeName)
+  }
   
   def getArray: Array[Any] = {
     var i = 0
@@ -106,7 +106,6 @@ protected class Variable(val name: String, val typeName: String, val numElements
     case "double" => Variable.data.getDouble(value.asInstanceOf[Int])
     case "char" => Variable.data.getChar(value.asInstanceOf[Int])
   }
-  
   
   def setValue(newVal: Any): Unit = newVal match {
     case newVal: Int => Variable.data.putInt(address.address, newVal)
@@ -134,7 +133,11 @@ protected class Variable(val name: String, val typeName: String, val numElements
   
   def sizeof: Int = {
     if (isPointer) {
-      4
+      if (numElements > 1) {
+        TypeHelper.sizeof(typeName) * numElements
+      } else {
+        4
+      }
     } else {
       TypeHelper.sizeof(typeName) * numElements
     }
@@ -161,7 +164,7 @@ class Visited(parent: Visited) {
   
   def addVariable(theName: String, theValue: Any, theTypeName: String, isPointer: Boolean) = {
     val newVar = theValue match {
-      case array: Array[_] => new Variable(theName, theTypeName, array.length, isPointer)
+      case array: Array[_] => new Variable(theName, theTypeName, array.length, true)
       case _ => new Variable(theName, theTypeName, 1, isPointer)
     }
     newVar.setValue(theValue)
@@ -426,7 +429,7 @@ class Executor(code: String) {
             }
             context.vars.addVariable(name, initialArray, theTypeName, false)
           case initString: String =>
-            val initialArray = initString.toCharArray() :+ 0.toChar // terminating null char
+            val initialArray = Utils.stripQuotes(initString).toCharArray() :+ 0.toChar // terminating null char
             context.vars.addVariable(name, initialArray, theTypeName, false)
         }
       } else {   

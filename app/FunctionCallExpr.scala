@@ -35,20 +35,19 @@ object FunctionCallExpr {
           // here we resolve the addresses coming in
           val resolved = formattedOutputParams.map{x => x match {
               case Address(address, typeName) =>
-
                 typeName match {
                   case "char" => 
-                      var current: Char = 0
-                      var stringBuilder = new ListBuffer[Char]()
-                      var i = 0
-                      do {
-                        current = Variable.readVal(address + i, typeName).asInstanceOf[Char]
-                        if (current != 0) {
-                          stringBuilder += current
-                          i += 1
-                        }
-                      } while (current != 0)
-                      new String(stringBuilder.map(_.toByte).toArray, "UTF-8")
+                    var current: Char = 0
+                    var stringBuilder = new ListBuffer[Char]()
+                    var i = 0
+                    do {
+                      current = Variable.readVal(address + i, typeName).asInstanceOf[Char]
+                      if (current != 0) {
+                        stringBuilder += current
+                        i += 1
+                      }
+                    } while (current != 0)
+                    new String(stringBuilder.map(_.toByte).toArray, "UTF-8")
                   case _ => Variable.readVal(address, typeName)
                 }        
                 
