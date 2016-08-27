@@ -70,6 +70,13 @@ object Variable {
     case "char" => Variable.data.getChar(address)
   }
   
+  def setValue(newVal: Any, address: Int): Unit = newVal match {
+    case newVal: Int => Variable.data.putInt(address, newVal)
+    case newVal: Double => Variable.data.putDouble(address, newVal)
+    case newVal: Char => Variable.data.putChar(address, newVal)
+    case newVal: Boolean => Variable.data.putChar(address, if (newVal) 1 else 0)
+  }
+  
   def unapply(vari: Variable): Option[Any] = if (vari eq null) None else Some(vari.value)
 }
 

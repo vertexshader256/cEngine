@@ -18,13 +18,8 @@ object BinaryExpr {
     
     val resolvedop2 = op2 match {
       case VarRef(name) => 
-        val theVar = context.vars.resolveId(name)
-        if (theVar.isPointer) {
-          theVar.value
-        } else {
-          theVar.value
-        }
-      case addy @ Address(address, typeName) => 
+        context.vars.resolveId(name).value
+      case Address(address, typeName) => 
         op1 match {
           case Address(_,_) => Variable.readVal(address, typeName)
           case VarRef(name) => 
@@ -32,22 +27,14 @@ object BinaryExpr {
               // only if op1 is NOT a pointer, resolve op2
               Variable.readVal(address, typeName)
             } else {
-              addy
+              address
             }
-          case _ => addy
         }  
-        case int: Int => int
+      case int: Int => int
       case doub: Double => doub
     }
     
-    val dest = context.vars.resolveAddress(destinationAddress)
-    
-    if (dest.numElements > 1) {
-      val index = (destinationAddress.address - dest.address.address) / TypeHelper.sizeof(dest.typeName)
-      dest.setArrayValue(resolvedop2, index)
-    } else {
-      dest.setValue(resolvedop2)
-    }
+    Variable.setValue(resolvedop2, destinationAddress.address)
 
     resolvedop2
   }
