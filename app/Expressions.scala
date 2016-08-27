@@ -45,7 +45,7 @@ object Expressions {
           val arrayVarPtr = context.vars.resolveId(name.asInstanceOf[VarRef].name)
           val arrayAddress = arrayVarPtr.value.asInstanceOf[Int]
           val arrayType = stack.getType(Address(arrayAddress))
-          if (context.parsingAssignmentDest > 0) {
+          if (context.parsingAssignmentDest) {
             context.stack.push(Address(arrayAddress + index * TypeHelper.sizeof(arrayType)))
           } else {
             context.stack.push(stack.readVal(arrayAddress + index * TypeHelper.sizeof(arrayType)))
@@ -187,7 +187,7 @@ object Expressions {
           Seq()
         } else {
           if (bin.getOperator == IASTBinaryExpression.op_assign) {
-            context.parsingAssignmentDest -= 1
+            context.parsingAssignmentDest = false
           }
           
           Seq(bin.getOperand2, bin)
@@ -197,7 +197,7 @@ object Expressions {
         // We have to treat the destination op differently in an assignment
         
         if (bin.getOperator == IASTBinaryExpression.op_assign) {
-          context.parsingAssignmentDest += 1
+          context.parsingAssignmentDest = true
         }
         Seq(bin.getOperand1)
       }
