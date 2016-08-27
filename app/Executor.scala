@@ -101,7 +101,7 @@ protected class Variable(stack: VarStack, val name: String, val typeName: String
     }.toArray
   }
   
-  def derefernce: Any = typeName match {
+  def dereference: Any = typeName match {
     case "int" => stack.data.getInt(value.asInstanceOf[Int])
     case "double" => stack.data.getDouble(value.asInstanceOf[Int])
     case "char" => stack.data.getChar(value.asInstanceOf[Int])
