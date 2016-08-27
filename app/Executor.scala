@@ -65,7 +65,7 @@ class VarStack {
   def readVal(address: Int, typeName: String): Any = typeName match {
     case "int" => data.getInt(address)
     case "double" => data.getDouble(address)
-    case "char" => data.getChar(address)
+    case "char" => data.getChar(address).toInt.toChar
   }
   
   def setValue(newVal: Any, address: Int): Unit = newVal match {
