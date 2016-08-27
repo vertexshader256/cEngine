@@ -75,7 +75,7 @@ object Variable {
 
 case class Address(address: Int, typeName: String)
 
-class Variable(val name: String, val typeName: String, val numElements: Int, val isPointer: Boolean) {
+protected class Variable(val name: String, val typeName: String, val numElements: Int, val isPointer: Boolean) {
   
   val address: Address = Variable.allocateSpace(typeName, numElements)
   
@@ -142,15 +142,9 @@ class Visited(parent: Visited) {
   private val functionArgs = new ListBuffer[Variable]()
   private val variables: ListBuffer[Variable] = ListBuffer[Variable]() ++ Option(parent).map(x => x.variables).getOrElse(Seq())
   
-  def addArg(theName: String, theValue: Any, theTypeName: String) = {
-    val newArg = new Variable(theName, theTypeName, 1, false)
+  def addArg(theName: String, theValue: Any, theTypeName: String, isPointer: Boolean) = {
+    val newArg = new Variable(theName, theTypeName, 1, isPointer)
     newArg.setValue(theValue)
-    functionArgs += newArg
-  }
-  
-  def addArgPointer(theName: String, refAddress: Address, theTypeName: String) = {
-    val newArg = new Variable(theName, theTypeName, 1, true)
-    newArg.setValue(refAddress.address)
     functionArgs += newArg
   }
   
@@ -158,21 +152,15 @@ class Visited(parent: Visited) {
     functionArgs.find(_.name == name).get
   }
   
-  def addVariable(theName: String, theValue: Any, theTypeName: String) = {
+  def addVariable(theName: String, theValue: Any, theTypeName: String, isPointer: Boolean) = {
     val newVar = theValue match {
-      case array: Array[_] => new Variable(theName, theTypeName, array.length, false)
-      case _ => new Variable(theName, theTypeName, 1, false)
+      case array: Array[_] => new Variable(theName, theTypeName, array.length, isPointer)
+      case _ => new Variable(theName, theTypeName, 1, isPointer)
     }
     newVar.setValue(theValue)
     variables += newVar
   }
-  
-  def addPointer(theName: String, refAddress: Address, theTypeName: String) = {
-    val newVar = new Variable(theName, theTypeName, 1, true)
-    newVar.setValue(refAddress.address)
-    variables += newVar
-  }
-  
+
   def resolveId(id: String): Variable = {
     if (variables.exists(_.name == id)) {
       variables.find(_.name == id).get
@@ -335,9 +323,9 @@ class Executor(code: String) {
         if (direction == Exiting) {
           val arg = context.stack.pop
           if (!param.getDeclarator.getPointerOperators.isEmpty) {
-             context.vars.addArgPointer(param.getDeclarator.getName.getRawSignature, arg.asInstanceOf[Address], param.getDeclSpecifier.getRawSignature)
+             context.vars.addArg(param.getDeclarator.getName.getRawSignature, arg.asInstanceOf[Address], param.getDeclSpecifier.getRawSignature, true)
           } else {
-             context.vars.addArg(param.getDeclarator.getName.getRawSignature, arg, param.getDeclSpecifier.getRawSignature)
+             context.vars.addArg(param.getDeclarator.getName.getRawSignature, arg, param.getDeclSpecifier.getRawSignature, false)
           }
           Seq()
         } else {
@@ -429,10 +417,10 @@ class Executor(code: String) {
                 initialArray(i) = newInit
               }
             }
-            context.vars.addVariable(name, initialArray, theTypeName)
+            context.vars.addVariable(name, initialArray, theTypeName, false)
           case initString: String =>
             val initialArray = initString.toCharArray() :+ 0.toChar // terminating null char
-            context.vars.addVariable(name, initialArray, theTypeName)
+            context.vars.addVariable(name, initialArray, theTypeName, false)
         }
       } else {   
         
@@ -441,16 +429,16 @@ class Executor(code: String) {
         if (!decl.getPointerOperators.isEmpty) {
           if (!context.stack.isEmpty) {
             // initial value is on the stack, set it
-            context.vars.addPointer(name, context.stack.pop.asInstanceOf[Address], theTypeName)
+            context.vars.addVariable(name, context.stack.pop.asInstanceOf[Address].address, theTypeName, true)
           } else {
-            context.vars.addPointer(name, null, theTypeName)
+            context.vars.addVariable(name, 0, theTypeName, true)
           }
         } else {
           if (!context.stack.isEmpty) {
             // initial value is on the stack, set it
-            context.vars.addVariable(name, context.stack.pop, theTypeName)
+            context.vars.addVariable(name, context.stack.pop, theTypeName, false)
           } else {
-            context.vars.addVariable(name, initial, theTypeName)
+            context.vars.addVariable(name, initial, theTypeName, false)
           }
         }
       }
