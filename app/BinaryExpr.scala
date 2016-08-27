@@ -13,19 +13,19 @@ object BinaryExpr {
     val destinationAddress: Address = op1 match {
       case VarRef(name) =>
         context.vars.resolveId(name).address
-      case addy @ Address(_,_) => addy
+      case addy @ Address(_) => addy
     }
     
     val resolvedop2 = op2 match {
       case VarRef(name) => 
         context.vars.resolveId(name).value
-      case Address(address, typeName) => 
+      case Address(address) => 
         op1 match {
-          case Address(_,_) => stack.readVal(address, typeName)
+          case Address(_) => stack.readVal(address)
           case VarRef(name) => 
             if (!context.vars.resolveId(name).isPointer) {
               // only if op1 is NOT a pointer, resolve op2
-              stack.readVal(address, typeName)
+              stack.readVal(address)
             } else {
               address
             }
@@ -34,7 +34,7 @@ object BinaryExpr {
       case doub: Double => doub
     }
     
-    stack.setValue(resolvedop2, destinationAddress.address)
+    stack.setValue(resolvedop2, destinationAddress)
 
     resolvedop2
   }
@@ -47,19 +47,17 @@ object BinaryExpr {
     var op1: Any = context.stack.pop
     
     var isOp1Pointer = false
-    var pointerType = "char"
     
     def resolve(op: Any) = op match {
       case VarRef(name) => 
         val theVar = context.vars.resolveId(name)
         if (theVar.isPointer) {
           isOp1Pointer = true
-          pointerType = theVar.typeName
           theVar.address
         } else {
           theVar.value  
         }
-      case Address(addy, typeName) => stack.readVal(addy, typeName)
+      case Address(addy) => stack.readVal(addy)
       case int: Int => int
       case bool: Boolean => bool
       case double: Double => double
@@ -85,7 +83,7 @@ object BinaryExpr {
         }
       case `op_plus` =>
         (op1, op2) match {
-          case (Address(addy, typeName), y: Int) => addy + y * TypeHelper.sizeof(typeName)
+          case (addy @ Address(address), y: Int) => address + y * TypeHelper.sizeof(stack.getType(addy))
           case (x: Int, y: Int) => x + y
           case (x: Double, y: Int) => x + y
           case (x: Int, y: Double) => x + y
@@ -170,7 +168,7 @@ object BinaryExpr {
     }
     
     if (isOp1Pointer) {
-      Address(result.asInstanceOf[Int], pointerType)
+      Address(result.asInstanceOf[Int])
     } else {
       result
     }

@@ -51,84 +51,85 @@ object TypeHelper {
 }
 
 class VarStack {
-  val data = ByteBuffer.allocate(10240);
+  private val data = ByteBuffer.allocate(10240);
   data.order(ByteOrder.LITTLE_ENDIAN)
   
+  case class MemRange(start: Int, end: Int, typeName: String)
+  
+  private val records = new ListBuffer[MemRange]()
+  
+  def getType(address: Address): String = {
+    records.find{range => range.start <= address.address && range.end > address.address}.get.typeName
+  }
+  
   var insertIndex = 0
+  
+  case class Record(address: Address, typeName: String)
   
   def allocateSpace(typeName: String, numElements: Int): Address = {
     val result = insertIndex
     insertIndex += TypeHelper.sizeof(typeName) * numElements
-    Address(result, typeName)
+    records += MemRange(result, insertIndex, typeName)
+    Address(result)
   }
   
-  def readVal(address: Int, typeName: String): Any = typeName match {
-    case "int" => data.getInt(address)
-    case "double" => data.getDouble(address)
-    case "char" => data.getChar(address).toInt.toChar
+  def readVal(address: Int): Any = {
+    val typeName = getType(Address(address))
+    
+    typeName match {
+      case "int" => data.getInt(address)
+      case "double" => data.getDouble(address)
+      case "char" => data.getChar(address).toInt.toChar
+    }
   }
   
-  def setValue(newVal: Any, address: Int): Unit = newVal match {
-    case newVal: Int => data.putInt(address, newVal)
-    case newVal: Double => data.putDouble(address, newVal)
-    case newVal: Char => data.putChar(address, newVal)
-    case newVal: Boolean => data.putChar(address, if (newVal) 1 else 0)
+  // use Address type to prevent messing up argument order
+  def setValue(newVal: Any, address: Address): Unit = newVal match {
+    case newVal: Int => data.putInt(address.address, newVal)
+    case newVal: Double => data.putDouble(address.address, newVal)
+    case newVal: Char => data.putChar(address.address, newVal)
+    case newVal: Boolean => data.putChar(address.address, if (newVal) 1 else 0)
   }
   
   def unapply(vari: Variable): Option[Any] = if (vari eq null) None else Some(vari.value)
 }
 
-case class Address(address: Int, typeName: String)
+case class Address(address: Int)
 
 protected class Variable(stack: VarStack, val name: String, val typeName: String, val numElements: Int, val isPointer: Boolean) {
   
   val address: Address = stack.allocateSpace(typeName, numElements)
   
   def value: Any = {
-    stack.readVal(address.address, typeName)
+    stack.readVal(address.address)
   }
   
   def getArray: Array[Any] = {
     var i = 0
-    (0 until numElements).map{ element =>
-      val result: Any = typeName match {
-        case "int" => stack.data.getInt(address.address + i)
-        case "double" => stack.data.getDouble(address.address + i)
-        case "char" => stack.data.getChar(address.address + i)
-      }
+    (0 until numElements).map{ element => 
+      val result = stack.readVal(address.address + i)
       i += TypeHelper.sizeof(typeName)
       result
     }.toArray
   }
   
-  def dereference: Any = typeName match {
-    case "int" => stack.data.getInt(value.asInstanceOf[Int])
-    case "double" => stack.data.getDouble(value.asInstanceOf[Int])
-    case "char" => stack.data.getChar(value.asInstanceOf[Int])
-  }
+  def dereference: Any = stack.readVal(value.asInstanceOf[Int])
   
   def setValue(newVal: Any): Unit = newVal match {
-    case newVal: Int => stack.data.putInt(address.address, newVal)
-    case newVal: Double => stack.data.putDouble(address.address, newVal)
-    case newVal: Char => stack.data.putChar(address.address, newVal)
-    case newVal: Boolean => stack.data.putChar(address.address, if (newVal) 1 else 0)
-    case address @ Address(addy, _) => setValue(addy)
+    case newVal: Int => stack.setValue(newVal, address)
+    case newVal: Double => stack.setValue(newVal, address)
+    case newVal: Char => stack.setValue(newVal, address)
+    case newVal: Boolean => stack.setValue(if (newVal) 1 else 0, address)
+    case address @ Address(addy) => setValue(addy)
     case array: Array[_] =>
       var i = 0
-      array.foreach{element => 
-        typeName match {
-          case "int" => stack.data.putInt(address.address + i, element.asInstanceOf[Int])
-          case "double" => stack.data.putDouble(address.address + i, element.asInstanceOf[Double]);
-          case "char" => stack.data.putChar(address.address + i, element.asInstanceOf[Char]);
-        }
+      array.foreach{element =>  stack.setValue(element, Address(address.address + i))
         i += TypeHelper.sizeof(typeName)
       }
   }
   
-  def setArrayValue(value: Any, index: Int) = typeName match {
-      case "int" => stack.data.putInt(address.address + index * TypeHelper.sizeof(typeName), value.asInstanceOf[Int])
-      case "double" => stack.data.putDouble(address.address + index * TypeHelper.sizeof(typeName), value.asInstanceOf[Double]);
-      case "char" => stack.data.putChar(address.address + index * TypeHelper.sizeof(typeName), value.asInstanceOf[Char]);
+  def setArrayValue(value: Any, index: Int) = {
+    stack.setValue(value, Address(address.address + index * TypeHelper.sizeof(typeName)))
   }
   
   def sizeof: Int = {

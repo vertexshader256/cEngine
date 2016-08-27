@@ -23,8 +23,7 @@ object FunctionCallExpr {
         val formattedOutputParams: Array[Any] = argList.map { case (arg, value) => 
           value match {
             case VarRef(name) => context.vars.resolveId(name).address
-            case address @ Address(addy, typeName) => 
-              address
+            case address @ Address(addy) => address
             case str: String => str
             case int: Int => int
             case doub: Double => doub
@@ -35,14 +34,15 @@ object FunctionCallExpr {
           
           // here we resolve the addresses coming in
           val resolved = formattedOutputParams.map{x => x match {
-              case Address(address, typeName) =>
+              case addy @ Address(address) =>
+                val typeName = stack.getType(addy)
                 typeName match {
                   case "char" => 
                     var current: Char = 0
                     var stringBuilder = new ListBuffer[Char]()
                     var i = 0
                     do {
-                      current = stack.readVal(address + i, typeName).asInstanceOf[Char]
+                      current = stack.readVal(address + i).asInstanceOf[Char]
                       if (current != 0) {
                         stringBuilder += current
                         i += 1
@@ -51,7 +51,7 @@ object FunctionCallExpr {
                       
                     new String(stringBuilder.map(_.toByte).toArray, "UTF-8")
                   case _ => 
-                    stack.readVal(address, typeName)
+                    stack.readVal(address)
                 }        
                 
               case x => x

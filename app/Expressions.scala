@@ -43,7 +43,7 @@ object Expressions {
           
           val name = context.stack.pop
           val arrayVar = context.vars.resolveId(name.asInstanceOf[VarRef].name)
-          context.stack.push(Address(arrayVar.address.address + index * TypeHelper.sizeof(arrayVar.typeName), arrayVar.typeName))
+          context.stack.push(Address(arrayVar.address.address + index * TypeHelper.sizeof(arrayVar.typeName)))
 
           Seq()
       }
@@ -60,7 +60,7 @@ object Expressions {
             } else {
               func(variable.address.address)
             }
-          case addy @ Address(_,_) => func(addy.address)
+          case addy @ Address(_) => func(addy.address)
           case int: Int => int
         }
       }
@@ -73,8 +73,8 @@ object Expressions {
             
             def negativeResolver(variable: Variable) = resolveVar(variable.address, (address) => {
                 context.stack.push(variable.typeName match {
-                  case "int" => -stack.data.getInt(address)
-                  case "double" => -stack.data.getDouble(address)
+                  case "int" => -stack.readVal(address).asInstanceOf[Int]
+                  case "double" => -stack.readVal(address).asInstanceOf[Double]
                 })
               })
             
@@ -88,23 +88,27 @@ object Expressions {
             }
           case `op_postFixIncr` =>     
             resolveVar(context.stack.pop, (address) => {
-              context.stack.push(stack.data.getInt(address))
-              stack.data.putInt(address, stack.data.getInt(address) + 1)
+              val currentVal = stack.readVal(address)
+              context.stack.push(currentVal)
+              stack.setValue(currentVal.asInstanceOf[Int] + 1, Address(address))
             })
           case `op_postFixDecr` =>
             resolveVar(context.stack.pop, (address) => {
-              context.stack.push(stack.data.getInt(address))
-              stack.data.putInt(address, stack.data.getInt(address) - 1)
+              val currentVal = stack.readVal(address)
+              context.stack.push(currentVal)
+              stack.setValue(currentVal.asInstanceOf[Int] - 1, Address(address))
             })
           case `op_prefixIncr` =>  
             resolveVar(context.stack.pop, (address) => {
-              stack.data.putInt(address, stack.data.getInt(address) + 1)
-              context.stack.push(stack.data.getInt(address))
+              val currentVal = stack.readVal(address)
+              stack.setValue(currentVal.asInstanceOf[Int] + 1, Address(address))
+              context.stack.push(stack.readVal(address))
             })
          case `op_prefixDecr` =>  
            resolveVar(context.stack.pop, (address) => {
-              stack.data.putInt(address, stack.data.getInt(address) - 1)
-              context.stack.push(stack.data.getInt(address))
+              val currentVal = stack.readVal(address)
+              stack.setValue(currentVal.asInstanceOf[Int] - 1, Address(address))
+              context.stack.push(stack.readVal(address))
             })
           case `op_sizeof` =>
             context.stack.pop match {
@@ -120,7 +124,7 @@ object Expressions {
             context.stack.pop match {
               case VarRef(varName) =>
                 val ptr = context.vars.resolveId(varName)
-                val refAddress = context.vars.resolveAddress(Address(ptr.value.asInstanceOf[Int], ptr.typeName)).address
+                val refAddress = context.vars.resolveAddress(Address(ptr.value.asInstanceOf[Int])).address
                 context.stack.push(refAddress)
             }
           case `op_bracketedPrimary` => // not sure what this is for

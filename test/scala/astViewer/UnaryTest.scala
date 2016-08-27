@@ -29,7 +29,9 @@ class UnaryTest extends StandardTest {
       void main() {
         int a = 0;
         int b = ++a;
-        printf("%d %d\n", a, b);
+        int c = 5;
+        int d = --c;
+        printf("%d %d %d %d\n", a, b, c, d);
       }"""
 
     checkResults(code)
@@ -40,7 +42,9 @@ class UnaryTest extends StandardTest {
       void main() {
         int a = 0;
         int b = a++;
-        printf("%d %d\n", a, b);
+        int c = 5;
+        int d = c--;
+        printf("%d %d %d %d\n", a, b, c, d);
       }"""
 
     checkResults(code)
