@@ -91,6 +91,7 @@ object BinaryExpr {
         }
       case `op_minus` =>
         (op1, op2) match {
+          case (addy @ Address(address), y: Int) => address - y * TypeHelper.sizeof(stack.getType(addy))
           case (x: Int, y: Int) => x - y
           case (x: Double, y: Int) => x - y
           case (x: Int, y: Double) => x - y

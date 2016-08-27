@@ -126,7 +126,7 @@ object Expressions {
             context.stack.pop match {
               case VarRef(varName) =>
                 val ptr = context.vars.resolveId(varName)
-                val refAddress = context.vars.resolveAddress(Address(ptr.value.asInstanceOf[Int])).address
+                val refAddress = Address(ptr.value.asInstanceOf[Int])
                 context.stack.push(refAddress)
             }
           case `op_bracketedPrimary` => // not sure what this is for

@@ -114,4 +114,23 @@ class PointerTest extends StandardTest {
 
     checkResults(code)
   }
+  
+  "some more advanced pointer arithmetic" should "print the correct results" in {
+    val code = """
+      void main() {
+        int arr[10] = {1,2,3,4,5,6,7,8,9,10};
+        int *p1, *p2;
+    
+        p1 = arr + 3;
+        p2 = p1 - 2;
+        printf("%d %d", *p1, *p2);
+      }"""
+
+    checkResults(code)
+  }
+  
+  
+  
+  
+  
 }
