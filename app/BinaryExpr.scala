@@ -9,7 +9,7 @@ import java.util.Locale;
 
 object BinaryExpr {
   
-  def parseAssign(op1: Any, op2: Any, context: IASTContext): Any = {
+  def parseAssign(op1: Any, op2: Any, context: IASTContext, stack: VarStack): Any = {
     val destinationAddress: Address = op1 match {
       case VarRef(name) =>
         context.vars.resolveId(name).address
@@ -21,11 +21,11 @@ object BinaryExpr {
         context.vars.resolveId(name).value
       case Address(address, typeName) => 
         op1 match {
-          case Address(_,_) => Variable.readVal(address, typeName)
+          case Address(_,_) => stack.readVal(address, typeName)
           case VarRef(name) => 
             if (!context.vars.resolveId(name).isPointer) {
               // only if op1 is NOT a pointer, resolve op2
-              Variable.readVal(address, typeName)
+              stack.readVal(address, typeName)
             } else {
               address
             }
@@ -34,12 +34,12 @@ object BinaryExpr {
       case doub: Double => doub
     }
     
-    Variable.setValue(resolvedop2, destinationAddress.address)
+    stack.setValue(resolvedop2, destinationAddress.address)
 
     resolvedop2
   }
   
-  def parse(binaryExpr: IASTBinaryExpression, context: IASTContext): Any = {
+  def parse(binaryExpr: IASTBinaryExpression, context: IASTContext, stack: VarStack): Any = {
     import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 
     // read the two operands from right to left
@@ -47,17 +47,19 @@ object BinaryExpr {
     var op1: Any = context.stack.pop
     
     var isOp1Pointer = false
+    var pointerType = "char"
     
     def resolve(op: Any) = op match {
       case VarRef(name) => 
         val theVar = context.vars.resolveId(name)
         if (theVar.isPointer) {
           isOp1Pointer = true
-          theVar.address.address
+          pointerType = theVar.typeName
+          theVar.address
         } else {
           theVar.value  
         }
-      case Address(addy, typeName) => Variable.readVal(addy, typeName)
+      case Address(addy, typeName) => stack.readVal(addy, typeName)
       case int: Int => int
       case bool: Boolean => bool
       case double: Double => double
@@ -83,6 +85,7 @@ object BinaryExpr {
         }
       case `op_plus` =>
         (op1, op2) match {
+          case (Address(addy, typeName), y: Int) => addy + y * TypeHelper.sizeof(typeName)
           case (x: Int, y: Int) => x + y
           case (x: Double, y: Int) => x + y
           case (x: Int, y: Double) => x + y
@@ -167,8 +170,7 @@ object BinaryExpr {
     }
     
     if (isOp1Pointer) {
-      println(result.asInstanceOf[Int])
-      Address(result.asInstanceOf[Int], "char") // does this need to be char?
+      Address(result.asInstanceOf[Int], pointerType)
     } else {
       result
     }

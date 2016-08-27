@@ -11,7 +11,7 @@ import java.util.Locale;
 import Functions._
 
 object FunctionCallExpr {
-  def parse(call: IASTFunctionCallExpression, direction: Direction, context: IASTContext): Seq[IASTNode] = {
+  def parse(call: IASTFunctionCallExpression, direction: Direction, context: IASTContext, stack: VarStack): Seq[IASTNode] = {
     if (direction == Exiting) {
         val name = call.getFunctionNameExpression match {
           case x: IASTIdExpression => x.getName.getRawSignature
@@ -23,7 +23,8 @@ object FunctionCallExpr {
         val formattedOutputParams: Array[Any] = argList.map { case (arg, value) => 
           value match {
             case VarRef(name) => context.vars.resolveId(name).address
-            case address @ Address(addy, typeName) => address
+            case address @ Address(addy, typeName) => 
+              address
             case str: String => str
             case int: Int => int
             case doub: Double => doub
@@ -41,14 +42,16 @@ object FunctionCallExpr {
                     var stringBuilder = new ListBuffer[Char]()
                     var i = 0
                     do {
-                      current = Variable.readVal(address + i, typeName).asInstanceOf[Char]
+                      current = stack.readVal(address + i, typeName).asInstanceOf[Char]
                       if (current != 0) {
                         stringBuilder += current
                         i += 1
                       }
                     } while (current != 0)
+                      
                     new String(stringBuilder.map(_.toByte).toArray, "UTF-8")
-                  case _ => Variable.readVal(address, typeName)
+                  case _ => 
+                    stack.readVal(address, typeName)
                 }        
                 
               case x => x

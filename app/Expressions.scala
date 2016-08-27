@@ -27,7 +27,7 @@ object Expressions {
   
   
   
-  def parse(expr: IASTExpression, direction: Direction, context: IASTContext): Seq[IASTNode] = expr match {
+  def parse(expr: IASTExpression, direction: Direction, context: IASTContext, stack: VarStack): Seq[IASTNode] = expr match {
     case subscript: IASTArraySubscriptExpression =>
       if (direction == Entering) {
         Seq(subscript.getArrayExpression, subscript.getArgument)
@@ -73,8 +73,8 @@ object Expressions {
             
             def negativeResolver(variable: Variable) = resolveVar(variable.address, (address) => {
                 context.stack.push(variable.typeName match {
-                  case "int" => -Variable.data.getInt(address)
-                  case "double" => -Variable.data.getDouble(address)
+                  case "int" => -stack.data.getInt(address)
+                  case "double" => -stack.data.getDouble(address)
                 })
               })
             
@@ -88,23 +88,23 @@ object Expressions {
             }
           case `op_postFixIncr` =>     
             resolveVar(context.stack.pop, (address) => {
-              context.stack.push(Variable.data.getInt(address))
-              Variable.data.putInt(address, Variable.data.getInt(address) + 1)
+              context.stack.push(stack.data.getInt(address))
+              stack.data.putInt(address, stack.data.getInt(address) + 1)
             })
           case `op_postFixDecr` =>
             resolveVar(context.stack.pop, (address) => {
-              context.stack.push(Variable.data.getInt(address))
-              Variable.data.putInt(address, Variable.data.getInt(address) - 1)
+              context.stack.push(stack.data.getInt(address))
+              stack.data.putInt(address, stack.data.getInt(address) - 1)
             })
           case `op_prefixIncr` =>  
             resolveVar(context.stack.pop, (address) => {
-              Variable.data.putInt(address, Variable.data.getInt(address) + 1)
-              context.stack.push(Variable.data.getInt(address))
+              stack.data.putInt(address, stack.data.getInt(address) + 1)
+              context.stack.push(stack.data.getInt(address))
             })
          case `op_prefixDecr` =>  
            resolveVar(context.stack.pop, (address) => {
-              Variable.data.putInt(address, Variable.data.getInt(address) - 1)
-              context.stack.push(Variable.data.getInt(address))
+              stack.data.putInt(address, stack.data.getInt(address) - 1)
+              context.stack.push(stack.data.getInt(address))
             })
           case `op_sizeof` =>
             context.stack.pop match {
@@ -117,7 +117,6 @@ object Expressions {
                 context.stack.push(context.vars.resolveId(name).address)
             }
           case `op_star` =>
-            
             context.stack.pop match {
               case VarRef(varName) =>
                 val ptr = context.vars.resolveId(varName)
@@ -158,10 +157,7 @@ object Expressions {
         Seq()
       }
     case call: IASTFunctionCallExpression =>
-      FunctionCallExpr.parse(call, direction, context)
-      // only evaluate after leaving
-      
-
+      FunctionCallExpr.parse(call, direction, context, stack)
     case bin: IASTBinaryExpression =>
       if (direction == Exiting) {
         
@@ -169,8 +165,8 @@ object Expressions {
           case IASTBinaryExpression.op_assign => 
             var op2: Any = context.stack.pop
             var op1: Any = context.stack.pop
-            BinaryExpr.parseAssign(op1, op2, context)
-          case _ => BinaryExpr.parse(bin, context)
+            BinaryExpr.parseAssign(op1, op2, context, stack)
+          case _ => BinaryExpr.parse(bin, context, stack)
         }
         
         if (result != null) {

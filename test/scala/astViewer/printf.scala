@@ -21,19 +21,9 @@ class printf extends StandardTest {
       void main() {
         char str[] = "Hello!\n";
         printf("%s", str);
-        //printf("%s", &(str[0]));
+        printf("%s", str + 1);
       }"""
 
     checkResults(code)
   }
-  
-//  "printing a string" should "print the correct results" in {
-//    val code = """
-//      void main() {
-//        char str[] = "Hello!\n";
-//        printf("%s", str);
-//      }"""
-//
-//    checkResults(code)
-//  }
 }

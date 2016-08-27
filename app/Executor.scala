@@ -50,7 +50,7 @@ object TypeHelper {
   }
 }
 
-object Variable {
+class VarStack {
   val data = ByteBuffer.allocate(10240);
   data.order(ByteOrder.LITTLE_ENDIAN)
   
@@ -63,16 +63,16 @@ object Variable {
   }
   
   def readVal(address: Int, typeName: String): Any = typeName match {
-    case "int" => Variable.data.getInt(address)
-    case "double" => Variable.data.getDouble(address)
-    case "char" => Variable.data.getChar(address)
+    case "int" => data.getInt(address)
+    case "double" => data.getDouble(address)
+    case "char" => data.getChar(address)
   }
   
   def setValue(newVal: Any, address: Int): Unit = newVal match {
-    case newVal: Int => Variable.data.putInt(address, newVal)
-    case newVal: Double => Variable.data.putDouble(address, newVal)
-    case newVal: Char => Variable.data.putChar(address, newVal)
-    case newVal: Boolean => Variable.data.putChar(address, if (newVal) 1 else 0)
+    case newVal: Int => data.putInt(address, newVal)
+    case newVal: Double => data.putDouble(address, newVal)
+    case newVal: Char => data.putChar(address, newVal)
+    case newVal: Boolean => data.putChar(address, if (newVal) 1 else 0)
   }
   
   def unapply(vari: Variable): Option[Any] = if (vari eq null) None else Some(vari.value)
@@ -80,21 +80,21 @@ object Variable {
 
 case class Address(address: Int, typeName: String)
 
-protected class Variable(val name: String, val typeName: String, val numElements: Int, val isPointer: Boolean) {
+protected class Variable(stack: VarStack, val name: String, val typeName: String, val numElements: Int, val isPointer: Boolean) {
   
-  val address: Address = Variable.allocateSpace(typeName, numElements)
+  val address: Address = stack.allocateSpace(typeName, numElements)
   
   def value: Any = {
-    Variable.readVal(address.address, typeName)
+    stack.readVal(address.address, typeName)
   }
   
   def getArray: Array[Any] = {
     var i = 0
     (0 until numElements).map{ element =>
       val result: Any = typeName match {
-        case "int" => Variable.data.getInt(address.address + i)
-        case "double" => Variable.data.getDouble(address.address + i)
-        case "char" => Variable.data.getChar(address.address + i)
+        case "int" => stack.data.getInt(address.address + i)
+        case "double" => stack.data.getDouble(address.address + i)
+        case "char" => stack.data.getChar(address.address + i)
       }
       i += TypeHelper.sizeof(typeName)
       result
@@ -102,33 +102,33 @@ protected class Variable(val name: String, val typeName: String, val numElements
   }
   
   def derefernce: Any = typeName match {
-    case "int" => Variable.data.getInt(value.asInstanceOf[Int])
-    case "double" => Variable.data.getDouble(value.asInstanceOf[Int])
-    case "char" => Variable.data.getChar(value.asInstanceOf[Int])
+    case "int" => stack.data.getInt(value.asInstanceOf[Int])
+    case "double" => stack.data.getDouble(value.asInstanceOf[Int])
+    case "char" => stack.data.getChar(value.asInstanceOf[Int])
   }
   
   def setValue(newVal: Any): Unit = newVal match {
-    case newVal: Int => Variable.data.putInt(address.address, newVal)
-    case newVal: Double => Variable.data.putDouble(address.address, newVal)
-    case newVal: Char => Variable.data.putChar(address.address, newVal)
-    case newVal: Boolean => Variable.data.putChar(address.address, if (newVal) 1 else 0)
+    case newVal: Int => stack.data.putInt(address.address, newVal)
+    case newVal: Double => stack.data.putDouble(address.address, newVal)
+    case newVal: Char => stack.data.putChar(address.address, newVal)
+    case newVal: Boolean => stack.data.putChar(address.address, if (newVal) 1 else 0)
     case address @ Address(addy, _) => setValue(addy)
     case array: Array[_] =>
       var i = 0
       array.foreach{element => 
         typeName match {
-          case "int" => Variable.data.putInt(address.address + i, element.asInstanceOf[Int])
-          case "double" => Variable.data.putDouble(address.address + i, element.asInstanceOf[Double]);
-          case "char" => Variable.data.putChar(address.address + i, element.asInstanceOf[Char]);
+          case "int" => stack.data.putInt(address.address + i, element.asInstanceOf[Int])
+          case "double" => stack.data.putDouble(address.address + i, element.asInstanceOf[Double]);
+          case "char" => stack.data.putChar(address.address + i, element.asInstanceOf[Char]);
         }
         i += TypeHelper.sizeof(typeName)
       }
   }
   
   def setArrayValue(value: Any, index: Int) = typeName match {
-      case "int" => Variable.data.putInt(address.address + index * TypeHelper.sizeof(typeName), value.asInstanceOf[Int])
-      case "double" => Variable.data.putDouble(address.address + index * TypeHelper.sizeof(typeName), value.asInstanceOf[Double]);
-      case "char" => Variable.data.putChar(address.address + index * TypeHelper.sizeof(typeName), value.asInstanceOf[Char]);
+      case "int" => stack.data.putInt(address.address + index * TypeHelper.sizeof(typeName), value.asInstanceOf[Int])
+      case "double" => stack.data.putDouble(address.address + index * TypeHelper.sizeof(typeName), value.asInstanceOf[Double]);
+      case "char" => stack.data.putChar(address.address + index * TypeHelper.sizeof(typeName), value.asInstanceOf[Char]);
   }
   
   def sizeof: Int = {
@@ -152,8 +152,8 @@ class Visited(parent: Visited) {
   private val functionArgs = new ListBuffer[Variable]()
   private val variables: ListBuffer[Variable] = ListBuffer[Variable]() ++ Option(parent).map(x => x.variables).getOrElse(Seq())
   
-  def addArg(theName: String, theValue: Any, theTypeName: String, isPointer: Boolean) = {
-    val newArg = new Variable(theName, theTypeName, 1, isPointer)
+  def addArg(stack: VarStack, theName: String, theValue: Any, theTypeName: String, isPointer: Boolean) = {
+    val newArg = new Variable(stack, theName, theTypeName, 1, isPointer)
     newArg.setValue(theValue)
     functionArgs += newArg
   }
@@ -162,10 +162,10 @@ class Visited(parent: Visited) {
     functionArgs.find(_.name == name).get
   }
   
-  def addVariable(theName: String, theValue: Any, theTypeName: String, isPointer: Boolean) = {
+  def addVariable(stack: VarStack, theName: String, theValue: Any, theTypeName: String, isPointer: Boolean) = {
     val newVar = theValue match {
-      case array: Array[_] => new Variable(theName, theTypeName, array.length, true)
-      case _ => new Variable(theName, theTypeName, 1, isPointer)
+      case array: Array[_] => new Variable(stack, theName, theTypeName, array.length, true)
+      case _ => new Variable(stack, theName, theTypeName, 1, isPointer)
     }
     newVar.setValue(theValue)
     variables += newVar
@@ -189,6 +189,10 @@ class Visited(parent: Visited) {
 }
 
 class Executor(code: String) {
+  
+  val stack = new VarStack
+  
+  
   var isPreprocessing = true
   val tUnit = Utils.getTranslationUnit(code)
 
@@ -317,7 +321,7 @@ class Executor(code: String) {
       case statement: IASTStatement =>
         parseStatement(statement, context, direction)
       case expression: IASTExpression =>
-        Expressions.parse(expression, direction, context)
+        Expressions.parse(expression, direction, context, stack)
       case array: IASTArrayModifier =>
         if (direction == Exiting) {
           Seq()
@@ -333,9 +337,9 @@ class Executor(code: String) {
         if (direction == Exiting) {
           val arg = context.stack.pop
           if (!param.getDeclarator.getPointerOperators.isEmpty) {
-             context.vars.addArg(param.getDeclarator.getName.getRawSignature, arg.asInstanceOf[Address], param.getDeclSpecifier.getRawSignature, true)
+             context.vars.addArg(stack, param.getDeclarator.getName.getRawSignature, arg.asInstanceOf[Address], param.getDeclSpecifier.getRawSignature, true)
           } else {
-             context.vars.addArg(param.getDeclarator.getName.getRawSignature, arg, param.getDeclSpecifier.getRawSignature, false)
+             context.vars.addArg(stack, param.getDeclarator.getName.getRawSignature, arg, param.getDeclSpecifier.getRawSignature, false)
           }
           Seq()
         } else {
@@ -427,10 +431,10 @@ class Executor(code: String) {
                 initialArray(i) = newInit
               }
             }
-            context.vars.addVariable(name, initialArray, theTypeName, false)
+            context.vars.addVariable(stack, name, initialArray, theTypeName, false)
           case initString: String =>
             val initialArray = Utils.stripQuotes(initString).toCharArray() :+ 0.toChar // terminating null char
-            context.vars.addVariable(name, initialArray, theTypeName, false)
+            context.vars.addVariable(stack, name, initialArray, theTypeName, false)
         }
       } else {   
         
@@ -438,17 +442,17 @@ class Executor(code: String) {
         
         if (!decl.getPointerOperators.isEmpty) {
           if (!context.stack.isEmpty) {
-            // initial value is on the stack, set it
-            context.vars.addVariable(name, context.stack.pop.asInstanceOf[Address].address, theTypeName, true)
+            val initVal = context.stack.pop
+            context.vars.addVariable(stack, name, initVal, theTypeName, true)
           } else {
-            context.vars.addVariable(name, 0, theTypeName, true)
+            context.vars.addVariable(stack, name, 0, theTypeName, true)
           }
         } else {
           if (!context.stack.isEmpty) {
             // initial value is on the stack, set it
-            context.vars.addVariable(name, context.stack.pop, theTypeName, false)
+            context.vars.addVariable(stack, name, context.stack.pop, theTypeName, false)
           } else {
-            context.vars.addVariable(name, initial, theTypeName, false)
+            context.vars.addVariable(stack, name, initial, theTypeName, false)
           }
         }
       }
