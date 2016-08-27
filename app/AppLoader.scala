@@ -33,7 +33,6 @@ object AstUtils {
       case x: CASTFunctionDeclarator => "Function"
       case x: CASTIdExpression => ""
       case x: CASTFieldReference => "."
-      case x: CASTFieldReference => "."
       case x: CASTFunctionCallExpression => "calls"
       case x: CASTFunctionDefinition => x.getDeclarator.getName.toString + "()"
       case x: CASTSimpleDeclaration => ""

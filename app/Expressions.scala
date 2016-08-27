@@ -18,14 +18,14 @@ object Expressions {
     
     if (string.head == '\"' && string.last == '\"') {
       string
+    } else if (string.head == '\'' && string.last == '\'' && string.length == 3) {
+      string.toCharArray.apply(1)
     } else if (isLongNumber(string)) {
       string.toInt
     } else {
       string.toDouble
     }
   }
-  
-  
   
   def parse(expr: IASTExpression, direction: Direction, context: IASTContext, stack: VarStack): Seq[IASTNode] = expr match {
     case subscript: IASTArraySubscriptExpression =>

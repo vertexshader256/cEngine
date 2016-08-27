@@ -128,7 +128,8 @@ protected class Variable(stack: VarStack, val name: String, val typeName: String
     case address @ Address(addy) => setValue(addy)
     case array: Array[_] =>
       var i = 0
-      array.foreach{element =>  stack.setValue(element, Address(address.address + i))
+      array.foreach{element =>  
+        stack.setValue(element, Address(address.address + i))
         i += TypeHelper.sizeof(typeName)
       }
   }
@@ -167,7 +168,6 @@ class Visited(parent: Visited) {
   def addVariable(stack: VarStack, theName: String, theValue: Any, theTypeName: String, isPointer: Boolean) = {
     
     val resolvedType = if (isPointer) "int" else theTypeName
-    
     val newVar = theValue match {
       case array: Array[_] =>
         val theArray = new Variable(stack, theName + "_array", theTypeName, array.length, false)
@@ -190,14 +190,6 @@ class Visited(parent: Visited) {
     } else {
       getArg(id)
     }
-  }
-  
-  def resolveAddress(address: Address): Variable = {
-    variables.find{vari =>
-      var startAddy = vari.address.address
-      var endAddy = vari.address.address + TypeHelper.sizeof(vari.typeName) * vari.numElements
-      startAddy <= address.address && endAddy > address.address
-    }.getOrElse(functionArgs.find(_.address == address).getOrElse(null))
   }
 }
 

@@ -3,7 +3,6 @@ package app.astViewer
 import org.eclipse.cdt.core.dom.ast._
 import java.util.Formatter
 import java.util.Locale;
-import app.astViewer.IASTContext
 
 object Functions {
   def printf(context: IASTContext, args: Seq[Object]) = {

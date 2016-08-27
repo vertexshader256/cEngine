@@ -1,7 +1,7 @@
 package scala.astViewer
 
 class ArrayInitTest extends StandardTest {
-  "A array assignment with an init list" should "print the correct results" in {
+  "A array assignment with an init list of ints" should "print the correct results" in {
     val code = """
       void main() {
         int x[5] = {1, 2, 3, 4, 5};
@@ -10,6 +10,16 @@ class ArrayInitTest extends StandardTest {
 
     checkResults(code)
   }
+  
+//  "A array assignment with an init list of chars" should "print the correct results" in {
+//    val code = """
+//      void main() {
+//        char x[5] = {'a', 'b', 'c', 'd', 'e'};
+//        printf("%c %c %c %c %c\n", x[0], x[1], x[2], x[3], x[4]);
+//      }"""
+//
+//    checkResults(code)
+//  }
 }
 
 class ArrayTest extends StandardTest {
