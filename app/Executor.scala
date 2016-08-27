@@ -17,6 +17,8 @@ case class IASTContext(startNode: IASTNode) {
   val stdout = new ListBuffer[String]()
   var currentType: IASTDeclSpecifier = null
   
+  var parsingAssignmentDest = 0
+  
   def callFunction(call: IASTFunctionCallExpression) = {
     visitedStack.push(vars)
     vars = new Visited(vars)

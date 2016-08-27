@@ -45,7 +45,11 @@ object Expressions {
           val arrayVarPtr = context.vars.resolveId(name.asInstanceOf[VarRef].name)
           val arrayAddress = arrayVarPtr.value.asInstanceOf[Int]
           val arrayType = stack.getType(Address(arrayAddress))
-          context.stack.push(Address(arrayAddress + index * TypeHelper.sizeof(arrayType)))
+          if (context.parsingAssignmentDest > 0) {
+            context.stack.push(Address(arrayAddress + index * TypeHelper.sizeof(arrayType)))
+          } else {
+            context.stack.push(stack.readVal(arrayAddress + index * TypeHelper.sizeof(arrayType)))
+          }
 
           Seq()
       }
@@ -167,20 +171,35 @@ object Expressions {
     case bin: IASTBinaryExpression =>
       if (direction == Exiting) {
         
-        val result = bin.getOperator match {
-          case IASTBinaryExpression.op_assign => 
-            var op2: Any = context.stack.pop
-            var op1: Any = context.stack.pop
-            BinaryExpr.parseAssign(op1, op2, context, stack)
-          case _ => BinaryExpr.parse(bin, context, stack)
-        }
         
-        if (result != null) {
-          context.stack.push(result)
+        if (context.vars.nodes.contains(bin.getOperand2)) {
+          val result = bin.getOperator match {
+            case IASTBinaryExpression.op_assign => 
+              var op2: Any = context.stack.pop
+              var op1: Any = context.stack.pop
+              BinaryExpr.parseAssign(op1, op2, context, stack)
+            case _ => BinaryExpr.parse(bin, context, stack)
+          }
+          
+          if (result != null) {
+            context.stack.push(result)
+          }
+          Seq()
+        } else {
+          if (bin.getOperator == IASTBinaryExpression.op_assign) {
+            context.parsingAssignmentDest -= 1
+          }
+          
+          Seq(bin.getOperand2, bin)
         }
-        Seq()
       } else {
-        Seq(bin.getOperand1, bin.getOperand2)
+        
+        // We have to treat the destination op differently in an assignment
+        
+        if (bin.getOperator == IASTBinaryExpression.op_assign) {
+          context.parsingAssignmentDest += 1
+        }
+        Seq(bin.getOperand1)
       }
   }
 }

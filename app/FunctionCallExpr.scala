@@ -34,6 +34,7 @@ object FunctionCallExpr {
             case str: String => str
             case int: Int => int
             case doub: Double => doub
+            case char: Char => char.toInt.toByte
           }
         }
 

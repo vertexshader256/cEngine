@@ -11,15 +11,15 @@ class ArrayInitTest extends StandardTest {
     checkResults(code)
   }
   
-//  "A array assignment with an init list of chars" should "print the correct results" in {
-//    val code = """
-//      void main() {
-//        char x[5] = {'a', 'b', 'c', 'd', 'e'};
-//        printf("%c %c %c %c %c\n", x[0], x[1], x[2], x[3], x[4]);
-//      }"""
-//
-//    checkResults(code)
-//  }
+  "A array assignment with an init list of chars" should "print the correct results" in {
+    val code = """
+      void main() {
+        char x[5] = {'a', 'b', 'c', 'd', 'e'};
+        printf("%c %c %c %c %c\n", x[0], x[1], x[2], x[3], x[4]);
+      }"""
+
+    checkResults(code)
+  }
 }
 
 class ArrayTest extends StandardTest {
