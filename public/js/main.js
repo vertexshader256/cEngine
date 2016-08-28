@@ -184,14 +184,14 @@ function tick() {
           if (!node.isCollapsed) {
              if (node.charge > -300.0) {
                node.charge -= node.chargeChange;
-               node.chargeChange += 0.3
+               node.chargeChange += 0.6
              }
              if (node.linkDistance < 20.0) {
                node.linkDistance += node.linkDistanceChange * node.growthSpeed;
                node.linkDistanceChange += 0.003
 
                if (node.linkDistance >= 20.0) {
-                  var i = 200;
+                  var i = 0;
 
                   // expand the children now
                   node.children.forEach(function(x) {
@@ -199,7 +199,7 @@ function tick() {
                        unfold(x);
                        return 1;
                     }, i);
-                    i += 400;
+                    i += 100;
                   });
                }
              }
@@ -316,7 +316,7 @@ function update() {
   link.enter().insert("svg:line", ".node")
       .attr("class", "link")
       .style('stroke-width', 4.0)
-      .style('stroke', '#AA0000')
+      .style('stroke', '#CC0000')
       .attr("x1", function(d) { return d.source.x; })
       .attr("y1", function(d) { return d.source.y; })
       .attr("x2", function(d) { return d.target.x; })
@@ -343,14 +343,18 @@ function update() {
       .style('r', 0.0)
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
-      .style('stroke-width', 3)
+      .style('stroke-width', 0.5)
+      .style('stroke', '#CC0000')
       .property("isClicked", false)
-      .style("fill", color)
+      .style("fill", '#000000')
       .on("contextmenu", contextMenu)
       .call(force.drag)
       .transition()
       .duration(1000)
-      .style('r', 6.0);
+      .style('r', 6.0)
+      .style('stroke-width', 3)
+      .style('stroke', '#000000')
+      .style("fill", color);
 
   node.append("text")
       .attr("dx", 10)
@@ -379,7 +383,7 @@ function submitCode() {
          // alert(JSON.stringify(json));
 
           root = json;
-          root.fixed = true;
+          //root.fixed = true;
           root.x = w / 2;
           root.y = h / 2 - 80;
 
