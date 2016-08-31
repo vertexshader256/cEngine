@@ -80,17 +80,27 @@ class State {
       }
     }
     
-    // use Address type to prevent messing up argument order
     def setValue(newVal: Any, address: Address): Unit = newVal match {
       case newVal: Int => data.putInt(address.address, newVal)
       case newVal: Double => data.putDouble(address.address, newVal)
       case newVal: Char => data.putChar(address.address, newVal)
       case newVal: Boolean => data.putChar(address.address, if (newVal) 1 else 0)
+      case address @ Address(addy) => data.putInt(address.address, addy)
+      case array: Array[_] =>
+        var i = 0
+        array.foreach{element =>  
+          setValue(element, Address(address.address + i))
+          i += TypeHelper.sizeof(getType(Address(address.address + i)))
+        }
     }
   }
 }
 
-case class Address(address: Int)
+case class Address(address: Int) {
+  def +(offset: Int) = {
+    Address(address + offset)
+  }
+}
 
 object TypeHelper {
   val sizeof = new PartialFunction[String, Int] {
@@ -104,8 +114,6 @@ object TypeHelper {
     def isDefinedAt(typeName: String) = Seq("int", "double", "float", "bool", "char").contains(typeName)
   }
 }
-
-
 
 protected class Variable(stack: State#VarStack, val name: String, val typeName: String, val numElements: Int, val isPointer: Boolean) {
   
@@ -126,22 +134,12 @@ protected class Variable(stack: State#VarStack, val name: String, val typeName: 
   
   def dereference: Any = stack.readVal(value.asInstanceOf[Int])
   
-  def setValue(newVal: Any): Unit = newVal match {
-    case newVal: Int => stack.setValue(newVal, address)
-    case newVal: Double => stack.setValue(newVal, address)
-    case newVal: Char => stack.setValue(newVal, address)
-    case newVal: Boolean => stack.setValue(if (newVal) 1 else 0, address)
-    case address @ Address(addy) => setValue(addy)
-    case array: Array[_] =>
-      var i = 0
-      array.foreach{element =>  
-        stack.setValue(element, Address(address.address + i))
-        i += TypeHelper.sizeof(typeName)
-      }
+  def setValue(newVal: Any): Unit = {
+    stack.setValue(newVal, address)
   }
   
   def setArrayValue(value: Any, index: Int) = {
-    stack.setValue(value, Address(address.address + index * TypeHelper.sizeof(typeName)))
+    stack.setValue(value, address + index * TypeHelper.sizeof(typeName))
   }
   
   def sizeof: Int = {  
