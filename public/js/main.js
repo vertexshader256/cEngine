@@ -184,7 +184,7 @@ function tick() {
           if (!node.isCollapsed) {
              if (node.charge > -300.0) {
                node.charge -= node.chargeChange;
-               node.chargeChange += 0.6
+               node.chargeChange += 0.7
              }
              if (node.linkDistance < 20.0) {
                node.linkDistance += node.linkDistanceChange * node.growthSpeed;

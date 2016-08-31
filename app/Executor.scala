@@ -11,8 +11,9 @@ import java.nio.ByteOrder
 
 case class IASTContext(startNode: IASTNode) {
   val stack = new Stack[Any]()
-  val visitedStack = new Stack[Visited]()
-  var vars: Visited = null
+  val executionContext = new Stack[FunctionExecutionContext]()
+  val globals = new ListBuffer[Variable]()  
+  var vars: FunctionExecutionContext = null
   val functionMap = scala.collection.mutable.Map[String, IASTNode]()
   val stdout = new ListBuffer[String]()
   var currentType: IASTDeclSpecifier = null
@@ -20,8 +21,8 @@ case class IASTContext(startNode: IASTNode) {
   var parsingAssignmentDest = false
   
   def callFunction(call: IASTFunctionCallExpression) = {
-    visitedStack.push(vars)
-    vars = new Visited(vars)
+    executionContext.push(vars)
+    vars = new FunctionExecutionContext(globals)
     
     val name = call.getFunctionNameExpression match {
       case x: IASTIdExpression => x.getName.getRawSignature
@@ -32,7 +33,7 @@ case class IASTContext(startNode: IASTNode) {
   }
   
   def clearVisited(parent: IASTNode) {
-    vars.nodes -= parent
+    vars.visited -= parent
     parent.getChildren.foreach { node =>
       clearVisited(node)
     }
@@ -151,22 +152,11 @@ protected class Variable(stack: VarStack, val name: String, val typeName: String
 
 case class VarRef(name: String)
 
-class Visited(parent: Visited) {
+class FunctionExecutionContext(globals: Seq[Variable]) {
   
-  val nodes = new ListBuffer[IASTNode]()
-  private val functionArgs = new ListBuffer[Variable]()
-  private val variables: ListBuffer[Variable] = ListBuffer[Variable]() ++ Option(parent).map(x => x.variables).getOrElse(Seq())
-  
-  def addArg(stack: VarStack, theName: String, theValue: Any, theTypeName: String, isPointer: Boolean) = {
-    val newArg = new Variable(stack, theName, theTypeName, 1, isPointer)
-    newArg.setValue(theValue)
-    functionArgs += newArg
-  }
-  
-  def getArg(name: String): Variable = {
-    functionArgs.find(_.name == name).get
-  }
-  
+  val visited = new ListBuffer[IASTNode]()
+  val variables: ListBuffer[Variable] = ListBuffer[Variable]() ++ (if (globals == null) Seq() else globals)
+
   def addVariable(stack: VarStack, theName: String, theValue: Any, theTypeName: String, isPointer: Boolean) = {
     
     val resolvedType = if (isPointer) "int" else theTypeName
@@ -187,11 +177,7 @@ class Visited(parent: Visited) {
   }
 
   def resolveId(id: String): Variable = {
-    if (variables.exists(_.name == id)) {
-      variables.find(_.name == id).get
-    } else {
-      getArg(id)
-    }
+    variables.find(_.name == id).get
   }
 }
 
@@ -344,9 +330,9 @@ class Executor(code: String) {
         if (direction == Exiting) {
           val arg = context.stack.pop
           if (!param.getDeclarator.getPointerOperators.isEmpty) {
-             context.vars.addArg(stack, param.getDeclarator.getName.getRawSignature, arg.asInstanceOf[Address], param.getDeclSpecifier.getRawSignature, true)
+             context.vars.addVariable(stack, param.getDeclarator.getName.getRawSignature, arg.asInstanceOf[Address], param.getDeclSpecifier.getRawSignature, true)
           } else {
-             context.vars.addArg(stack, param.getDeclarator.getName.getRawSignature, arg, param.getDeclSpecifier.getRawSignature, false)
+             context.vars.addVariable(stack, param.getDeclarator.getName.getRawSignature, arg, param.getDeclSpecifier.getRawSignature, false)
           }
           Seq()
         } else {
@@ -379,7 +365,7 @@ class Executor(code: String) {
           context.functionMap += (fcnDef.getDeclarator.getName.getRawSignature -> fcnDef)
           Seq()
         } else if (direction == Exiting) {
-          context.vars = context.visitedStack.pop
+          context.vars = context.executionContext.pop
           Seq()
         } else {
           Seq(fcnDef.getDeclarator, fcnDef.getBody)
@@ -484,7 +470,7 @@ class Executor(code: String) {
     var direction: Direction = Entering
 
     def tick(): Unit = {
-      direction = if (mainContext.vars.nodes.contains(current)) Exiting else Entering
+      direction = if (mainContext.vars.visited.contains(current)) Exiting else Entering
 
       val paths: Seq[IASTNode] = step(current, mainContext, direction)   
       
@@ -500,7 +486,7 @@ class Executor(code: String) {
       if (direction == Exiting) {
         pathStack.pop
       } else {
-        mainContext.vars.nodes += current
+        mainContext.vars.visited += current
       }
       
       paths.reverse.foreach{path => pathStack.push(path)}
@@ -521,8 +507,8 @@ class Executor(code: String) {
     
     current = tUnit
     
-    mainContext.visitedStack.push(new Visited(null)) // load initial stack
-    mainContext.vars = mainContext.visitedStack.head
+    mainContext.executionContext.push(new FunctionExecutionContext(null)) // load initial stack
+    mainContext.vars = mainContext.executionContext.head
 
     runProgram()
     isPreprocessing = false
@@ -530,9 +516,11 @@ class Executor(code: String) {
     
     println("_----------------------------------------------_")
     
-    mainContext.visitedStack.clear
-    mainContext.visitedStack.push(new Visited(mainContext.vars)) // load initial stack
-    mainContext.vars = mainContext.visitedStack.head
+    mainContext.globals ++= mainContext.vars.variables
+    
+    mainContext.executionContext.clear
+    mainContext.executionContext.push(new FunctionExecutionContext(mainContext.globals)) // load initial stack
+    mainContext.vars = mainContext.executionContext.head
     pathStack.clear
     pathStack.push(mainContext.functionMap("main"))
     current = pathStack.head

@@ -176,7 +176,7 @@ object Expressions {
       if (direction == Exiting) {
         
         
-        if (context.vars.nodes.contains(bin.getOperand2)) {
+        if (context.vars.visited.contains(bin.getOperand2)) {
           val result = bin.getOperator match {
             case IASTBinaryExpression.op_assign => 
               var op2: Any = context.stack.pop
