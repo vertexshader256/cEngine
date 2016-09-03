@@ -10,10 +10,10 @@ package object astViewer {
     
       val executor = new Executor(code)
       executor.execute
-      val cEngineOutput = executor.engineState.stdout
+      val cEngineOutput = executor.mainContext.stdout
       info("C_Engine output: " + cEngineOutput)
       info("Gcc output: " + gccOutput)
-      executor.engineState.stdout should equal (gccOutput)
+      executor.mainContext.stdout should equal (gccOutput)
     }
   }
 }

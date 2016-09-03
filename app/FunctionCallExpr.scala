@@ -11,7 +11,7 @@ import java.util.Locale;
 import Functions._
 
 object FunctionCallExpr {
-  def parse(call: IASTFunctionCallExpression, direction: Direction, context: State, stack: State#VarStack): Seq[IASTNode] = {
+  def parse(call: IASTFunctionCallExpression, direction: Direction, context: IASTContext, stack: VarStack): Seq[IASTNode] = {
     if (direction == Exiting) {
         val name = call.getFunctionNameExpression match {
           case x: IASTIdExpression => x.getName.getRawSignature

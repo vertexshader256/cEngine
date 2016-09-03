@@ -27,7 +27,7 @@ object Expressions {
     }
   }
   
-  def parse(expr: IASTExpression, direction: Direction, context: State, stack: State#VarStack): Seq[IASTNode] = expr match {
+  def parse(expr: IASTExpression, direction: Direction, context: IASTContext, stack: VarStack): Seq[IASTNode] = expr match {
     case subscript: IASTArraySubscriptExpression =>
       if (direction == Entering) {
         Seq(subscript.getArrayExpression, subscript.getArgument)
