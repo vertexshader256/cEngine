@@ -147,7 +147,7 @@ object Expressions {
         } else if (context.currentType == null) {
           context.stack.push(castLiteral(lit))
         } else {
-          context.currentType.getRawSignature match {
+          context.currentType.toString match {
             case "double" => context.stack.push(lit.getRawSignature.toDouble)
             case "int" => context.stack.push(lit.getRawSignature.toInt)
             case "float" => context.stack.push(lit.getRawSignature.toFloat)

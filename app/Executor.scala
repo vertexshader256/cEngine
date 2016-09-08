@@ -19,7 +19,7 @@ class State {
   var vars: FunctionExecutionContext = null
   val functionMap = scala.collection.mutable.Map[String, IASTNode]()
   val stdout = new ListBuffer[String]()
-  var currentType: IASTDeclSpecifier = null
+  var currentType: IType = null
   
   // flags
   var isBreaking = false
@@ -354,11 +354,26 @@ object Executor {
       }
   }
   
+  def resolveType(theType: IType): IType = theType match {
+    case typedef: ITypedef => resolveType(typedef.getType)
+    case ptrType: IPointerType => resolveType(ptrType.getType)
+    case arrayType: IArrayType => resolveType(arrayType.getType)
+    case x => x
+  }
+  
   def parseDeclarator(decl: IASTDeclarator, direction: Direction, state: State): Seq[IASTNode] = {
-    if (direction == Exiting) {
+    val nameBinding = decl.getName.resolveBinding()
+    
+    if (nameBinding.isInstanceOf[IVariable]) {
+      state.currentType = resolveType(nameBinding.asInstanceOf[IVariable].getType)
+    }
+    
+    if (direction == Exiting && nameBinding.isInstanceOf[IVariable]) {
       state.stack.push(decl.getName.getRawSignature)
       
-      val theTypeName = state.currentType.getRawSignature
+      
+
+      val theTypeName = state.currentType.toString
 
       val initial = theTypeName match {
           case "int" => 0.toInt
@@ -456,8 +471,17 @@ object Executor {
         }
       case simple: IASTSimpleDeclaration =>
         if (direction == Entering) { 
-          state.currentType = simple.getDeclSpecifier
+          
+          
+          simple.getDeclarators.foreach { decl =>
+            val nameBinding = decl.getName.resolveBinding()
+      
+            if (nameBinding.isInstanceOf[IVariable]) {
+              state.currentType = resolveType(nameBinding.asInstanceOf[IVariable].getType)
+            }
+          }
           simple.getDeclarators
+          
         } else {
           state.currentType = null
           Seq()
