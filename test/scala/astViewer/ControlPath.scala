@@ -1,5 +1,121 @@
 package scala.astViewer
 
+class SwitchStatement extends StandardTest {
+  "A switch statement" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 2;
+        switch(x) {
+          case 3:
+            printf("1\n");
+            break;
+          case 2:
+            printf("3\n");
+            break;
+          default :
+            printf("2\n");
+            break;
+        }
+         
+        x = 3;
+        switch(x) {
+          case 3:
+            printf("1\n");
+            break;
+          case 2:
+            printf("3\n");
+            break;
+          default :
+            printf("2\n");
+            break;
+        }
+         
+      }"""
+
+    checkResults(code)
+  }
+  
+  "A switch statement with fallthrough" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 3;
+        switch(x) {
+          case 3:
+            printf("1\n");
+          case 2:
+            printf("3\n");
+          default :
+            printf("2\n");
+            break;
+        }
+      }"""
+
+    checkResults(code)
+  }
+  
+  "A switch statement hitting default value" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 300;
+        switch(x) {
+          case 3:
+            printf("1\n");
+            break;
+          case 2:
+            printf("3\n");
+            break;
+          default :
+            printf("2\n");
+            break;
+        }
+      }"""
+
+    checkResults(code)
+  }
+  
+  "A nested switch statement" should "print the correct results" in {
+    val code = """
+      void main() {
+         int a = 100;
+         int b = 200;
+       
+         switch(a) {
+            case 100: 
+               printf("1\n");
+               switch(b) {
+                  case 200:
+                     printf("2\n");
+               }
+            case 300:
+              printf("3\n");
+         }         
+      }"""
+
+    checkResults(code)
+  }
+  
+  "A nested switch statement 2" should "print the correct results" in {
+    val code = """
+      void main() {
+         int a = 300;
+         int b = 200;
+       
+         switch(a) {
+            case 100: 
+               printf("1\n");
+               switch(b) {
+                  case 200:
+                     printf("2\n");
+               }
+            case 300:
+              printf("3\n");
+         }         
+      }"""
+
+    checkResults(code)
+  }
+}
+
 class DoWhileStatement extends StandardTest {
   "A simple do..while statement" should "print the correct results" in {
     val code = """

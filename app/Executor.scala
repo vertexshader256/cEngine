@@ -8,6 +8,8 @@ import java.util.Formatter;
 import java.util.Locale;
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import org.eclipse.cdt.internal.core.dom.parser.c.CTypedef
+import org.eclipse.cdt.internal.core.dom.parser.c.CVariable
 
 class State {
   val stack = new Stack[Any]()
@@ -20,7 +22,7 @@ class State {
   var currentType: IASTDeclSpecifier = null
   
   // flags
-  var isBreaking = false;
+  var isBreaking = false
   var isPreprocessing = true
   
   var parsingAssignmentDest = false
@@ -186,10 +188,63 @@ class FunctionExecutionContext(globals: Seq[Variable]) {
 
 
 object Executor {
+  
+  // 'node' must be a IASTCaseStatement or a IASTDefaultStatement
+  def processSwitch(node: IASTNode): Seq[IASTNode] = {
+    val codeToRun = new ListBuffer[IASTNode]()
+
+      val siblings = node.getParent.getChildren
+      
+      var isSelfFound = false
+      siblings.foreach{ sib =>
+        if (sib == node) {
+          isSelfFound = true
+        } else if (isSelfFound && !sib.isInstanceOf[IASTCaseStatement]) {
+          codeToRun += sib
+        }
+      }
+      
+      codeToRun
+  }
+  
   def parseStatement(statement: IASTStatement, state: State, direction: Direction): Seq[IASTNode] = statement match {
     case breakStatement: IASTBreakStatement =>
       state.isBreaking = true
       Seq()
+    case switch: IASTSwitchStatement =>
+      val cases = switch.getBody.getChildren.collect{case x: IASTCaseStatement => x; case y: IASTDefaultStatement => y} 
+      if (direction == Entering) {       
+        Seq(switch.getControllerExpression) ++ cases // only process case and default statements
+      } else {
+        Seq()
+      }
+    case default: IASTDefaultStatement =>
+      if (direction == Exiting) {       
+        processSwitch(default)
+      } else {
+        Seq()
+      }
+    case caseStatement: IASTCaseStatement =>
+      if (direction == Entering) {
+        Seq(caseStatement.getExpression)
+      } else {
+       
+        val caseExpr = state.stack.pop
+        val switchExpr = state.stack.pop
+        
+        state.stack.push(switchExpr)
+        
+        val resolved = switchExpr match {
+          case VarRef(x) => state.vars.resolveId(x).value
+          case int: Int => int
+        }
+
+        if (caseExpr.asInstanceOf[Int] == resolved.asInstanceOf[Int]) {
+          processSwitch(caseStatement)
+        } else {
+          Seq()
+        }
+      }
     case doWhileLoop: IASTDoStatement =>
       if (direction == Entering) {
         Seq(doWhileLoop.getBody, doWhileLoop.getCondition)
@@ -468,14 +523,19 @@ class Executor(code: String) {
     def tick(): Unit = {
       direction = if (engineState.vars.visited.contains(current)) Exiting else Entering
 
-      val paths: Seq[IASTNode] = Executor.step(current, engineState, direction)   
+      //println(current.getClass.getSimpleName + ":" + direction)
+      
+      var paths: Seq[IASTNode] = Executor.step(current, engineState, direction)   
+      
+      val wasBreaking = engineState.isBreaking
       
       if (engineState.isBreaking) {
         // unroll the path stack until we meet the first parent which is a loop
         var reverse = pathStack.pop
-        while (!reverse.isInstanceOf[IASTWhileStatement] && !reverse.isInstanceOf[IASTWhileStatement]) {
+        while (!reverse.isInstanceOf[IASTWhileStatement] && !reverse.isInstanceOf[IASTWhileStatement] && !reverse.isInstanceOf[IASTSwitchStatement]) {
           reverse = pathStack.pop
         }
+
         engineState.isBreaking = false
       }
       
@@ -496,7 +556,6 @@ class Executor(code: String) {
     
     def runProgram() = {
       while (current != null) {
-       // println(current.getClass.getSimpleName + ":" + direction)
         tick()
       }
     }

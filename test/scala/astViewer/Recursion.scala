@@ -13,41 +13,9 @@ class Recursion extends StandardTest {
       }
 
       void main() {
-        printf("%d\n", sums(0));
+        printf("%d %d %d %d %d\n", sums(5), sums(4), sums(3), sums(2), sums(1));
       }"""
 
     checkResults(code)
-    
-    val code2 = """
-
-      int sums(int x) {
-         if (x > 0) {
-            return x + sums(x - 1);
-         } else {
-            return 0;
-         }
-      }
-
-      void main() {
-        printf("%d\n", sums(1));
-      }"""
-
-    checkResults(code2)
-    
-    val code3 = """
-
-      int sums(int x) {
-         if (x > 0) {
-            return x + sums(x - 1);
-         } else {
-            return 0;
-         }
-      }
-
-      void main() {
-        printf("%d\n", sums(5));
-      }"""
-
-    checkResults(code3)
   }
 }
