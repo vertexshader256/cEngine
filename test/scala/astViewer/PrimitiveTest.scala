@@ -5,7 +5,9 @@ class PrimitiveTest extends StandardTest {
 //    val code = """
 //      void main() {
 //        char x = 'd';
-//        printf("%c\n", x);
+//        int y = 16;
+//        char z = y;
+//        printf("%c %c\n", x, z);
 //      }"""
 //
 //    checkResults(code)

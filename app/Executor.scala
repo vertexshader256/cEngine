@@ -177,6 +177,10 @@ class FunctionExecutionContext(globals: Seq[Variable]) {
         val theArrayPtr = new Variable(stack, theName, "int", 1, true)
         theArrayPtr.setValue(theArray.address)
         theArrayPtr
+      case VarRef(variableName) =>
+        val newVar = new Variable(stack, theName, resolvedType, 1, isPointer)
+        newVar.setValue(resolveId(variableName).value)
+        newVar
       case _ =>
         val newVar = new Variable(stack, theName, resolvedType, 1, isPointer)
         newVar.setValue(theValue)

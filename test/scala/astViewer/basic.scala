@@ -18,6 +18,17 @@ class AssignmentTest extends StandardTest {
 
     checkResults(code)
   }
+  
+  "initialized by an assignment" should "print the correct results" in {
+    val code = """
+      void main() {
+        double x = 1;
+        double y = x;
+        printf("%f\n", x);
+      }"""
+
+    checkResults(code)
+  }
 }
 
 class HelloWorld extends StandardTest {

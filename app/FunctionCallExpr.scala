@@ -11,19 +11,19 @@ import java.util.Locale;
 import Functions._
 
 object FunctionCallExpr {
-  def parse(call: IASTFunctionCallExpression, direction: Direction, context: State, stack: State#VarStack): Seq[IASTNode] = {
+  def parse(call: IASTFunctionCallExpression, direction: Direction, state: State, stack: State#VarStack): Seq[IASTNode] = {
     if (direction == Exiting) {
         val name = call.getFunctionNameExpression match {
           case x: IASTIdExpression => x.getName.getRawSignature
           case _ => "Error"
         }
         
-        val argList = call.getArguments.map { arg => (arg, context.stack.pop) }
+        val argList = call.getArguments.map { arg => (arg, state.stack.pop) }
         
         val formattedOutputParams: Array[Any] = argList.map { case (arg, value) => 
           value match {
             case VarRef(name) => 
-              val theVar = context.vars.resolveId(name)
+              val theVar = state.vars.resolveId(name)
               if (theVar.isPointer) {
                 Address(theVar.value.asInstanceOf[Int])
               } else {
@@ -45,7 +45,7 @@ object FunctionCallExpr {
               case addy @ Address(address) =>
                 val typeName = stack.getType(addy)
                 typeName match {
-                  case "char" => 
+                  case "char" if state.rawDataStack.getSize(addy) > 1 => 
                     var current: Char = 0
                     var stringBuilder = new ListBuffer[Char]()
                     var i = 0
@@ -66,12 +66,12 @@ object FunctionCallExpr {
             }
           }
           
-          Functions.printf(context, resolved.map(_.asInstanceOf[Object]))
+          Functions.printf(state, resolved.map(_.asInstanceOf[Object]))
           Seq()
         } else {
           // load up the stack with the parameters
-          formattedOutputParams.reverse.foreach { arg => context.stack.push(arg)}
-          context.callFunction(call)
+          formattedOutputParams.reverse.foreach { arg => state.stack.push(arg)}
+          state.callFunction(call)
         }
 
       } else {
