@@ -23,6 +23,7 @@ class State {
   
   // flags
   var isBreaking = false
+  var isContinuing = false
   var isPreprocessing = true
   
   var parsingAssignmentDest = false
@@ -210,6 +211,9 @@ object Executor {
   def parseStatement(statement: IASTStatement, state: State, direction: Direction): Seq[IASTNode] = statement match {
     case breakStatement: IASTBreakStatement =>
       state.isBreaking = true
+      Seq()
+    case continueStatement: IASTContinueStatement =>
+      state.isContinuing = true
       Seq()
     case switch: IASTSwitchStatement =>
       val cases = switch.getBody.getChildren.collect{case x: IASTCaseStatement => x; case y: IASTDefaultStatement => y} 
@@ -551,16 +555,32 @@ class Executor(code: String) {
       
       var paths: Seq[IASTNode] = Executor.step(current, engineState, direction)   
       
-      val wasBreaking = engineState.isBreaking
-      
       if (engineState.isBreaking) {
         // unroll the path stack until we meet the first parent which is a loop
         var reverse = pathStack.pop
-        while (!reverse.isInstanceOf[IASTWhileStatement] && !reverse.isInstanceOf[IASTWhileStatement] && !reverse.isInstanceOf[IASTSwitchStatement]) {
+        while (!reverse.isInstanceOf[IASTWhileStatement] && !reverse.isInstanceOf[IASTForStatement] && !reverse.isInstanceOf[IASTSwitchStatement]) {
           reverse = pathStack.pop
         }
 
         engineState.isBreaking = false
+      }
+      
+      if (engineState.isContinuing) {
+        // unroll the path stack until we meet the first parent which is a loop
+        
+        var last: IASTNode = null
+        last = pathStack.pop
+        while (!last.isInstanceOf[IASTForStatement]) {
+          last = pathStack.pop
+        }
+        
+        val forLoop = last.asInstanceOf[IASTForStatement]
+        
+        pathStack.push(forLoop)
+        pathStack.push(forLoop.getConditionExpression)
+        pathStack.push(forLoop.getIterationExpression) 
+
+        engineState.isContinuing = false
       }
       
       if (direction == Exiting) {
