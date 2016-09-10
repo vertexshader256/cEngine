@@ -42,22 +42,6 @@ object Utils {
     results
   }
 
-  def findVariable(scope: IScope, name: String, tUnit: IASTTranslationUnit): Option[IVariable] = {
-    var currentScope = scope
-
-    val scopeLookup = new IScope.ScopeLookupData(name.toCharArray, tUnit)
-
-    while (currentScope != null && currentScope.getBindings(scopeLookup).isEmpty) {
-      currentScope = currentScope.getParent
-    }
-
-    if (currentScope == null) {
-      None
-    } else {
-      Some(currentScope.getBindings(scopeLookup).head.asInstanceOf[IVariable])
-    }
-  }
-
   def getTranslationUnit(code: String): IASTTranslationUnit = {
     val fileContent = FileContent.create("test", code.toCharArray)
     val symbolMap = new HashMap[String, String];
@@ -70,42 +54,5 @@ object Utils {
     val includes = IncludeFileContentProvider.getEmptyFilesProvider
 
     GCCLanguage.getDefault().getASTTranslationUnit(fileContent, info, includes, null, opts, log)
-  }
-
-  def getPath(tUnit: IASTNode): Seq[Path] = {
-
-    var index = 0
-
-    def getDescendants(node: IASTNode): Seq[IASTNode] = {
-      node.getChildren.flatMap(x => x +: getDescendants(x))
-    }
-
-    def recurse(node: IASTNode): Seq[Path] = {
-      val children = node.getChildren
-
-      val start = Seq(Path(node, Entering, index))
-      index += 1
-      val result = start ++ children.flatMap { child =>
-        val descendants = getDescendants(child)
-
-        if (descendants.size == child.getChildren.size && !child.getChildren.isEmpty) {
-          val node = Seq(Path(child, Visiting, index))
-          index += 1
-          node
-        } else if (descendants.size > 1) {
-          recurse(child)
-        } else {
-          Seq()
-        }
-      } ++ Seq(Path(node, Exiting, index))
-      index += 1
-      result
-    }
-
-    val result = recurse(tUnit)
-
-    //result.foreach(println)
-
-    result
   }
 }

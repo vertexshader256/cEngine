@@ -95,7 +95,8 @@ object AstUtils {
       } else {
         node.getChildren.map { child =>
           Json.obj(
-            "name" -> getLabel(child),
+            "label" -> getLabel(child),
+            "id" -> child.hashCode,
             "type" -> child.getClass.getSimpleName,
             "children" -> recurse(child),
             "offset" -> (if (child.getFileLocation != null) child.getFileLocation.getNodeOffset else 0),
@@ -106,7 +107,8 @@ object AstUtils {
     }
 
     Json.obj(
-      "name" -> getLabel(node),
+      "label" -> getLabel(node),
+      "id" -> node.hashCode,
       "type" -> node.getClass.getSimpleName,
       "children" -> recurse(node),
       "offset" -> (if (node.getFileLocation != null) node.getFileLocation.getNodeOffset else 0),
@@ -119,22 +121,87 @@ object AstUtils {
 
 }
 
+ import play.api.mvc._
+  import akka.stream.scaladsl._
+  import akka.actor._
+  import play.api.libs.streams.ActorFlow
+  import akka.actor.ActorSystem
+  import akka.stream.Materializer
+import akka.actor._
+import akka.stream._
+import play.api.libs.ws.ahc._
+  
+ 
+  
 class AppLoader extends ApplicationLoader {
 
-  
+ 
 
+  var executor: Executor = null
+  
+ class AkkaWebSockets(implicit system: ActorSystem, mat: Materializer) extends Controller {
+
+    object MyWebSocketActor {
+      def props(out: ActorRef) = Props(new MyWebSocketActor(out))
+    }
+    
+    class MyWebSocketActor(out: ActorRef) extends Actor {
+      def receive = {
+        case msg: String =>
+          if (msg == "Step") {
+            executor.tick()
+            out ! ("Step Response:" + executor.current.hashCode)
+          } else {
+            out ! ("Unexpected request: " + msg)
+          }
+          
+      }
+    }
+     
+    def socket = WebSocket.accept[String, String] { request =>
+      ActorFlow.actorRef { out =>
+        MyWebSocketActor.props(out)
+      }
+    }
+  } 
+  
+  implicit val system = ActorSystem()
+  implicit val materializer = ActorMaterializer()
+   
+  val app = new AkkaWebSockets()
+  
+  
+  
+//  def socket =  WebSocket.accept[String, String] { request =>
+//
+//    var response: String = "Hello!"
+//    
+//    val in = Sink.foreach[String]{ msg =>
+//      println(msg)
+//      if (msg == "Step") {
+//        println("ticking")
+//        executor.tick()
+//        println("CURRENT: " + executor.current)
+//        response = "Step Response: " + executor.current.hashCode
+//      } else {
+//        println("NOT STEP")
+//        response = "Unknown: " + msg
+//      }
+//    }
+//
+//    // Send a single 'Hello!' message and then leave the socket open
+//    val out = Source.single("Step Response: 123").concat(Source.maybe)
+//  
+//    Flow.fromSinkAndSource(in, out)
+//  }
+  
   // Entry point!
   def load(context: Context) = new BuiltInComponentsFromContext(context) {
 
     val router = Router.from {
-
-      // scripts
-      case GET(p"/js/webgldev/$file*") => Action.async {
-        println("-------------------------------------------------")
-        Future {
-            Ok.sendFile(new java.io.File(s"./app/views/Application/$file"))
-        }
-      }
+      
+      case GET(p"/websocket") =>
+        app.socket
 
       case GET(p"/js/$file*") => Action.async {
         Future {
@@ -152,16 +219,10 @@ class AppLoader extends ApplicationLoader {
       case GET(p"/getAst" ? q"code=$code" ? q"height=${int(height)}" ? q"width=${int(width)}") => Action.async {
         println("GETTING AST")
         Future {
-          val tUnit = Utils.getTranslationUnit(code)
-          
-          Ok(AstUtils.getAllChildren(tUnit))
-        }
-      }
 
-      // images
-      case GET(p"/img/$file*") => Action.async {
-        Future {
-          Ok.sendFile(new java.io.File(s"./public/img/$file"))
+          executor = new Executor(code)
+          
+          Ok(AstUtils.getAllChildren(executor.tUnit))
         }
       }
 

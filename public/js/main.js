@@ -15,6 +15,8 @@ var currentNodesToUnfold = [root];
 var elapsedTimer = 2000;
 var isFirst = true;
 var isFirst = true;
+var socket;
+
 
 $(document).ready(function() {
     editor = ace.edit("editor");
@@ -49,21 +51,18 @@ function initNode(node) {
     node.y = h / 2 - 80;
     node.isClicked = false;
     node.growthSpeed = Math.floor((Math.random() * 4) + 1);
-}
-
-// Color leaf nodes orange, and packages white or blue.
-function color(d) {
-  if (d == root) {
-    return "#ff0000"
-  } else if (d.type == "CASTBinaryExpression") {
-	return "#00FF00"
-  } else if (d._children.length > 0) {
-    return "#3182bd";
-  } else if (d.children.length > 0) {
-    return "#c6dbef";
-  } else {
-    return "#fd8d3c";
-  }
+    
+    if (node == root) {
+	    node.color = "#ff0000"
+	} else if (node.type == "CASTBinaryExpression") {
+		node.color = "#00FF00"
+	} else if (node._children.length > 0) {
+		node.color = "#3182bd";
+	} else if (node.children.length > 0) {
+		node.color = "#c6dbef";
+	} else {
+		node.color = "#fd8d3c";
+	}
 }
 
 function openNode(d) {
@@ -340,6 +339,7 @@ function update() {
   // Enter any new nodes.
   node.append("circle")
       .attr("class", "node")
+      .attr("id", function(d) { return d.id; })
       .style('r', 0.0)
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
@@ -354,23 +354,49 @@ function update() {
       .style('r', 6.0)
       .style('stroke-width', 3)
       .style('stroke', '#000000')
-      .style("fill", color);
+      .style("fill", function(d) { return d.color; });
 
   node.append("text")
+      .attr("class", "textClass")
       .attr("dx", 10)
       .attr("dy", ".35em")
       .style("opacity", 0.0)
-      .text(function(d) { return d.name; })
+      .text(function(d) { return d.label; })
       .transition()
       .duration(350)
       .style('opacity', 1.0);
+  
+  vis.selectAll("circle.node").style("fill", function(d) { return d.color; });
 
   // Exit any old nodes.
   newNodes.exit().remove();
 
 }
 
+function step() {
+	socket.send("Step")
+}
+
 function submitCode() {
+	
+	socket = new WebSocket("ws://localhost:81/websocket");
+
+    socket.onopen = function(){
+    	alert("Socket has been opened!");
+    }
+
+    socket.onmessage = function(msg){
+    	var data = event.data
+    	if (data.toString().startsWith("Step Response:")) {
+    		var id = parseInt(data.toString().split(":")[1]);
+    		flatten(root).forEach(function(node) {
+    			if (node.id.toString() == id.toString()) {
+    			  node.color = "#0000FF";
+    			}
+    		});
+    	}
+    }
+	
     $.getJSON("getAst",
         {
           code: editor.getValue(),

@@ -548,90 +548,83 @@ class Executor(code: String) {
    
   val tUnit = Utils.getTranslationUnit(code)
   val engineState = new State
-
-  def execute = {
-    
-    val pathStack = new Stack[IASTNode]()
+  val pathStack = new Stack[IASTNode]()
+  var current: IASTNode = null
+  var direction: Direction = Entering 
   
-    var current: IASTNode = null
-    var direction: Direction = Entering
+  current = tUnit
+    
+  engineState.executionContext.push(new FunctionExecutionContext(null)) // load initial stack
+  engineState.vars = engineState.executionContext.head
 
-    def tick(): Unit = {
-      direction = if (engineState.vars.visited.contains(current)) Exiting else Entering
+  execute()
+  engineState.isPreprocessing = false
+  engineState.stack.clear
+  
+  println("_----------------------------------------------_")
+  
+  engineState.globals ++= engineState.vars.variables
+  
+  engineState.executionContext.clear
+  engineState.executionContext.push(new FunctionExecutionContext(engineState.globals)) // load initial stack
+  engineState.vars = engineState.executionContext.head
+  pathStack.clear
+  pathStack.push(engineState.functionMap("main"))
+  current = pathStack.head
+  
+  def tick(): Unit = {
+    direction = if (engineState.vars.visited.contains(current)) Exiting else Entering
 
-      //println(current.getClass.getSimpleName + ":" + direction)
-      
-      var paths: Seq[IASTNode] = Executor.step(current, engineState, direction)   
-      
-      if (engineState.isBreaking) {
-        // unroll the path stack until we meet the first parent which is a loop
-        var reverse = pathStack.pop
-        while (!reverse.isInstanceOf[IASTWhileStatement] && !reverse.isInstanceOf[IASTForStatement] && !reverse.isInstanceOf[IASTSwitchStatement]) {
-          reverse = pathStack.pop
-        }
-
-        engineState.isBreaking = false
+    //println(current.getClass.getSimpleName + ":" + direction)
+    
+    var paths: Seq[IASTNode] = Executor.step(current, engineState, direction)   
+    
+    if (engineState.isBreaking) {
+      // unroll the path stack until we meet the first parent which is a loop
+      var reverse = pathStack.pop
+      while (!reverse.isInstanceOf[IASTWhileStatement] && !reverse.isInstanceOf[IASTForStatement] && !reverse.isInstanceOf[IASTSwitchStatement]) {
+        reverse = pathStack.pop
       }
+
+      engineState.isBreaking = false
+    }
+    
+    if (engineState.isContinuing) {
+      // unroll the path stack until we meet the first parent which is a loop
       
-      if (engineState.isContinuing) {
-        // unroll the path stack until we meet the first parent which is a loop
-        
-        var last: IASTNode = null
+      var last: IASTNode = null
+      last = pathStack.pop
+      while (!last.isInstanceOf[IASTForStatement]) {
         last = pathStack.pop
-        while (!last.isInstanceOf[IASTForStatement]) {
-          last = pathStack.pop
-        }
-        
-        val forLoop = last.asInstanceOf[IASTForStatement]
-        
-        pathStack.push(forLoop)
-        pathStack.push(forLoop.getConditionExpression)
-        pathStack.push(forLoop.getIterationExpression) 
+      }
+      
+      val forLoop = last.asInstanceOf[IASTForStatement]
+      
+      pathStack.push(forLoop)
+      pathStack.push(forLoop.getConditionExpression)
+      pathStack.push(forLoop.getIterationExpression) 
 
-        engineState.isContinuing = false
-      }
-      
-      if (direction == Exiting) {
-        pathStack.pop
-      } else {
-        engineState.vars.visited += current
-      }
-      
-      paths.reverse.foreach{path => pathStack.push(path)}
-      
-      if (!pathStack.isEmpty) {
-        current = pathStack.head
-      } else {
-        current = null
-      }
+      engineState.isContinuing = false
     }
     
-    def runProgram() = {
-      while (current != null) {
-        tick()
-      }
+    if (direction == Exiting) {
+      pathStack.pop
+    } else {
+      engineState.vars.visited += current
     }
     
-    current = tUnit
+    paths.reverse.foreach{path => pathStack.push(path)}
     
-    engineState.executionContext.push(new FunctionExecutionContext(null)) // load initial stack
-    engineState.vars = engineState.executionContext.head
+    if (!pathStack.isEmpty) {
+      current = pathStack.head
+    } else {
+      current = null
+    }
+  }
 
-    runProgram()
-    engineState.isPreprocessing = false
-    engineState.stack.clear
-    
-    println("_----------------------------------------------_")
-    
-    engineState.globals ++= engineState.vars.variables
-    
-    engineState.executionContext.clear
-    engineState.executionContext.push(new FunctionExecutionContext(engineState.globals)) // load initial stack
-    engineState.vars = engineState.executionContext.head
-    pathStack.clear
-    pathStack.push(engineState.functionMap("main"))
-    current = pathStack.head
-
-    runProgram()
+  def execute() = {
+    while (current != null) {
+      tick()
+    }
   }
 }
