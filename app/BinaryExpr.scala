@@ -134,6 +134,17 @@ object BinaryExpr {
           case (x: Int, y: Double) => x < y
           case (x: Double, y: Double) => x < y
         }
+      case `op_modulo` =>
+        (op1, op2) match {
+          case (x: Int, y: Int) => x % y
+          case (x: Double, y: Int) => x % y
+          case (x: Int, y: Double) => x % y
+          case (x: Double, y: Double) => x % y
+        } 
+      case `op_binaryOr` =>
+        (op1, op2) match {
+          case (x: Int, y: Int) => x | y
+        }  
       case `op_plusAssign` =>
         op1 match {
           case VarRef(name) => 

@@ -78,6 +78,8 @@ class State {
       
       typeName match {
         case "int" => data.getInt(address)
+        case "short int" => data.getShort(address)
+        case "unsigned int" => data.getInt(address)
         case "double" => data.getDouble(address)
         case "char" => data.getChar(address).toInt.toChar
       }
@@ -99,6 +101,8 @@ object TypeHelper {
   val sizeof = new PartialFunction[String, Int] {
     def apply(typeName: String) = typeName match {
         case "int" => 4
+        case "unsigned int" => 4
+        case "short int" => 2
         case "double" => 8
         case "float" => 4
         case "bool" => 4
@@ -374,15 +378,15 @@ object Executor {
     
     if (direction == Exiting && nameBinding.isInstanceOf[IVariable]) {
       state.stack.push(decl.getName.getRawSignature)
-      
-      
 
       val theTypeName = state.currentType.toString
 
       val initial = theTypeName match {
           case "int" => 0.toInt
+          case "unsigned int" => 0.toInt
           case "double" => 0.0.toDouble
           case "char" => 0.toChar
+          case "short int" => 0.toShort
           case _ => throw new Exception("No match for " + theTypeName)
       }
       

@@ -149,7 +149,13 @@ object Expressions {
         } else {
           context.currentType.toString match {
             case "double" => context.stack.push(lit.getRawSignature.toDouble)
-            case "int" => context.stack.push(lit.getRawSignature.toInt)
+            case "int" => 
+              val literal = lit.getRawSignature
+              context.stack.push(if (literal.startsWith("0x")) {
+                Integer.parseInt(literal.drop(2), 16);  
+              } else {
+                literal.toInt
+              })
             case "float" => context.stack.push(lit.getRawSignature.toFloat)
             case _ => context.stack.push(castLiteral(lit))
           }

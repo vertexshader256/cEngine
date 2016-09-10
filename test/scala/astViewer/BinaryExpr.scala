@@ -92,8 +92,10 @@ class BinaryExpr extends StandardTest {
     val code = """
       void main() {
         int x = 0;
+        double y = 5;
         x += 1;
-        printf("%d\n", x);
+        y += 1.5;
+        printf("%d %f\n", x, y);
       }"""
 
     checkResults(code)
@@ -103,20 +105,13 @@ class BinaryExpr extends StandardTest {
     val code = """
       void main() {
         int x = 5;
+        double y = 5;
         x -= 2;
-        printf("%d\n", x);
+        y -= 2.0;
+        printf("%d %f\n", x, y);
       }"""
 
     checkResults(code)
-    
-    val code2 = """
-      void main() {
-        double x = 5;
-        x -= 2.0;
-        printf("%f\n", x);
-      }"""
-
-    checkResults(code2)
   }
   
   "A more complex decrement test" should "print the correct results" in {
@@ -125,6 +120,27 @@ class BinaryExpr extends StandardTest {
         int x = 5;
         x -= (x * 4) / 2 + (2 + x) * 2;
         printf("%d\n", x);
+      }"""
+
+    checkResults(code)
+  }
+  
+   
+  "A modulus test" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 20;
+        printf("%d %d %d\n", 10 % 2, x % 10, 10 % x);
+      }"""
+
+    checkResults(code)
+  }
+  
+  "A binary OR test" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 2147483647;
+        printf("%d %d\n", 10 | 2, 1 | x);
       }"""
 
     checkResults(code)
