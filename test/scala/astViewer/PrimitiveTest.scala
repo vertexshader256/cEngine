@@ -43,4 +43,67 @@ class PrimitiveTest extends StandardTest {
 
     checkResults(code)
   }
+  
+  "unsigned int prints from hex" should "print the correct results" in {
+    val code = """
+
+      const unsigned int prime = 0x01000193; //   16777619
+      const unsigned int seed  = 0x811C9DC5; // 2166136261
+
+      void main()
+      {
+        printf("%d %d\n", prime, seed);
+        return 0;
+      }
+      """
+
+    checkResults(code)
+  } 
+  
+  "unsigned char test" should "print the correct results" in {
+    val code = """
+
+      int test(unsigned char oneByte)
+      {
+        return oneByte;
+      }
+  
+      void main()
+      {
+        printf("%d\n", test(176));
+        return 0;
+      }
+      """
+
+    checkResults(code)
+  } 
+  
+  "unsigned types as function arguments" should "print the correct results" in {
+    val code = """
+
+      int intTest(unsigned int data)
+      {
+        return data;
+      }
+      
+      int shortTest(unsigned short data)
+      {
+        return data;
+      }
+      
+//     still failing      
+//      short shortTest(unsigned short data)
+//      {
+//        return data;
+//      }
+  
+      void main()
+      {
+        printf("%d %d\n", intTest(4294967241), shortTest(4294967241));
+        return 0;
+      }
+      """
+
+    checkResults(code)
+  } 
 }

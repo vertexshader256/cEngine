@@ -33,6 +33,8 @@ object FunctionCallExpr {
               address
             case str: String => str
             case int: Int => int
+            case short: Short => short
+            case long: Long => long
             case doub: Double => doub
             case char: Char => char.toInt.toByte
           }

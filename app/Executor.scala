@@ -77,16 +77,18 @@ class State {
       val typeName = getType(Address(address))
       
       typeName match {
-        case "int" => data.getInt(address)
+        case "int" | "unsigned int" => data.getInt(address)
         case "short int" => data.getShort(address)
-        case "unsigned int" => data.getInt(address)
+        case "unsigned short" => data.getShort(address) & 0xFFFF
         case "double" => data.getDouble(address)
-        case "char" => data.getChar(address).toInt.toChar
+        case "char" => data.getChar(address)
+        case "unsigned char" => data.getChar(address) & 0xFF
       }
     }
     
     // use Address type to prevent messing up argument order
     def setValue(newVal: Any, address: Address): Unit = newVal match {
+      case newVal: Long => data.putInt(address.address, newVal.toInt) // BUG - dealing with unsigned int
       case newVal: Int => data.putInt(address.address, newVal)
       case newVal: Double => data.putDouble(address.address, newVal)
       case newVal: Char => data.putChar(address.address, newVal)
@@ -98,21 +100,15 @@ class State {
 case class Address(address: Int)
 
 object TypeHelper {
-  val sizeof = new PartialFunction[String, Int] {
-    def apply(typeName: String) = typeName match {
-        case "int" => 4
-        case "unsigned int" => 4
-        case "short int" => 2
-        case "double" => 8
-        case "float" => 4
-        case "bool" => 4
-        case "char" => 1
-      }
-    def isDefinedAt(typeName: String) = Seq("int", "double", "float", "bool", "char").contains(typeName)
+  def sizeof(typeName: String) = typeName match {
+    case "int" | "unsigned int" => 4
+    case "short int" | "unsigned short" => 2
+    case "double" => 8
+    case "float" => 4
+    case "bool" => 4
+    case "char" | "unsigned char" => 1
   }
 }
-
-
 
 protected class Variable(stack: State#VarStack, val name: String, val typeName: String, val numElements: Int, val isPointer: Boolean) {
   
@@ -135,6 +131,7 @@ protected class Variable(stack: State#VarStack, val name: String, val typeName: 
   
   def setValue(newVal: Any): Unit = newVal match {
     case newVal: Int => stack.setValue(newVal, address)
+    case newVal: Long => stack.setValue(newVal, address)
     case newVal: Double => stack.setValue(newVal, address)
     case newVal: Char => stack.setValue(newVal, address)
     case newVal: Boolean => stack.setValue(if (newVal) 1 else 0, address)
@@ -367,10 +364,11 @@ object Executor {
   }
   
   def resolveType(theType: IType): IType = theType match {
+    case basicType: IBasicType => basicType
     case typedef: ITypedef => resolveType(typedef.getType)
     case ptrType: IPointerType => resolveType(ptrType.getType)
     case arrayType: IArrayType => resolveType(arrayType.getType)
-    case x => x
+    case qualType: IQualifierType => resolveType(qualType.getType)
   }
   
   def parseDeclarator(decl: IASTDeclarator, direction: Direction, state: State): Seq[IASTNode] = {

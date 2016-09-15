@@ -145,6 +145,12 @@ object BinaryExpr {
         (op1, op2) match {
           case (x: Int, y: Int) => x | y
         }  
+      case `op_binaryXor` =>
+        (op1, op2) match {
+          case (x: Int, y: Int) => x ^ y
+          case (x: Char, y: Int) => x ^ y
+          case (x: Int, y: Char) => x ^ y
+        }   
       case `op_plusAssign` =>
         op1 match {
           case VarRef(name) => 

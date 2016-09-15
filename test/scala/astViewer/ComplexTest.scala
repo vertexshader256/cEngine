@@ -40,7 +40,7 @@ class ComplexTest extends StandardTest {
 //  
 //      void main()
 //      {
-//        printf("fnv1a result %d\n", fnv1a(632478, Seed));
+//        printf("fnv1a result %d\n", fnv1a(10, Seed));
 //        return 0;
 //      }
 //      """

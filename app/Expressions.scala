@@ -6,11 +6,13 @@ import scala.collection.mutable.{ListBuffer, Stack}
 import scala.util.control.Exception.allCatch
 import java.util.Formatter;
 import java.util.Locale;
+import java.math.BigInteger
 
 object Expressions {
   
   private def castLiteral(lit: IASTLiteralExpression): Any = {
     
+    def isIntNumber(s: String): Boolean = (allCatch opt s.toInt).isDefined
     def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
     def isDoubleNumber(s: String): Boolean = (allCatch opt s.toDouble).isDefined
     
@@ -20,8 +22,10 @@ object Expressions {
       string
     } else if (string.head == '\'' && string.last == '\'' && string.length == 3) {
       string.toCharArray.apply(1)
-    } else if (isLongNumber(string)) {
+    } else if (isIntNumber(string)) {
       string.toInt
+    } else if (isLongNumber(string)) {
+      string.toLong
     } else {
       string.toDouble
     }
@@ -147,12 +151,14 @@ object Expressions {
         } else if (context.currentType == null) {
           context.stack.push(castLiteral(lit))
         } else {
+          println(context.currentType.toString)
           context.currentType.toString match {
             case "double" => context.stack.push(lit.getRawSignature.toDouble)
-            case "int" => 
+            case "int" | "unsigned int" => 
               val literal = lit.getRawSignature
-              context.stack.push(if (literal.startsWith("0x")) {
-                Integer.parseInt(literal.drop(2), 16);  
+              context.stack.push(if (literal.startsWith("0x")) { 
+                val bigInt = new BigInteger(literal.drop(2), 16);
+                bigInt.intValue
               } else {
                 literal.toInt
               })
