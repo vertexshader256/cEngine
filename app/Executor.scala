@@ -8,8 +8,7 @@ import java.util.Formatter;
 import java.util.Locale;
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import org.eclipse.cdt.internal.core.dom.parser.c.CTypedef
-import org.eclipse.cdt.internal.core.dom.parser.c.CVariable
+import org.eclipse.cdt.internal.core.dom.parser.c._
 
 class State {
   val stack = new Stack[Any]()
@@ -78,8 +77,8 @@ class State {
       
       typeName match {
         case "int" | "unsigned int" => data.getInt(address)
-        case "short int" => data.getShort(address)
-        case "unsigned short" => data.getShort(address) & 0xFFFF
+        case "short int"  => data.getShort(address)
+        case "unsigned short" | "unsigned short int" => data.getShort(address) & 0xFFFF
         case "double" => data.getDouble(address)
         case "char" => data.getChar(address)
         case "unsigned char" => data.getChar(address) & 0xFF
@@ -102,7 +101,7 @@ case class Address(address: Int)
 object TypeHelper {
   def sizeof(typeName: String) = typeName match {
     case "int" | "unsigned int" => 4
-    case "short int" | "unsigned short" => 2
+    case "short int" | "unsigned short" | "unsigned short int" => 2
     case "double" => 8
     case "float" => 4
     case "bool" => 4
@@ -164,12 +163,14 @@ class FunctionExecutionContext(globals: Seq[Variable]) {
   val visited = new ListBuffer[IASTNode]()
   val variables: ListBuffer[Variable] = ListBuffer[Variable]() ++ (if (globals == null) Seq() else globals)
 
-  def addVariable(stack: State#VarStack, theName: String, theValue: Any, theTypeName: String, isPointer: Boolean) = {
+  def addVariable(stack: State#VarStack, theName: String, theValue: Any, theType: IType, isPointer: Boolean): Variable = {
     
-    val resolvedType = if (isPointer) "int" else theTypeName
+    val typeName = theType.toString
+    
+    val resolvedType = if (isPointer) "int" else typeName
     val newVar = theValue match {
       case array: Array[_] =>
-        val theArray = new Variable(stack, theName + "_array", theTypeName, array.length, false)
+        val theArray = new Variable(stack, theName + "_array", typeName, array.length, false)
         theArray.setValue(theValue)
         val theArrayPtr = new Variable(stack, theName, "int", 1, true)
         theArrayPtr.setValue(theArray.address)
@@ -185,6 +186,7 @@ class FunctionExecutionContext(globals: Seq[Variable]) {
     }
     
     variables += newVar
+    newVar
   }
 
   def resolveId(id: String): Variable = {
@@ -365,6 +367,7 @@ object Executor {
   
   def resolveType(theType: IType): IType = theType match {
     case basicType: IBasicType => basicType
+    case struct: CStructure => struct
     case typedef: ITypedef => resolveType(typedef.getType)
     case ptrType: IPointerType => resolveType(ptrType.getType)
     case arrayType: IArrayType => resolveType(arrayType.getType)
@@ -381,15 +384,13 @@ object Executor {
     if (direction == Exiting && nameBinding.isInstanceOf[IVariable]) {
       state.stack.push(decl.getName.getRawSignature)
 
-      val theTypeName = state.currentType.toString
-
-      val initial = theTypeName match {
+      val initial = state.currentType.toString match {
           case "int" => 0.toInt
           case "unsigned int" => 0.toInt
           case "double" => 0.0.toDouble
           case "char" => 0.toChar
           case "short int" => 0.toShort
-          case _ => throw new Exception("No match for " + theTypeName)
+          case _ => throw new Exception("No match for " + state.currentType.toString)
       }
       
       if (decl.isInstanceOf[IASTArrayDeclarator]) {
@@ -406,10 +407,10 @@ object Executor {
                 initialArray(i) = newInit
               }
             }
-            state.vars.addVariable(state.rawDataStack, name, initialArray, theTypeName, false)
+            state.vars.addVariable(state.rawDataStack, name, initialArray, state.currentType, false)
           case initString: String =>
             val initialArray = Utils.stripQuotes(initString).toCharArray() :+ 0.toChar // terminating null char
-            state.vars.addVariable(state.rawDataStack, name, initialArray, theTypeName, false)
+            state.vars.addVariable(state.rawDataStack, name, initialArray, state.currentType, false)
         }
       } else {   
         
@@ -418,16 +419,16 @@ object Executor {
         if (!decl.getPointerOperators.isEmpty) {
           if (!state.stack.isEmpty) {
             val initVal = state.stack.pop
-            state.vars.addVariable(state.rawDataStack, name, initVal, theTypeName, true)
+            state.vars.addVariable(state.rawDataStack, name, initVal, state.currentType, true)
           } else {
-            state.vars.addVariable(state.rawDataStack, name, 0, theTypeName, true)
+            state.vars.addVariable(state.rawDataStack, name, 0, state.currentType, true)
           }
         } else {
           if (!state.stack.isEmpty) {
             // initial value is on the stack, set it
-            state.vars.addVariable(state.rawDataStack, name, state.stack.pop, theTypeName, false)
+            state.vars.addVariable(state.rawDataStack, name, state.stack.pop, state.currentType, false)
           } else {
-            state.vars.addVariable(state.rawDataStack, name, initial, theTypeName, false)
+            state.vars.addVariable(state.rawDataStack, name, initial, state.currentType, false)
           }
         }
       }
@@ -464,10 +465,13 @@ object Executor {
       case param: IASTParameterDeclaration =>
         if (direction == Exiting) {
           val arg = state.stack.pop
+          
+          val paramInfo = param.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
+
           if (!param.getDeclarator.getPointerOperators.isEmpty) {
-             state.vars.addVariable(state.rawDataStack, param.getDeclarator.getName.getRawSignature, arg.asInstanceOf[Address], param.getDeclSpecifier.getRawSignature, true)
+             state.vars.addVariable(state.rawDataStack, param.getDeclarator.getName.getRawSignature, arg.asInstanceOf[Address], paramInfo.getType, true)
           } else {
-             state.vars.addVariable(state.rawDataStack, param.getDeclarator.getName.getRawSignature, arg, param.getDeclSpecifier.getRawSignature, false)
+             state.vars.addVariable(state.rawDataStack, param.getDeclarator.getName.getRawSignature, arg, paramInfo.getType, false)
           }
           Seq()
         } else {
