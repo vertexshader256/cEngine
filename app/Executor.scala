@@ -109,9 +109,21 @@ object TypeHelper {
   }
 }
 
-protected class Variable(stack: State#VarStack, val name: String, val typeName: String, val numElements: Int, val isPointer: Boolean) {
+protected class Variable(stack: State#VarStack, val name: String, val theType: IType, val numElements: Int, val isPointer: Boolean) {
   
-  val address: Address = stack.allocateSpace(typeName, numElements)
+  val typeName = theType.toString
+  
+  val address: Address = if (isPointer) {
+    stack.allocateSpace("int", numElements)
+  } else {
+    stack.allocateSpace(typeName, numElements)
+  }
+  
+  val size = if (isPointer) {
+    4
+  } else {
+    TypeHelper.sizeof(typeName)
+  }
   
   def value: Any = {
     stack.readVal(address.address)
@@ -121,7 +133,7 @@ protected class Variable(stack: State#VarStack, val name: String, val typeName: 
     var i = 0
     (0 until numElements).map{ element => 
       val result = stack.readVal(address.address + i)
-      i += TypeHelper.sizeof(typeName)
+      i += size
       result
     }.toArray
   }
@@ -139,12 +151,12 @@ protected class Variable(stack: State#VarStack, val name: String, val typeName: 
       var i = 0
       array.foreach{element =>  
         stack.setValue(element, Address(address.address + i))
-        i += TypeHelper.sizeof(typeName)
+        i += size
       }
   }
   
   def setArrayValue(value: Any, index: Int) = {
-    stack.setValue(value, Address(address.address + index * TypeHelper.sizeof(typeName)))
+    stack.setValue(value, Address(address.address + index * size))
   }
   
   def sizeof: Int = {  
@@ -167,20 +179,19 @@ class FunctionExecutionContext(globals: Seq[Variable]) {
     
     val typeName = theType.toString
     
-    val resolvedType = if (isPointer) "int" else typeName
     val newVar = theValue match {
       case array: Array[_] =>
-        val theArray = new Variable(stack, theName + "_array", typeName, array.length, false)
+        val theArray = new Variable(stack, theName + "_array", theType, array.length, false)
         theArray.setValue(theValue)
-        val theArrayPtr = new Variable(stack, theName, "int", 1, true)
+        val theArrayPtr = new Variable(stack, theName, theType, 1, true)
         theArrayPtr.setValue(theArray.address)
         theArrayPtr
       case VarRef(variableName) =>
-        val newVar = new Variable(stack, theName, resolvedType, 1, isPointer)
+        val newVar = new Variable(stack, theName, theType, 1, isPointer)
         newVar.setValue(resolveId(variableName).value)
         newVar
       case _ =>
-        val newVar = new Variable(stack, theName, resolvedType, 1, isPointer)
+        val newVar = new Variable(stack, theName, theType, 1, isPointer)
         newVar.setValue(theValue)
         newVar
     }
