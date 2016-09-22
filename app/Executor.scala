@@ -109,9 +109,22 @@ object TypeHelper {
   }
 }
 
+object TypeResolver {
+   def resolve(theType: IType): IType = theType match {
+    case basicType: IBasicType => basicType
+    case struct: CStructure => struct
+    case typedef: ITypedef => resolve(typedef.getType)
+    case ptrType: IPointerType => resolve(ptrType.getType)
+    case arrayType: IArrayType => resolve(arrayType.getType)
+    case qualType: IQualifierType => resolve(qualType.getType)
+  }
+}
+
 protected class Variable(stack: State#VarStack, val name: String, val theType: IType, val numElements: Int, val isPointer: Boolean) {
   
-  val typeName = theType.toString
+  val typeName = TypeResolver.resolve(theType).toString
+  
+  println("THE TYPE: " + theType.getClass.getSimpleName + ":" + typeName)
   
   val address: Address = if (isPointer) {
     stack.allocateSpace("int", numElements)
@@ -178,6 +191,8 @@ class FunctionExecutionContext(globals: Seq[Variable]) {
   def addVariable(stack: State#VarStack, theName: String, theValue: Any, theType: IType, isPointer: Boolean): Variable = {
     
     val typeName = theType.toString
+    
+    println(theType.getClass.getSimpleName)
     
     val newVar = theValue match {
       case array: Array[_] =>
@@ -376,26 +391,19 @@ object Executor {
       }
   }
   
-  def resolveType(theType: IType): IType = theType match {
-    case basicType: IBasicType => basicType
-    case struct: CStructure => struct
-    case typedef: ITypedef => resolveType(typedef.getType)
-    case ptrType: IPointerType => resolveType(ptrType.getType)
-    case arrayType: IArrayType => resolveType(arrayType.getType)
-    case qualType: IQualifierType => resolveType(qualType.getType)
-  }
+ 
   
   def parseDeclarator(decl: IASTDeclarator, direction: Direction, state: State): Seq[IASTNode] = {
     val nameBinding = decl.getName.resolveBinding()
     
     if (nameBinding.isInstanceOf[IVariable]) {
-      state.currentType = resolveType(nameBinding.asInstanceOf[IVariable].getType)
+      state.currentType = nameBinding.asInstanceOf[IVariable].getType
     }
     
     if (direction == Exiting && nameBinding.isInstanceOf[IVariable]) {
       state.stack.push(decl.getName.getRawSignature)
 
-      val initial = state.currentType.toString match {
+      val initial = TypeResolver.resolve(state.currentType).toString match {
           case "int" => 0.toInt
           case "unsigned int" => 0.toInt
           case "double" => 0.0.toDouble
@@ -502,7 +510,7 @@ object Executor {
             val nameBinding = decl.getName.resolveBinding()
       
             if (nameBinding.isInstanceOf[IVariable]) {
-              state.currentType = resolveType(nameBinding.asInstanceOf[IVariable].getType)
+              state.currentType = nameBinding.asInstanceOf[IVariable].getType
             }
           }
           simple.getDeclarators

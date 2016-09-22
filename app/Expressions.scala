@@ -151,8 +151,7 @@ object Expressions {
         } else if (context.currentType == null) {
           context.stack.push(castLiteral(lit))
         } else {
-          println(context.currentType.toString)
-          context.currentType.toString match {
+          TypeResolver.resolve(context.currentType).toString match {
             case "double" => context.stack.push(lit.getRawSignature.toDouble)
             case "int" | "unsigned int" => 
               val literal = lit.getRawSignature
