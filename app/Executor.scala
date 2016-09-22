@@ -394,20 +394,21 @@ object Executor {
   def parseDeclarator(decl: IASTDeclarator, direction: Direction, state: State): Seq[IASTNode] = {
     val nameBinding = decl.getName.resolveBinding()
     
-    if (nameBinding.isInstanceOf[IVariable]) {
-      state.currentType = nameBinding.asInstanceOf[IVariable].getType
-    }
+    
     
     if (direction == Exiting && nameBinding.isInstanceOf[IVariable]) {
+      
+      val currentType = nameBinding.asInstanceOf[IVariable].getType
+      
       state.stack.push(decl.getName.getRawSignature)
 
-      val initial = TypeResolver.resolve(state.currentType).toString match {
+      val initial = TypeResolver.resolve(currentType).toString match {
           case "int" => 0.toInt
           case "unsigned int" => 0.toInt
           case "double" => 0.0.toDouble
           case "char" => 0.toChar
           case "short int" => 0.toShort
-          case _ => throw new Exception("No match for " + state.currentType.toString)
+          case _ => throw new Exception("No match for " + currentType.toString)
       }
       
       if (decl.isInstanceOf[IASTArrayDeclarator]) {
@@ -424,10 +425,10 @@ object Executor {
                 initialArray(i) = newInit
               }
             }
-            state.vars.addVariable(state.rawDataStack, name, initialArray, state.currentType)
+            state.vars.addVariable(state.rawDataStack, name, initialArray, currentType)
           case initString: String =>
             val initialArray = Utils.stripQuotes(initString).toCharArray() :+ 0.toChar // terminating null char
-            state.vars.addVariable(state.rawDataStack, name, initialArray, state.currentType)
+            state.vars.addVariable(state.rawDataStack, name, initialArray, currentType)
         }
       } else {   
         
@@ -436,16 +437,16 @@ object Executor {
         if (!decl.getPointerOperators.isEmpty) {
           if (!state.stack.isEmpty) {
             val initVal = state.stack.pop
-            state.vars.addVariable(state.rawDataStack, name, initVal, state.currentType)
+            state.vars.addVariable(state.rawDataStack, name, initVal, currentType)
           } else {
-            state.vars.addVariable(state.rawDataStack, name, 0, state.currentType)
+            state.vars.addVariable(state.rawDataStack, name, 0, currentType)
           }
         } else {
           if (!state.stack.isEmpty) {
             // initial value is on the stack, set it
-            state.vars.addVariable(state.rawDataStack, name, state.stack.pop, state.currentType)
+            state.vars.addVariable(state.rawDataStack, name, state.stack.pop, currentType)
           } else {
-            state.vars.addVariable(state.rawDataStack, name, initial, state.currentType)
+            state.vars.addVariable(state.rawDataStack, name, initial, currentType)
           }
         }
       }
