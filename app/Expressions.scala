@@ -28,7 +28,7 @@ object Expressions {
         val name = context.stack.pop
         val arrayVarPtr = context.vars.resolveId(name.asInstanceOf[VarRef].name)
         val arrayAddress = arrayVarPtr.value.asInstanceOf[Int]
-        val arrayType = stack.getType(Address(arrayAddress))
+        val arrayType = TypeResolver.resolve(stack.getType(Address(arrayAddress))).toString
         if (context.parsingAssignmentDest) {
           context.stack.push(Address(arrayAddress + index * TypeHelper.sizeof(arrayType)))
         } else {

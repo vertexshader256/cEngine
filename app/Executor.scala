@@ -74,12 +74,12 @@ class State {
     
     var insertIndex = 0
     
-    case class MemRange(start: Int, end: Int, typeName: String)
+    case class MemRange(start: Int, end: Int, theType: IBasicType)
   
     private val records = new ListBuffer[MemRange]()
     
-    def getType(address: Address): String = {
-      records.find{range => range.start <= address.address && range.end >= address.address}.get.typeName
+    def getType(address: Address): IBasicType = {
+      records.find{range => range.start <= address.address && range.end >= address.address}.get.theType
     }
     
     def getSize(address: Address): Int = {
@@ -87,15 +87,15 @@ class State {
       range.end - range.start + 1
     }
     
-    def allocateSpace(typeName: String, numElements: Int): Address = {
+    def allocateSpace(theType: IBasicType, typeName: String, numElements: Int): Address = {
       val result = insertIndex
       insertIndex += TypeHelper.sizeof(typeName) * numElements
-      records += MemRange(result, insertIndex - 1, typeName)
+      records += MemRange(result, insertIndex - 1, theType)
       Address(result)
     }
     
     def readVal(address: Int): Any = {
-      val typeName = getType(Address(address))
+      val typeName = TypeResolver.resolve(getType(Address(address))).toString
       
       typeName match {
         case "int" | "unsigned int" => data.getInt(address)
@@ -148,9 +148,10 @@ protected class Variable(stack: State#VarStack, val name: String, val theType: I
   val isPointer = theType.isInstanceOf[IPointerType] || theType.isInstanceOf[IArrayType]
   
   val address: Address = if (isPointer) {
-    stack.allocateSpace("int", numElements)
+    val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
+    stack.allocateSpace(intType, "int", numElements)
   } else {
-    stack.allocateSpace(typeName, numElements)
+    stack.allocateSpace(TypeResolver.resolve(theType), typeName, numElements)
   }
   
   val size = if (isPointer) {

@@ -46,7 +46,8 @@ object FunctionCallExpr {
           // here we resolve the addresses coming in
           val resolved = formattedOutputParams.map{x => x match {
               case addy @ Address(address) =>
-                val typeName = stack.getType(addy)
+                val theType = stack.getType(addy)
+                val typeName = TypeResolver.resolve(theType).toString
                 typeName match {
                   case "char" if state.rawDataStack.getSize(addy) > 1 => 
                     var current: Char = 0
