@@ -545,15 +545,9 @@ object Executor {
         }
       case param: IASTParameterDeclaration =>
         if (direction == Exiting) {
-          val arg = state.stack.pop
-          
+          val arg = state.stack.pop 
           val paramInfo = param.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
-
-          if (!param.getDeclarator.getPointerOperators.isEmpty) {
-             state.vars.addVariable(state.rawDataStack, param.getDeclarator.getName.getRawSignature, arg.asInstanceOf[Address], paramInfo.getType)
-          } else {
-             state.vars.addVariable(state.rawDataStack, param.getDeclarator.getName.getRawSignature, arg, paramInfo.getType)
-          }
+          state.vars.addVariable(state.rawDataStack, param.getDeclarator.getName.getRawSignature, arg, paramInfo.getType)
           Seq()
         } else {
           Seq()
