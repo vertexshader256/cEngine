@@ -470,10 +470,11 @@ object Executor {
           case _ => throw new Exception("No match for " + currentType.toString)
       }
       
-      if (decl.isInstanceOf[IASTArrayDeclarator]) {
-        val name = state.stack.pop.asInstanceOf[String]
+      val name = state.stack.pop.asInstanceOf[String]
+      
+      val initVal = if (decl.isInstanceOf[IASTArrayDeclarator]) {
         
-        val initVal = state.stack.pop.asInstanceOf[Literal].cast match {
+        state.stack.pop.asInstanceOf[Literal].cast match {
           case size: Int =>
             val initialArray = Array.fill[Any](size)(initial)
             
@@ -488,13 +489,8 @@ object Executor {
           case initString: String =>
             Utils.stripQuotes(initString).toCharArray() :+ 0.toChar // terminating null char
         }
-        
-        state.vars.addVariable(state.rawDataStack, name, initVal, currentType)
       } else {   
-        
-        val name = state.stack.pop.asInstanceOf[String]
-        
-        val initVal = if (!decl.getPointerOperators.isEmpty) {
+        if (!decl.getPointerOperators.isEmpty) {
           if (!state.stack.isEmpty) {
             state.stack.pop
           } else {
@@ -507,9 +503,9 @@ object Executor {
             initial
           }
         }
-        
-        state.vars.addVariable(state.rawDataStack, name, initVal, currentType)
       }
+      
+      state.vars.addVariable(state.rawDataStack, name, initVal, currentType)
       
       Seq()
     } else {
