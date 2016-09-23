@@ -89,7 +89,7 @@ class State {
     
     def allocateSpace(theType: IBasicType, typeName: String, numElements: Int): Address = {
       val result = insertIndex
-      insertIndex += TypeHelper.sizeof(typeName) * numElements
+      insertIndex += TypeHelper.sizeof(theType) * numElements
       records += MemRange(result, insertIndex - 1, theType)
       Address(result)
     }
@@ -121,13 +121,16 @@ class State {
 case class Address(address: Int)
 
 object TypeHelper {
-  def sizeof(typeName: String) = typeName match {
-    case "int" | "unsigned int" => 4
-    case "short int" | "unsigned short" | "unsigned short int" => 2
-    case "double" => 8
-    case "float" => 4
-    case "bool" => 4
-    case "char" | "unsigned char" => 1
+  def sizeof(theType: IType) = {
+    
+    TypeResolver.resolve(theType).toString match {
+      case "int" | "unsigned int" => 4
+      case "short int" | "unsigned short" | "unsigned short int" => 2
+      case "double" => 8
+      case "float" => 4
+      case "bool" => 4
+      case "char" | "unsigned char" => 1
+    }
   }
 }
 
@@ -157,7 +160,7 @@ protected class Variable(stack: State#VarStack, val name: String, val theType: I
   val size = if (isPointer) {
     4
   } else {
-    TypeHelper.sizeof(typeName)
+    TypeHelper.sizeof(theType)
   }
   
   def value: Any = {
@@ -592,7 +595,18 @@ object Executor {
         }
       case typeId: IASTTypeId =>
         if (direction == Exiting) {
-           state.stack.push(typeId.getDeclSpecifier.getRawSignature)
+          val theType = typeId.getRawSignature
+
+          val result = theType match {
+            case "int" => 4
+            case "float" => 4
+            case "double" => 8
+            case "short" => 2
+            case x => 
+              1
+          }
+
+          state.stack.push(result)
         }
         Seq()
       case spec: IASTSimpleDeclSpecifier =>

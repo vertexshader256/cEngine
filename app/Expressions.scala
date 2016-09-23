@@ -28,7 +28,7 @@ object Expressions {
         val name = context.stack.pop
         val arrayVarPtr = context.vars.resolveId(name.asInstanceOf[VarRef].name)
         val arrayAddress = arrayVarPtr.value.asInstanceOf[Int]
-        val arrayType = TypeResolver.resolve(stack.getType(Address(arrayAddress))).toString
+        val arrayType = TypeResolver.resolve(stack.getType(Address(arrayAddress)))
         if (context.parsingAssignmentDest) {
           context.stack.push(Address(arrayAddress + index * TypeHelper.sizeof(arrayType)))
         } else {
@@ -145,7 +145,6 @@ object Expressions {
       if (direction == Entering) {
         Seq(typeExpr.getTypeId)
       } else {
-        context.stack.push(TypeHelper.sizeof(context.stack.pop.asInstanceOf[String]))
         Seq()
       }
     case call: IASTFunctionCallExpression =>
