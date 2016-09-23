@@ -454,9 +454,7 @@ object Executor {
   
   def parseDeclarator(decl: IASTDeclarator, direction: Direction, state: State): Seq[IASTNode] = {
     val nameBinding = decl.getName.resolveBinding()
-    
-    
-    
+
     if (direction == Exiting && nameBinding.isInstanceOf[IVariable]) {
       
       val currentType = nameBinding.asInstanceOf[IVariable].getType
@@ -475,7 +473,7 @@ object Executor {
       if (decl.isInstanceOf[IASTArrayDeclarator]) {
         val name = state.stack.pop.asInstanceOf[String]
         
-        state.stack.pop.asInstanceOf[Literal].cast match {
+        val initVal = state.stack.pop.asInstanceOf[Literal].cast match {
           case size: Int =>
             val initialArray = Array.fill[Any](size)(initial)
             
@@ -486,30 +484,31 @@ object Executor {
                 initialArray(i) = newInit
               }
             }
-            state.vars.addVariable(state.rawDataStack, name, initialArray, currentType)
+            initialArray
           case initString: String =>
-            val initialArray = Utils.stripQuotes(initString).toCharArray() :+ 0.toChar // terminating null char
-            state.vars.addVariable(state.rawDataStack, name, initialArray, currentType)
+            Utils.stripQuotes(initString).toCharArray() :+ 0.toChar // terminating null char
         }
+        
+        state.vars.addVariable(state.rawDataStack, name, initVal, currentType)
       } else {   
         
         val name = state.stack.pop.asInstanceOf[String]
         
-        if (!decl.getPointerOperators.isEmpty) {
+        val initVal = if (!decl.getPointerOperators.isEmpty) {
           if (!state.stack.isEmpty) {
-            val initVal = state.stack.pop
-            state.vars.addVariable(state.rawDataStack, name, initVal, currentType)
+            state.stack.pop
           } else {
-            state.vars.addVariable(state.rawDataStack, name, 0, currentType)
+            0
           }
         } else {
           if (!state.stack.isEmpty) {
-            // initial value is on the stack, set it
-            state.vars.addVariable(state.rawDataStack, name, state.stack.pop, currentType)
+            state.stack.pop
           } else {
-            state.vars.addVariable(state.rawDataStack, name, initial, currentType)
+            initial
           }
         }
+        
+        state.vars.addVariable(state.rawDataStack, name, initVal, currentType)
       }
       
       Seq()
