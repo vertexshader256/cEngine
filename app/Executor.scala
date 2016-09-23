@@ -132,9 +132,8 @@ object TypeHelper {
 }
 
 object TypeResolver {
-   def resolve(theType: IType): IType = theType match {
+   def resolve(theType: IType): IBasicType = theType match {
     case basicType: IBasicType => basicType
-    case struct: CStructure => struct
     case typedef: ITypedef => resolve(typedef.getType)
     case ptrType: IPointerType => resolve(ptrType.getType)
     case arrayType: IArrayType => resolve(arrayType.getType)
@@ -460,14 +459,17 @@ object Executor {
       val currentType = nameBinding.asInstanceOf[IVariable].getType
       
       state.stack.push(decl.getName.getRawSignature)
+      
+      val resolved = TypeResolver.resolve(currentType)
 
-      val initial = TypeResolver.resolve(currentType).toString match {
-          case "int" => 0.toInt
-          case "unsigned int" => 0.toInt
-          case "double" => 0.0.toDouble
-          case "char" => 0.toChar
-          case "short int" => 0.toShort
-          case _ => throw new Exception("No match for " + currentType.toString)
+      val initial = if (resolved.isLong) {
+        0.toInt
+      } else if (resolved.isLongLong) {
+        0.0.toDouble
+      } else if (resolved.isShort) {
+        0.toShort
+      } else {
+        0.toChar
       }
       
       val name = state.stack.pop.asInstanceOf[String]
