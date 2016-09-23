@@ -20,7 +20,7 @@ object Expressions {
         val index = context.stack.pop match {
           case VarRef(indexVarName) =>
             context.vars.resolveId(indexVarName).value.asInstanceOf[Int]
-          case Literal(lit) => Literal.cast(lit).asInstanceOf[Int]
+          case lit @ Literal(_) => lit.cast.asInstanceOf[Int]
           case x: Int =>
             x
         }
@@ -69,7 +69,7 @@ object Expressions {
             })
 
             val cast = context.stack.pop match {
-              case Literal(lit) => Literal.cast(lit)
+              case lit @ Literal(_) => lit.cast
               case x            => x
             }
 

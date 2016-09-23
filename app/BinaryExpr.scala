@@ -19,7 +19,7 @@ object BinaryExpr {
     // TODO: combine with resolve() function below?
     
     val resolvedop2 = op2 match {
-      case Literal(lit) => Literal.cast(lit)
+      case lit @ Literal(_) => lit.cast
       case VarRef(name) => 
         context.vars.resolveId(name).value
       case Address(address) => 
@@ -54,12 +54,12 @@ object BinaryExpr {
     // resolve literals
     
     op1 = op1 match {
-      case Literal(lit) => Literal.cast(lit)
+      case lit @ Literal(_) => lit.cast
       case x => x
     }
     
     op2 = op2 match {
-      case Literal(lit) => Literal.cast(lit)
+      case lit @ Literal(_) => lit.cast
       case x => x
     }
     

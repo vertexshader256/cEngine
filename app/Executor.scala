@@ -12,25 +12,23 @@ import org.eclipse.cdt.internal.core.dom.parser.c._
 import java.math.BigInteger
 
 case class VarRef(name: String)
-case class Literal(lit: String)
-
-object Literal {
-  def cast(string: String): Any = {
+case class Literal(lit: String) {
+  def cast: Any = {
     
     def isIntNumber(s: String): Boolean = (allCatch opt s.toInt).isDefined
     def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
     def isDoubleNumber(s: String): Boolean = (allCatch opt s.toDouble).isDefined
     
-    if (string.head == '\"' && string.last == '\"') {
-      string
-    } else if (string.head == '\'' && string.last == '\'' && string.length == 3) {
-      string.toCharArray.apply(1)
-    } else if (isIntNumber(string)) {
-      string.toInt
-    } else if (isLongNumber(string)) {
-      string.toLong
+    if (lit.head == '\"' && lit.last == '\"') {
+      lit
+    } else if (lit.head == '\'' && lit.last == '\'' && lit.length == 3) {
+      lit.toCharArray.apply(1)
+    } else if (isIntNumber(lit)) {
+      lit.toInt
+    } else if (isLongNumber(lit)) {
+      lit.toLong
     } else {
-      string.toDouble
+      lit.toDouble
     }
   }
 }
@@ -182,9 +180,9 @@ protected class Variable(stack: State#VarStack, val name: String, val theType: I
   def setValue(value: Any): Unit = {
     
     val theVal = value match {
-      case Literal(literal) => 
+      case lit @ Literal(literal) => 
         if (theType == null) {
-          Literal.cast(literal)
+          lit.cast
         } else {
           TypeResolver.resolve(theType).toString match {
             case "double" => literal.toDouble
@@ -196,7 +194,7 @@ protected class Variable(stack: State#VarStack, val name: String, val theType: I
                 literal.toInt
               }
             case "float" => literal.toFloat
-            case _ => Literal.cast(literal)
+            case _ => lit.cast
           }
         }
       case x => x
@@ -212,8 +210,8 @@ protected class Variable(stack: State#VarStack, val name: String, val theType: I
       case array: Array[_] =>
         var i = 0
         array.foreach{element =>  element match {
-          case Literal(lit) =>
-            stack.setValue(Literal.cast(lit), Address(address.address + i))
+          case lit @ Literal(_) =>
+            stack.setValue(lit.cast, Address(address.address + i))
             i += size
           case x =>
             stack.setValue(x, Address(address.address + i))
@@ -318,7 +316,7 @@ object Executor {
         Seq(caseStatement.getExpression)
       } else {
        
-        val caseExpr = Literal.cast(state.stack.pop.asInstanceOf[Literal].lit)
+        val caseExpr = state.stack.pop.asInstanceOf[Literal].cast
         val switchExpr = state.stack.pop
         
         state.stack.push(switchExpr)
@@ -358,7 +356,7 @@ object Executor {
       } else {
         
         val cast = state.stack.pop match {
-          case Literal(lit) => Literal.cast(lit)
+          case lit @ Literal(_) => lit.cast
           case x => x
         }
         
@@ -385,8 +383,8 @@ object Executor {
         val value = result match {
           case VarRef(name) =>
             state.vars.resolveId(name).value
-          case Literal(lit) =>
-            Literal.cast(lit)
+          case lit @ Literal(_) =>
+            lit.cast
           case x => x
         }
 
@@ -425,7 +423,7 @@ object Executor {
         // resolve everything before returning
         val returnVal = state.stack.pop
         state.stack.push(returnVal match {
-          case Literal(lit) => Literal.cast(lit)
+          case lit @ Literal(_) => lit.cast
           case VarRef(id) => state.vars.resolveId(id).value
           case int: Int => int
           case doub: Double => doub
@@ -477,7 +475,7 @@ object Executor {
       if (decl.isInstanceOf[IASTArrayDeclarator]) {
         val name = state.stack.pop.asInstanceOf[String]
         
-        Literal.cast(state.stack.pop.asInstanceOf[Literal].lit) match {
+        state.stack.pop.asInstanceOf[Literal].cast match {
           case size: Int =>
             val initialArray = Array.fill[Any](size)(initial)
             
