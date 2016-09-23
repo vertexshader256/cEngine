@@ -2,101 +2,86 @@ package app.astViewer
 
 import org.eclipse.cdt.core.dom.ast._
 
-import scala.collection.mutable.{ListBuffer, Stack}
+import scala.collection.mutable.{ ListBuffer, Stack }
 import scala.util.control.Exception.allCatch
 import java.util.Formatter;
 import java.util.Locale;
 import java.math.BigInteger
 
 object Expressions {
-  
-  private def castLiteral(lit: IASTLiteralExpression): Any = {
-    
-    def isIntNumber(s: String): Boolean = (allCatch opt s.toInt).isDefined
-    def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
-    def isDoubleNumber(s: String): Boolean = (allCatch opt s.toDouble).isDefined
-    
-    val string = lit.getRawSignature
-    
-    if (string.head == '\"' && string.last == '\"') {
-      string
-    } else if (string.head == '\'' && string.last == '\'' && string.length == 3) {
-      string.toCharArray.apply(1)
-    } else if (isIntNumber(string)) {
-      string.toInt
-    } else if (isLongNumber(string)) {
-      string.toLong
-    } else {
-      string.toDouble
-    }
-  }
-  
+
   def parse(expr: IASTExpression, direction: Direction, context: State, stack: State#VarStack): Seq[IASTNode] = expr match {
     case subscript: IASTArraySubscriptExpression =>
       if (direction == Entering) {
         Seq(subscript.getArrayExpression, subscript.getArgument)
       } else {
 
-          // index is first on the stack
-          val index = context.stack.pop match {
-            case VarRef(indexVarName) => 
-               context.vars.resolveId(indexVarName).value.asInstanceOf[Int]
-            case x: Int => 
-              x 
-          }
-          
-          val name = context.stack.pop
-          val arrayVarPtr = context.vars.resolveId(name.asInstanceOf[VarRef].name)
-          val arrayAddress = arrayVarPtr.value.asInstanceOf[Int]
-          val arrayType = stack.getType(Address(arrayAddress))
-          if (context.parsingAssignmentDest) {
-            context.stack.push(Address(arrayAddress + index * TypeHelper.sizeof(arrayType)))
-          } else {
-            context.stack.push(stack.readVal(arrayAddress + index * TypeHelper.sizeof(arrayType)))
-          }
+        // index is first on the stack
+        val index = context.stack.pop match {
+          case VarRef(indexVarName) =>
+            context.vars.resolveId(indexVarName).value.asInstanceOf[Int]
+          case Literal(lit) => Literal.cast(lit).asInstanceOf[Int]
+          case x: Int =>
+            x
+        }
 
-          Seq()
+        val name = context.stack.pop
+        val arrayVarPtr = context.vars.resolveId(name.asInstanceOf[VarRef].name)
+        val arrayAddress = arrayVarPtr.value.asInstanceOf[Int]
+        val arrayType = stack.getType(Address(arrayAddress))
+        if (context.parsingAssignmentDest) {
+          context.stack.push(Address(arrayAddress + index * TypeHelper.sizeof(arrayType)))
+        } else {
+          context.stack.push(stack.readVal(arrayAddress + index * TypeHelper.sizeof(arrayType)))
+        }
+
+        Seq()
       }
     case unary: IASTUnaryExpression =>
       import org.eclipse.cdt.core.dom.ast.IASTUnaryExpression._
-      
+
       def resolveVar(variable: Any, func: (Int) => Unit) = {
         variable match {
           case VarRef(name) =>
             val variable = context.vars.resolveId(name)
-            
+
             if (variable.isPointer) {
               func(variable.value.asInstanceOf[Int])
             } else {
               func(variable.address.address)
             }
           case addy @ Address(_) => func(addy.address)
-          case int: Int => int
+          case int: Int          => int
         }
       }
-      
+
       if (direction == Entering) {
         Seq(unary.getOperand)
       } else {
         unary.getOperator match {
-          case `op_minus` =>  
-            
+          case `op_minus` =>
+
             def negativeResolver(variable: Variable) = resolveVar(variable.address, (address) => {
-                context.stack.push(variable.typeName match {
-                  case "int" => -stack.readVal(address).asInstanceOf[Int]
-                  case "double" => -stack.readVal(address).asInstanceOf[Double]
-                })
+              context.stack.push(variable.typeName match {
+                case "int"    => -stack.readVal(address).asInstanceOf[Int]
+                case "double" => -stack.readVal(address).asInstanceOf[Double]
               })
-            
-           context.stack.pop match {
-              case int: Int => context.stack.push(-int)
+            })
+
+            val cast = context.stack.pop match {
+              case Literal(lit) => Literal.cast(lit)
+              case x            => x
+            }
+
+            cast match {
+              case int: Int     => context.stack.push(-int)
               case doub: Double => context.stack.push(-doub)
               //case variable @ Variable(_) => negativeResolver(variable)
-              case VarRef(name) => 
+              case VarRef(name) =>
                 val variable = context.vars.resolveId(name)
                 negativeResolver(variable)
             }
-          case `op_postFixIncr` =>     
+          case `op_postFixIncr` =>
             resolveVar(context.stack.pop, (address) => {
               val currentVal = stack.readVal(address)
               context.stack.push(currentVal)
@@ -108,14 +93,14 @@ object Expressions {
               context.stack.push(currentVal)
               stack.setValue(currentVal.asInstanceOf[Int] - 1, Address(address))
             })
-          case `op_prefixIncr` =>  
+          case `op_prefixIncr` =>
             resolveVar(context.stack.pop, (address) => {
               val currentVal = stack.readVal(address)
               stack.setValue(currentVal.asInstanceOf[Int] + 1, Address(address))
               context.stack.push(stack.readVal(address))
             })
-         case `op_prefixDecr` =>  
-           resolveVar(context.stack.pop, (address) => {
+          case `op_prefixDecr` =>
+            resolveVar(context.stack.pop, (address) => {
               val currentVal = stack.readVal(address)
               stack.setValue(currentVal.asInstanceOf[Int] - 1, Address(address))
               context.stack.push(stack.readVal(address))
@@ -144,27 +129,9 @@ object Expressions {
     case lit: IASTLiteralExpression =>
       if (direction == Exiting) {
         //println("PUSHING LIT: " + castLiteral(lit))
-        
-        if (lit.getParent.isInstanceOf[IASTArrayModifier]) {
-          // ignore currentType for array modifiers
-          context.stack.push(castLiteral(lit))
-        } else if (context.currentType == null) {
-          context.stack.push(castLiteral(lit))
-        } else {
-          TypeResolver.resolve(context.currentType).toString match {
-            case "double" => context.stack.push(lit.getRawSignature.toDouble)
-            case "int" | "unsigned int" => 
-              val literal = lit.getRawSignature
-              context.stack.push(if (literal.startsWith("0x")) { 
-                val bigInt = new BigInteger(literal.drop(2), 16);
-                bigInt.intValue
-              } else {
-                literal.toInt
-              })
-            case "float" => context.stack.push(lit.getRawSignature.toFloat)
-            case _ => context.stack.push(castLiteral(lit))
-          }
-        }
+
+        context.stack.push(Literal(lit.getRawSignature))
+
       }
       Seq()
     case id: IASTIdExpression =>
@@ -185,17 +152,16 @@ object Expressions {
       FunctionCallExpr.parse(call, direction, context, stack)
     case bin: IASTBinaryExpression =>
       if (direction == Exiting) {
-        
-        
+
         if (context.vars.visited.contains(bin.getOperand2)) {
           val result = bin.getOperator match {
-            case IASTBinaryExpression.op_assign => 
+            case IASTBinaryExpression.op_assign =>
               var op2: Any = context.stack.pop
               var op1: Any = context.stack.pop
               BinaryExpr.parseAssign(op1, op2, context, stack)
             case _ => BinaryExpr.parse(bin, context, stack)
           }
-          
+
           if (result != null) {
             context.stack.push(result)
           }
@@ -204,13 +170,13 @@ object Expressions {
           if (bin.getOperator == IASTBinaryExpression.op_assign) {
             context.parsingAssignmentDest = false
           }
-          
+
           Seq(bin.getOperand2, bin)
         }
       } else {
-        
+
         // We have to treat the destination op differently in an assignment
-        
+
         if (bin.getOperator == IASTBinaryExpression.op_assign) {
           context.parsingAssignmentDest = true
         }

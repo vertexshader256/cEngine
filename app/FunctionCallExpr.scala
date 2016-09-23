@@ -37,6 +37,7 @@ object FunctionCallExpr {
             case long: Long => long
             case doub: Double => doub
             case char: Char => char.toInt.toByte
+            case Literal(lit) => Literal.cast(lit)
           }
         }
 

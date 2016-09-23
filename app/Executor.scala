@@ -9,6 +9,31 @@ import java.util.Locale;
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import org.eclipse.cdt.internal.core.dom.parser.c._
+import java.math.BigInteger
+
+case class VarRef(name: String)
+case class Literal(lit: String)
+
+object Literal {
+  def cast(string: String): Any = {
+    
+    def isIntNumber(s: String): Boolean = (allCatch opt s.toInt).isDefined
+    def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
+    def isDoubleNumber(s: String): Boolean = (allCatch opt s.toDouble).isDefined
+    
+    if (string.head == '\"' && string.last == '\"') {
+      string
+    } else if (string.head == '\'' && string.last == '\'' && string.length == 3) {
+      string.toCharArray.apply(1)
+    } else if (isIntNumber(string)) {
+      string.toInt
+    } else if (isLongNumber(string)) {
+      string.toLong
+    } else {
+      string.toDouble
+    }
+  }
+}
 
 class State {
   val stack = new Stack[Any]()
@@ -18,7 +43,6 @@ class State {
   var vars: FunctionExecutionContext = null
   val functionMap = scala.collection.mutable.Map[String, IASTNode]()
   val stdout = new ListBuffer[String]()
-  var currentType: IType = null
   
   // flags
   var isBreaking = false
@@ -153,19 +177,49 @@ protected class Variable(stack: State#VarStack, val name: String, val theType: I
   
   def dereference: Any = stack.readVal(value.asInstanceOf[Int])
   
-  def setValue(newVal: Any): Unit = newVal match {
-    case newVal: Int => stack.setValue(newVal, address)
-    case newVal: Long => stack.setValue(newVal, address)
-    case newVal: Double => stack.setValue(newVal, address)
-    case newVal: Char => stack.setValue(newVal, address)
-    case newVal: Boolean => stack.setValue(if (newVal) 1 else 0, address)
-    case address @ Address(addy) => setValue(addy)
-    case array: Array[_] =>
-      var i = 0
-      array.foreach{element =>  
-        stack.setValue(element, Address(address.address + i))
-        i += size
-      }
+  
+  
+  def setValue(value: Any): Unit = {
+    
+    val theVal = value match {
+      case Literal(literal) => 
+        if (theType == null) {
+          Literal.cast(literal)
+        } else {
+          TypeResolver.resolve(theType).toString match {
+            case "double" => literal.toDouble
+            case "int" | "unsigned int" => 
+              if (literal.startsWith("0x")) { 
+                val bigInt = new BigInteger(literal.drop(2), 16);
+                bigInt.intValue
+              } else {
+                literal.toInt
+              }
+            case "float" => literal.toFloat
+            case _ => Literal.cast(literal)
+          }
+        }
+      case x => x
+    }
+    
+    theVal match {
+      case newVal: Int => stack.setValue(newVal, address)
+      case newVal: Long => stack.setValue(newVal, address)
+      case newVal: Double => stack.setValue(newVal, address)
+      case newVal: Char => stack.setValue(newVal, address)
+      case newVal: Boolean => stack.setValue(if (newVal) 1 else 0, address)
+      case address @ Address(addy) => setValue(addy)
+      case array: Array[_] =>
+        var i = 0
+        array.foreach{element =>  element match {
+          case Literal(lit) =>
+            stack.setValue(Literal.cast(lit), Address(address.address + i))
+            i += size
+          case x =>
+            stack.setValue(x, Address(address.address + i))
+            i += size
+        }}
+    }
   }
   
   def setArrayValue(value: Any, index: Int) = {
@@ -181,7 +235,7 @@ protected class Variable(stack: State#VarStack, val name: String, val theType: I
   }
 }
 
-case class VarRef(name: String)
+
 
 class FunctionExecutionContext(globals: Seq[Variable]) {
   
@@ -264,7 +318,7 @@ object Executor {
         Seq(caseStatement.getExpression)
       } else {
        
-        val caseExpr = state.stack.pop
+        val caseExpr = Literal.cast(state.stack.pop.asInstanceOf[Literal].lit)
         val switchExpr = state.stack.pop
         
         state.stack.push(switchExpr)
@@ -302,7 +356,13 @@ object Executor {
       if (direction == Entering) {
         Seq(whileLoop.getCondition)
       } else {
-        val shouldLoop = state.stack.pop match {
+        
+        val cast = state.stack.pop match {
+          case Literal(lit) => Literal.cast(lit)
+          case x => x
+        }
+        
+        val shouldLoop = cast match {
           case x: Int => x == 1
           case x: Boolean => x
         }
@@ -325,6 +385,8 @@ object Executor {
         val value = result match {
           case VarRef(name) =>
             state.vars.resolveId(name).value
+          case Literal(lit) =>
+            Literal.cast(lit)
           case x => x
         }
 
@@ -363,6 +425,7 @@ object Executor {
         // resolve everything before returning
         val returnVal = state.stack.pop
         state.stack.push(returnVal match {
+          case Literal(lit) => Literal.cast(lit)
           case VarRef(id) => state.vars.resolveId(id).value
           case int: Int => int
           case doub: Double => doub
@@ -414,7 +477,7 @@ object Executor {
       if (decl.isInstanceOf[IASTArrayDeclarator]) {
         val name = state.stack.pop.asInstanceOf[String]
         
-        state.stack.pop match {
+        Literal.cast(state.stack.pop.asInstanceOf[Literal].lit) match {
           case size: Int =>
             val initialArray = Array.fill[Any](size)(initial)
             
@@ -503,19 +566,8 @@ object Executor {
         }
       case simple: IASTSimpleDeclaration =>
         if (direction == Entering) { 
-          
-          
-          simple.getDeclarators.foreach { decl =>
-            val nameBinding = decl.getName.resolveBinding()
-      
-            if (nameBinding.isInstanceOf[IVariable]) {
-              state.currentType = nameBinding.asInstanceOf[IVariable].getType
-            }
-          }
-          simple.getDeclarators
-          
+          simple.getDeclarators    
         } else {
-          state.currentType = null
           Seq()
         }
       case fcnDec: IASTFunctionDeclarator =>

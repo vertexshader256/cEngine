@@ -16,7 +16,10 @@ object BinaryExpr {
       case addy @ Address(_) => addy
     }
     
+    // TODO: combine with resolve() function below?
+    
     val resolvedop2 = op2 match {
+      case Literal(lit) => Literal.cast(lit)
       case VarRef(name) => 
         context.vars.resolveId(name).value
       case Address(address) => 
@@ -48,7 +51,19 @@ object BinaryExpr {
     
     var isOp1Pointer = false
     
-    def resolve(op: Any) = op match {
+    // resolve literals
+    
+    op1 = op1 match {
+      case Literal(lit) => Literal.cast(lit)
+      case x => x
+    }
+    
+    op2 = op2 match {
+      case Literal(lit) => Literal.cast(lit)
+      case x => x
+    }
+    
+    def resolve(op: Any) = op match { 
       case VarRef(name) => 
         val theVar = context.vars.resolveId(name)
         if (theVar.isPointer) {
