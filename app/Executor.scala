@@ -122,14 +122,16 @@ case class Address(address: Int)
 
 object TypeHelper {
   def sizeof(theType: IType) = {
+    val resolved = TypeResolver.resolve(theType)
     
-    TypeResolver.resolve(theType).toString match {
-      case "int" | "unsigned int" => 4
-      case "short int" | "unsigned short" | "unsigned short int" => 2
-      case "double" => 8
-      case "float" => 4
-      case "bool" => 4
-      case "char" | "unsigned char" => 1
+    import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
+    
+    resolved.getKind match {
+      case `eInt` => 4
+      case `eChar16` => 2
+      case `eDouble` => 8
+      case `eChar` => 1
+      case `eChar32` => 4
     }
   }
 }
