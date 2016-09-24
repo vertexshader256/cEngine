@@ -95,15 +95,25 @@ class State {
     }
     
     def readVal(address: Int): Any = {
-      val typeName = TypeResolver.resolve(getType(Address(address))).toString
+      val theType = getType(Address(address))
+
+      import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
+
+      // if it is neither signed or unsigned, assume its signed
+      val isSigned = theType.isSigned || (!theType.isSigned && !theType.isUnsigned)
       
-      typeName match {
-        case "int" | "unsigned int" => data.getInt(address)
-        case "short int"  => data.getShort(address)
-        case "unsigned short" | "unsigned short int" => data.getShort(address) & 0xFFFF
-        case "double" => data.getDouble(address)
-        case "char" => data.getChar(address)
-        case "unsigned char" => data.getChar(address) & 0xFF
+      if (theType.isShort && isSigned) {
+        data.getShort(address)
+      } else if (theType.isShort && !isSigned) {
+        data.getShort(address) & 0xFFFF
+      } else if (theType.getKind == eInt) {
+        data.getInt(address)
+      } else if (theType.getKind == eDouble) {
+        data.getDouble(address)
+      } else if (isSigned) {
+        data.getChar(address)
+      } else if (!isSigned) {
+        data.getChar(address) & 0xFF
       }
     }
     
