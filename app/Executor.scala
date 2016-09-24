@@ -475,23 +475,13 @@ object Executor {
       
       val resolved = TypeResolver.resolve(currentType)
 
-      val initial = if (resolved.isLong) {
-        0.toInt
-      } else if (resolved.isLongLong) {
-        0.0.toDouble
-      } else if (resolved.isShort) {
-        0.toShort
-      } else {
-        0.toChar
-      }
-      
       val name = state.stack.pop.asInstanceOf[String]
       
       val initVal = if (decl.isInstanceOf[IASTArrayDeclarator]) {
         
         state.stack.pop.asInstanceOf[Literal].cast match {
           case size: Int =>
-            val initialArray = Array.fill[Any](size)(initial)
+            val initialArray = Array.fill[Any](size)(0)
             
             if (!state.stack.isEmpty) { 
               var i = 0
@@ -515,7 +505,7 @@ object Executor {
           if (!state.stack.isEmpty) {
             state.stack.pop
           } else {
-            initial
+            0
           }
         }
       }
