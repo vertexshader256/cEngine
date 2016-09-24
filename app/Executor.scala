@@ -132,7 +132,7 @@ class State {
 case class Address(address: Int)
 
 object TypeHelper {
-  def sizeof(theType: IType) = {
+  def sizeof(theType: IType): Int = {
     if (theType.isInstanceOf[IPointerType]) {
       4
     } else {
