@@ -10,6 +10,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import org.eclipse.cdt.internal.core.dom.parser.c._
 import java.math.BigInteger
+import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 
 case class VarRef(name: String)
 case class Literal(lit: String) {
@@ -87,7 +88,7 @@ class State {
       range.end - range.start + 1
     }
     
-    def allocateSpace(theType: IBasicType, typeName: String, numElements: Int): Address = {
+    def allocateSpace(theType: IBasicType, numElements: Int): Address = {
       val result = insertIndex
       insertIndex += TypeHelper.sizeof(theType) * numElements
       records += MemRange(result, insertIndex - 1, theType)
@@ -134,14 +135,16 @@ object TypeHelper {
   def sizeof(theType: IType) = {
     val resolved = TypeResolver.resolve(theType)
     
-    import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
-    
-    resolved.getKind match {
-      case `eInt` => 4
-      case `eChar16` => 2
-      case `eDouble` => 8
-      case `eChar` => 1
-      case `eChar32` => 4
+    if (theType.isInstanceOf[IPointerType]) {
+      4
+    } else {
+      resolved.getKind match {
+        case `eInt` => 4
+        case `eChar16` => 2
+        case `eDouble` => 8
+        case `eChar` => 1
+        case `eChar32` => 4
+      }
     }
   }
 }
@@ -164,16 +167,12 @@ protected class Variable(stack: State#VarStack, val name: String, val theType: I
   
   val address: Address = if (isPointer) {
     val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
-    stack.allocateSpace(intType, "int", numElements)
+    stack.allocateSpace(intType, numElements)
   } else {
-    stack.allocateSpace(TypeResolver.resolve(theType), typeName, numElements)
+    stack.allocateSpace(TypeResolver.resolve(theType), numElements)
   }
   
-  val size = if (isPointer) {
-    4
-  } else {
-    TypeHelper.sizeof(theType)
-  }
+  val size = TypeHelper.sizeof(theType)
   
   def value: Any = {
     stack.readVal(address.address)
@@ -199,16 +198,16 @@ protected class Variable(stack: State#VarStack, val name: String, val theType: I
         if (theType == null) {
           lit.cast
         } else {
-          TypeResolver.resolve(theType).toString match {
-            case "double" => literal.toDouble
-            case "int" | "unsigned int" => 
+          TypeResolver.resolve(theType).getKind match {
+            case `eDouble` => literal.toDouble
+            case `eInt` => 
               if (literal.startsWith("0x")) { 
                 val bigInt = new BigInteger(literal.drop(2), 16);
                 bigInt.intValue
               } else {
                 literal.toInt
               }
-            case "float" => literal.toFloat
+            case `eFloat` => literal.toFloat
             case _ => lit.cast
           }
         }
