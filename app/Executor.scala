@@ -133,12 +133,10 @@ case class Address(address: Int)
 
 object TypeHelper {
   def sizeof(theType: IType) = {
-    val resolved = TypeResolver.resolve(theType)
-    
     if (theType.isInstanceOf[IPointerType]) {
       4
     } else {
-      resolved.getKind match {
+      TypeResolver.resolve(theType).getKind match {
         case `eInt` => 4
         case `eChar16` => 2
         case `eDouble` => 8
