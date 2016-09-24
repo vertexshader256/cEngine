@@ -135,6 +135,11 @@ object TypeHelper {
   def sizeof(theType: IType): Int = {
     if (theType.isInstanceOf[IPointerType]) {
       4
+    } else if (theType.isInstanceOf[CStructure]) {
+      val struct = theType.asInstanceOf[CStructure].getFields
+      struct.map{ field =>
+        sizeof(field.getType)
+      }.sum
     } else {
       TypeResolver.resolve(theType).getKind match {
         case `eInt` => 4
