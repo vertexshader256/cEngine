@@ -171,6 +171,17 @@ protected class Variable(stack: State#VarStack, val name: String, val theType: I
   val address: Address = if (isPointer) {
     val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
     stack.allocateSpace(intType, numElements)
+  } else if (theType.isInstanceOf[CStructure]) {
+    val struct = theType.asInstanceOf[CStructure]
+    var result: Address = null
+    struct.getFields.foreach{ field =>
+      if (result == null) {
+        result = stack.allocateSpace(TypeResolver.resolve(field.getType), 1)
+      } else {
+        stack.allocateSpace(TypeResolver.resolve(field.getType), 1)
+      }
+    }
+    result
   } else {
     stack.allocateSpace(TypeResolver.resolve(theType), numElements)
   }
@@ -477,8 +488,6 @@ object Executor {
       val currentType = nameBinding.asInstanceOf[IVariable].getType
       
       state.stack.push(decl.getName.getRawSignature)
-      
-      val resolved = TypeResolver.resolve(currentType)
 
       val name = state.stack.pop.asInstanceOf[String]
       
