@@ -164,7 +164,7 @@ object TypeResolver {
 
 protected class Variable(stack: State#VarStack, val name: String, val theType: IType, val numElements: Int) {
   
-  val typeName = TypeResolver.resolve(theType).toString
+  def typeName = TypeResolver.resolve(theType).toString
   
   val isPointer = theType.isInstanceOf[IPointerType] || theType.isInstanceOf[IArrayType]
   
