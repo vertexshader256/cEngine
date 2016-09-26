@@ -47,7 +47,7 @@ object FunctionCallExpr {
           val resolved = formattedOutputParams.map{x => x match {
               case addy @ Address(address) =>
                 val theType = stack.getType(addy)
-                val typeName = TypeResolver.resolve(theType).toString
+                val typeName = TypeHelper.resolve(theType).toString
                 typeName match {
                   case "char" if state.getSize(addy) > 1 => 
                     var current: Char = 0

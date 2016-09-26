@@ -73,7 +73,7 @@ class State {
   
   var insertIndex = 0
   
-  case class MemRange(start: Int, end: Int, theType: IBasicType)
+  private case class MemRange(start: Int, end: Int, theType: IBasicType)
 
   private val records = new ListBuffer[MemRange]()
   
@@ -138,7 +138,7 @@ object TypeHelper {
         sizeof(field.getType)
       }.sum
     } else {
-      TypeResolver.resolve(theType).getKind match {
+      resolve(theType).getKind match {
         case `eInt` => 4
         case `eChar16` => 2
         case `eDouble` => 8
@@ -147,10 +147,8 @@ object TypeHelper {
       }
     }
   }
-}
-
-object TypeResolver {
-   def resolve(theType: IType): IBasicType = theType match {
+  
+  def resolve(theType: IType): IBasicType = theType match {
     case basicType: IBasicType => basicType
     case typedef: ITypedef => resolve(typedef.getType)
     case ptrType: IPointerType => resolve(ptrType.getType)
@@ -161,7 +159,7 @@ object TypeResolver {
 
 protected class Variable(stack: State, val name: String, val theType: IType, val numElements: Int) {
   
-  def typeName = TypeResolver.resolve(theType).toString
+  def typeName = TypeHelper.resolve(theType).toString
   
   val isPointer = theType.isInstanceOf[IPointerType] || theType.isInstanceOf[IArrayType]
   
@@ -173,14 +171,14 @@ protected class Variable(stack: State, val name: String, val theType: IType, val
     var result: Address = null
     struct.getFields.foreach{ field =>
       if (result == null) {
-        result = stack.allocateSpace(TypeResolver.resolve(field.getType), 1)
+        result = stack.allocateSpace(TypeHelper.resolve(field.getType), 1)
       } else {
-        stack.allocateSpace(TypeResolver.resolve(field.getType), 1)
+        stack.allocateSpace(TypeHelper.resolve(field.getType), 1)
       }
     }
     result
   } else {
-    stack.allocateSpace(TypeResolver.resolve(theType), numElements)
+    stack.allocateSpace(TypeHelper.resolve(theType), numElements)
   }
   
   val size = TypeHelper.sizeof(theType)
@@ -207,7 +205,7 @@ protected class Variable(stack: State, val name: String, val theType: IType, val
         if (theType == null) {
           lit.cast
         } else {
-          TypeResolver.resolve(theType).getKind match {
+          TypeHelper.resolve(theType).getKind match {
             case `eDouble` => literal.toDouble
             case `eInt` => 
               if (literal.startsWith("0x")) { 
@@ -241,10 +239,6 @@ protected class Variable(stack: State, val name: String, val theType: IType, val
             i += size
         }}
     }
-  }
-  
-  def setArrayValue(value: Any, index: Int) = {
-    stack.setValue(value, Address(address.address + index * size))
   }
   
   def sizeof: Int = {  
@@ -444,8 +438,6 @@ object Executor {
       }
   }
   
- 
-  
   def parseDeclarator(decl: IASTDeclarator, direction: Direction, state: State): Seq[IASTNode] = {
     val nameBinding = decl.getName.resolveBinding()
 
@@ -457,7 +449,7 @@ object Executor {
 
       val name = state.stack.pop.asInstanceOf[String]
       
-      val initVal = if (decl.isInstanceOf[IASTArrayDeclarator]) {
+      if (decl.isInstanceOf[IASTArrayDeclarator]) {
         
         val initVal = state.stack.pop.asInstanceOf[Literal].cast match {
           case size: Int =>
