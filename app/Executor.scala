@@ -268,15 +268,13 @@ class FunctionExecutionContext(globals: Seq[Variable]) {
   val visited = new ListBuffer[IASTNode]()
   val variables: ListBuffer[Variable] = ListBuffer[Variable]() ++ (if (globals == null) Seq() else globals)
 
-  def addVariable(stack: State#VarStack, theName: String, theValue: Any, theType: IType) = {
-    
-    val typeName = theType.toString
-
-    val newVar = new Variable(stack, theName, theType, 1)
-    newVar.setValue(theValue)
-    
-    variables += newVar
-  }
+//  def addVariable(stack: State#VarStack, theName: String, theValue: Any, theType: IType) = {
+//    
+//    val newVar = new Variable(stack, theName, theType, 1)
+//    newVar.setValue(theValue)
+//    
+//    variables += newVar
+//  }
 
   def resolveId(id: String): Variable = {
     variables.find(_.name == id).get
@@ -525,7 +523,10 @@ object Executor {
             x
         }
         
-        state.vars.addVariable(state.rawDataStack, name, resolved, currentType)
+        val newVar = new Variable(state.rawDataStack, name, currentType, 1)
+        newVar.setValue(resolved)
+        
+        state.vars.variables += newVar
       }
 
       Seq()
@@ -561,7 +562,11 @@ object Executor {
         if (direction == Exiting) {
           val arg = state.stack.pop 
           val paramInfo = param.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
-          state.vars.addVariable(state.rawDataStack, param.getDeclarator.getName.getRawSignature, arg, paramInfo.getType)
+          
+          val newVar = new Variable(state.rawDataStack, param.getDeclarator.getName.getRawSignature, paramInfo.getType, 1)
+          newVar.setValue(arg)
+          
+          state.vars.variables += newVar
           Seq()
         } else {
           Seq()
