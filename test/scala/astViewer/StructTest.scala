@@ -37,5 +37,22 @@ class StructTest extends StandardTest {
     checkResults(code)
   }
   
+  "struct test multiple members" should "print the correct results" in {
+    val code = """
+      
+      struct Test {
+        int y;
+        int z;
+      };
+      
+      void main() {
+        struct Test x;
+        x.y = 465;
+        x.z = 234;
+        printf("%d %d\n", x.y, x.z);
+      }"""
+
+    checkResults(code)
+  }
   
 }

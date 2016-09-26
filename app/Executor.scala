@@ -498,10 +498,17 @@ object Executor {
             x
         }
         
-        val newVar = new Variable(state, name, currentType, 1)
-        newVar.setValue(resolved)
-        
-        state.vars.variables += newVar
+        if (currentType.isInstanceOf[CStructure]) {
+          val struct = currentType.asInstanceOf[CStructure]
+          struct.getFields.foreach{ field =>
+            val newVar = new Variable(state, name + "_" + field.getName, field.getType, 1)
+            state.vars.variables += newVar
+          }
+        } else {
+          val newVar = new Variable(state, name, currentType, 1)
+          newVar.setValue(resolved)
+          state.vars.variables += newVar
+        }
       }
 
       Seq()

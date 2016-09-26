@@ -15,6 +15,10 @@ object Expressions {
       if (direction == Entering) {
         Seq(fieldRef.getFieldOwner)
       } else {
+        val owner = context.stack.pop.asInstanceOf[VarRef]
+        
+        // add mangled name back onto the stack
+        context.stack.push(VarRef(owner.name + "_" + fieldRef.getFieldName.getRawSignature))        
         Seq()
       }
     case subscript: IASTArraySubscriptExpression =>
