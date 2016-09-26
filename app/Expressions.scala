@@ -10,7 +10,7 @@ import java.math.BigInteger
 
 object Expressions {
 
-  def parse(expr: IASTExpression, direction: Direction, context: State, stack: State#VarStack): Seq[IASTNode] = expr match {
+  def parse(expr: IASTExpression, direction: Direction, context: State, stack: State): Seq[IASTNode] = expr match {
     case fieldRef: IASTFieldReference =>
       if (direction == Entering) {
         Seq(fieldRef.getFieldOwner)

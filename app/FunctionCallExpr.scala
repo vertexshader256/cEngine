@@ -11,7 +11,7 @@ import java.util.Locale;
 import Functions._
 
 object FunctionCallExpr {
-  def parse(call: IASTFunctionCallExpression, direction: Direction, state: State, stack: State#VarStack): Seq[IASTNode] = {
+  def parse(call: IASTFunctionCallExpression, direction: Direction, state: State, stack: State): Seq[IASTNode] = {
     if (direction == Exiting) {
         val name = call.getFunctionNameExpression match {
           case x: IASTIdExpression => x.getName.getRawSignature
@@ -49,7 +49,7 @@ object FunctionCallExpr {
                 val theType = stack.getType(addy)
                 val typeName = TypeResolver.resolve(theType).toString
                 typeName match {
-                  case "char" if state.rawDataStack.getSize(addy) > 1 => 
+                  case "char" if state.getSize(addy) > 1 => 
                     var current: Char = 0
                     var stringBuilder = new ListBuffer[Char]()
                     var i = 0

@@ -9,7 +9,7 @@ import java.util.Locale;
 
 object BinaryExpr {
   
-  def parseAssign(op1: Any, op2: Any, context: State, stack: State#VarStack): Any = {
+  def parseAssign(op1: Any, op2: Any, context: State, stack: State): Any = {
     val destinationAddress: Address = op1 match {
       case VarRef(name) =>
         context.vars.resolveId(name).address
@@ -42,7 +42,7 @@ object BinaryExpr {
     resolvedop2
   }
   
-  def parse(binaryExpr: IASTBinaryExpression, context: State, stack: State#VarStack): Any = {
+  def parse(binaryExpr: IASTBinaryExpression, context: State, stack: State): Any = {
     import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 
     // read the two operands from right to left

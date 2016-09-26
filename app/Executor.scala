@@ -36,7 +36,6 @@ case class Literal(lit: String) {
 
 class State {
   val stack = new Stack[Any]()
-  val rawDataStack = new VarStack
   val executionContext = new Stack[FunctionExecutionContext]()
   val globals = new ListBuffer[Variable]()  
   var vars: FunctionExecutionContext = null
@@ -69,63 +68,61 @@ class State {
     }
   }
   
-  class VarStack {
-    private val data = ByteBuffer.allocate(10240);
-    data.order(ByteOrder.LITTLE_ENDIAN)
-    
-    var insertIndex = 0
-    
-    case class MemRange(start: Int, end: Int, theType: IBasicType)
+  private val data = ByteBuffer.allocate(10240);
+  data.order(ByteOrder.LITTLE_ENDIAN)
   
-    private val records = new ListBuffer[MemRange]()
-    
-    def getType(address: Address): IBasicType = {
-      records.find{range => range.start <= address.address && range.end >= address.address}.get.theType
-    }
-    
-    def getSize(address: Address): Int = {
-      val range = records.find{range => range.start <= address.address && range.end >= address.address}.get
-      range.end - range.start + 1
-    }
-    
-    def allocateSpace(theType: IBasicType, numElements: Int): Address = {
-      val result = insertIndex
-      insertIndex += TypeHelper.sizeof(theType) * numElements
-      records += MemRange(result, insertIndex - 1, theType)
-      Address(result)
-    }
-    
-    def readVal(address: Int): Any = {
-      val theType = getType(Address(address))
+  var insertIndex = 0
+  
+  case class MemRange(start: Int, end: Int, theType: IBasicType)
 
-      import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
+  private val records = new ListBuffer[MemRange]()
+  
+  def getType(address: Address): IBasicType = {
+    records.find{range => range.start <= address.address && range.end >= address.address}.get.theType
+  }
+  
+  def getSize(address: Address): Int = {
+    val range = records.find{range => range.start <= address.address && range.end >= address.address}.get
+    range.end - range.start + 1
+  }
+  
+  def allocateSpace(theType: IBasicType, numElements: Int): Address = {
+    val result = insertIndex
+    insertIndex += TypeHelper.sizeof(theType) * numElements
+    records += MemRange(result, insertIndex - 1, theType)
+    Address(result)
+  }
+  
+  def readVal(address: Int): Any = {
+    val theType = getType(Address(address))
 
-      // if it is neither signed or unsigned, assume its signed
-      val isSigned = theType.isSigned || (!theType.isSigned && !theType.isUnsigned)
-      
-      if (theType.isShort && isSigned) {
-        data.getShort(address)
-      } else if (theType.isShort && !isSigned) {
-        data.getShort(address) & 0xFFFF
-      } else if (theType.getKind == eInt) {
-        data.getInt(address)
-      } else if (theType.getKind == eDouble) {
-        data.getDouble(address)
-      } else if (isSigned) {
-        data.getChar(address)
-      } else if (!isSigned) {
-        data.getChar(address) & 0xFF
-      }
-    }
+    import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
+
+    // if it is neither signed or unsigned, assume its signed
+    val isSigned = theType.isSigned || (!theType.isSigned && !theType.isUnsigned)
     
-    // use Address type to prevent messing up argument order
-    def setValue(newVal: Any, address: Address): Unit = newVal match {
-      case newVal: Long => data.putInt(address.address, newVal.toInt) // BUG - dealing with unsigned int
-      case newVal: Int => data.putInt(address.address, newVal)
-      case newVal: Double => data.putDouble(address.address, newVal)
-      case newVal: Char => data.putChar(address.address, newVal)
-      case newVal: Boolean => data.putChar(address.address, if (newVal) 1 else 0)
+    if (theType.isShort && isSigned) {
+      data.getShort(address)
+    } else if (theType.isShort && !isSigned) {
+      data.getShort(address) & 0xFFFF
+    } else if (theType.getKind == eInt) {
+      data.getInt(address)
+    } else if (theType.getKind == eDouble) {
+      data.getDouble(address)
+    } else if (isSigned) {
+      data.getChar(address)
+    } else if (!isSigned) {
+      data.getChar(address) & 0xFF
     }
+  }
+  
+  // use Address type to prevent messing up argument order
+  def setValue(newVal: Any, address: Address): Unit = newVal match {
+    case newVal: Long => data.putInt(address.address, newVal.toInt) // BUG - dealing with unsigned int
+    case newVal: Int => data.putInt(address.address, newVal)
+    case newVal: Double => data.putDouble(address.address, newVal)
+    case newVal: Char => data.putChar(address.address, newVal)
+    case newVal: Boolean => data.putChar(address.address, if (newVal) 1 else 0)
   }
 }
 
@@ -162,7 +159,7 @@ object TypeResolver {
   }
 }
 
-protected class Variable(stack: State#VarStack, val name: String, val theType: IType, val numElements: Int) {
+protected class Variable(stack: State, val name: String, val theType: IType, val numElements: Int) {
   
   def typeName = TypeResolver.resolve(theType).toString
   
@@ -202,8 +199,6 @@ protected class Variable(stack: State#VarStack, val name: String, val theType: I
   }
   
   def dereference: Any = stack.readVal(value.asInstanceOf[Int])
-  
-  
   
   def setValue(value: Any): Unit = {
     
@@ -261,26 +256,14 @@ protected class Variable(stack: State#VarStack, val name: String, val theType: I
   }
 }
 
-
-
-class FunctionExecutionContext(globals: Seq[Variable]) {
-  
+class FunctionExecutionContext(globals: Seq[Variable]) { 
   val visited = new ListBuffer[IASTNode]()
   val variables: ListBuffer[Variable] = ListBuffer[Variable]() ++ (if (globals == null) Seq() else globals)
-
-//  def addVariable(stack: State#VarStack, theName: String, theValue: Any, theType: IType) = {
-//    
-//    val newVar = new Variable(stack, theName, theType, 1)
-//    newVar.setValue(theValue)
-//    
-//    variables += newVar
-//  }
 
   def resolveId(id: String): Variable = {
     variables.find(_.name == id).get
   }
 }
-
 
 object Executor {
   
@@ -492,9 +475,9 @@ object Executor {
             Utils.stripQuotes(initString).toCharArray() :+ 0.toChar // terminating null char
         }
         
-        val theArray = new Variable(state.rawDataStack, name + "_array", currentType.asInstanceOf[IArrayType].getType, initVal.length)
+        val theArray = new Variable(state, name + "_array", currentType.asInstanceOf[IArrayType].getType, initVal.length)
         theArray.setValue(initVal)
-        val theArrayPtr = new Variable(state.rawDataStack, name, currentType, 1)
+        val theArrayPtr = new Variable(state, name, currentType, 1)
         theArrayPtr.setValue(theArray.address)
         
         state.vars.variables += theArrayPtr
@@ -523,7 +506,7 @@ object Executor {
             x
         }
         
-        val newVar = new Variable(state.rawDataStack, name, currentType, 1)
+        val newVar = new Variable(state, name, currentType, 1)
         newVar.setValue(resolved)
         
         state.vars.variables += newVar
@@ -546,7 +529,7 @@ object Executor {
       case statement: IASTStatement =>
         Executor.parseStatement(statement, state, direction)
       case expression: IASTExpression =>
-        Expressions.parse(expression, direction, state, state.rawDataStack)
+        Expressions.parse(expression, direction, state, state)
       case array: IASTArrayModifier =>
         if (direction == Exiting) {
           Seq()
@@ -563,7 +546,7 @@ object Executor {
           val arg = state.stack.pop 
           val paramInfo = param.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
           
-          val newVar = new Variable(state.rawDataStack, param.getDeclarator.getName.getRawSignature, paramInfo.getType, 1)
+          val newVar = new Variable(state, param.getDeclarator.getName.getRawSignature, paramInfo.getType, 1)
           newVar.setValue(arg)
           
           state.vars.variables += newVar
