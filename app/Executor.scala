@@ -268,29 +268,14 @@ class FunctionExecutionContext(globals: Seq[Variable]) {
   val visited = new ListBuffer[IASTNode]()
   val variables: ListBuffer[Variable] = ListBuffer[Variable]() ++ (if (globals == null) Seq() else globals)
 
-  def addVariable(stack: State#VarStack, theName: String, theValue: Any, theType: IType): Variable = {
+  def addVariable(stack: State#VarStack, theName: String, theValue: Any, theType: IType) = {
     
     val typeName = theType.toString
 
-    val newVar = theValue match {
-      case array: Array[_] =>
-        val theArray = new Variable(stack, theName + "_array", theType.asInstanceOf[IArrayType].getType, array.length)
-        theArray.setValue(theValue)
-        val theArrayPtr = new Variable(stack, theName, theType, 1)
-        theArrayPtr.setValue(theArray.address)
-        theArrayPtr
-      case VarRef(variableName) =>
-        val newVar = new Variable(stack, theName, theType, 1)
-        newVar.setValue(resolveId(variableName).value)
-        newVar
-      case _ =>
-        val newVar = new Variable(stack, theName, theType, 1)
-        newVar.setValue(theValue)
-        newVar
-    }
+    val newVar = new Variable(stack, theName, theType, 1)
+    newVar.setValue(theValue)
     
     variables += newVar
-    newVar
   }
 
   def resolveId(id: String): Variable = {
@@ -493,7 +478,7 @@ object Executor {
       
       val initVal = if (decl.isInstanceOf[IASTArrayDeclarator]) {
         
-        state.stack.pop.asInstanceOf[Literal].cast match {
+        val initVal = state.stack.pop.asInstanceOf[Literal].cast match {
           case size: Int =>
             val initialArray = Array.fill[Any](size)(0)
             
@@ -508,8 +493,18 @@ object Executor {
           case initString: String =>
             Utils.stripQuotes(initString).toCharArray() :+ 0.toChar // terminating null char
         }
+        
+        val theArray = new Variable(state.rawDataStack, name + "_array", currentType.asInstanceOf[IArrayType].getType, initVal.length)
+        theArray.setValue(initVal)
+        val theArrayPtr = new Variable(state.rawDataStack, name, currentType, 1)
+        theArrayPtr.setValue(theArray.address)
+        
+        state.vars.variables += theArrayPtr
+        
+        theArrayPtr
+        
       } else {   
-        if (!decl.getPointerOperators.isEmpty) {
+        val initVal = if (!decl.getPointerOperators.isEmpty) {
           if (!state.stack.isEmpty) {
             state.stack.pop
           } else {
@@ -522,10 +517,17 @@ object Executor {
             0
           }
         }
+        
+        val resolved = initVal match {
+          case VarRef(name) =>
+            state.vars.resolveId(name).value
+          case x =>
+            x
+        }
+        
+        state.vars.addVariable(state.rawDataStack, name, resolved, currentType)
       }
-      
-      state.vars.addVariable(state.rawDataStack, name, initVal, currentType)
-      
+
       Seq()
     } else {
       decl match {

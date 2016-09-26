@@ -19,4 +19,23 @@ class StructTest extends StandardTest {
     checkResults(code)
   }
   
+  "moderate struct test" should "print the correct results" in {
+    val code = """
+      
+      struct Test {
+        int y;
+      };
+      
+      void main() {
+        struct Test x;
+        struct Test u;
+        x.y = 465;
+        u.y = 234;
+        printf("%d %d\n", u.y, x.y);
+      }"""
+
+    checkResults(code)
+  }
+  
+  
 }
