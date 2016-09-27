@@ -33,4 +33,44 @@ class TypesTest extends StandardTest {
 
     checkResults(code)
   }
+  
+  "struct type test" should "print the correct results" in {
+    val code = """
+
+      typedef struct {
+        int y;
+        int z;
+      } Test;
+      
+      void main() {
+        Test x;
+        x.y = 465;
+        x.z = 234;
+        printf("%d %d\n", x.y, x.z);
+      }"""
+
+    checkResults(code)
+  }
+  
+  "nested struct type test" should "print the correct results" in {
+    val code = """
+
+      typedef struct {
+        int z;
+      } Inner;
+
+      typedef struct {
+        int x;
+        Inner y;
+      } Outer;
+      
+      void main() {
+        Outer x;
+        x.x = 465;
+        x.y.z = 234;
+        printf("%d %d\n", x.x, x.y.z);
+      }"""
+
+    checkResults(code)
+  }
 }

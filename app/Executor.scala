@@ -28,6 +28,10 @@ case class Literal(lit: String) {
       lit.toInt
     } else if (isLongNumber(lit)) {
       lit.toLong
+    } else if (lit.contains('F') || lit.contains('f')) {
+      val num = lit.toCharArray.filter(x => x != 'f' && x != 'F').mkString
+      println("MAKE FLOAT: " + num)
+      num.toFloat
     } else {
       lit.toDouble
     }
@@ -109,6 +113,8 @@ class State {
       data.getInt(address)
     } else if (theType.getKind == eDouble) {
       data.getDouble(address)
+    } else if (theType.getKind == eFloat) {
+      data.getFloat(address)
     } else if (isSigned) {
       data.getChar(address)
     } else if (!isSigned) {
@@ -120,6 +126,7 @@ class State {
   def setValue(newVal: Any, address: Address): Unit = newVal match {
     case newVal: Long => data.putInt(address.address, newVal.toInt) // BUG - dealing with unsigned int
     case newVal: Int => data.putInt(address.address, newVal)
+    case newVal: Float => data.putFloat(address.address, newVal)
     case newVal: Double => data.putDouble(address.address, newVal)
     case newVal: Char => data.putChar(address.address, newVal)
     case newVal: Boolean => data.putChar(address.address, if (newVal) 1 else 0)
@@ -129,24 +136,6 @@ class State {
 case class Address(address: Int)
 
 object TypeHelper {
-  def sizeof(theType: IType): Int = {
-    if (theType.isInstanceOf[IPointerType]) {
-      4
-    } else if (theType.isInstanceOf[CStructure]) {
-      val struct = theType.asInstanceOf[CStructure].getFields
-      struct.map{ field =>
-        sizeof(field.getType)
-      }.sum
-    } else {
-      resolve(theType).getKind match {
-        case `eInt` => 4
-        case `eChar16` => 2
-        case `eDouble` => 8
-        case `eChar` => 1
-        case `eChar32` => 4
-      }
-    }
-  }
   
   def resolve(theType: IType): IBasicType = theType match {
     case basicType: IBasicType => basicType
@@ -155,30 +144,60 @@ object TypeHelper {
     case arrayType: IArrayType => resolve(arrayType.getType)
     case qualType: IQualifierType => resolve(qualType.getType)
   }
+  
+  def sizeof(theType: IType): Int = theType match {
+    case ptr: IPointerType =>
+      4
+    case struct: CStructure =>
+      struct.getFields.map{ field =>
+        sizeof(field.getType)
+      }.sum
+    case array: IArrayType =>
+      sizeof(array.getType)
+    case typedef: CTypedef =>
+      sizeof(typedef.getType)  
+    case qual: IQualifierType =>
+      sizeof(qual.getType)
+    case basic: IBasicType =>
+      basic.getKind match {
+        case `eInt` => 4
+        case `eFloat` => 4
+        case `eChar16` => 2
+        case `eDouble` => 8
+        case `eChar` => 1
+        case `eChar32` => 4
+      }
+  }
+  
+  
 }
 
 protected class Variable(stack: State, val name: String, val theType: IType, val numElements: Int) {
   
-  def typeName = TypeHelper.resolve(theType).toString
-  
   val isPointer = theType.isInstanceOf[IPointerType] || theType.isInstanceOf[IArrayType]
   
-  val address: Address = if (isPointer) {
-    val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
-    stack.allocateSpace(intType, numElements)
-  } else if (theType.isInstanceOf[CStructure]) {
-    val struct = theType.asInstanceOf[CStructure]
-    var result: Address = null
-    struct.getFields.foreach{ field =>
-      if (result == null) {
-        result = stack.allocateSpace(TypeHelper.resolve(field.getType), 1)
-      } else {
-        stack.allocateSpace(TypeHelper.resolve(field.getType), 1)
+  val address: Address = allocateSpace(theType)
+  
+  def allocateSpace(aType: IType): Address = {
+    if (aType.isInstanceOf[IPointerType] || aType.isInstanceOf[IArrayType]) {
+      val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
+      stack.allocateSpace(intType, numElements)
+    } else if (aType.isInstanceOf[CStructure]) {
+      val struct = aType.asInstanceOf[CStructure]
+      var result: Address = null
+      struct.getFields.foreach{ field =>
+        if (result == null) {
+          result = allocateSpace(field.getType)
+        } else {
+          allocateSpace(field.getType)
+        }
       }
+      result
+    } else if (aType.isInstanceOf[CTypedef]) {
+      allocateSpace(aType.asInstanceOf[CTypedef].getType)
+    } else {
+      stack.allocateSpace(TypeHelper.resolve(aType), numElements)
     }
-    result
-  } else {
-    stack.allocateSpace(TypeHelper.resolve(theType), numElements)
   }
   
   val size = TypeHelper.sizeof(theType)
@@ -224,6 +243,7 @@ protected class Variable(stack: State, val name: String, val theType: IType, val
     theVal match {
       case newVal: Int => stack.setValue(newVal, address)
       case newVal: Long => stack.setValue(newVal, address)
+      case newVal: Float => stack.setValue(newVal, address)
       case newVal: Double => stack.setValue(newVal, address)
       case newVal: Char => stack.setValue(newVal, address)
       case newVal: Boolean => stack.setValue(if (newVal) 1 else 0, address)
@@ -490,25 +510,33 @@ object Executor {
             0
           }
         }
-        
-        val resolved = initVal match {
-          case VarRef(name) =>
-            state.vars.resolveId(name).value
-          case x =>
-            x
+         
+        val resolvedType = currentType match {
+          case typedef: CTypedef => typedef.getType
+          case x => x
         }
         
-        if (currentType.isInstanceOf[CStructure]) {
-          val struct = currentType.asInstanceOf[CStructure]
-          struct.getFields.foreach{ field =>
-            val newVar = new Variable(state, name + "_" + field.getName, field.getType, 1)
+        def createVariables(theType: IType, name: String): Unit = theType match {
+          case struct: CStructure =>
+            struct.getFields.foreach{ field =>
+              createVariables(field.getType, name + "_" + field.getName)
+            }
+          case typedef: CTypedef =>
+            createVariables(typedef.getType, name)
+          case _ =>
+            val resolved = initVal match {
+              case VarRef(name) =>
+                state.vars.resolveId(name).value
+              case x =>
+                x
+            }
+            
+            val newVar = new Variable(state, name, currentType, 1)
+            newVar.setValue(resolved)
             state.vars.variables += newVar
-          }
-        } else {
-          val newVar = new Variable(state, name, currentType, 1)
-          newVar.setValue(resolved)
-          state.vars.variables += newVar
         }
+        
+        createVariables(resolvedType, name)
       }
 
       Seq()
@@ -653,7 +681,7 @@ class Executor(code: String) {
   def tick(): Unit = {
     direction = if (engineState.vars.visited.contains(current)) Exiting else Entering
 
-    //println(current.getClass.getSimpleName + ":" + direction)
+    println(current.getClass.getSimpleName + ":" + direction)
     
     var paths: Seq[IASTNode] = Executor.step(current, engineState, direction)   
     

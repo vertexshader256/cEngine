@@ -35,6 +35,7 @@ object BinaryExpr {
         }  
       case int: Int => int
       case doub: Double => doub
+      case float: Float => float
     }
     
     stack.setValue(resolvedop2, destinationAddress)
@@ -76,6 +77,7 @@ object BinaryExpr {
       case int: Int => int
       case bool: Boolean => bool
       case double: Double => double
+      case float: Float => float
     }
 
     val op = binaryExpr.getOperator
@@ -90,15 +92,17 @@ object BinaryExpr {
     
     val result: Any = binaryExpr.getOperator match {
       case `op_multiply` =>
+        println(op1.getClass.getSimpleName)
         (op1, op2) match {
           case (x: Int, y: Int) => x * y
           case (x: Double, y: Int) => x * y
           case (x: Int, y: Double) => x * y
           case (x: Double, y: Double) => x * y
+          case (x: Float, y: Float) => x * y
         }
       case `op_plus` =>
         (op1, op2) match {
-          case (addy @ Address(address), y: Int) => address + y * TypeHelper.sizeof(TypeHelper.resolve(stack.getType(addy)))
+          case (addy @ Address(address), y: Int) => address + y * TypeHelper.sizeof(stack.getType(addy))
           case (x: Int, y: Int) => x + y
           case (x: Double, y: Int) => x + y
           case (x: Int, y: Double) => x + y
@@ -106,7 +110,7 @@ object BinaryExpr {
         }
       case `op_minus` =>
         (op1, op2) match {
-          case (addy @ Address(address), y: Int) => address - y * TypeHelper.sizeof(TypeHelper.resolve(stack.getType(addy)))
+          case (addy @ Address(address), y: Int) => address - y * TypeHelper.sizeof(stack.getType(addy))
           case (x: Int, y: Int) => x - y
           case (x: Double, y: Int) => x - y
           case (x: Int, y: Double) => x - y

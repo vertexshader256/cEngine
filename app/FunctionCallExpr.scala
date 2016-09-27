@@ -29,10 +29,12 @@ object FunctionCallExpr {
               } else {
                 theVar.address
               } 
-            case address @ Address(addy) => 
-              address
+            case address @ Address(addy) => address
             case str: String => str
             case int: Int => int
+            case float: Float => 
+              println("FLOAT")
+              float
             case short: Short => short
             case long: Long => long
             case doub: Double => doub
@@ -47,8 +49,7 @@ object FunctionCallExpr {
           val resolved = formattedOutputParams.map{x => x match {
               case addy @ Address(address) =>
                 val theType = stack.getType(addy)
-                val typeName = TypeHelper.resolve(theType).toString
-                typeName match {
+                theType.toString match {
                   case "char" if state.getSize(addy) > 1 => 
                     var current: Char = 0
                     var stringBuilder = new ListBuffer[Char]()

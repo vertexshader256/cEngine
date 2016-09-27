@@ -7,10 +7,19 @@ import scala.util.control.Exception.allCatch
 import java.util.Formatter;
 import java.util.Locale;
 import java.math.BigInteger
+import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 
 object Expressions {
 
   def parse(expr: IASTExpression, direction: Direction, context: State, stack: State): Seq[IASTNode] = expr match {
+    case cast: IASTCastExpression => // TODO
+      if (direction == Entering) {
+        println(cast.getRawSignature)
+        Seq(cast.getOperand)
+      } else {
+        println(cast.getTypeId.getClass.getSimpleName)
+        Seq()
+      }
     case fieldRef: IASTFieldReference =>
       if (direction == Entering) {
         Seq(fieldRef.getFieldOwner)
@@ -38,7 +47,7 @@ object Expressions {
         val name = context.stack.pop
         val arrayVarPtr = context.vars.resolveId(name.asInstanceOf[VarRef].name)
         val arrayAddress = arrayVarPtr.value.asInstanceOf[Int]
-        val arrayType = TypeHelper.resolve(stack.getType(Address(arrayAddress)))
+        val arrayType = stack.getType(Address(arrayAddress))
         if (context.parsingAssignmentDest) {
           context.stack.push(Address(arrayAddress + index * TypeHelper.sizeof(arrayType)))
         } else {
@@ -72,9 +81,9 @@ object Expressions {
           case `op_minus` =>
 
             def negativeResolver(variable: Variable) = resolveVar(variable.address, (address) => {
-              context.stack.push(variable.typeName match {
-                case "int"    => -stack.readVal(address).asInstanceOf[Int]
-                case "double" => -stack.readVal(address).asInstanceOf[Double]
+              context.stack.push(variable.theType.asInstanceOf[IBasicType].getKind match {
+                case `eInt`    => -stack.readVal(address).asInstanceOf[Int]
+                case `eDouble` => -stack.readVal(address).asInstanceOf[Double]
               })
             })
 
