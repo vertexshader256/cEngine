@@ -32,9 +32,7 @@ object FunctionCallExpr {
             case address @ Address(addy) => address
             case str: String => str
             case int: Int => int
-            case float: Float => 
-              println("FLOAT")
-              float
+            case float: Float => float
             case short: Short => short
             case long: Long => long
             case doub: Double => doub
@@ -63,6 +61,8 @@ object FunctionCallExpr {
                     } while (current != 0)
                       
                     new String(stringBuilder.map(_.toByte).toArray, "UTF-8")
+                  case "char" =>
+                    stack.readVal(address).asInstanceOf[Char] & 0xFF
                   case _ => 
                     stack.readVal(address)
                 }        

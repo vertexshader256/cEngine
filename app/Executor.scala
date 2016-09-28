@@ -30,7 +30,6 @@ case class Literal(lit: String) {
       lit.toLong
     } else if (lit.contains('F') || lit.contains('f')) {
       val num = lit.toCharArray.filter(x => x != 'f' && x != 'F').mkString
-      println("MAKE FLOAT: " + num)
       num.toFloat
     } else {
       lit.toDouble

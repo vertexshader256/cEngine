@@ -1,17 +1,17 @@
 package scala.astViewer
 
 class PrimitiveTest extends StandardTest {
-//  "char test" should "print the correct results" in {
-//    val code = """
-//      void main() {
-//        char x = 'd';
-//        int y = 16;
-//        char z = y;
-//        printf("%c %c\n", x, z);
-//      }"""
-//
-//    checkResults(code)
-//  }
+  "char test" should "print the correct results" in {
+    val code = """
+      void main() {
+        char x = 'd';
+        int y = 16;
+        char z = y;
+        printf("%c %c\n", x, z);
+      }"""
+
+    checkResults(code)
+  }
   
   "hex test" should "print the correct results" in {
     val code = """
