@@ -183,6 +183,7 @@ protected class Variable(stack: State, val name: String, val theType: IType, val
   val isPointer = theType.isInstanceOf[IPointerType] || theType.isInstanceOf[IArrayType]
   
   val address: Address = allocateSpace(theType)
+  val resolved = TypeHelper.resolve(theType)
   
   def allocateSpace(aType: IType): Address = {
     if (aType.isInstanceOf[IPointerType] || aType.isInstanceOf[IArrayType]) {
@@ -215,7 +216,7 @@ protected class Variable(stack: State, val name: String, val theType: IType, val
   def getArray: Array[Any] = {
     var i = 0
     (0 until numElements).map{ element => 
-      val result = stack.readVal(address.value + i)
+      val result = stack.readVal(address.value + i, resolved)
       i += size
       result
     }.toArray
