@@ -26,7 +26,6 @@ object BinaryExpr {
         val address = addy.value
         op1 match {
           case AddressInfo(_, _) => stack.readVal(address)
-          case Address(_) => stack.readVal(address)
           case VarRef(name) => 
             if (!context.vars.resolveId(name).isPointer) {
               // only if op1 is NOT a pointer, resolve op2
@@ -37,7 +36,7 @@ object BinaryExpr {
         }    
       case Address(address) => 
         op1 match {
-          case Address(_) => stack.readVal(address)
+          //case Address(_) => stack.readVal(address)
           case VarRef(name) => 
             if (!context.vars.resolveId(name).isPointer) {
               // only if op1 is NOT a pointer, resolve op2
@@ -82,11 +81,10 @@ object BinaryExpr {
         val theVar = context.vars.resolveId(name)
         if (theVar.isPointer) {
           isOp1Pointer = true
-          Address(theVar.value.asInstanceOf[Int])
+          AddressInfo(Address(theVar.value.asInstanceOf[Int]), theVar.theType)
         } else {
           theVar.value  
         }
-      case Address(addy) => stack.readVal(addy)
       case int: Int => int
       case bool: Boolean => bool
       case double: Double => double
@@ -115,7 +113,7 @@ object BinaryExpr {
         }
       case `op_plus` =>
         (op1, op2) match {
-          case (addy @ Address(address), y: Int) => address + y * TypeHelper.sizeof(stack.getType(addy))
+          case (AddressInfo(addy, theType), y: Int) => addy.value + y * TypeHelper.sizeof(theType)
           case (x: Int, y: Int) => x + y
           case (x: Double, y: Int) => x + y
           case (x: Int, y: Double) => x + y
@@ -123,7 +121,7 @@ object BinaryExpr {
         }
       case `op_minus` =>
         (op1, op2) match {
-          case (addy @ Address(address), y: Int) => address - y * TypeHelper.sizeof(stack.getType(addy))
+          case (AddressInfo(addy, theType), y: Int) => addy.value - y * TypeHelper.sizeof(theType)
           case (x: Int, y: Int) => x - y
           case (x: Double, y: Int) => x - y
           case (x: Int, y: Double) => x - y
