@@ -130,7 +130,11 @@ class State {
   }
 }
 
-case class Address(value: Int)
+case class Address(value: Int) {
+  def +(x: Int) = {
+    Address(value + x)
+  }
+}
 case class AddressInfo(address: Address, theType: IType)
 
 object TypeHelper {

@@ -47,8 +47,7 @@ object Expressions {
         val name = context.stack.pop
         val arrayVarPtr = context.vars.resolveId(name.asInstanceOf[VarRef].name)
         val arrayAddress = arrayVarPtr.value.asInstanceOf[Int]
-        val arrayType = stack.getType(Address(arrayAddress))
-        
+
         val ancestors = Utils.getAncestors(subscript)
         
         // We have to treat the destination op differently in an assignment
@@ -56,11 +55,13 @@ object Expressions {
           val bin = binary.asInstanceOf[IASTBinaryExpression]
           bin.getOperator == IASTBinaryExpression.op_assign
         }.getOrElse(false)
+        
+        val elementAddress = Address(arrayAddress) + index * TypeHelper.sizeof(arrayVarPtr.theType)
 
         if (isParsingAssignmentDest) {
-          context.stack.push(Address(arrayAddress + index * TypeHelper.sizeof(arrayType)))
+          context.stack.push(elementAddress)
         } else {
-          context.stack.push(stack.readVal(arrayAddress + index * TypeHelper.sizeof(arrayType)))
+          context.stack.push(stack.readVal(elementAddress.value))
         }
 
         Seq()
