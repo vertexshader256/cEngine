@@ -45,9 +45,9 @@ object FunctionCallExpr {
           
           // here we resolve the addresses coming in
           val resolved = formattedOutputParams.map{x => x match {
-              case AddressInfo(addy, _) =>
-                val theType = stack.getType(addy)
-                theType.toString match {
+              case AddressInfo(addy, theType) =>
+                val resolved = TypeHelper.resolve(theType)
+                resolved.toString match {
                   case "char" if state.getSize(addy) > 1 => 
                     var current: Char = 0
                     var stringBuilder = new ListBuffer[Char]()
@@ -62,9 +62,9 @@ object FunctionCallExpr {
                       
                     new String(stringBuilder.map(_.toByte).toArray, "UTF-8")
                   case "char" =>
-                    stack.readVal(addy.value).asInstanceOf[Char] & 0xFF
+                    stack.readVal(addy.value, resolved).asInstanceOf[Char] & 0xFF
                   case _ => 
-                    stack.readVal(addy.value)
+                    stack.readVal(addy.value, resolved)
                 }        
                 
               case x => x

@@ -96,6 +96,10 @@ class State {
   
   def readVal(address: Int): Any = {
     val theType = getType(Address(address))
+    readVal(address, theType)
+  }
+  
+  def readVal(address: Int, theType: IBasicType): Any = {
 
     import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 
@@ -534,7 +538,7 @@ object Executor {
                 x
             }
             
-            val newVar = new Variable(state, name, currentType, 1)
+            val newVar = new Variable(state, name, theType, 1)
             newVar.setValue(resolved)
             state.vars.variables += newVar
         }
