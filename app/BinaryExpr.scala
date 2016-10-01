@@ -63,6 +63,7 @@ object BinaryExpr {
     var op1: Any = context.stack.pop
     
     var isOp1Pointer = false
+    var pointerType: IType = null
     
     // resolve literals
     
@@ -81,6 +82,7 @@ object BinaryExpr {
         val theVar = context.vars.resolveId(name)
         if (theVar.isPointer) {
           isOp1Pointer = true
+          pointerType = theVar.theType
           AddressInfo(Address(theVar.value.asInstanceOf[Int]), theVar.theType)
         } else {
           theVar.value  
@@ -216,7 +218,7 @@ object BinaryExpr {
     }
     
     if (isOp1Pointer) {
-      Address(result.asInstanceOf[Int])
+      AddressInfo(Address(result.asInstanceOf[Int]), pointerType)
     } else {
       result
     }
