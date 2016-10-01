@@ -59,7 +59,7 @@ object Expressions {
         val elementAddress = Address(arrayAddress) + index * TypeHelper.sizeof(arrayVarPtr.theType)
 
         if (isParsingAssignmentDest) {
-          context.stack.push(elementAddress)
+          context.stack.push(AddressInfo(elementAddress, TypeHelper.resolve(arrayVarPtr.theType)))
         } else {
           context.stack.push(stack.readVal(elementAddress.value))
         }
@@ -79,7 +79,7 @@ object Expressions {
             } else {
               func(variable.address.value)
             }
-          case addy @ Address(_) => func(addy.value)
+          case AddressInfo(addy, _) => func(addy.value)
           case int: Int          => int
         }
       }
@@ -90,12 +90,18 @@ object Expressions {
         unary.getOperator match {
           case `op_minus` =>
 
-            def negativeResolver(variable: Variable) = resolveVar(variable.address, (address) => {
-              context.stack.push(variable.theType.asInstanceOf[IBasicType].getKind match {
-                case `eInt`    => -stack.readVal(address).asInstanceOf[Int]
-                case `eDouble` => -stack.readVal(address).asInstanceOf[Double]
-              })
-            })
+            
+            def negativeResolver(variable: Variable) = {
+              
+              val info = AddressInfo(variable.address, variable.theType)
+              
+              resolveVar(info, (address) => {
+                val basicType = variable.theType.asInstanceOf[IBasicType]
+                context.stack.push(basicType.getKind match {
+                  case `eInt`    => -stack.readVal(address).asInstanceOf[Int]
+                  case `eDouble` => -stack.readVal(address).asInstanceOf[Double]
+                })
+            })}
 
             val cast = context.stack.pop match {
               case lit @ Literal(_) => lit.cast
@@ -142,14 +148,16 @@ object Expressions {
           case `op_amper` =>
             context.stack.pop match {
               case VarRef(name) =>
-                context.stack.push(context.vars.resolveId(name).address)
+                val variable = context.vars.resolveId(name)
+                val info = AddressInfo(variable.address, variable.theType)
+                context.stack.push(info)
             }
           case `op_star` =>
             context.stack.pop match {
               case VarRef(varName) =>
                 val ptr = context.vars.resolveId(varName)
-                val refAddress = Address(ptr.value.asInstanceOf[Int])
-                context.stack.push(refAddress)
+                val refAddressInfo = AddressInfo(Address(ptr.value.asInstanceOf[Int]), TypeHelper.resolve(ptr.theType))
+                context.stack.push(refAddressInfo)
             }
           case `op_bracketedPrimary` => // not sure what this is for
         }

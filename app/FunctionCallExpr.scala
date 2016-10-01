@@ -30,6 +30,7 @@ object FunctionCallExpr {
                 theVar.address
               } 
             case address @ Address(addy) => address
+            case AddressInfo(address, _) => address
             case str: String => str
             case int: Int => int
             case float: Float => float

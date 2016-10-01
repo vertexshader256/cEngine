@@ -13,7 +13,7 @@ object BinaryExpr {
     val destinationAddress: Address = op1 match {
       case VarRef(name) =>
         context.vars.resolveId(name).address
-      case addy @ Address(_) => addy
+      case AddressInfo(addy, _) => addy
     }
     
     // TODO: combine with resolve() function below?
@@ -22,6 +22,19 @@ object BinaryExpr {
       case lit @ Literal(_) => lit.cast
       case VarRef(name) => 
         context.vars.resolveId(name).value
+      case AddressInfo(addy, _) => 
+        val address = addy.value
+        op1 match {
+          case AddressInfo(_, _) => stack.readVal(address)
+          case Address(_) => stack.readVal(address)
+          case VarRef(name) => 
+            if (!context.vars.resolveId(name).isPointer) {
+              // only if op1 is NOT a pointer, resolve op2
+              stack.readVal(address)
+            } else {
+              address
+            }
+        }    
       case Address(address) => 
         op1 match {
           case Address(_) => stack.readVal(address)

@@ -250,6 +250,7 @@ protected class Variable(stack: State, val name: String, val theType: IType, val
       case newVal: Char => stack.setValue(newVal, address)
       case newVal: Boolean => stack.setValue(if (newVal) 1 else 0, address)
       case address @ Address(addy) => setValue(addy)
+      case AddressInfo(addy, _) => setValue(addy)
       case array: Array[_] =>
         var i = 0
         array.foreach{element =>  element match {
