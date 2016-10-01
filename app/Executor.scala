@@ -81,11 +81,11 @@ class State {
   private val records = new ListBuffer[MemRange]()
   
   def getType(address: Address): IBasicType = {
-    records.find{range => range.start <= address.address && range.end >= address.address}.get.theType
+    records.find{range => range.start <= address.value && range.end >= address.value}.get.theType
   }
   
   def getSize(address: Address): Int = {
-    val range = records.find{range => range.start <= address.address && range.end >= address.address}.get
+    val range = records.find{range => range.start <= address.value && range.end >= address.value}.get
     range.end - range.start + 1
   }
   
@@ -123,16 +123,17 @@ class State {
   
   // use Address type to prevent messing up argument order
   def setValue(newVal: Any, address: Address): Unit = newVal match {
-    case newVal: Long => data.putInt(address.address, newVal.toInt) // BUG - dealing with unsigned int
-    case newVal: Int => data.putInt(address.address, newVal)
-    case newVal: Float => data.putFloat(address.address, newVal)
-    case newVal: Double => data.putDouble(address.address, newVal)
-    case newVal: Char => data.putChar(address.address, newVal)
-    case newVal: Boolean => data.putChar(address.address, if (newVal) 1 else 0)
+    case newVal: Long => data.putInt(address.value, newVal.toInt) // BUG - dealing with unsigned int
+    case newVal: Int => data.putInt(address.value, newVal)
+    case newVal: Float => data.putFloat(address.value, newVal)
+    case newVal: Double => data.putDouble(address.value, newVal)
+    case newVal: Char => data.putChar(address.value, newVal)
+    case newVal: Boolean => data.putChar(address.value, if (newVal) 1 else 0)
   }
 }
 
-case class Address(address: Int)
+case class Address(value: Int)
+case class AddressInfo(address: Address, theType: IType)
 
 object TypeHelper {
   
@@ -202,13 +203,13 @@ protected class Variable(stack: State, val name: String, val theType: IType, val
   val size = TypeHelper.sizeof(theType)
   
   def value: Any = {
-    stack.readVal(address.address)
+    stack.readVal(address.value)
   }
   
   def getArray: Array[Any] = {
     var i = 0
     (0 until numElements).map{ element => 
-      val result = stack.readVal(address.address + i)
+      val result = stack.readVal(address.value + i)
       i += size
       result
     }.toArray
@@ -251,10 +252,10 @@ protected class Variable(stack: State, val name: String, val theType: IType, val
         var i = 0
         array.foreach{element =>  element match {
           case lit @ Literal(_) =>
-            stack.setValue(lit.cast, Address(address.address + i))
+            stack.setValue(lit.cast, Address(address.value + i))
             i += size
           case x =>
-            stack.setValue(x, Address(address.address + i))
+            stack.setValue(x, Address(address.value + i))
             i += size
         }}
     }

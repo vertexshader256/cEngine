@@ -67,9 +67,9 @@ object Expressions {
             if (variable.isPointer) {
               func(variable.value.asInstanceOf[Int])
             } else {
-              func(variable.address.address)
+              func(variable.address.value)
             }
-          case addy @ Address(_) => func(addy.address)
+          case addy @ Address(_) => func(addy.value)
           case int: Int          => int
         }
       }
