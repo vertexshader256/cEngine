@@ -53,7 +53,7 @@ object FunctionCallExpr {
                     var stringBuilder = new ListBuffer[Char]()
                     var i = 0
                     do {
-                      current = stack.readVal(addy.value + i).asInstanceOf[Char]
+                      current = stack.readVal(addy.value + i, resolved).asInstanceOf[Char]
                       if (current != 0) {
                         stringBuilder += current
                         i += 1

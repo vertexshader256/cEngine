@@ -61,7 +61,7 @@ object Expressions {
         if (isParsingAssignmentDest) {
           context.stack.push(AddressInfo(elementAddress, TypeHelper.resolve(arrayVarPtr.theType)))
         } else {
-          context.stack.push(stack.readVal(elementAddress.value))
+          context.stack.push(stack.readVal(elementAddress.value, TypeHelper.resolve(arrayVarPtr.theType)))
         }
 
         Seq()
