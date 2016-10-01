@@ -49,9 +49,7 @@ class State {
   var isBreaking = false
   var isContinuing = false
   var isPreprocessing = true
-  
-  var parsingAssignmentDest = false
-  
+
   def callFunction(call: IASTFunctionCallExpression) = {
     executionContext.push(vars)
     vars = new FunctionExecutionContext(globals)
@@ -681,7 +679,7 @@ class Executor(code: String) {
   def tick(): Unit = {
     direction = if (engineState.vars.visited.contains(current)) Exiting else Entering
 
-    println(current.getClass.getSimpleName + ":" + direction)
+    //println(current.getClass.getSimpleName + ":" + direction)
     
     var paths: Seq[IASTNode] = Executor.step(current, engineState, direction)   
     
