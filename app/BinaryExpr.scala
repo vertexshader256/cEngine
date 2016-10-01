@@ -35,17 +35,17 @@ object BinaryExpr {
               address
             }
         }    
-      case Address(address) => 
-        op1 match {
-          //case Address(_) => stack.readVal(address)
-          case VarRef(name) => 
-            if (!context.vars.resolveId(name).isPointer) {
-              // only if op1 is NOT a pointer, resolve op2
-              stack.readVal(address)
-            } else {
-              address
-            }
-        }  
+//      case Address(address) => 
+//        op1 match {
+//          //case Address(_) => stack.readVal(address)
+//          case VarRef(name) => 
+//            if (!context.vars.resolveId(name).isPointer) {
+//              // only if op1 is NOT a pointer, resolve op2
+//              stack.readVal(address)
+//            } else {
+//              address
+//            }
+//        }  
       case int: Int => int
       case doub: Double => doub
       case float: Float => float
