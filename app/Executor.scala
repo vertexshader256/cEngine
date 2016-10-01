@@ -178,7 +178,7 @@ object TypeHelper {
   
 }
 
-protected class Variable(stack: State, val name: String, val theType: IType, val numElements: Int) {
+protected class Variable(state: State, val name: String, val theType: IType, val numElements: Int) {
   
   val isPointer = theType.isInstanceOf[IPointerType] || theType.isInstanceOf[IArrayType]
   
@@ -188,7 +188,7 @@ protected class Variable(stack: State, val name: String, val theType: IType, val
   def allocateSpace(aType: IType): Address = {
     if (aType.isInstanceOf[IPointerType] || aType.isInstanceOf[IArrayType]) {
       val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
-      stack.allocateSpace(intType, 1)
+      state.allocateSpace(intType, 1)
     } else if (aType.isInstanceOf[CStructure]) {
       val struct = aType.asInstanceOf[CStructure]
       var result: Address = null
@@ -203,26 +203,26 @@ protected class Variable(stack: State, val name: String, val theType: IType, val
     } else if (aType.isInstanceOf[CTypedef]) {
       allocateSpace(aType.asInstanceOf[CTypedef].getType)
     } else {
-      stack.allocateSpace(TypeHelper.resolve(aType), numElements)
+      state.allocateSpace(TypeHelper.resolve(aType), numElements)
     }
   }
   
   val size = TypeHelper.sizeof(theType)
   
   def value: Any = {
-    stack.readVal(address.value)
+    state.readVal(address.value)
   }
   
   def getArray: Array[Any] = {
     var i = 0
     (0 until numElements).map{ element => 
-      val result = stack.readVal(address.value + i, resolved)
+      val result = state.readVal(address.value + i, resolved)
       i += size
       result
     }.toArray
   }
   
-  def dereference: Any = stack.readVal(value.asInstanceOf[Int])
+  def dereference: Any = state.readVal(value.asInstanceOf[Int])
   
   def setValue(value: Any): Unit = {
     
@@ -248,22 +248,22 @@ protected class Variable(stack: State, val name: String, val theType: IType, val
     }
     
     theVal match {
-      case newVal: Int => stack.setValue(newVal, address)
-      case newVal: Long => stack.setValue(newVal, address)
-      case newVal: Float => stack.setValue(newVal, address)
-      case newVal: Double => stack.setValue(newVal, address)
-      case newVal: Char => stack.setValue(newVal, address)
-      case newVal: Boolean => stack.setValue(if (newVal) 1 else 0, address)
+      case newVal: Int => state.setValue(newVal, address)
+      case newVal: Long => state.setValue(newVal, address)
+      case newVal: Float => state.setValue(newVal, address)
+      case newVal: Double => state.setValue(newVal, address)
+      case newVal: Char => state.setValue(newVal, address)
+      case newVal: Boolean => state.setValue(if (newVal) 1 else 0, address)
       case address @ Address(addy) => setValue(addy)
       case AddressInfo(addy, _) => setValue(addy)
       case array: Array[_] =>
         var i = 0
         array.foreach{element =>  element match {
           case lit @ Literal(_) =>
-            stack.setValue(lit.cast, Address(address.value + i))
+            state.setValue(lit.cast, Address(address.value + i))
             i += size
           case x =>
-            stack.setValue(x, Address(address.value + i))
+            state.setValue(x, Address(address.value + i))
             i += size
         }}
     }
@@ -271,9 +271,9 @@ protected class Variable(stack: State, val name: String, val theType: IType, val
   
   def sizeof: Int = {  
     if (isPointer) {
-      stack.getSize(Address(value.asInstanceOf[Int]))
+      state.getSize(Address(value.asInstanceOf[Int]))
     } else {
-      stack.getSize(address)
+      state.getSize(address)
     }
   }
 }
