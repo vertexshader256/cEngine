@@ -188,7 +188,7 @@ protected class Variable(stack: State, val name: String, val theType: IType, val
   def allocateSpace(aType: IType): Address = {
     if (aType.isInstanceOf[IPointerType] || aType.isInstanceOf[IArrayType]) {
       val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
-      stack.allocateSpace(intType, numElements)
+      stack.allocateSpace(intType, 1)
     } else if (aType.isInstanceOf[CStructure]) {
       val struct = aType.asInstanceOf[CStructure]
       var result: Address = null
