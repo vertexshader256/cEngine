@@ -25,12 +25,11 @@ object FunctionCallExpr {
             case VarRef(name) => 
               val theVar = state.vars.resolveId(name)
               if (theVar.isPointer) {
-                Address(theVar.value.asInstanceOf[Int])
+                AddressInfo(Address(theVar.value.asInstanceOf[Int]), theVar.theType)
               } else {
-                theVar.address
+                AddressInfo(theVar.address, theVar.theType)
               } 
-            case address @ Address(addy) => address
-            case AddressInfo(address, _) => address
+            case info @ AddressInfo(_, _) => info
             case str: String => str
             case int: Int => int
             case float: Float => float
@@ -46,7 +45,7 @@ object FunctionCallExpr {
           
           // here we resolve the addresses coming in
           val resolved = formattedOutputParams.map{x => x match {
-              case addy @ Address(address) =>
+              case AddressInfo(addy, _) =>
                 val theType = stack.getType(addy)
                 theType.toString match {
                   case "char" if state.getSize(addy) > 1 => 
@@ -54,7 +53,7 @@ object FunctionCallExpr {
                     var stringBuilder = new ListBuffer[Char]()
                     var i = 0
                     do {
-                      current = stack.readVal(address + i).asInstanceOf[Char]
+                      current = stack.readVal(addy.value + i).asInstanceOf[Char]
                       if (current != 0) {
                         stringBuilder += current
                         i += 1
@@ -63,9 +62,9 @@ object FunctionCallExpr {
                       
                     new String(stringBuilder.map(_.toByte).toArray, "UTF-8")
                   case "char" =>
-                    stack.readVal(address).asInstanceOf[Char] & 0xFF
+                    stack.readVal(addy.value).asInstanceOf[Char] & 0xFF
                   case _ => 
-                    stack.readVal(address)
+                    stack.readVal(addy.value)
                 }        
                 
               case x => x
