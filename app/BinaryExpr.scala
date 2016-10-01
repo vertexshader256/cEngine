@@ -10,10 +10,11 @@ import java.util.Locale;
 object BinaryExpr {
   
   def parseAssign(op1: Any, op2: Any, context: State, stack: State): Any = {
-    val destinationAddress: Address = op1 match {
+    val destinationAddress: AddressInfo = op1 match {
       case VarRef(name) =>
-        context.vars.resolveId(name).address
-      case AddressInfo(addy, _) => addy
+        val variable = context.vars.resolveId(name)
+        AddressInfo(variable.address, variable.theType)
+      case info @ AddressInfo(addy, _) => info
     }
     
     // TODO: combine with resolve() function below?
@@ -50,7 +51,7 @@ object BinaryExpr {
       case float: Float => float
     }
     
-    stack.setValue(resolvedop2, destinationAddress)
+    stack.setValue(resolvedop2, destinationAddress.address)
 
     resolvedop2
   }
