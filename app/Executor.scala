@@ -196,15 +196,15 @@ protected class ArrayVariable(val state: State, val name: String, val theType: I
   
   val isPointer = true
   
-  val theArray = new Variable(state, name + "_array", theType.asInstanceOf[IArrayType].getType, numElements)
+  val theArrayAddress = allocateSpace(theType.asInstanceOf[IArrayType].getType)
   
-  val theArrayPtr = new Variable(state, name, theType, 1)
-  theArrayPtr.setValue(theArray.address)
+  val theArrayPtr = allocateSpace(theType)
+  state.setValue(theArrayAddress.value, theArrayPtr)
   
-  val address: Address = theArrayPtr.address
+  val address: Address = theArrayPtr
   
   def sizeof: Int = {  
-    state.getSize(theArray.address)
+    state.getSize(theArrayAddress)
   }
 
   def setValue(value: Any): Unit = {
@@ -215,10 +215,10 @@ protected class ArrayVariable(val state: State, val name: String, val theType: I
         var i = 0
         array.foreach{element =>  element match {
           case lit @ Literal(_) =>
-            state.setValue(lit.cast, Address(theArray.address.value + i))
+            state.setValue(lit.cast, Address(theArrayAddress.value + i))
             i += size
           case x =>
-            state.setValue(x, Address(theArray.address.value + i))
+            state.setValue(x, Address(theArrayAddress.value + i))
             i += size
         }}
     }
@@ -227,11 +227,33 @@ protected class ArrayVariable(val state: State, val name: String, val theType: I
   def value: Any = {
     state.readVal(address.value)
   }
+  
+  def allocateSpace(aType: IType): Address = {
+    if (aType.isInstanceOf[IArrayType]) {
+      val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
+      state.allocateSpace(intType, 1)
+    } else if (aType.isInstanceOf[CStructure]) {
+      val struct = aType.asInstanceOf[CStructure]
+      var result: Address = null
+      struct.getFields.foreach{ field =>
+        if (result == null) {
+          result = allocateSpace(field.getType)
+        } else {
+          allocateSpace(field.getType)
+        }
+      }
+      result
+    } else if (aType.isInstanceOf[CTypedef]) {
+      allocateSpace(aType.asInstanceOf[CTypedef].getType)
+    } else {
+      state.allocateSpace(TypeHelper.resolve(aType), numElements)
+    }
+  }
 }
 
 protected class Variable(val state: State, val name: String, val theType: IType, val numElements: Int) extends RuntimeVariable {
   
-  val isPointer = theType.isInstanceOf[IPointerType] || theType.isInstanceOf[IArrayType]
+  val isPointer = theType.isInstanceOf[IPointerType]
   
   val address: Address = allocateSpace(theType)
   val resolved = TypeHelper.resolve(theType)
@@ -245,7 +267,7 @@ protected class Variable(val state: State, val name: String, val theType: IType,
   }
   
   def allocateSpace(aType: IType): Address = {
-    if (aType.isInstanceOf[IPointerType] || aType.isInstanceOf[IArrayType]) {
+    if (aType.isInstanceOf[IPointerType]) {
       val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
       state.allocateSpace(intType, 1)
     } else if (aType.isInstanceOf[CStructure]) {
