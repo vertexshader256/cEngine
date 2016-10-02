@@ -91,7 +91,7 @@ object Expressions {
           case `op_minus` =>
 
             
-            def negativeResolver(variable: Variable) = {
+            def negativeResolver(variable: RuntimeVariable) = {
               
               val info = AddressInfo(variable.address, variable.theType)
               

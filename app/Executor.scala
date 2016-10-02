@@ -40,7 +40,7 @@ case class Literal(lit: String) {
 class State {
   val stack = new Stack[Any]()
   val executionContext = new Stack[FunctionExecutionContext]()
-  val globals = new ListBuffer[Variable]()  
+  val globals = new ListBuffer[RuntimeVariable]()  
   var vars: FunctionExecutionContext = null
   val functionMap = scala.collection.mutable.Map[String, IASTNode]()
   val stdout = new ListBuffer[String]()
@@ -178,7 +178,68 @@ object TypeHelper {
   
 }
 
-protected class Variable(state: State, val name: String, val theType: IType, val numElements: Int) {
+trait RuntimeVariable {
+  def address: Address
+  def name: String
+  def value: Any
+  def isPointer: Boolean
+  def theType: IType
+  def state: State
+  def setValue(value: Any): Unit
+  
+  val size = TypeHelper.sizeof(theType)
+  
+  def sizeof: Int = {  
+    if (isPointer) {
+      state.getSize(Address(value.asInstanceOf[Int]))
+    } else {
+      state.getSize(address)
+    }
+  }
+}
+
+protected class ArrayVariable(val state: State, val name: String, val theType: IType, val numElements: Int) extends RuntimeVariable {
+  val address: Address = allocateSpace(theType)
+  
+  val isPointer = theType.isInstanceOf[IPointerType] || theType.isInstanceOf[IArrayType]
+  
+  def allocateSpace(aType: IType): Address = {
+    val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
+    state.allocateSpace(intType, 1)
+  }
+  
+  //  def getArray: Array[Any] = {
+//    var i = 0
+//    (0 until numElements).map{ element => 
+//      val result = state.readVal(address.value + i, resolved)
+//      i += size
+//      result
+//    }.toArray
+//  }
+  
+  def setValue(value: Any): Unit = {
+   
+    value match {
+
+      case array: Array[_] =>
+        var i = 0
+        array.foreach{element =>  element match {
+          case lit @ Literal(_) =>
+            state.setValue(lit.cast, Address(address.value + i))
+            i += size
+          case x =>
+            state.setValue(x, Address(address.value + i))
+            i += size
+        }}
+    }
+  }
+  
+  def value: Any = {
+    state.readVal(address.value)
+  }
+}
+
+protected class Variable(val state: State, val name: String, val theType: IType, val numElements: Int) extends RuntimeVariable {
   
   val isPointer = theType.isInstanceOf[IPointerType] || theType.isInstanceOf[IArrayType]
   
@@ -207,19 +268,10 @@ protected class Variable(state: State, val name: String, val theType: IType, val
     }
   }
   
-  val size = TypeHelper.sizeof(theType)
+  
   
   def value: Any = {
     state.readVal(address.value)
-  }
-  
-  def getArray: Array[Any] = {
-    var i = 0
-    (0 until numElements).map{ element => 
-      val result = state.readVal(address.value + i, resolved)
-      i += size
-      result
-    }.toArray
   }
   
   def dereference: Any = state.readVal(value.asInstanceOf[Int])
@@ -269,20 +321,14 @@ protected class Variable(state: State, val name: String, val theType: IType, val
     }
   }
   
-  def sizeof: Int = {  
-    if (isPointer) {
-      state.getSize(Address(value.asInstanceOf[Int]))
-    } else {
-      state.getSize(address)
-    }
-  }
+  
 }
 
-class FunctionExecutionContext(globals: Seq[Variable]) { 
+class FunctionExecutionContext(globals: Seq[RuntimeVariable]) { 
   val visited = new ListBuffer[IASTNode]()
-  val variables: ListBuffer[Variable] = ListBuffer[Variable]() ++ (if (globals == null) Seq() else globals)
+  val variables: ListBuffer[RuntimeVariable] = ListBuffer[RuntimeVariable]() ++ (if (globals == null) Seq() else globals)
 
-  def resolveId(id: String): Variable = {
+  def resolveId(id: String): RuntimeVariable = {
     variables.find(_.name == id).get
   }
 }
