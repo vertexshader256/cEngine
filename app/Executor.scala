@@ -189,34 +189,24 @@ trait RuntimeVariable {
   
   val size = TypeHelper.sizeof(theType)
   
-  def sizeof: Int = {  
-    if (isPointer) {
-      state.getSize(Address(value.asInstanceOf[Int]))
-    } else {
-      state.getSize(address)
-    }
-  }
+  def sizeof: Int
 }
 
 protected class ArrayVariable(val state: State, val name: String, val theType: IType, val numElements: Int) extends RuntimeVariable {
-  val address: Address = allocateSpace(theType)
   
-  val isPointer = theType.isInstanceOf[IPointerType] || theType.isInstanceOf[IArrayType]
+  val isPointer = true
   
-  def allocateSpace(aType: IType): Address = {
-    val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
-    state.allocateSpace(intType, 1)
+  val theArray = new Variable(state, name + "_array", theType.asInstanceOf[IArrayType].getType, numElements)
+  
+  val theArrayPtr = new Variable(state, name, theType, 1)
+  theArrayPtr.setValue(theArray.address)
+  
+  val address: Address = theArrayPtr.address
+  
+  def sizeof: Int = {  
+    state.getSize(theArray.address)
   }
-  
-  //  def getArray: Array[Any] = {
-//    var i = 0
-//    (0 until numElements).map{ element => 
-//      val result = state.readVal(address.value + i, resolved)
-//      i += size
-//      result
-//    }.toArray
-//  }
-  
+
   def setValue(value: Any): Unit = {
    
     value match {
@@ -225,10 +215,10 @@ protected class ArrayVariable(val state: State, val name: String, val theType: I
         var i = 0
         array.foreach{element =>  element match {
           case lit @ Literal(_) =>
-            state.setValue(lit.cast, Address(address.value + i))
+            state.setValue(lit.cast, Address(theArray.address.value + i))
             i += size
           case x =>
-            state.setValue(x, Address(address.value + i))
+            state.setValue(x, Address(theArray.address.value + i))
             i += size
         }}
     }
@@ -245,6 +235,14 @@ protected class Variable(val state: State, val name: String, val theType: IType,
   
   val address: Address = allocateSpace(theType)
   val resolved = TypeHelper.resolve(theType)
+  
+  def sizeof: Int = {  
+    if (isPointer) {
+      state.getSize(Address(value.asInstanceOf[Int]))
+    } else {
+      state.getSize(address)
+    }
+  }
   
   def allocateSpace(aType: IType): Address = {
     if (aType.isInstanceOf[IPointerType] || aType.isInstanceOf[IArrayType]) {
@@ -541,10 +539,8 @@ object Executor {
             Utils.stripQuotes(initString).toCharArray() :+ 0.toChar // terminating null char
         }
         
-        val theArray = new Variable(state, name + "_array", currentType.asInstanceOf[IArrayType].getType, initVal.length)
-        theArray.setValue(initVal)
-        val theArrayPtr = new Variable(state, name, currentType, 1)
-        theArrayPtr.setValue(theArray.address)
+        val theArrayPtr = new ArrayVariable(state, name, currentType, initVal.length)
+        theArrayPtr.setValue(initVal)
         
         state.vars.variables += theArrayPtr
         
