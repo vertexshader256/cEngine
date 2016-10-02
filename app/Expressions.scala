@@ -8,6 +8,7 @@ import java.util.Formatter;
 import java.util.Locale;
 import java.math.BigInteger
 import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
+import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
 
 object Expressions {
 
@@ -46,7 +47,9 @@ object Expressions {
 
         val name = context.stack.pop
         val arrayVarPtr = context.vars.resolveId(name.asInstanceOf[VarRef].name)
-        val arrayAddress = arrayVarPtr.value.asInstanceOf[Int]
+        val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
+
+        val arrayAddress = stack.readVal(arrayVarPtr.address.value, intType).asInstanceOf[Int]
 
         val ancestors = Utils.getAncestors(subscript)
         

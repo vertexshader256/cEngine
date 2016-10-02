@@ -125,11 +125,12 @@ class State {
   
   // use Address type to prevent messing up argument order
   def setValue(newVal: Any, address: Address): Unit = newVal match {
+    case newVal: Char => data.put(address.value, newVal.toByte) // MUST convert to byte because writing char is 2 bytes!!!
     case newVal: Long => data.putInt(address.value, newVal.toInt) // BUG - dealing with unsigned int
     case newVal: Int => data.putInt(address.value, newVal)
     case newVal: Float => data.putFloat(address.value, newVal)
     case newVal: Double => data.putDouble(address.value, newVal)
-    case newVal: Char => data.putChar(address.value, newVal)
+    
     case newVal: Boolean => data.putChar(address.value, if (newVal) 1 else 0)
   }
 }
@@ -220,11 +221,11 @@ protected class ArrayVariable(val state: State, val name: String, val theType: I
   
   val theArrayAddress = allocateSpace(theType.asInstanceOf[IArrayType].getType, numElements)
   val theArrayPtr = allocateSpace(theType, 1)
-  
+
   state.setValue(theArrayAddress.value, theArrayPtr)
-  
+
   val address: Address = theArrayPtr
-  
+
   def sizeof: Int = {  
     state.getSize(theArrayAddress)
   }
@@ -232,17 +233,16 @@ protected class ArrayVariable(val state: State, val name: String, val theType: I
   def setValue(value: Any): Unit = {
    
     value match {
-
       case array: Array[_] =>
         var i = 0
-        array.foreach{element =>  element match {
+        array.foreach{element =>  element match {   
           case lit @ Literal(_) =>
-            state.setValue(lit.cast, Address(theArrayAddress.value + i))
-            i += size
+            state.setValue(lit.cast, Address(theArrayAddress.value + i))        
           case x =>
             state.setValue(x, Address(theArrayAddress.value + i))
-            i += size
-        }}
+          }
+          i += TypeHelper.sizeof(theType.asInstanceOf[IArrayType].getType)
+        }
     }
   }
   
