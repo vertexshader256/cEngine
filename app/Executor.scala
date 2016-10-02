@@ -166,8 +166,6 @@ object TypeHelper {
         case `eChar32` => 4
       }
   }
-  
-  
 }
 
 trait RuntimeVariable {
@@ -176,14 +174,13 @@ trait RuntimeVariable {
   def value: Any
   def isPointer: Boolean
   def theType: IType
-  def state: State
   def setValue(value: Any): Unit
   
   val size = TypeHelper.sizeof(theType)
   
   def sizeof: Int
   
-  def allocateSpace(aType: IType, numElements: Int): Address = {
+  def allocateSpace(state: State, aType: IType, numElements: Int): Address = {
     if (aType.isInstanceOf[IArrayType] || aType.isInstanceOf[IPointerType]) {
       val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
       state.allocateSpace(intType, 1)
@@ -192,30 +189,30 @@ trait RuntimeVariable {
       var result: Address = null
       struct.getFields.foreach{ field =>
         if (result == null) {
-          result = allocateSpace(field.getType, numElements)
+          result = allocateSpace(state, field.getType, numElements)
         } else {
-          allocateSpace(field.getType, numElements)
+          allocateSpace(state, field.getType, numElements)
         }
       }
       result
     } else if (aType.isInstanceOf[CTypedef]) {
-      allocateSpace(aType.asInstanceOf[CTypedef].getType, numElements)
+      allocateSpace(state, aType.asInstanceOf[CTypedef].getType, numElements)
     } else {
       state.allocateSpace(TypeHelper.resolve(aType), numElements)
     }
   }
 }
 
-protected class ArrayVariable(val state: State, val name: String, val theType: IType, val numElements: Int) extends RuntimeVariable {
+protected class ArrayVariable(state: State, val name: String, val theType: IType, numElements: Int) extends RuntimeVariable {
   
   // In C arrays are pointers
   val isPointer = true
   
   // where we store the actual data
-  val theArrayAddress = allocateSpace(theType.asInstanceOf[IArrayType].getType, numElements)
+  val theArrayAddress = allocateSpace(state, theType.asInstanceOf[IArrayType].getType, numElements)
 
   // where we store the reference
-  val address: Address = allocateSpace(theType, 1)
+  val address: Address = allocateSpace(state, theType, 1)
   
   state.setValue(theArrayAddress.value, address)
 
@@ -242,11 +239,11 @@ protected class ArrayVariable(val state: State, val name: String, val theType: I
   }
 }
 
-protected class Variable(val state: State, val name: String, val theType: IType) extends RuntimeVariable {
+protected class Variable(state: State, val name: String, val theType: IType) extends RuntimeVariable {
   
   val isPointer = theType.isInstanceOf[IPointerType]
   
-  val address: Address = allocateSpace(theType, 1)
+  val address: Address = allocateSpace(state, theType, 1)
   
   val resolved = {
     if (isPointer) {
@@ -269,29 +266,24 @@ protected class Variable(val state: State, val name: String, val theType: IType)
   }
 
   def setValue(value: Any): Unit = {
-    
-    val theVal = value match {
+    val literalConv = value match {
       case lit @ Literal(literal) => 
-        if (theType == null) {
-          lit.cast
-        } else {
-          TypeHelper.resolve(theType).getKind match {
-            case `eDouble` => literal.toDouble
-            case `eInt` => 
-              if (literal.startsWith("0x")) { 
-                val bigInt = new BigInteger(literal.drop(2), 16);
-                bigInt.intValue
-              } else {
-                literal.toInt
-              }
-            case `eFloat` => literal.toFloat
-            case _ => lit.cast
-          }
+        TypeHelper.resolve(theType).getKind match {
+          case `eDouble` => literal.toDouble
+          case `eInt` => 
+            if (literal.startsWith("0x")) { 
+              val bigInt = new BigInteger(literal.drop(2), 16);
+              bigInt.intValue
+            } else {
+              literal.toInt
+            }
+          case `eFloat` => literal.toFloat
+          case _ => lit.cast
         }
       case x => x
     }
     
-    theVal match {
+    literalConv match {
       case x: Int => state.setValue(x, address)
       case x: Long => state.setValue(x, address)
       case x: Float => state.setValue(x, address)
