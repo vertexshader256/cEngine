@@ -256,7 +256,13 @@ protected class Variable(val state: State, val name: String, val theType: IType,
   val isPointer = theType.isInstanceOf[IPointerType]
   
   val address: Address = allocateSpace(theType, numElements)
-  val resolved = TypeHelper.resolve(theType)
+  val resolved = {
+    if (isPointer) {
+      new CBasicType(IBasicType.Kind.eInt , 0)
+    } else {
+      TypeHelper.resolve(theType)
+    }
+  }
   
   def sizeof: Int = {  
     if (isPointer) {
@@ -267,7 +273,7 @@ protected class Variable(val state: State, val name: String, val theType: IType,
   }
   
   def value: Any = {
-    state.readVal(address.value)
+      state.readVal(address.value, resolved)
   }
   
   def dereference: Any = state.readVal(value.asInstanceOf[Int])
