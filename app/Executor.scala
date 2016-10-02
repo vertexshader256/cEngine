@@ -74,13 +74,9 @@ class State {
   
   var insertIndex = 0
   
-  private case class MemRange(start: Int, end: Int, theType: IBasicType)
+  private case class MemRange(start: Int, end: Int)
 
   private val records = new ListBuffer[MemRange]()
-  
-  def getType(address: Address): IBasicType = {
-    records.find{range => range.start <= address.value && range.end >= address.value}.get.theType
-  }
   
   def getSize(address: Address): Int = {
     val range = records.find{range => range.start <= address.value && range.end >= address.value}.get
@@ -90,13 +86,8 @@ class State {
   def allocateSpace(theType: IBasicType, numElements: Int): Address = {
     val result = insertIndex
     insertIndex += TypeHelper.sizeof(theType) * numElements
-    records += MemRange(result, insertIndex - 1, theType)
+    records += MemRange(result, insertIndex - 1)
     Address(result)
-  }
-  
-  def readVal(address: Int): Any = {
-    val theType = getType(Address(address))
-    readVal(address, theType)
   }
   
   def readVal(address: Int, theType: IBasicType): Any = {
@@ -247,7 +238,7 @@ protected class ArrayVariable(val state: State, val name: String, val theType: I
   }
   
   def value: Any = {
-    state.readVal(address.value)
+    state.readVal(address.value, new CBasicType(IBasicType.Kind.eInt , 0))
   }
 }
 
@@ -275,9 +266,7 @@ protected class Variable(val state: State, val name: String, val theType: IType,
   def value: Any = {
       state.readVal(address.value, resolved)
   }
-  
-  def dereference: Any = state.readVal(value.asInstanceOf[Int])
-  
+
   def setValue(value: Any): Unit = {
     
     val theVal = value match {
