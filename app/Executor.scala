@@ -208,45 +208,46 @@ trait RuntimeVariable {
 
 protected class ArrayVariable(val state: State, val name: String, val theType: IType, val numElements: Int) extends RuntimeVariable {
   
+  // In C arrays are pointers
   val isPointer = true
   
+  // where we store the actual data
   val theArrayAddress = allocateSpace(theType.asInstanceOf[IArrayType].getType, numElements)
-  val theArrayPtr = allocateSpace(theType, 1)
 
-  state.setValue(theArrayAddress.value, theArrayPtr)
-
-  val address: Address = theArrayPtr
+  // where we store the reference
+  val address: Address = allocateSpace(theType, 1)
+  
+  state.setValue(theArrayAddress.value, address)
 
   def sizeof: Int = {  
     state.getSize(theArrayAddress)
   }
 
-  def setValue(value: Any): Unit = {
-   
-    value match {
-      case array: Array[_] =>
-        var i = 0
-        array.foreach{element =>  element match {   
-          case lit @ Literal(_) =>
-            state.setValue(lit.cast, Address(theArrayAddress.value + i))        
-          case x =>
-            state.setValue(x, Address(theArrayAddress.value + i))
-          }
-          i += TypeHelper.sizeof(theType.asInstanceOf[IArrayType].getType)
+  def setValue(value: Any): Unit = value match {
+    case array: Array[_] =>
+      var i = 0
+      array.foreach{element =>  element match {   
+        case lit @ Literal(_) =>
+          state.setValue(lit.cast, Address(theArrayAddress.value + i))        
+        case x =>
+          state.setValue(x, Address(theArrayAddress.value + i))
         }
-    }
+        i += TypeHelper.sizeof(theType.asInstanceOf[IArrayType].getType)
+      }
   }
   
+  // for value lets return the 4-byte address of the data
   def value: Any = {
     state.readVal(address.value, new CBasicType(IBasicType.Kind.eInt , 0))
   }
 }
 
-protected class Variable(val state: State, val name: String, val theType: IType, val numElements: Int) extends RuntimeVariable {
+protected class Variable(val state: State, val name: String, val theType: IType) extends RuntimeVariable {
   
   val isPointer = theType.isInstanceOf[IPointerType]
   
-  val address: Address = allocateSpace(theType, numElements)
+  val address: Address = allocateSpace(theType, 1)
+  
   val resolved = {
     if (isPointer) {
       new CBasicType(IBasicType.Kind.eInt , 0)
@@ -291,24 +292,24 @@ protected class Variable(val state: State, val name: String, val theType: IType,
     }
     
     theVal match {
-      case newVal: Int => state.setValue(newVal, address)
-      case newVal: Long => state.setValue(newVal, address)
-      case newVal: Float => state.setValue(newVal, address)
-      case newVal: Double => state.setValue(newVal, address)
-      case newVal: Char => state.setValue(newVal, address)
-      case newVal: Boolean => state.setValue(if (newVal) 1 else 0, address)
-      case address @ Address(addy) => setValue(addy)
+      case x: Int => state.setValue(x, address)
+      case x: Long => state.setValue(x, address)
+      case x: Float => state.setValue(x, address)
+      case x: Double => state.setValue(x, address)
+      case x: Char => state.setValue(x, address)
+      case x: Boolean => state.setValue(if (x) 1 else 0, address)
+      case Address(addy) => setValue(addy)
       case AddressInfo(addy, _) => setValue(addy)
       case array: Array[_] =>
         var i = 0
         array.foreach{element =>  element match {
           case lit @ Literal(_) =>
             state.setValue(lit.cast, Address(address.value + i))
-            i += size
           case x =>
             state.setValue(x, Address(address.value + i))
-            i += size
-        }}
+          }
+          i += size
+        }
     }
   }
   
@@ -574,7 +575,7 @@ object Executor {
                 x
             }
             
-            val newVar = new Variable(state, name, theType, 1)
+            val newVar = new Variable(state, name, theType)
             newVar.setValue(resolved)
             state.vars.variables += newVar
         }
@@ -616,7 +617,7 @@ object Executor {
           val arg = state.stack.pop 
           val paramInfo = param.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
           
-          val newVar = new Variable(state, param.getDeclarator.getName.getRawSignature, paramInfo.getType, 1)
+          val newVar = new Variable(state, param.getDeclarator.getName.getRawSignature, paramInfo.getType)
           newVar.setValue(arg)
           
           state.vars.variables += newVar
