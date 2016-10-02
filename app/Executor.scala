@@ -190,15 +190,37 @@ trait RuntimeVariable {
   val size = TypeHelper.sizeof(theType)
   
   def sizeof: Int
+  
+  def allocateSpace(aType: IType, numElements: Int): Address = {
+    if (aType.isInstanceOf[IArrayType] || aType.isInstanceOf[IPointerType]) {
+      val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
+      state.allocateSpace(intType, 1)
+    } else if (aType.isInstanceOf[CStructure]) {
+      val struct = aType.asInstanceOf[CStructure]
+      var result: Address = null
+      struct.getFields.foreach{ field =>
+        if (result == null) {
+          result = allocateSpace(field.getType, numElements)
+        } else {
+          allocateSpace(field.getType, numElements)
+        }
+      }
+      result
+    } else if (aType.isInstanceOf[CTypedef]) {
+      allocateSpace(aType.asInstanceOf[CTypedef].getType, numElements)
+    } else {
+      state.allocateSpace(TypeHelper.resolve(aType), numElements)
+    }
+  }
 }
 
 protected class ArrayVariable(val state: State, val name: String, val theType: IType, val numElements: Int) extends RuntimeVariable {
   
   val isPointer = true
   
-  val theArrayAddress = allocateSpace(theType.asInstanceOf[IArrayType].getType)
+  val theArrayAddress = allocateSpace(theType.asInstanceOf[IArrayType].getType, numElements)
+  val theArrayPtr = allocateSpace(theType, 1)
   
-  val theArrayPtr = allocateSpace(theType)
   state.setValue(theArrayAddress.value, theArrayPtr)
   
   val address: Address = theArrayPtr
@@ -227,35 +249,13 @@ protected class ArrayVariable(val state: State, val name: String, val theType: I
   def value: Any = {
     state.readVal(address.value)
   }
-  
-  def allocateSpace(aType: IType): Address = {
-    if (aType.isInstanceOf[IArrayType]) {
-      val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
-      state.allocateSpace(intType, 1)
-    } else if (aType.isInstanceOf[CStructure]) {
-      val struct = aType.asInstanceOf[CStructure]
-      var result: Address = null
-      struct.getFields.foreach{ field =>
-        if (result == null) {
-          result = allocateSpace(field.getType)
-        } else {
-          allocateSpace(field.getType)
-        }
-      }
-      result
-    } else if (aType.isInstanceOf[CTypedef]) {
-      allocateSpace(aType.asInstanceOf[CTypedef].getType)
-    } else {
-      state.allocateSpace(TypeHelper.resolve(aType), numElements)
-    }
-  }
 }
 
 protected class Variable(val state: State, val name: String, val theType: IType, val numElements: Int) extends RuntimeVariable {
   
   val isPointer = theType.isInstanceOf[IPointerType]
   
-  val address: Address = allocateSpace(theType)
+  val address: Address = allocateSpace(theType, numElements)
   val resolved = TypeHelper.resolve(theType)
   
   def sizeof: Int = {  
@@ -265,30 +265,6 @@ protected class Variable(val state: State, val name: String, val theType: IType,
       state.getSize(address)
     }
   }
-  
-  def allocateSpace(aType: IType): Address = {
-    if (aType.isInstanceOf[IPointerType]) {
-      val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
-      state.allocateSpace(intType, 1)
-    } else if (aType.isInstanceOf[CStructure]) {
-      val struct = aType.asInstanceOf[CStructure]
-      var result: Address = null
-      struct.getFields.foreach{ field =>
-        if (result == null) {
-          result = allocateSpace(field.getType)
-        } else {
-          allocateSpace(field.getType)
-        }
-      }
-      result
-    } else if (aType.isInstanceOf[CTypedef]) {
-      allocateSpace(aType.asInstanceOf[CTypedef].getType)
-    } else {
-      state.allocateSpace(TypeHelper.resolve(aType), numElements)
-    }
-  }
-  
-  
   
   def value: Any = {
     state.readVal(address.value)
