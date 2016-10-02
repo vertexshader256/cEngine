@@ -73,12 +73,7 @@ object Expressions {
         variable match {
           case VarRef(name) =>
             val variable = context.vars.resolveId(name)
-
-            if (variable.isPointer) {
-              func(variable.value.asInstanceOf[Int], TypeHelper.resolve(variable.theType))
-            } else {
-              func(variable.address.value, TypeHelper.resolve(variable.theType))
-            }
+            func(variable.address.value, TypeHelper.resolve(variable.theType))
           case AddressInfo(addy, theType) => func(addy.value, TypeHelper.resolve(theType))
           case int: Int          => int
         }
