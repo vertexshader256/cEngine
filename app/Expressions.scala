@@ -17,6 +17,10 @@ object Expressions {
       if (direction == Entering) {
         Seq(cast.getOperand, cast.getTypeId)
       } else {
+        val theType = context.stack.pop.asInstanceOf[IType]
+        val addressInfo = context.stack.pop.asInstanceOf[AddressInfo]
+        val refAddressInfo = AddressInfo(addressInfo.address, theType)
+        context.stack.push(refAddressInfo)
         Seq()
       }
     case fieldRef: IASTFieldReference =>
@@ -154,10 +158,10 @@ object Expressions {
                 val ptr = context.vars.resolveId(varName)
                 val refAddressInfo = AddressInfo(Address(ptr.value.asInstanceOf[Int]), TypeHelper.resolve(ptr.theType))
                 context.stack.push(refAddressInfo)
-              case theType: IPointerType =>
-                val addressInfo = context.stack.pop.asInstanceOf[AddressInfo]
-                val refAddressInfo = AddressInfo(addressInfo.address, theType)
-                context.stack.push(refAddressInfo)
+              case address @ AddressInfo(addr, theType) =>
+                println(address)
+                println(stack.readVal(addr.value, TypeHelper.resolve(theType)))
+                context.stack.push(stack.readVal(addr.value, TypeHelper.resolve(theType)))
             }
           case `op_bracketedPrimary` => // not sure what this is for
         }

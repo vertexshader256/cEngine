@@ -109,7 +109,7 @@ class State {
   // use Address type to prevent messing up argument order
   def setValue(newVal: Any, address: Address): Unit = newVal match {
     case newVal: Char => data.put(address.value, newVal.toByte) // MUST convert to byte because writing char is 2 bytes!!!
-    case newVal: Long => data.putInt(address.value, newVal.toInt) // BUG - dealing with unsigned int
+    case newVal: Long => data.putLong(address.value, newVal)
     case newVal: Int => data.putInt(address.value, newVal)
     case newVal: Float => data.putFloat(address.value, newVal)
     case newVal: Double => data.putDouble(address.value, newVal)
@@ -150,6 +150,7 @@ object TypeHelper {
       sizeof(qual.getType)
     case basic: IBasicType =>
       basic.getKind match {
+        case `eInt` if basic.isLong => 8
         case `eInt` => 4
         case `eFloat` => 4
         case `eChar16` => 2
@@ -655,7 +656,7 @@ object Executor {
             case "double" => new CBasicType(IBasicType.Kind.eDouble , 0) 
             case "short" => new CBasicType(IBasicType.Kind.eChar16 , 0) 
             case "char" => new CBasicType(IBasicType.Kind.eChar , 0) 
-            case "long*" => new CPointerType(new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG), 0)
+            case "int*" => new CPointerType(new CBasicType(IBasicType.Kind.eInt, 0), 0)
           }
 
           state.stack.push(result)

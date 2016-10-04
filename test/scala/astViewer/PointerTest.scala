@@ -15,10 +15,11 @@ class PointerTest extends StandardTest {
   
   "Deferencing a casted address" should "print the correct results" in {
     val code = """
-      float x = 9.0f;
+      float x = 9.74523f;
 
       void main() {
-        printf("%d\n", *(long*)&x);
+        int y = *(int*)&x;
+        printf("%d %d\n", *(int*)&x, y);
       }"""
     
     checkResults(code)

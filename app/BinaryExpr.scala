@@ -35,10 +35,11 @@ object BinaryExpr {
             } else {
               address
             }
-        }    
+        }   
+      case long: Long => long
       case int: Int => int
       case doub: Double => doub
-      case float: Float => float
+      case float: Float => float 
     }
     
     stack.setValue(resolvedop2, destinationAddress.address)
