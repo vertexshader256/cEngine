@@ -238,7 +238,7 @@ protected class Variable(state: State, val name: String, val theType: IType) ext
   
   val address: Address = allocateSpace(state, theType, 1)
   
-  val resolved = {
+  def resolved = {
     if (isPointer) {
       new CBasicType(IBasicType.Kind.eInt , 0)
     } else {
@@ -541,9 +541,8 @@ object Executor {
         
         def createVariables(theType: IType, name: String): Unit = theType match {
           case struct: CStructure =>
-            struct.getFields.foreach{ field =>
-              createVariables(field.getType, name + "_" + field.getName)
-            }
+            val newStruct = new Variable(state, name, theType)
+            state.vars.variables += newStruct
           case typedef: CTypedef =>
             createVariables(typedef.getType, name)
           case _ =>

@@ -9,6 +9,8 @@ import java.util.Locale;
 import java.math.BigInteger
 import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
+import org.eclipse.cdt.internal.core.dom.parser.c.CStructure
+import org.eclipse.cdt.internal.core.dom.parser.c.CTypedef
 
 object Expressions {
 
@@ -27,10 +29,43 @@ object Expressions {
       if (direction == Entering) {
         Seq(fieldRef.getFieldOwner)
       } else {
-        val owner = context.stack.pop.asInstanceOf[VarRef]
         
-        // add mangled name back onto the stack
-        context.stack.push(VarRef(owner.name + "_" + fieldRef.getFieldName.getRawSignature))        
+        var isPointer = false
+        var baseAddr: Address = null
+        val structType = context.stack.pop match {
+          case VarRef(name) => 
+            val struct = context.vars.resolveId(name)
+            isPointer = struct.isPointer
+            baseAddr = if (isPointer) {
+              Address(struct.value.asInstanceOf[Int])
+            } else {
+              struct.address
+            }
+            if (struct.theType.isInstanceOf[CStructure]) {
+              struct.theType.asInstanceOf[CStructure]
+            } else {
+              struct.theType.asInstanceOf[IPointerType].getType.asInstanceOf[CStructure]
+            }  
+          case AddressInfo(addr, theType) => 
+            baseAddr = addr
+            theType match {
+              case typedef: CTypedef => typedef.getType.asInstanceOf[CStructure]
+              case struct: CStructure => struct
+            }
+        }    
+        
+        var offset = 0
+        var resultAddress: AddressInfo = null
+        structType.getFields.foreach{field =>
+          if (field.getName == fieldRef.getFieldName.getRawSignature) {
+            // can assume names are unique
+            resultAddress = AddressInfo(baseAddr + offset, field.getType)
+          } else {
+            offset += TypeHelper.sizeof(field.getType)
+          }
+        }
+
+        context.stack.push(resultAddress)        
         Seq()
       }
     case subscript: IASTArraySubscriptExpression =>

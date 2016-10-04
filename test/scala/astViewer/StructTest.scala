@@ -55,4 +55,21 @@ class StructTest extends StandardTest {
     checkResults(code)
   }
   
+  "pointer to struct" should "print the correct results" in {
+    val code = """
+      
+      struct Test {
+        int y;
+      };
+      
+      void main() {
+        struct Test x;
+        struct Test *y = &x;
+        y->y = 465;
+        printf("%d %d\n", x.y, y->y);
+      }"""
+
+    checkResults(code)
+  }
+  
 }
