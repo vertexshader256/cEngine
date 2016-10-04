@@ -73,20 +73,10 @@ class State {
   data.order(ByteOrder.LITTLE_ENDIAN)
   
   var insertIndex = 0
-  
-  private case class MemRange(start: Int, end: Int)
 
-  private val records = new ListBuffer[MemRange]()
-  
-  def getSize(address: Address): Int = {
-    val range = records.find{range => range.start <= address.value && range.end >= address.value}.get
-    range.end - range.start + 1
-  }
-  
-  def allocateSpace(theType: IBasicType, numElements: Int): Address = {
+  def allocateSpace(numBytes: Int): Address = {
     val result = insertIndex
-    insertIndex += TypeHelper.sizeof(theType) * numElements
-    records += MemRange(result, insertIndex - 1)
+    insertIndex += numBytes
     Address(result)
   }
   
@@ -101,6 +91,8 @@ class State {
       data.getShort(address)
     } else if (theType.isShort && !isSigned) {
       data.getShort(address) & 0xFFFF
+    } else if (theType.getKind == eInt && theType.isLong) {
+      data.getLong(address)
     } else if (theType.getKind == eInt) {
       data.getInt(address)
     } else if (theType.getKind == eDouble) {
@@ -183,7 +175,7 @@ trait RuntimeVariable {
   def allocateSpace(state: State, aType: IType, numElements: Int): Address = {
     if (aType.isInstanceOf[IArrayType] || aType.isInstanceOf[IPointerType]) {
       val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
-      state.allocateSpace(intType, 1)
+      state.allocateSpace(TypeHelper.sizeof(intType))
     } else if (aType.isInstanceOf[CStructure]) {
       val struct = aType.asInstanceOf[CStructure]
       var result: Address = null
@@ -198,7 +190,7 @@ trait RuntimeVariable {
     } else if (aType.isInstanceOf[CTypedef]) {
       allocateSpace(state, aType.asInstanceOf[CTypedef].getType, numElements)
     } else {
-      state.allocateSpace(TypeHelper.resolve(aType), numElements)
+      state.allocateSpace(sizeof)
     }
   }
 }
@@ -216,8 +208,8 @@ protected class ArrayVariable(state: State, val name: String, val theType: IType
   
   state.setValue(theArrayAddress.value, address)
 
-  def sizeof: Int = {  
-    state.getSize(theArrayAddress)
+  def sizeof: Int = { 
+    TypeHelper.sizeof(theType) * numElements
   }
 
   def setValue(value: Any): Unit = value match {
@@ -254,11 +246,7 @@ protected class Variable(state: State, val name: String, val theType: IType) ext
   }
   
   def sizeof: Int = {  
-    if (isPointer) {
-      state.getSize(Address(value.asInstanceOf[Int]))
-    } else {
-      state.getSize(address)
-    }
+    TypeHelper.sizeof(theType)
   }
   
   def value: Any = {
@@ -304,8 +292,6 @@ protected class Variable(state: State, val name: String, val theType: IType) ext
         }
     }
   }
-  
-  
 }
 
 class FunctionExecutionContext(globals: Seq[RuntimeVariable]) { 
@@ -664,12 +650,12 @@ object Executor {
           val theType = typeId.getRawSignature
 
           val result = theType match {
-            case "int" => 4
-            case "float" => 4
-            case "double" => 8
-            case "short" => 2
-            case x => 
-              1
+            case "int" => new CBasicType(IBasicType.Kind.eInt , 0) 
+            case "float" => new CBasicType(IBasicType.Kind.eFloat , 0) 
+            case "double" => new CBasicType(IBasicType.Kind.eDouble , 0) 
+            case "short" => new CBasicType(IBasicType.Kind.eChar16 , 0) 
+            case "char" => new CBasicType(IBasicType.Kind.eChar , 0) 
+            case "long*" => new CPointerType(new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG), 0)
           }
 
           state.stack.push(result)

@@ -15,10 +15,8 @@ object Expressions {
   def parse(expr: IASTExpression, direction: Direction, context: State, stack: State): Seq[IASTNode] = expr match {
     case cast: IASTCastExpression => // TODO
       if (direction == Entering) {
-        println(cast.getRawSignature)
-        Seq(cast.getOperand)
+        Seq(cast.getOperand, cast.getTypeId)
       } else {
-        println(cast.getTypeId.getClass.getSimpleName)
         Seq()
       }
     case fieldRef: IASTFieldReference =>
@@ -156,6 +154,10 @@ object Expressions {
                 val ptr = context.vars.resolveId(varName)
                 val refAddressInfo = AddressInfo(Address(ptr.value.asInstanceOf[Int]), TypeHelper.resolve(ptr.theType))
                 context.stack.push(refAddressInfo)
+              case theType: IPointerType =>
+                val addressInfo = context.stack.pop.asInstanceOf[AddressInfo]
+                val refAddressInfo = AddressInfo(addressInfo.address, theType)
+                context.stack.push(refAddressInfo)
             }
           case `op_bracketedPrimary` => // not sure what this is for
         }
@@ -180,6 +182,8 @@ object Expressions {
       if (direction == Entering) {
         Seq(typeExpr.getTypeId)
       } else {
+        val theType = context.stack.pop.asInstanceOf[IBasicType]
+        context.stack.push(TypeHelper.sizeof(theType))
         Seq()
       }
     case call: IASTFunctionCallExpression =>

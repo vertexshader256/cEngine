@@ -48,7 +48,7 @@ object FunctionCallExpr {
               case AddressInfo(addy, theType) =>
                 val resolved = TypeHelper.resolve(theType)
                 resolved.toString match {
-                  case "char" if state.getSize(addy) > 1 => 
+                  case "char" if (theType.isInstanceOf[IPointerType] || theType.isInstanceOf[IArrayType]) => 
                     var current: Char = 0
                     var stringBuilder = new ListBuffer[Char]()
                     var i = 0

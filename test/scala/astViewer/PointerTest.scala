@@ -13,16 +13,16 @@ class PointerTest extends StandardTest {
     checkResults(code)
   }
   
-//  "Deferencing a casted address" should "print the correct results" in {
-//    val code = """
-//      float x = 9.0f;
-//
-//      void main() {
-//        printf("%d\n", *(long*)&x);
-//      }"""
-//    
-//    checkResults(code)
-//  }
+  "Deferencing a casted address" should "print the correct results" in {
+    val code = """
+      float x = 9.0f;
+
+      void main() {
+        printf("%d\n", *(long*)&x);
+      }"""
+    
+    checkResults(code)
+  }
   
   "A simple pointer reassignment" should "print the correct results" in {
     val code = """
@@ -139,9 +139,4 @@ class PointerTest extends StandardTest {
 
     checkResults(code)
   }
-  
-  
-  
-  
-  
 }
