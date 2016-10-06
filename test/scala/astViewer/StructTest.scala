@@ -1,5 +1,24 @@
 package scala.astViewer
 
+class StructTestStaging extends StandardTest {
+   "struct initializer" should "print the correct results" in {
+    val code = """
+      
+      struct Test {
+        int one;
+        double two;
+        char three;
+      };
+      
+      void main() {
+        struct Test x = {1, 2.0, 'a'};
+        printf("%d %f %c\n", x.one, x.two, x.three);
+      }"""
+
+    checkResults(code)
+  }
+}
+
 class StructTest extends StandardTest {
   "basic struct test" should "print the correct results" in {
     val code = """
@@ -71,5 +90,7 @@ class StructTest extends StandardTest {
 
     checkResults(code)
   }
+  
+ 
   
 }

@@ -2,7 +2,7 @@ package app.astViewer
 
 import org.eclipse.cdt.core.dom.ast._
 
-import scala.collection.mutable.{ListBuffer, Stack}
+import scala.collection.mutable.{ ListBuffer, Stack }
 import scala.util.control.Exception.allCatch
 import java.util.Formatter;
 import java.util.Locale;
@@ -11,16 +11,20 @@ import java.nio.ByteOrder
 import org.eclipse.cdt.internal.core.dom.parser.c._
 import java.math.BigInteger
 import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
+import scala.collection.mutable.Map
 
 case class VarRef(name: String)
 case class Literal(lit: String) {
   def cast: Any = {
-    
+
     def isIntNumber(s: String): Boolean = (allCatch opt s.toInt).isDefined
     def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
     def isDoubleNumber(s: String): Boolean = (allCatch opt s.toDouble).isDefined
-    
-    if (lit.head == '\"' && lit.last == '\"') {
+
+    if (lit.startsWith("0x")) {
+      val bigInt = new BigInteger(lit.drop(2), 16);
+      bigInt.intValue
+    } else if (lit.head == '\"' && lit.last == '\"') {
       lit
     } else if (lit.head == '\'' && lit.last == '\'' && lit.length == 3) {
       lit.toCharArray.apply(1)
@@ -40,11 +44,11 @@ case class Literal(lit: String) {
 class State {
   val stack = new Stack[Any]()
   val executionContext = new Stack[FunctionExecutionContext]()
-  val globals = new ListBuffer[RuntimeVariable]()  
+  val globals = Map[String, RuntimeVariable]()
   var vars: FunctionExecutionContext = null
   val functionMap = scala.collection.mutable.Map[String, IASTNode]()
   val stdout = new ListBuffer[String]()
-  
+
   // flags
   var isBreaking = false
   var isContinuing = false
@@ -53,25 +57,25 @@ class State {
   def callFunction(call: IASTFunctionCallExpression) = {
     executionContext.push(vars)
     vars = new FunctionExecutionContext(globals)
-    
+
     val name = call.getFunctionNameExpression match {
       case x: IASTIdExpression => x.getName.getRawSignature
-      case _ => "Error"
+      case _                   => "Error"
     }
-    
+
     Seq(functionMap(name))
   }
-  
+
   def clearVisited(parent: IASTNode) {
     vars.visited -= parent
     parent.getChildren.foreach { node =>
       clearVisited(node)
     }
   }
-  
+
   private val data = ByteBuffer.allocate(10240);
   data.order(ByteOrder.LITTLE_ENDIAN)
-  
+
   var insertIndex = 0
 
   def allocateSpace(numBytes: Int): Address = {
@@ -79,14 +83,14 @@ class State {
     insertIndex += numBytes
     Address(result)
   }
-  
+
   def readVal(address: Int, theType: IBasicType): Any = {
 
     import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 
     // if it is neither signed or unsigned, assume its signed
     val isSigned = theType.isSigned || (!theType.isSigned && !theType.isUnsigned)
-    
+
     if (theType.isShort && isSigned) {
       data.getShort(address)
     } else if (theType.isShort && !isSigned) {
@@ -105,16 +109,31 @@ class State {
       data.getChar(address) & 0xFF
     }
   }
-  
+
   // use Address type to prevent messing up argument order
-  def setValue(newVal: Any, address: Address): Unit = newVal match {
-    case newVal: Char => data.put(address.value, newVal.toByte) // MUST convert to byte because writing char is 2 bytes!!!
-    case newVal: Long => data.putLong(address.value, newVal)
-    case newVal: Int => data.putInt(address.value, newVal)
-    case newVal: Float => data.putFloat(address.value, newVal)
-    case newVal: Double => data.putDouble(address.value, newVal)
+  def setValue(newVal: Any, info: AddressInfo): Unit = {
     
-    case newVal: Boolean => data.putChar(address.value, if (newVal) 1 else 0)
+    val literalConv = newVal match {
+      case lit @ Literal(literal) =>
+        TypeHelper.resolve(info.theType).getKind match {
+          case `eDouble` => literal.toDouble
+          case `eFloat` => literal.toFloat
+          case _        => lit.cast
+        }
+      case x => x
+    }
+    
+    literalConv match {
+      case Address(addy)        => setValue(addy, info)
+      case AddressInfo(addy, _) => setValue(addy, info)
+      case newVal: Char    => data.put(info.address.value, newVal.toByte) // MUST convert to byte because writing char is 2 bytes!!!
+      case newVal: Long    => data.putLong(info.address.value, newVal)
+      case newVal: Int     => data.putInt(info.address.value, newVal)
+      case newVal: Float   => data.putFloat(info.address.value, newVal)
+      case newVal: Double  => data.putDouble(info.address.value, newVal)
+  
+      case newVal: Boolean => data.putChar(info.address.value, if (newVal) 1 else 0)
+    }
   }
 }
 
@@ -126,61 +145,69 @@ case class Address(value: Int) {
 case class AddressInfo(address: Address, theType: IType)
 
 object TypeHelper {
-  
+
   def resolve(theType: IType): IBasicType = theType match {
-    case basicType: IBasicType => basicType
-    case typedef: ITypedef => resolve(typedef.getType)
-    case ptrType: IPointerType => resolve(ptrType.getType)
-    case arrayType: IArrayType => resolve(arrayType.getType)
+    case basicType: IBasicType    => basicType
+    case typedef: ITypedef        => resolve(typedef.getType)
+    case ptrType: IPointerType    => resolve(ptrType.getType)
+    case arrayType: IArrayType    => resolve(arrayType.getType)
     case qualType: IQualifierType => resolve(qualType.getType)
   }
-  
+
   def sizeof(theType: IType): Int = theType match {
     case ptr: IPointerType =>
       4
     case struct: CStructure =>
-      struct.getFields.map{ field =>
+      struct.getFields.map { field =>
         sizeof(field.getType)
       }.sum
     case array: IArrayType =>
       sizeof(array.getType)
     case typedef: CTypedef =>
-      sizeof(typedef.getType)  
+      sizeof(typedef.getType)
     case qual: IQualifierType =>
       sizeof(qual.getType)
     case basic: IBasicType =>
       basic.getKind match {
         case `eInt` if basic.isLong => 8
-        case `eInt` => 4
-        case `eFloat` => 4
-        case `eChar16` => 2
-        case `eDouble` => 8
-        case `eChar` => 1
-        case `eChar32` => 4
+        case `eInt`                 => 4
+        case `eFloat`               => 4
+        case `eChar16`              => 2
+        case `eDouble`              => 8
+        case `eChar`                => 1
+        case `eChar32`              => 4
       }
   }
+  
+  def isPointer(theType: IType) = theType.isInstanceOf[IArrayType] || theType.isInstanceOf[IPointerType]
 }
 
 trait RuntimeVariable {
+  val state: State
+  val theType: IType
   def address: Address
-  def name: String
-  def value: Any
-  def isPointer: Boolean
-  def theType: IType
-  def setValue(value: Any): Unit
   
   val size = TypeHelper.sizeof(theType)
-  
+
   def sizeof: Int
+  def info = AddressInfo(address, theType)
   
+  def value: Any = {
+    if (TypeHelper.isPointer(theType)) {
+      state.readVal(address.value, new CBasicType(IBasicType.Kind.eInt, 0))
+    } else {
+      state.readVal(address.value, TypeHelper.resolve(theType))
+    }
+  }
+
   def allocateSpace(state: State, aType: IType, numElements: Int): Address = {
     if (aType.isInstanceOf[IArrayType] || aType.isInstanceOf[IPointerType]) {
-      val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
+      val intType = new CBasicType(IBasicType.Kind.eInt, 0)
       state.allocateSpace(TypeHelper.sizeof(intType))
     } else if (aType.isInstanceOf[CStructure]) {
       val struct = aType.asInstanceOf[CStructure]
       var result: Address = null
-      struct.getFields.foreach{ field =>
+      struct.getFields.foreach { field =>
         if (result == null) {
           result = allocateSpace(state, field.getType, numElements)
         } else {
@@ -196,134 +223,72 @@ trait RuntimeVariable {
   }
 }
 
-protected class ArrayVariable(state: State, val name: String, val theType: IType, numElements: Int) extends RuntimeVariable {
-  
-  // In C arrays are pointers
-  val isPointer = true
-  
+protected class ArrayVariable(val state: State, val theType: IType, numElements: Int) extends RuntimeVariable {
+
   // where we store the actual data
   val theArrayAddress = allocateSpace(state, theType.asInstanceOf[IArrayType].getType, numElements)
 
   // where we store the reference
   val address: Address = allocateSpace(state, theType, 1)
-  
-  state.setValue(theArrayAddress.value, address)
 
-  def sizeof: Int = { 
+  state.setValue(theArrayAddress.value, info)
+
+  def sizeof: Int = {
     TypeHelper.sizeof(theType) * numElements
   }
 
   def setValue(value: Any): Unit = value match {
     case array: Array[_] =>
       var i = 0
-      array.foreach{element =>  element match {   
-        case lit @ Literal(_) =>
-          state.setValue(lit.cast, Address(theArrayAddress.value + i))        
-        case x =>
-          state.setValue(x, Address(theArrayAddress.value + i))
+      array.foreach { element =>
+        element match {
+          case lit @ Literal(_) =>
+            state.setValue(lit.cast, AddressInfo(theArrayAddress + i, theType))
+          case x =>
+            state.setValue(x, AddressInfo(theArrayAddress + i, theType))
         }
         i += TypeHelper.sizeof(theType.asInstanceOf[IArrayType].getType)
       }
   }
-  
-  // for value lets return the 4-byte address of the data
-  def value: Any = {
-    state.readVal(address.value, new CBasicType(IBasicType.Kind.eInt , 0))
-  }
 }
 
-protected class Variable(state: State, val name: String, val theType: IType) extends RuntimeVariable {
-  
-  val isPointer = theType.isInstanceOf[IPointerType]
-  
+protected class Variable(val state: State, val theType: IType) extends RuntimeVariable {
+
   val address: Address = allocateSpace(state, theType, 1)
-  
-  def resolved = {
-    if (isPointer) {
-      new CBasicType(IBasicType.Kind.eInt , 0)
-    } else {
-      TypeHelper.resolve(theType)
-    }
-  }
-  
-  def sizeof: Int = {  
+
+  def sizeof: Int = {
     TypeHelper.sizeof(theType)
   }
-  
-  def value: Any = {
-      state.readVal(address.value, resolved)
-  }
-
-  def setValue(value: Any): Unit = {
-    val literalConv = value match {
-      case lit @ Literal(literal) => 
-        TypeHelper.resolve(theType).getKind match {
-          case `eDouble` => literal.toDouble
-          case `eInt` => 
-            if (literal.startsWith("0x")) { 
-              val bigInt = new BigInteger(literal.drop(2), 16);
-              bigInt.intValue
-            } else {
-              literal.toInt
-            }
-          case `eFloat` => literal.toFloat
-          case _ => lit.cast
-        }
-      case x => x
-    }
-    
-    literalConv match {
-      case x: Int => state.setValue(x, address)
-      case x: Long => state.setValue(x, address)
-      case x: Float => state.setValue(x, address)
-      case x: Double => state.setValue(x, address)
-      case x: Char => state.setValue(x, address)
-      case x: Boolean => state.setValue(if (x) 1 else 0, address)
-      case Address(addy) => setValue(addy)
-      case AddressInfo(addy, _) => setValue(addy)
-      case array: Array[_] =>
-        var i = 0
-        array.foreach{element =>  element match {
-          case lit @ Literal(_) =>
-            state.setValue(lit.cast, Address(address.value + i))
-          case x =>
-            state.setValue(x, Address(address.value + i))
-          }
-          i += size
-        }
-    }
-  }
 }
 
-class FunctionExecutionContext(globals: Seq[RuntimeVariable]) { 
+class FunctionExecutionContext(globals: Map[String, RuntimeVariable]) {
   val visited = new ListBuffer[IASTNode]()
-  val variables: ListBuffer[RuntimeVariable] = ListBuffer[RuntimeVariable]() ++ (if (globals == null) Seq() else globals)
+  val varMap = Map[String, RuntimeVariable]() ++ globals
 
-  def resolveId(id: String): RuntimeVariable = {
-    variables.find(_.name == id).get
-  }
+  def resolveId(id: String) = varMap(id)
+  def addVariable(id: String, theVar: RuntimeVariable) = varMap += (id -> theVar) 
 }
 
 object Executor {
-  
+
   // 'node' must be a IASTCaseStatement or a IASTDefaultStatement
   def processSwitch(node: IASTNode): Seq[IASTNode] = {
     val codeToRun = new ListBuffer[IASTNode]()
 
-      val siblings = node.getParent.getChildren
-      
-      var isSelfFound = false
-      siblings.foreach{ sib =>
-        if (sib == node) {
-          isSelfFound = true
-        } else if (isSelfFound && !sib.isInstanceOf[IASTCaseStatement]) {
-          codeToRun += sib
-        }
+    val siblings = node.getParent.getChildren
+
+    var isSelfFound = false
+    siblings.foreach { sib =>
+      if (sib == node) {
+        isSelfFound = true
+      } else if (isSelfFound && !sib.isInstanceOf[IASTCaseStatement]) {
+        codeToRun += sib
       }
-      
-      codeToRun
+    }
+
+    codeToRun
   }
-  
+
   def parseStatement(statement: IASTStatement, state: State, direction: Direction): Seq[IASTNode] = statement match {
     case breakStatement: IASTBreakStatement =>
       state.isBreaking = true
@@ -332,14 +297,14 @@ object Executor {
       state.isContinuing = true
       Seq()
     case switch: IASTSwitchStatement =>
-      val cases = switch.getBody.getChildren.collect{case x: IASTCaseStatement => x; case y: IASTDefaultStatement => y} 
-      if (direction == Entering) {       
+      val cases = switch.getBody.getChildren.collect { case x: IASTCaseStatement => x; case y: IASTDefaultStatement => y }
+      if (direction == Entering) {
         Seq(switch.getControllerExpression) ++ cases // only process case and default statements
       } else {
         Seq()
       }
     case default: IASTDefaultStatement =>
-      if (direction == Exiting) {       
+      if (direction == Exiting) {
         processSwitch(default)
       } else {
         Seq()
@@ -348,15 +313,15 @@ object Executor {
       if (direction == Entering) {
         Seq(caseStatement.getExpression)
       } else {
-       
+
         val caseExpr = state.stack.pop.asInstanceOf[Literal].cast
         val switchExpr = state.stack.pop
-        
+
         state.stack.push(switchExpr)
-        
+
         val resolved = switchExpr match {
           case VarRef(x) => state.vars.resolveId(x).value
-          case int: Int => int
+          case int: Int  => int
         }
 
         if (caseExpr.asInstanceOf[Int] == resolved.asInstanceOf[Int]) {
@@ -370,14 +335,14 @@ object Executor {
         Seq(doWhileLoop.getBody, doWhileLoop.getCondition)
       } else {
         val shouldLoop = state.stack.pop match {
-          case x: Int => x == 1
+          case x: Int     => x == 1
           case x: Boolean => x
         }
-      
+
         if (shouldLoop) {
           state.clearVisited(doWhileLoop.getBody)
           state.clearVisited(doWhileLoop.getCondition)
-          
+
           Seq(doWhileLoop.getBody, doWhileLoop.getCondition, doWhileLoop)
         } else {
           Seq()
@@ -387,21 +352,21 @@ object Executor {
       if (direction == Entering) {
         Seq(whileLoop.getCondition)
       } else {
-        
+
         val cast = state.stack.pop match {
           case lit @ Literal(_) => lit.cast
-          case x => x
+          case x                => x
         }
-        
+
         val shouldLoop = cast match {
-          case x: Int => x == 1
+          case x: Int     => x == 1
           case x: Boolean => x
         }
-      
+
         if (shouldLoop) {
           state.clearVisited(whileLoop.getBody)
           state.clearVisited(whileLoop.getCondition)
-          
+
           Seq(whileLoop.getBody, whileLoop.getCondition, whileLoop)
         } else {
           Seq()
@@ -412,7 +377,7 @@ object Executor {
         Seq(ifStatement.getConditionExpression)
       } else {
         val result = state.stack.pop
-        
+
         val value = result match {
           case VarRef(name) =>
             state.vars.resolveId(name).value
@@ -422,7 +387,7 @@ object Executor {
         }
 
         val conditionResult = value match {
-          case x: Int => x == 1
+          case x: Int     => x == 1
           case x: Boolean => x
         }
         if (conditionResult) {
@@ -438,12 +403,12 @@ object Executor {
         Seq(forLoop.getInitializerStatement, forLoop.getConditionExpression)
       } else {
         val shouldKeepLooping = state.stack.pop.asInstanceOf[Boolean]
-      
+
         if (shouldKeepLooping) {
           state.clearVisited(forLoop.getBody)
           state.clearVisited(forLoop.getIterationExpression)
           state.clearVisited(forLoop.getConditionExpression)
-          
+
           Seq(forLoop.getBody, forLoop.getIterationExpression, forLoop.getConditionExpression, forLoop)
         } else {
           Seq()
@@ -457,9 +422,9 @@ object Executor {
         val returnVal = state.stack.pop
         state.stack.push(returnVal match {
           case lit @ Literal(_) => lit.cast
-          case VarRef(id) => state.vars.resolveId(id).value
-          case int: Int => int
-          case doub: Double => doub
+          case VarRef(id)       => state.vars.resolveId(id).value
+          case int: Int         => int
+          case doub: Double     => doub
         })
         Seq()
       }
@@ -482,96 +447,117 @@ object Executor {
         Seq()
       }
   }
-  
+
   def parseDeclarator(decl: IASTDeclarator, direction: Direction, state: State): Seq[IASTNode] = {
-    val nameBinding = decl.getName.resolveBinding()
-
-    if (direction == Exiting && nameBinding.isInstanceOf[IVariable]) {
-      
-      val currentType = nameBinding.asInstanceOf[IVariable].getType
-      
-      state.stack.push(decl.getName.getRawSignature)
-
-      val name = state.stack.pop.asInstanceOf[String]
-      
-      if (decl.isInstanceOf[IASTArrayDeclarator]) {
-        
-        val initVal = state.stack.pop.asInstanceOf[Literal].cast match {
-          case size: Int =>
-            val initialArray = Array.fill[Any](size)(0)
-            
-            if (!state.stack.isEmpty) { 
-              var i = 0
-              for (i <- (size - 1) to 0 by -1) {
-                val newInit = state.stack.pop
-                initialArray(i) = newInit
-              }
-            }
-            initialArray
-          case initString: String =>
-            Utils.stripQuotes(initString).toCharArray() :+ 0.toChar // terminating null char
-        }
-        
-        val theArrayPtr = new ArrayVariable(state, name, currentType, initVal.length)
-        theArrayPtr.setValue(initVal)
-        
-        state.vars.variables += theArrayPtr
-        
-        theArrayPtr
-        
-      } else {   
-        val initVal = if (!decl.getPointerOperators.isEmpty) {
-          if (!state.stack.isEmpty) {
-            state.stack.pop
-          } else {
-            0
-          }
-        } else {
-          if (!state.stack.isEmpty) {
-            state.stack.pop
-          } else {
-            0
-          }
-        }
-         
-        val resolvedType = currentType match {
-          case typedef: CTypedef => typedef.getType
-          case x => x
-        }
-        
-        def createVariables(theType: IType, name: String): Unit = theType match {
-          case struct: CStructure =>
-            val newStruct = new Variable(state, name, theType)
-            state.vars.variables += newStruct
-          case typedef: CTypedef =>
-            createVariables(typedef.getType, name)
-          case _ =>
-            val resolved = initVal match {
-              case VarRef(name) =>
-                state.vars.resolveId(name).value
-              case x =>
-                x
-            }
-            
-            val newVar = new Variable(state, name, theType)
-            newVar.setValue(resolved)
-            state.vars.variables += newVar
-        }
-        
-        createVariables(resolvedType, name)
-      }
-
-      Seq()
-    } else {
+    if (direction == Entering) {
       decl match {
         case array: IASTArrayDeclarator =>
           Seq(Option(decl.getInitializer)).flatten ++ array.getArrayModifiers
         case _ =>
           Seq(Option(decl.getInitializer)).flatten
       }
+    } else {
+      val nameBinding = decl.getName.resolveBinding()
+      
+      if (nameBinding.isInstanceOf[IVariable]) {
+        val theType = nameBinding.asInstanceOf[IVariable].getType match {
+          case typedef: CTypedef => typedef.getType
+          case x                 => x
+        }
+
+        state.stack.push(decl.getName.getRawSignature)
+
+        val name = state.stack.pop.asInstanceOf[String]
+
+        decl match {
+          case arrayDecl: IASTArrayDeclarator =>
+
+            val initVal = state.stack.pop.asInstanceOf[Literal].cast match {
+              case size: Int =>
+                val initialArray = Array.fill[Any](size)(0)
+
+                if (!state.stack.isEmpty) {
+                  var i = 0
+                  for (i <- (size - 1) to 0 by -1) {
+                    val newInit = state.stack.pop
+                    initialArray(i) = newInit
+                  }
+                }
+                initialArray
+              case initString: String =>
+                Utils.stripQuotes(initString).toCharArray() :+ 0.toChar // terminating null char
+            }
+
+            val theArrayPtr = new ArrayVariable(state, theType, initVal.length)
+            theArrayPtr.setValue(initVal)
+
+            state.vars.addVariable(name, theArrayPtr)
+
+            theArrayPtr
+
+          case decl: CASTDeclarator =>
+
+            def createVariable(theType: IType, name: String): RuntimeVariable = theType match {
+              case struct: CStructure =>
+                val newStruct = new Variable(state, theType)
+                state.vars.addVariable(name, newStruct)
+                newStruct
+              case typedef: CTypedef =>
+                createVariable(typedef.getType, name)
+              case _ =>
+                
+                val initVal = if (!decl.getPointerOperators.isEmpty) {
+                  if (!state.stack.isEmpty) {
+                    state.stack.pop
+                  } else {
+                    0
+                  }
+                } else {
+                  if (!state.stack.isEmpty) {
+                    state.stack.pop
+                  } else {
+                    0
+                  }
+                }   
+                
+                val resolved = initVal match {
+                  case VarRef(name) =>
+                    state.vars.resolveId(name).value
+                  case x =>
+                    x
+                }
+
+                val newVar = new Variable(state, theType)
+                state.setValue(resolved, newVar.info)
+                state.vars.addVariable(name, newVar)
+                newVar
+            }
+
+            val newVar = createVariable(theType, name)
+            
+            if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
+                 && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
+
+              val fields = theType.asInstanceOf[CStructure].getFields
+              val size = fields.size
+              
+              val values = fields.map{x => state.stack.pop.asInstanceOf[Literal].cast}.reverse zip fields
+
+              var offset = 0
+              values.foreach { case (value, field) =>
+                state.setValue(value, AddressInfo(newVar.address + offset, theType))
+                offset += TypeHelper.sizeof(field.getType)
+              }
+            }
+        }
+
+        Seq()
+      } else {
+        Seq()
+      }
     }
   }
-  
+
   def step(current: IASTNode, state: State, direction: Direction): Seq[IASTNode] = {
 
     current match {
@@ -592,13 +578,14 @@ object Executor {
         }
       case param: IASTParameterDeclaration =>
         if (direction == Exiting) {
-          val arg = state.stack.pop 
+          val arg = state.stack.pop
           val paramInfo = param.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
-          
-          val newVar = new Variable(state, param.getDeclarator.getName.getRawSignature, paramInfo.getType)
-          newVar.setValue(arg)
-          
-          state.vars.variables += newVar
+
+          val name = param.getDeclarator.getName.getRawSignature
+          val newVar = new Variable(state, paramInfo.getType)
+          state.setValue(arg, newVar.info)
+
+          state.vars.addVariable(name, newVar)
           Seq()
         } else {
           Seq()
@@ -610,14 +597,14 @@ object Executor {
           Seq()
         }
       case simple: IASTSimpleDeclaration =>
-        if (direction == Entering) { 
-          simple.getDeclarators    
+        if (direction == Entering) {
+          simple.getDeclarators
         } else {
           Seq()
         }
       case fcnDec: IASTFunctionDeclarator =>
         if (direction == Entering) {
-          fcnDec.getChildren.filter(x => !x.isInstanceOf[IASTName]).map{x => x}
+          fcnDec.getChildren.filter(x => !x.isInstanceOf[IASTName]).map { x => x }
         } else {
           Seq()
         }
@@ -647,15 +634,18 @@ object Executor {
         }
       case typeId: IASTTypeId =>
         if (direction == Exiting) {
-          val theType = typeId.getRawSignature
+          val declsepc = typeId.getDeclSpecifier.asInstanceOf[IASTSimpleDeclSpecifier]
+          val isPointer = typeId.getAbstractDeclarator.getPointerOperators.size > 1
 
-          val result = theType match {
-            case "int" => new CBasicType(IBasicType.Kind.eInt , 0) 
-            case "float" => new CBasicType(IBasicType.Kind.eFloat , 0) 
-            case "double" => new CBasicType(IBasicType.Kind.eDouble , 0) 
-            case "short" => new CBasicType(IBasicType.Kind.eChar16 , 0) 
-            case "char" => new CBasicType(IBasicType.Kind.eChar , 0) 
-            case "int*" => new CPointerType(new CBasicType(IBasicType.Kind.eInt, 0), 0)
+          import org.eclipse.cdt.core.dom.ast.IASTSimpleDeclSpecifier._
+          
+          val result = declsepc.getType match {
+            case `t_int` if isPointer => new CPointerType(new CBasicType(IBasicType.Kind.eInt, 0), 0)
+            case `t_int` if declsepc.isShort() => new CBasicType(IBasicType.Kind.eChar16, 0)
+            case `t_int`    => new CBasicType(IBasicType.Kind.eInt, 0)
+            case `t_float`  => new CBasicType(IBasicType.Kind.eFloat, 0)
+            case `t_double` => new CBasicType(IBasicType.Kind.eDouble, 0)           
+            case `t_char`   => new CBasicType(IBasicType.Kind.eChar, 0)
           }
 
           state.stack.push(result)
@@ -673,40 +663,40 @@ object Executor {
 }
 
 class Executor(code: String) {
-   
+
   val tUnit = Utils.getTranslationUnit(code)
   val engineState = new State
   val pathStack = new Stack[IASTNode]()
   var current: IASTNode = null
-  var direction: Direction = Entering 
-  
+  var direction: Direction = Entering
+
   current = tUnit
-    
-  engineState.executionContext.push(new FunctionExecutionContext(null)) // load initial stack
+
+  engineState.executionContext.push(new FunctionExecutionContext(Map())) // load initial stack
   engineState.vars = engineState.executionContext.head
 
   execute()
   engineState.isPreprocessing = false
   engineState.stack.clear
-  
+
   println("_----------------------------------------------_")
-  
-  engineState.globals ++= engineState.vars.variables
-  
+
+  engineState.globals ++= engineState.vars.varMap
+
   engineState.executionContext.clear
   engineState.executionContext.push(new FunctionExecutionContext(engineState.globals)) // load initial stack
   engineState.vars = engineState.executionContext.head
   pathStack.clear
   pathStack.push(engineState.functionMap("main"))
   current = pathStack.head
-  
+
   def tick(): Unit = {
     direction = if (engineState.vars.visited.contains(current)) Exiting else Entering
 
     //println(current.getClass.getSimpleName + ":" + direction)
-    
-    var paths: Seq[IASTNode] = Executor.step(current, engineState, direction)   
-    
+
+    var paths: Seq[IASTNode] = Executor.step(current, engineState, direction)
+
     if (engineState.isBreaking) {
       // unroll the path stack until we meet the first parent which is a loop
       var reverse = pathStack.pop
@@ -716,33 +706,33 @@ class Executor(code: String) {
 
       engineState.isBreaking = false
     }
-    
+
     if (engineState.isContinuing) {
       // unroll the path stack until we meet the first parent which is a loop
-      
+
       var last: IASTNode = null
       last = pathStack.pop
       while (!last.isInstanceOf[IASTForStatement]) {
         last = pathStack.pop
       }
-      
+
       val forLoop = last.asInstanceOf[IASTForStatement]
-      
+
       pathStack.push(forLoop)
       pathStack.push(forLoop.getConditionExpression)
-      pathStack.push(forLoop.getIterationExpression) 
+      pathStack.push(forLoop.getIterationExpression)
 
       engineState.isContinuing = false
     }
-    
+
     if (direction == Exiting) {
       pathStack.pop
     } else {
       engineState.vars.visited += current
     }
-    
-    paths.reverse.foreach{path => pathStack.push(path)}
-    
+
+    paths.reverse.foreach { path => pathStack.push(path) }
+
     if (!pathStack.isEmpty) {
       current = pathStack.head
     } else {

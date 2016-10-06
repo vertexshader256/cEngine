@@ -52,7 +52,7 @@ class TypesTest extends StandardTest {
     checkResults(code)
   }
   
-  "nested struct type test" should "print the correct results" in {
+  "nested struct type test with typedefs" should "print the correct results" in {
     val code = """
 
       typedef struct {
@@ -69,6 +69,32 @@ class TypesTest extends StandardTest {
         x.x = 465;
         x.y.z = 234;
         printf("%d %d\n", x.x, x.y.z);
+      }"""
+
+    checkResults(code)
+  }
+  
+  "deeply nested struct type test with inner array" should "print the correct results" in {
+    val code = """
+
+      typedef struct {
+        struct {
+          int x;
+          struct {
+            struct {
+              float y[5];
+            } y;
+            int x;
+          } y;
+        }
+      } Test;
+      
+      void main() {
+        Test x;
+        x.x = 465;
+        x.y.x = 234;
+        x.y.y.y[4] = 5.4673f;
+        printf("%d %d %f\n", x.x, x.y.x, x.y.y.y[4]);
       }"""
 
     checkResults(code)

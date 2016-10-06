@@ -19,7 +19,8 @@ class PointerTest extends StandardTest {
 
       void main() {
         int y = *(int*)&x;
-        printf("%d %d\n", *(int*)&x, y);
+        // include spaces in the pointer syntax
+        printf("%d %d %d\n", *(int*)&x, *(int  *)&x, y);
       }"""
     
     checkResults(code)

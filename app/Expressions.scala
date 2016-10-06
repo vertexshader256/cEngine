@@ -30,13 +30,11 @@ object Expressions {
         Seq(fieldRef.getFieldOwner)
       } else {
         
-        var isPointer = false
         var baseAddr: Address = null
         val structType = context.stack.pop match {
           case VarRef(name) => 
             val struct = context.vars.resolveId(name)
-            isPointer = struct.isPointer
-            baseAddr = if (isPointer) {
+            baseAddr = if (TypeHelper.isPointer(struct.theType)) {
               Address(struct.value.asInstanceOf[Int])
             } else {
               struct.address
@@ -51,6 +49,7 @@ object Expressions {
             theType match {
               case typedef: CTypedef => typedef.getType.asInstanceOf[CStructure]
               case struct: CStructure => struct
+              //case basic: IBasicType => println(basic); null
             }
         }    
         
@@ -82,8 +81,13 @@ object Expressions {
             x
         }
 
-        val name = context.stack.pop
-        val arrayVarPtr = context.vars.resolveId(name.asInstanceOf[VarRef].name)
+        val arrayVarPtr = context.stack.pop match {
+          case VarRef(name) => 
+            val variable = context.vars.resolveId(name)
+            AddressInfo(variable.address, variable.theType)
+          case addr @ AddressInfo(_, theType) => addr
+        }
+
         val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
 
         val arrayAddress = stack.readVal(arrayVarPtr.address.value, intType).asInstanceOf[Int]
@@ -155,24 +159,24 @@ object Expressions {
             resolveVar(context.stack.pop, (address, theType) => {
               val currentVal = stack.readVal(address, theType)
               context.stack.push(currentVal)
-              stack.setValue(currentVal.asInstanceOf[Int] + 1, Address(address))
+              stack.setValue(currentVal.asInstanceOf[Int] + 1, AddressInfo(Address(address), theType))
             })
           case `op_postFixDecr` =>
             resolveVar(context.stack.pop, (address, theType) => {
               val currentVal = stack.readVal(address, theType)
               context.stack.push(currentVal)
-              stack.setValue(currentVal.asInstanceOf[Int] - 1, Address(address))
+              stack.setValue(currentVal.asInstanceOf[Int] - 1, AddressInfo(Address(address), theType))
             })
           case `op_prefixIncr` =>
             resolveVar(context.stack.pop, (address, theType) => {
               val currentVal = stack.readVal(address, theType)
-              stack.setValue(currentVal.asInstanceOf[Int] + 1, Address(address))
+              stack.setValue(currentVal.asInstanceOf[Int] + 1, AddressInfo(Address(address), theType))
               context.stack.push(stack.readVal(address, theType))
             })
           case `op_prefixDecr` =>
             resolveVar(context.stack.pop, (address, theType) => {
               val currentVal = stack.readVal(address, theType)
-              stack.setValue(currentVal.asInstanceOf[Int] - 1, Address(address))
+              stack.setValue(currentVal.asInstanceOf[Int] - 1, AddressInfo(Address(address), theType))
               context.stack.push(stack.readVal(address, theType))
             })
           case `op_sizeof` =>

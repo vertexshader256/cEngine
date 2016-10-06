@@ -29,7 +29,7 @@ object BinaryExpr {
           case AddressInfo(_, theType) => stack.readVal(address, TypeHelper.resolve(theType))
           case VarRef(name) => 
             val variable = context.vars.resolveId(name)
-            if (!variable.isPointer) {
+            if (!TypeHelper.isPointer(variable.theType)) {
               // only if op1 is NOT a pointer, resolve op2
               stack.readVal(address, TypeHelper.resolve(variable.theType))
             } else {
@@ -42,7 +42,7 @@ object BinaryExpr {
       case float: Float => float 
     }
     
-    stack.setValue(resolvedop2, destinationAddress.address)
+    stack.setValue(resolvedop2, destinationAddress)
 
     resolvedop2
   }
@@ -72,7 +72,7 @@ object BinaryExpr {
     def resolve(op: Any) = op match { 
       case VarRef(name) => 
         val theVar = context.vars.resolveId(name)
-        if (theVar.isPointer) {
+        if (TypeHelper.isPointer(theVar.theType)) {
           isOp1Pointer = true
           pointerType = theVar.theType
           AddressInfo(Address(theVar.value.asInstanceOf[Int]), theVar.theType)
@@ -83,6 +83,7 @@ object BinaryExpr {
       case bool: Boolean => bool
       case double: Double => double
       case float: Float => float
+      case long: Long => long
     }
 
     val op = binaryExpr.getOperator
@@ -120,6 +121,9 @@ object BinaryExpr {
           case (x: Double, y: Int) => x - y
           case (x: Int, y: Double) => x - y
           case (x: Double, y: Double) => x - y
+          case (x: Long, y: Int) => x - y
+          case (x: Int, y: Long) => x - y
+          case (x: Float, y: Float) => x - y
         }
       case `op_divide` =>
         (op1, op2) match {
@@ -128,8 +132,11 @@ object BinaryExpr {
           case (x: Int, y: Double) => x / y
           case (x: Double, y: Double) => x / y
         }
-      //case `op_assign` =>
-      //  parseAssign(op1, op2, context)
+      case `op_shiftRight` =>
+        (op1, op2) match {
+          case (x: Long, y: Int) => x >> y
+          case (x: Int, y: Int) => x >> y
+        }
       case `op_equals` =>
         (op1, op2) match {
           case (x: Int, y: Int) => x == y
@@ -179,24 +186,24 @@ object BinaryExpr {
         op1 match {
           case VarRef(name) => 
             val vari = context.vars.resolveId(name)
-            vari.setValue((vari.value, op2) match {
+            context.setValue((vari.value, op2) match {
               case (x: Int, y: Int) => x + y
               case (x: Double, y: Int) => x + y
               case (x: Int, y: Double) => x + y
               case (x: Double, y: Double) => x + y
-            })
+            }, vari.info)
             
         }
       case `op_minusAssign` =>
         op1 match {
           case VarRef(name) => 
             val vari = context.vars.resolveId(name)
-            vari.setValue((vari.value, op2) match {
+            context.setValue((vari.value, op2) match {
               case (x: Int, y: Int) => x - y
               case (x: Double, y: Int) => x - y
               case (x: Int, y: Double) => x - y
               case (x: Double, y: Double) => x - y
-            })
+            }, vari.info)
         }
       case `op_logicalAnd` =>
         (op1, op2) match {

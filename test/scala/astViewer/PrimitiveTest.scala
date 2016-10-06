@@ -18,7 +18,8 @@ class PrimitiveTest extends StandardTest {
       void main() {
         // int x = 0xFFFFFFFF;   get this working
         int x = 0xABCDEF;
-        printf("%d\n", x);
+        int i  = 0x5f3759df - ( x >> 1 );
+        printf("%d %d\n", x, i);
       }"""
 
     checkResults(code)

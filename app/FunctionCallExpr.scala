@@ -24,7 +24,7 @@ object FunctionCallExpr {
           value match {
             case VarRef(name) => 
               val theVar = state.vars.resolveId(name)
-              if (theVar.isPointer) {
+              if (TypeHelper.isPointer(theVar.theType)) {
                 AddressInfo(Address(theVar.value.asInstanceOf[Int]), theVar.theType)
               } else {
                 AddressInfo(theVar.address, theVar.theType)
