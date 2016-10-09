@@ -69,43 +69,55 @@ object Expressions {
       }
     case subscript: IASTArraySubscriptExpression =>
       if (direction == Entering) {
-        Seq(subscript.getArrayExpression, subscript.getArgument)
+        Seq(subscript.getArgument, subscript.getArrayExpression)
       } else {
 
-        // index is first on the stack
-        val index = context.stack.pop match {
-          case VarRef(indexVarName) =>
-            context.vars.resolveId(indexVarName).value.asInstanceOf[Int]
-          case lit @ Literal(_) => lit.cast.asInstanceOf[Int]
-          case x: Int =>
-            x
-        }
-
-        val arrayVarPtr = context.stack.pop match {
-          case VarRef(name) => 
-            val variable = context.vars.resolveId(name)
-            AddressInfo(variable.address, variable.theType)
-          case addr @ AddressInfo(_, theType) => addr
-        }
-
-        val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
-
-        val arrayAddress = stack.readVal(arrayVarPtr.address.value, intType).asInstanceOf[Int]
-
-        val ancestors = Utils.getAncestors(subscript)
+        if (!subscript.getParent.isInstanceOf[IASTArraySubscriptExpression]) {
         
-        // We have to treat the destination op differently in an assignment
-        val isParsingAssignmentDest = ancestors.find{ _.isInstanceOf[IASTBinaryExpression]}.map { binary =>
-          val bin = binary.asInstanceOf[IASTBinaryExpression]
-          bin.getOperator == IASTBinaryExpression.op_assign
-        }.getOrElse(false)
-        
-        val elementAddress = Address(arrayAddress) + index * TypeHelper.sizeof(arrayVarPtr.theType)
-
-        if (isParsingAssignmentDest) {
-          context.stack.push(AddressInfo(elementAddress, TypeHelper.resolve(arrayVarPtr.theType)))
-        } else {
-          context.stack.push(stack.readVal(elementAddress.value, TypeHelper.resolve(arrayVarPtr.theType)))
+          val arrayVarPtr = context.stack.pop match {
+            case VarRef(name) => 
+              val variable = context.vars.resolveId(name)
+              AddressInfo(variable.address, variable.theType)
+            case addr @ AddressInfo(_, theType) => addr
+          }
+          
+          var itr: IASTNode = subscript
+          var numDimensions = 0
+          while (itr.isInstanceOf[IASTArraySubscriptExpression]) {
+            numDimensions += 1
+            itr = itr.getParent
+          }
+          
+          val dimensions = (0 until numDimensions).map{ dim =>
+            // index is first on the stack
+            context.stack.pop match {
+              case VarRef(indexVarName) =>
+                context.vars.resolveId(indexVarName).value.asInstanceOf[Int]
+              case lit @ Literal(_) => lit.cast.asInstanceOf[Int]
+              case x: Int =>
+                x
+            }
+          }
+  
+          val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
+  
+          val arrayAddress = stack.readVal(arrayVarPtr.address.value, intType).asInstanceOf[Int]
+  
+          val ancestors = Utils.getAncestors(subscript)
+          
+          // We have to treat the destination op differently in an assignment
+          val isParsingAssignmentDest = ancestors.find{ _.isInstanceOf[IASTBinaryExpression]}.map { binary =>
+            val bin = binary.asInstanceOf[IASTBinaryExpression]
+            bin.getOperator == IASTBinaryExpression.op_assign
+          }.getOrElse(false)
+          
+          val elementAddress = Address(arrayAddress) + dimensions(0) * TypeHelper.sizeof(arrayVarPtr.theType)
+  
+          if (isParsingAssignmentDest) {
+            context.stack.push(AddressInfo(elementAddress, TypeHelper.resolve(arrayVarPtr.theType)))
+          } else {
+            context.stack.push(stack.readVal(elementAddress.value, TypeHelper.resolve(arrayVarPtr.theType)))
+          }
         }
 
         Seq()
