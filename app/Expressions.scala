@@ -116,7 +116,17 @@ object Expressions {
             bin.getOperator == IASTBinaryExpression.op_assign
           }.getOrElse(false)
           
-          val elementAddress = Address(arrayAddress) + indexes(0) * TypeHelper.sizeof(arrayVarPtr.theType)
+          var offset = 0
+          
+          indexes.zipWithIndex.foreach{ case (arrayIndex, index) =>
+            if (index == 0) {
+              offset += arrayIndex
+            } else {
+              offset += arrayIndex * dimensions(index - 1)
+            }
+          }
+          
+          val elementAddress = Address(arrayAddress) + offset * TypeHelper.sizeof(arrayVarPtr.theType)
   
           if (isParsingAssignmentDest) {
             context.stack.push(AddressInfo(elementAddress, TypeHelper.resolve(arrayVarPtr.theType)))
