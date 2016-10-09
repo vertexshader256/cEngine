@@ -50,27 +50,30 @@ object BinaryExpr {
   def parse(binaryExpr: IASTBinaryExpression, context: State, stack: State): Any = {
     import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 
-    // read the two operands from right to left
-    var op2: Any = context.stack.pop
-    var op1: Any = context.stack.pop
-    
     var isOp1Pointer = false
     var pointerType: IType = null
     
+    val op = binaryExpr.getOperator
+    
     // resolve literals
     
-    op1 = op1 match {
+    val op2 = context.stack.pop match {
       case lit @ Literal(_) => lit.cast
+      case VarRef(name) if (op != op_plusAssign &&
+        op != op_minusAssign) => 
+        val theVar = context.vars.resolveId(name)
+        if (TypeHelper.isPointer(theVar.theType)) {
+          AddressInfo(Address(theVar.value.asInstanceOf[Int]), theVar.theType)
+        } else {
+          theVar.value  
+        }
       case x => x
     }
     
-    op2 = op2 match {
+    val op1 = context.stack.pop match {
       case lit @ Literal(_) => lit.cast
-      case x => x
-    }
-    
-    def resolve(op: Any) = op match { 
-      case VarRef(name) => 
+      case VarRef(name) if (op != op_plusAssign &&
+        op != op_minusAssign) => 
         val theVar = context.vars.resolveId(name)
         if (TypeHelper.isPointer(theVar.theType)) {
           isOp1Pointer = true
@@ -79,23 +82,9 @@ object BinaryExpr {
         } else {
           theVar.value  
         }
-      case int: Int => int
-      case bool: Boolean => bool
-      case double: Double => double
-      case float: Float => float
-      case long: Long => long
+      case x => x
     }
-
-    val op = binaryExpr.getOperator
-    
-    // resolve Op1 only if not assignment
-    
-    if (op != op_plusAssign &&
-        op != op_minusAssign) {
-      op1 = resolve(op1)
-      op2 = resolve(op2)
-    }
-    
+  
     val result: Any = binaryExpr.getOperator match {
       case `op_multiply` =>
         println(op1.getClass.getSimpleName)
