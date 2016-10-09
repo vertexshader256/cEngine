@@ -74,31 +74,36 @@ object Expressions {
 
         if (!subscript.getParent.isInstanceOf[IASTArraySubscriptExpression]) {
         
-          val arrayVarPtr = context.stack.pop match {
+          val arrayVarPtr: AddressInfo = context.stack.pop match {
             case VarRef(name) => 
               val variable = context.vars.resolveId(name)
               AddressInfo(variable.address, variable.theType)
             case addr @ AddressInfo(_, theType) => addr
           }
           
+          val indexes = new ListBuffer[Int]()
           var itr: IASTNode = subscript
           var numDimensions = 0
           while (itr.isInstanceOf[IASTArraySubscriptExpression]) {
-            numDimensions += 1
+            indexes += (context.stack.pop match {
+              case VarRef(indexVarName) =>
+                context.vars.resolveId(indexVarName).value
+              case lit @ Literal(_) => lit.cast
+              case x: Int =>
+                x
+            }).asInstanceOf[Int]
             itr = itr.getParent
           }
           
-          val dimensions = (0 until numDimensions).map{ dim =>
-            // index is first on the stack
-            context.stack.pop match {
-              case VarRef(indexVarName) =>
-                context.vars.resolveId(indexVarName).value.asInstanceOf[Int]
-              case lit @ Literal(_) => lit.cast.asInstanceOf[Int]
-              case x: Int =>
-                x
-            }
+          val dimensions = new ListBuffer[Int]()
+          var typeItr: IType = arrayVarPtr.theType
+          while (typeItr.isInstanceOf[IArrayType]) {
+            dimensions += typeItr.asInstanceOf[IArrayType].getSize.numericalValue.toInt
+            typeItr = typeItr.asInstanceOf[IArrayType].getType
           }
-  
+          
+          println(dimensions.toList)
+
           val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
   
           val arrayAddress = stack.readVal(arrayVarPtr.address.value, intType).asInstanceOf[Int]
@@ -111,7 +116,7 @@ object Expressions {
             bin.getOperator == IASTBinaryExpression.op_assign
           }.getOrElse(false)
           
-          val elementAddress = Address(arrayAddress) + dimensions(0) * TypeHelper.sizeof(arrayVarPtr.theType)
+          val elementAddress = Address(arrayAddress) + indexes(0) * TypeHelper.sizeof(arrayVarPtr.theType)
   
           if (isParsingAssignmentDest) {
             context.stack.push(AddressInfo(elementAddress, TypeHelper.resolve(arrayVarPtr.theType)))
