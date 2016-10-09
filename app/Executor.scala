@@ -223,8 +223,10 @@ trait RuntimeVariable {
   }
 }
 
-protected class ArrayVariable(val state: State, val theType: IType, numElements: Int) extends RuntimeVariable {
+protected class ArrayVariable(val state: State, val theType: IType, dimensions: Seq[Int]) extends RuntimeVariable {
 
+  val numElements = if (dimensions.isEmpty) 0 else dimensions.reduce{_ * _}
+  
   // where we store the actual data
   val theArrayAddress = allocateSpace(state, theType.asInstanceOf[IArrayType].getType, numElements)
 
@@ -479,7 +481,7 @@ object Executor {
               // e.g. char str[] = "Hello!\n";
               val initString = state.stack.pop.asInstanceOf[Literal].cast.asInstanceOf[String]
               val withNull = Utils.stripQuotes(initString).toCharArray() :+ 0.toChar // terminating null char
-              val theArrayPtr = new ArrayVariable(state, theType, withNull.size)
+              val theArrayPtr = new ArrayVariable(state, theType, Seq(withNull.size))
               theArrayPtr.setValue(withNull)
               state.vars.addVariable(name, theArrayPtr)
             } else {
@@ -494,7 +496,7 @@ object Executor {
                 }
               }
               
-              val theArrayPtr = new ArrayVariable(state, theType, numElements)
+              val theArrayPtr = new ArrayVariable(state, theType, dimensions)
               theArrayPtr.setValue(initialArray)
               state.vars.addVariable(name, theArrayPtr)
             }
