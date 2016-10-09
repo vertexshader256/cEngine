@@ -1,5 +1,9 @@
 package scala.astViewer
 
+class ArrayStagingArea extends StandardTest {
+  
+}
+
 class ArrayInitTest extends StandardTest {
   "A array assignment with an init list of ints" should "print the correct results" in {
     val code = """
@@ -12,6 +16,84 @@ class ArrayInitTest extends StandardTest {
         
         double z[5] = {5.6, 38.5, 2.945, 347.2, 378.2};
         printf("%f %f %f %f %f\n", z[0], z[1], z[2], z[3], z[4]);
+      }"""
+
+    checkResults(code)
+  }
+}
+
+class HigherDimArrays extends StandardTest {
+  "A 2d array" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x[2][2];
+        int i, j = 0;
+        int count = 0;
+        
+        for (i = 0; i < 2; i++) {
+          for (j = 0; j < 2; j++) {
+            x[i][j] = count;
+            count += 1;
+          }
+        }
+        
+        for (i = 0; i < 2; i++) {
+          for (j = 0; j < 2; j++) {
+            printf("%d\n", x[i][j]);
+          }
+        }  
+      }"""
+
+    checkResults(code)
+  }
+  
+  "A rectangular 2d array" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x[3][9];
+        int i, j = 0;
+        int count = 0;
+        
+        for (i = 0; i < 3; i++) {
+          for (j = 0; j < 9; j++) {
+            x[i][j] = count;
+            count += 1;
+          }
+        }
+        
+        for (i = 0; i < 3; i++) {
+          for (j = 0; j < 9; j++) {
+            printf("%d\n", x[i][j]);
+          }
+        }  
+      }"""
+
+    checkResults(code)
+  }
+  
+  "A 3d array" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x[2][2][2];
+        int i, j, k = 0;
+        int count = 0;
+        
+        for (i = 0; i < 2; i++) {
+          for (j = 0; j < 2; j++) {
+            for (k = 0; k < 2; k++) {
+              x[i][j][k] = count;
+              count += 1;
+            }
+          }
+        }
+        
+        for (i = 0; i < 2; i++) {
+          for (j = 0; j < 2; j++) {
+            for (k = 0; k < 2; k++) {
+              printf("%d\n", x[i][j][k]);
+            }
+          }
+        }  
       }"""
 
     checkResults(code)

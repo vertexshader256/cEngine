@@ -73,7 +73,7 @@ class State {
     }
   }
 
-  private val data = ByteBuffer.allocate(10240);
+  private val data = ByteBuffer.allocate(100000);
   data.order(ByteOrder.LITTLE_ENDIAN)
 
   var insertIndex = 0
@@ -218,7 +218,7 @@ trait RuntimeVariable {
     } else if (aType.isInstanceOf[CTypedef]) {
       allocateSpace(state, aType.asInstanceOf[CTypedef].getType, numElements)
     } else {
-      state.allocateSpace(sizeof)
+      state.allocateSpace(TypeHelper.sizeof(aType) * numElements)
     }
   }
 }
@@ -226,9 +226,9 @@ trait RuntimeVariable {
 protected class ArrayVariable(val state: State, val theType: IType, dimensions: Seq[Int]) extends RuntimeVariable {
 
   val numElements = if (dimensions.isEmpty) 0 else dimensions.reduce{_ * _}
-  
+
   // where we store the actual data
-  val theArrayAddress = allocateSpace(state, theType.asInstanceOf[IArrayType].getType, numElements)
+  val theArrayAddress = allocateSpace(state, TypeHelper.resolve(theType), numElements)
 
   // where we store the reference
   val address: Address = allocateSpace(state, theType, 1)

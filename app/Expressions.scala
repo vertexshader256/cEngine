@@ -71,9 +71,9 @@ object Expressions {
       if (direction == Entering) {
         Seq(subscript.getArgument, subscript.getArrayExpression)
       } else {
-
-        if (!subscript.getParent.isInstanceOf[IASTArraySubscriptExpression]) {
         
+        if (!subscript.getArrayExpression.isInstanceOf[IASTArraySubscriptExpression]) {
+
           val arrayVarPtr: AddressInfo = context.stack.pop match {
             case VarRef(name) => 
               val variable = context.vars.resolveId(name)
@@ -83,7 +83,6 @@ object Expressions {
           
           val indexes = new ListBuffer[Int]()
           var itr: IASTNode = subscript
-          var numDimensions = 0
           while (itr.isInstanceOf[IASTArraySubscriptExpression]) {
             indexes += (context.stack.pop match {
               case VarRef(indexVarName) =>
@@ -102,8 +101,6 @@ object Expressions {
             typeItr = typeItr.asInstanceOf[IArrayType].getType
           }
           
-          println(dimensions.toList)
-
           val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
   
           val arrayAddress = stack.readVal(arrayVarPtr.address.value, intType).asInstanceOf[Int]
@@ -117,15 +114,11 @@ object Expressions {
           }.getOrElse(false)
           
           var offset = 0
-          
+
           indexes.zipWithIndex.foreach{ case (arrayIndex, index) =>
-            if (index == 0) {
-              offset += arrayIndex
-            } else {
-              offset += arrayIndex * dimensions(index - 1)
-            }
+            offset += arrayIndex * dimensions.slice(0, index).reduceOption{_ * _}.getOrElse(1)
           }
-          
+
           val elementAddress = Address(arrayAddress) + offset * TypeHelper.sizeof(arrayVarPtr.theType)
   
           if (isParsingAssignmentDest) {
