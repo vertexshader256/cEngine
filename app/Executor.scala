@@ -472,29 +472,32 @@ object Executor {
         decl match {
           case arrayDecl: IASTArrayDeclarator =>
 
-            val initVal = state.stack.pop.asInstanceOf[Literal].cast match {
-              case size: Int =>
-                val initialArray = Array.fill[Any](size)(0)
+            val dimensions = arrayDecl.getArrayModifiers.filter{_.getConstantExpression != null}.map{dim => state.stack.pop.asInstanceOf[Literal].cast.asInstanceOf[Int]}
+            
+            if (dimensions.isEmpty && decl.getInitializer != null) {
+              // Deals with string initializers
+              // e.g. char str[] = "Hello!\n";
+              val initString = state.stack.pop.asInstanceOf[Literal].cast.asInstanceOf[String]
+              val withNull = Utils.stripQuotes(initString).toCharArray() :+ 0.toChar // terminating null char
+              val theArrayPtr = new ArrayVariable(state, theType, withNull.size)
+              theArrayPtr.setValue(withNull)
+              state.vars.addVariable(name, theArrayPtr)
+            } else {
+              val numElements = if (dimensions.isEmpty) 0 else dimensions.reduce{_ * _}
+              val initialArray = Array.fill[Any](numElements)(0)
 
-                if (!state.stack.isEmpty) {
-                  var i = 0
-                  for (i <- (size - 1) to 0 by -1) {
-                    val newInit = state.stack.pop
-                    initialArray(i) = newInit
-                  }
+              if (!state.stack.isEmpty) {
+                var i = 0
+                for (i <- (numElements - 1) to 0 by -1) {
+                  val newInit = state.stack.pop
+                  initialArray(i) = newInit
                 }
-                initialArray
-              case initString: String =>
-                Utils.stripQuotes(initString).toCharArray() :+ 0.toChar // terminating null char
+              }
+              
+              val theArrayPtr = new ArrayVariable(state, theType, numElements)
+              theArrayPtr.setValue(initialArray)
+              state.vars.addVariable(name, theArrayPtr)
             }
-
-            val theArrayPtr = new ArrayVariable(state, theType, initVal.length)
-            theArrayPtr.setValue(initVal)
-
-            state.vars.addVariable(name, theArrayPtr)
-
-            theArrayPtr
-
           case decl: CASTDeclarator =>
 
             def createVariable(theType: IType, name: String): RuntimeVariable = theType match {
