@@ -232,8 +232,8 @@ function tick() {
           });
 
           node.isClicked = true;
-
-          console.log(node.type);
+          
+          socket.send("Get Node Class Name: " + node.id)
 
           var markers = editor.getSession().getMarkers(false)
 
@@ -381,8 +381,7 @@ function submitCode() {
 	
 	socket = new WebSocket("ws://localhost:81/websocket");
 
-    socket.onopen = function(){
-    	alert("Socket has been opened!");
+    socket.onopen = function() {
     }
 
     socket.onmessage = function(msg){
@@ -394,6 +393,11 @@ function submitCode() {
     			  node.color = "#0000FF";
     			}
     		});
+    	} else if (data.toString().startsWith("Current Node Class:")) {
+    		var className = data.toString().split(":")[1];
+    		$('#className').text(className);
+    		$('#className').attr("href", 'https://www.cct.lsu.edu/~rguidry/eclipse-doc36/org/eclipse/cdt/internal/core/dom/parser/c/' + className + '.html');
+    		//http://help.eclipse.org/luna/index.jsp?topic=%2Forg.eclipse.cdt.doc.isv%2Freference%2Fapi%2Forg%2Feclipse%2Fcdt%2Fcore%2Fdom%2Fast%2FASTVisitor.html
     	}
     }
 	

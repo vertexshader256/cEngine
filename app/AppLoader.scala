@@ -151,6 +151,12 @@ class AppLoader extends ApplicationLoader {
           if (msg == "Step") {
             executor.tick()
             out ! ("Step Response:" + executor.current.hashCode)
+          } else if (msg.startsWith("Get Node Class Name:")) {
+            val id = msg.split(":").last.trim.toInt
+            
+            val node = Utils.getDescendants(executor.tUnit).find{x => x.hashCode == id}.get
+            
+            out ! ("Current Node Class:" + node.getClass.getSimpleName)
           } else {
             out ! ("Unexpected request: " + msg)
           }

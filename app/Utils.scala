@@ -41,6 +41,10 @@ object Utils {
     }
     results
   }
+  
+  def getDescendants(node: IASTNode): Seq[IASTNode] = {
+    Seq(node) ++ node.getChildren.flatMap{x => getDescendants(x)}
+  }
 
   def getTranslationUnit(code: String): IASTTranslationUnit = {
     val fileContent = FileContent.create("test", code.toCharArray)
