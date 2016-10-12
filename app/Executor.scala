@@ -496,7 +496,7 @@ object Executor {
                 }
               }
               
-              val theArrayPtr = new ArrayVariable(state, theType, dimensions)
+              val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)
               theArrayPtr.setValue(initialArray)
               state.vars.addVariable(name, theArrayPtr)
             }
