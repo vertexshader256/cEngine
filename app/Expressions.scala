@@ -232,14 +232,21 @@ object Expressions {
             }
           case `op_star` =>
             context.stack.pop match {
-              case VarRef(varName) =>
+              case VarRef(varName) =>       
                 val ptr = context.vars.resolveId(varName)
                 val refAddressInfo = AddressInfo(Address(ptr.value.asInstanceOf[Int]), TypeHelper.resolve(ptr.theType))
                 context.stack.push(refAddressInfo)
               case address @ AddressInfo(addr, theType) =>
-                println(address)
-                println(stack.readVal(addr.value, TypeHelper.resolve(theType)))
-                context.stack.push(stack.readVal(addr.value, TypeHelper.resolve(theType)))
+
+                unary.getChildren.head match {
+                  case unary: IASTUnaryExpression if unary.getOperator == op_star => 
+                    // nested pointers
+                    val refAddressInfo = AddressInfo(Address(stack.readVal(addr.value, TypeHelper.resolve(theType)).asInstanceOf[Int]), theType)
+                    context.stack.push(refAddressInfo)
+                  case _ => 
+                    context.stack.push(stack.readVal(addr.value, TypeHelper.resolve(theType)))
+                }
+
             }
           case `op_bracketedPrimary` => // not sure what this is for
         }

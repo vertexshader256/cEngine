@@ -167,12 +167,14 @@ class DoublePointer extends StandardTest {
     val code = """
       
       void main() {
-        int num = 45 , *ptr , **ptr2ptr;
+        int num = 45 , *ptr , **ptr2ptr, ***ptr3ptr;
         ptr     = &num;
         ptr2ptr = &ptr;
+        ptr3ptr = &ptr2ptr;
 
-        printf("%d\n",*ptr);
-        //printf("%d\n",**ptr2ptr);
+        printf("%d\n", *ptr);
+        printf("%d\n", **ptr2ptr);
+        printf("%d\n", ***ptr3ptr);
       }"""
 
     checkResults(code)
