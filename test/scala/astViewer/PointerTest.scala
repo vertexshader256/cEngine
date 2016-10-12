@@ -142,3 +142,39 @@ class PointerTest extends StandardTest {
     checkResults(code)
   }
 }
+
+class DoublePointer extends StandardTest {
+
+  "basic double pointer use" should "print the correct results" in {
+    val code = """
+      
+      void MoveToNextElement(char** i) {
+         (*i)++;
+      }
+      
+      void main() {
+        char string[] = "epic";
+        char *ptr = string;
+        printf("%c\n", *ptr);
+        MoveToNextElement(&ptr);
+        printf("%c\n", *ptr);
+      }"""
+
+    checkResults(code)
+  }
+  
+  "more double pointer use" should "print the correct results" in {
+    val code = """
+      
+      void main() {
+        int num = 45 , *ptr , **ptr2ptr;
+        ptr     = &num;
+        ptr2ptr = &ptr;
+
+        printf("%d\n",*ptr);
+        //printf("%d\n",**ptr2ptr);
+      }"""
+
+    checkResults(code)
+  }
+}

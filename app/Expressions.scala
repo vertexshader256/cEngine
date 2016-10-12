@@ -179,24 +179,43 @@ object Expressions {
             resolveVar(context.stack.pop, (address, theType) => {
               val currentVal = stack.readVal(address, theType)
               context.stack.push(currentVal)
-              stack.setValue(currentVal.asInstanceOf[Int] + 1, AddressInfo(Address(address), theType))
+              
+              currentVal match {
+                case int: Int => stack.setValue(int + 1, AddressInfo(Address(address), theType))
+                case char: Char => stack.setValue(char + 1, AddressInfo(Address(address), theType))
+              }
             })
           case `op_postFixDecr` =>
             resolveVar(context.stack.pop, (address, theType) => {
               val currentVal = stack.readVal(address, theType)
               context.stack.push(currentVal)
-              stack.setValue(currentVal.asInstanceOf[Int] - 1, AddressInfo(Address(address), theType))
+              
+              currentVal match {
+                case int: Int => stack.setValue(int - 1, AddressInfo(Address(address), theType))
+                case char: Char => stack.setValue(char - 1, AddressInfo(Address(address), theType))
+              }
+              
             })
           case `op_prefixIncr` =>
             resolveVar(context.stack.pop, (address, theType) => {
               val currentVal = stack.readVal(address, theType)
-              stack.setValue(currentVal.asInstanceOf[Int] + 1, AddressInfo(Address(address), theType))
+
+              currentVal match {
+                case int: Int => stack.setValue(int + 1, AddressInfo(Address(address), theType))
+                case char: Char => stack.setValue(char + 1, AddressInfo(Address(address), theType))
+              }
+              
               context.stack.push(stack.readVal(address, theType))
             })
           case `op_prefixDecr` =>
             resolveVar(context.stack.pop, (address, theType) => {
               val currentVal = stack.readVal(address, theType)
-              stack.setValue(currentVal.asInstanceOf[Int] - 1, AddressInfo(Address(address), theType))
+
+              currentVal match {
+                case int: Int => stack.setValue(int - 1, AddressInfo(Address(address), theType))
+                case char: Char => stack.setValue(char - 1, AddressInfo(Address(address), theType))
+              }
+              
               context.stack.push(stack.readVal(address, theType))
             })
           case `op_sizeof` =>
