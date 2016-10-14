@@ -1,5 +1,18 @@
 package scala.astViewer
 
+class RolloverTest extends StandardTest {
+  "char rollover test" should "print the correct results" in {
+    val code = """
+      void main() {
+        char x = 128;
+        int y = x;
+        printf("%d\n", y);
+      }"""
+
+    checkResults(code)
+  }
+}
+
 class PrimitiveTest extends StandardTest {
   "char test" should "print the correct results" in {
     val code = """

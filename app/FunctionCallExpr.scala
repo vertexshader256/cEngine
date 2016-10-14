@@ -30,8 +30,7 @@ object FunctionCallExpr {
               } else {
                 AddressInfo(theVar.address, theVar.theType)
               } 
-            case info @ AddressInfo(_, _) => info
-            
+            case info @ AddressInfo(_, _) => info  
             case int: Int => int
             case float: Float => float
             case short: Short => short
@@ -45,12 +44,14 @@ object FunctionCallExpr {
         if (name == "printf") {
           
           // here we resolve the addresses coming in
-          val resolved = formattedOutputParams.map{x => x match {
+          val resolved = formattedOutputParams.map{x => 
+            x match {
               case strLit: StringLiteral => strLit.str
               case AddressInfo(addy, theType) =>
                 val resolved = TypeHelper.resolve(theType)
                 resolved.getKind match {
                   case IBasicType.Kind.eChar if TypeHelper.isPointer(theType) => 
+                    // its a string!
                     var current: Char = 0
                     var stringBuilder = new ListBuffer[Char]()
                     var i = 0

@@ -122,14 +122,59 @@ class State {
 
   // use Address type to prevent messing up argument order
   def setValue(newVal: AnyVal, info: AddressInfo): Unit = {
+
     newVal match {
       case Address(addy)        => setValue(addy, info)
-      case newVal: Char    => data.put(info.address.value, newVal.toByte) // MUST convert to byte because writing char is 2 bytes!!!
-      case newVal: Long    => data.putLong(info.address.value, newVal)
-      case newVal: Int     => data.putInt(info.address.value, newVal)
-      case newVal: Float   => data.putFloat(info.address.value, newVal)
-      case newVal: Double  => data.putDouble(info.address.value, newVal)
-      case newVal: Boolean => data.putChar(info.address.value, if (newVal) 1 else 0)
+      case x => {
+        
+        if (info.theType.isInstanceOf[IPointerType] || info.theType.isInstanceOf[CStructure]) {
+          newVal match {
+            case newVal: Char    => data.put(info.address.value, newVal.toByte) // MUST convert to byte because writing char is 2 bytes!!!
+            case newVal: Long    => data.putLong(info.address.value, newVal)
+            case newVal: Int     => data.putInt(info.address.value, newVal)
+            case newVal: Float   => data.putFloat(info.address.value, newVal)
+            case newVal: Double  => data.putDouble(info.address.value, newVal)
+            case newVal: Boolean => data.putChar(info.address.value, if (newVal) 1 else 0)
+          }
+        } else {
+          val theType = TypeHelper.resolve(info.theType)
+      
+          import IBasicType.Kind._        
+          
+          theType.getKind match {
+            case `eChar`    => 
+              newVal match {
+                case int: Int => data.put(info.address.value, int.toByte)// MUST convert to byte because writing char is 2 bytes!!!
+                case char: Char => data.put(info.address.value, char.toByte)
+              } 
+           case `eInt` if theType.isLong =>
+              newVal match {
+                case int: Int => data.putLong(info.address.value, int.toLong)
+                case long: Long => data.putLong(info.address.value, long)
+              }  
+          case `eInt`     => 
+              newVal match {
+                case boolean: Boolean => data.putInt(info.address.value, if (boolean) 1 else 0)
+                case long: Long => data.putInt(info.address.value, long.toInt)
+                case int: Int => data.putInt(info.address.value, int)
+                case char: Char => 
+                  data.putInt(info.address.value, char.toByte.toInt)
+              }  
+           case `eFloat`   =>
+              newVal match {
+                case int: Int => data.putFloat(info.address.value, int.toFloat)
+                case double: Double => data.putFloat(info.address.value, double.toFloat)
+                case float: Float => data.putFloat(info.address.value, float)
+              }  
+           case `eDouble`  =>
+              newVal match {
+                case int: Int => data.putDouble(info.address.value, int.toDouble)
+                case double: Double => data.putDouble(info.address.value, double)
+                case float: Float => data.putDouble(info.address.value, float.toDouble)
+              } 
+            case `eBoolean` => data.putChar(info.address.value, if (newVal.asInstanceOf[Boolean]) 1 else 0)
+          }
+      }}
     }
   }
 }
@@ -249,7 +294,9 @@ protected class ArrayVariable(val state: State, val theType: IType, dimensions: 
   // where we store the reference
   val address: Address = allocateSpace(state, theType, 1)
 
-  state.setValue(theArrayAddress.value, info)
+  state.setValue(theArrayAddress.value, AddressInfo(info.address, new CBasicType(IBasicType.Kind.eInt, 0)))
+  
+  val resolved = TypeHelper.resolve(theType)
 
   def sizeof: Int = {
     TypeHelper.sizeof(theType) * numElements
@@ -261,15 +308,15 @@ protected class ArrayVariable(val state: State, val theType: IType, dimensions: 
       array.foreach { element =>
         element match {
           case lit @ Literal(_) =>
-            state.setValue(lit.cast, AddressInfo(theArrayAddress + i, theType))
+            state.setValue(lit.typeCast(resolved), AddressInfo(theArrayAddress + i, resolved))
           case int: Int =>
-            state.setValue(int, AddressInfo(theArrayAddress + i, theType))
+            state.setValue(int, AddressInfo(theArrayAddress + i, resolved))
           case char: Char =>
-            state.setValue(char, AddressInfo(theArrayAddress + i, theType))
+            state.setValue(char, AddressInfo(theArrayAddress + i, resolved))
           case double: Double =>
-            state.setValue(double, AddressInfo(theArrayAddress + i, theType))
+            state.setValue(double, AddressInfo(theArrayAddress + i, resolved))
         }
-        i += TypeHelper.sizeof(theType.asInstanceOf[IArrayType].getType)
+        i += TypeHelper.sizeof(resolved)
       }
   }
 }
