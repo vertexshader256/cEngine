@@ -128,14 +128,14 @@ class PrimitiveTest extends StandardTest {
         return data;
       }
            
-//      short shortTest2(unsigned short data)
-//      {
-//        return data;
-//      }
+      short shortTest2(unsigned short data)
+      {
+        return data;
+      }
   
       void main()
       {
-        printf("%d %d\n", intTest(4294967241), shortTest(4294967241)); //, shortTest2(38233));
+        printf("%d %d %d\n", intTest(4294967241), shortTest(4294967241), shortTest2(38233));
         return 0;
       }
       """

@@ -43,11 +43,7 @@ case class Literal(lit: String) {
   }
   
   def typeCast(theType: IBasicType): AnyVal = {
-    theType.getKind match {
-      case `eDouble` => lit.toDouble
-      case `eFloat` => lit.toFloat
-      case _        => cast
-    }
+    TypeHelper.coerece(theType, cast)
   }
 }
 
@@ -60,13 +56,15 @@ class State {
   val stdout = new ListBuffer[String]()
 
   // flags
+  var isReturning = false
   var isBreaking = false
   var isContinuing = false
   var isPreprocessing = true
 
   def callFunction(call: IASTFunctionCallExpression) = {
     executionContext.push(vars)
-    vars = new FunctionExecutionContext(globals)
+
+    vars = new FunctionExecutionContext(globals, call.getExpressionType)
 
     val name = call.getFunctionNameExpression match {
       case x: IASTIdExpression => x.getName.getRawSignature
@@ -142,38 +140,13 @@ class State {
           import IBasicType.Kind._        
           
           theType.getKind match {
-            case `eChar`    => 
-              newVal match {
-                case int: Int => data.put(info.address.value, int.toByte)// MUST convert to byte because writing char is 2 bytes!!!
-                case char: Char => data.put(info.address.value, char.toByte)
-              } 
-           case `eInt` if theType.isLong =>
-              newVal match {
-                case int: Int => data.putLong(info.address.value, int.toLong)
-                case long: Long => data.putLong(info.address.value, long)
-              } 
-           case `eInt`     => 
-              newVal match {
-                case boolean: Boolean => data.putInt(info.address.value, if (boolean) 1 else 0)
-                case long: Long => data.putInt(info.address.value, long.toInt)
-                case int: Int => data.putInt(info.address.value, int)
-                case short: Short => data.putInt(info.address.value, short.toInt)
-                case char: Char => 
-                  data.putInt(info.address.value, char.toByte.toInt)
-              }  
-           case `eFloat`   =>
-              newVal match {
-                case int: Int => data.putFloat(info.address.value, int.toFloat)
-                case double: Double => data.putFloat(info.address.value, double.toFloat)
-                case float: Float => data.putFloat(info.address.value, float)
-              }  
-           case `eDouble`  =>
-              newVal match {
-                case int: Int => data.putDouble(info.address.value, int.toDouble)
-                case double: Double => data.putDouble(info.address.value, double)
-                case float: Float => data.putDouble(info.address.value, float.toDouble)
-              } 
-            case `eBoolean` => data.putChar(info.address.value, if (newVal.asInstanceOf[Boolean]) 1 else 0)
+            case `eChar`    => data.put(info.address.value, TypeHelper.coerece(theType, newVal).asInstanceOf[Byte])
+            case `eInt` if theType.isLong => data.putLong(info.address.value, TypeHelper.coerece(theType, newVal).asInstanceOf[Long])
+            case `eInt` if theType.isShort    => data.putShort(info.address.value, TypeHelper.coerece(theType, newVal).asInstanceOf[Short]) 
+            case `eInt`     => data.putInt(info.address.value, TypeHelper.coerece(theType, newVal).asInstanceOf[Int]) 
+            case `eFloat`   => data.putFloat(info.address.value, TypeHelper.coerece(theType, newVal).asInstanceOf[Float])
+            case `eDouble`  => data.putDouble(info.address.value, TypeHelper.coerece(theType, newVal).asInstanceOf[Double])
+            case `eBoolean` => data.putChar(info.address.value, if (TypeHelper.coerece(theType, newVal).asInstanceOf[Boolean]) 1 else 0)
           }
       }}
     }
@@ -188,6 +161,54 @@ case class Address(value: Int) extends AnyVal {
 case class AddressInfo(address: Address, theType: IType)
 
 object TypeHelper {
+  
+  def coerece(theType: IBasicType, newVal: Any): AnyVal = {
+    theType.getKind match {
+      case `eChar`    => 
+        newVal match {
+          case int: Int => int.toByte// MUST convert to byte because writing char is 2 bytes!!!
+          case char: Char => char.toByte
+          case byte: Byte => byte
+        } 
+     case `eInt` if theType.isLong =>
+        newVal match {
+          case int: Int => int.toLong
+          case long: Long => long
+        } 
+     case `eInt` if theType.isShort && TypeHelper.isSigned(theType) =>
+        newVal match {
+          case int: Int => int.toShort
+          case short: Short => short
+        }
+     case `eInt` if theType.isShort && !TypeHelper.isSigned(theType) =>
+        newVal match {
+          case int: Int => int.toShort
+          case short: Short => short
+          case long: Long => long.toShort
+        }  
+     case `eInt`     => 
+        newVal match {
+          case boolean: Boolean => if (boolean) 1 else 0
+          case long: Long => long.toInt
+          case int: Int => int
+          case short: Short => short.toInt
+          case char: Char => char.toByte.toInt
+        }  
+     case `eFloat`   =>
+        newVal match {
+          case int: Int => int.toFloat
+          case double: Double => double.toFloat
+          case float: Float => float
+        }  
+     case `eDouble`  =>
+        newVal match {
+          case int: Int => int.toDouble
+          case double: Double => double
+          case float: Float => float.toDouble
+        } 
+      case `eBoolean` => if (newVal.asInstanceOf[Boolean]) 1 else 0
+    }
+  }
   
   def isSigned(theType: IBasicType) = {
     theType.isSigned || (!theType.isSigned && !theType.isUnsigned)
@@ -331,7 +352,7 @@ protected class Variable(val state: State, val theType: IType) extends RuntimeVa
   }
 }
 
-class FunctionExecutionContext(globals: Map[String, RuntimeVariable]) {
+class FunctionExecutionContext(globals: Map[String, RuntimeVariable], val returnType: IType) {
   val visited = new ListBuffer[IASTNode]()
   val varMap = Map[String, RuntimeVariable]() ++ globals
 
@@ -486,16 +507,30 @@ object Executor {
       }
     case ret: IASTReturnStatement =>
       if (direction == Entering) {
-        Seq(ret.getReturnValue)
+        
+        if (ret.getReturnValue != null) {
+          Seq(ret.getReturnValue)
+        } else {
+          Seq()
+        }
       } else {
         // resolve everything before returning
-        val returnVal = state.stack.pop
-        state.stack.push(returnVal match {
-          case lit @ Literal(_) => lit.cast
-          case VarRef(id)       => state.vars.resolveId(id).value
-          case int: Int         => int
-          case doub: Double     => doub
-        })
+        if (ret.getReturnValue != null) {
+          val returnVal = state.stack.pop
+          state.stack.push(returnVal match {
+            case lit @ Literal(_) if state.vars.returnType != null => lit.typeCast(TypeHelper.resolve(state.vars.returnType))
+            case lit @ Literal(_) => lit.cast
+            case VarRef(id)       => 
+              if (state.vars.returnType != null) {
+                TypeHelper.coerece(TypeHelper.resolve(state.vars.returnType), state.vars.resolveId(id).value)
+              } else {
+                state.vars.resolveId(id).value
+              }
+            case int: Int         => int
+            case doub: Double     => doub
+          })
+        }
+        state.isReturning = true
         Seq()
       }
     case decl: IASTDeclarationStatement =>
@@ -739,7 +774,7 @@ class Executor(code: String) {
 
   current = tUnit
 
-  engineState.executionContext.push(new FunctionExecutionContext(Map())) // load initial stack
+  engineState.executionContext.push(new FunctionExecutionContext(Map(), null)) // load initial stack
   engineState.vars = engineState.executionContext.head
 
   execute()
@@ -751,7 +786,7 @@ class Executor(code: String) {
   engineState.globals ++= engineState.vars.varMap
 
   engineState.executionContext.clear
-  engineState.executionContext.push(new FunctionExecutionContext(engineState.globals)) // load initial stack
+  engineState.executionContext.push(new FunctionExecutionContext(engineState.globals, null)) // load initial stack
   engineState.vars = engineState.executionContext.head
   pathStack.clear
   pathStack.push(engineState.functionMap("main"))
@@ -773,6 +808,7 @@ class Executor(code: String) {
 
       engineState.isBreaking = false
     }
+
 
     if (engineState.isContinuing) {
       // unroll the path stack until we meet the first parent which is a loop
