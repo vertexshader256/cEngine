@@ -30,7 +30,7 @@ object FunctionCallExpr {
                 AddressInfo(theVar.address, theVar.theType)
               } 
             case info @ AddressInfo(_, _) => info
-            case str: String => str
+            
             case int: Int => int
             case float: Float => float
             case short: Short => short
@@ -45,6 +45,7 @@ object FunctionCallExpr {
           
           // here we resolve the addresses coming in
           val resolved = formattedOutputParams.map{x => x match {
+              case strLit: StringLiteral => strLit.str
               case AddressInfo(addy, theType) =>
                 val resolved = TypeHelper.resolve(theType)
                 resolved.toString match {

@@ -14,8 +14,10 @@ import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 import scala.collection.mutable.Map
 
 case class VarRef(name: String)
+case class StringLiteral(str: String) extends AnyVal
+
 case class Literal(lit: String) {
-  def cast: Any = {
+  def cast: AnyVal = {
 
     def isIntNumber(s: String): Boolean = (allCatch opt s.toInt).isDefined
     def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
@@ -25,7 +27,7 @@ case class Literal(lit: String) {
       val bigInt = new BigInteger(lit.drop(2), 16);
       bigInt.intValue
     } else if (lit.head == '\"' && lit.last == '\"') {
-      lit
+      StringLiteral(lit)
     } else if (lit.head == '\'' && lit.last == '\'' && lit.length == 3) {
       lit.toCharArray.apply(1)
     } else if (isIntNumber(lit)) {
@@ -40,7 +42,7 @@ case class Literal(lit: String) {
     }
   }
   
-  def typeCast(theType: IBasicType) = {
+  def typeCast(theType: IBasicType): AnyVal = {
     theType.getKind match {
       case `eDouble` => lit.toDouble
       case `eFloat` => lit.toFloat
@@ -92,7 +94,7 @@ class State {
     Address(result)
   }
 
-  def readVal(address: Int, theType: IBasicType): Any = {
+  def readVal(address: Int, theType: IBasicType): AnyVal = {
 
     import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 
@@ -119,10 +121,9 @@ class State {
   }
 
   // use Address type to prevent messing up argument order
-  def setValue(newVal: Any, info: AddressInfo): Unit = {
+  def setValue(newVal: AnyVal, info: AddressInfo): Unit = {
     newVal match {
       case Address(addy)        => setValue(addy, info)
-      case AddressInfo(addy, _) => setValue(addy, info)
       case newVal: Char    => data.put(info.address.value, newVal.toByte) // MUST convert to byte because writing char is 2 bytes!!!
       case newVal: Long    => data.putLong(info.address.value, newVal)
       case newVal: Int     => data.putInt(info.address.value, newVal)
@@ -133,7 +134,7 @@ class State {
   }
 }
 
-case class Address(value: Int) {
+case class Address(value: Int) extends AnyVal {
   def +(x: Int) = {
     Address(value + x)
   }
@@ -188,7 +189,7 @@ trait RuntimeVariable {
   def sizeof: Int
   def info = AddressInfo(address, theType)
   
-  def value: Any = {
+  def value: AnyVal = {
     if (TypeHelper.isPointer(theType)) {
       state.readVal(address.value, new CBasicType(IBasicType.Kind.eInt, 0))
     } else {
@@ -202,9 +203,9 @@ trait RuntimeVariable {
       state.allocateSpace(TypeHelper.sizeof(intType))
     } else if (aType.isInstanceOf[CStructure]) {
       val struct = aType.asInstanceOf[CStructure]
-      var result: Address = null
+      var result: Address = Address(-1)
       struct.getFields.foreach { field =>
-        if (result == null) {
+        if (result == Address(-1)) {
           result = allocateSpace(state, field.getType, numElements)
         } else {
           allocateSpace(state, field.getType, numElements)
@@ -242,8 +243,12 @@ protected class ArrayVariable(val state: State, val theType: IType, dimensions: 
         element match {
           case lit @ Literal(_) =>
             state.setValue(lit.cast, AddressInfo(theArrayAddress + i, theType))
-          case x =>
-            state.setValue(x, AddressInfo(theArrayAddress + i, theType))
+          case int: Int =>
+            state.setValue(int, AddressInfo(theArrayAddress + i, theType))
+          case char: Char =>
+            state.setValue(char, AddressInfo(theArrayAddress + i, theType))
+          case double: Double =>
+            state.setValue(double, AddressInfo(theArrayAddress + i, theType))
         }
         i += TypeHelper.sizeof(theType.asInstanceOf[IArrayType].getType)
       }
@@ -445,6 +450,20 @@ object Executor {
         Seq()
       }
   }
+  
+  def resolve(state: State, theType: IType, any: Any): AnyVal = {
+    any match {
+      case VarRef(name) =>
+        state.vars.resolveId(name).value
+      case lit @ Literal(_) => lit.typeCast(TypeHelper.resolve(theType))
+      case AddressInfo(addy, _) => addy.value
+      case int: Int => int
+      case float: Float => float
+      case double: Double => double
+      case long: Long => long
+      case boolean: Boolean => boolean
+    }
+  }
 
   def parseDeclarator(decl: IASTDeclarator, direction: Direction, state: State): Seq[IASTNode] = {
     if (direction == Entering) {
@@ -475,7 +494,7 @@ object Executor {
             if (dimensions.isEmpty && decl.getInitializer != null) {
               // Deals with string initializers
               // e.g. char str[] = "Hello!\n";
-              val initString = state.stack.pop.asInstanceOf[Literal].cast.asInstanceOf[String]
+              val initString = state.stack.pop.asInstanceOf[Literal].cast.asInstanceOf[StringLiteral].str
               val withNull = Utils.stripQuotes(initString).toCharArray() :+ 0.toChar // terminating null char
               val theArrayPtr = new ArrayVariable(state, theType, Seq(withNull.size))
               theArrayPtr.setValue(withNull)
@@ -521,14 +540,7 @@ object Executor {
                   }
                 }   
                 
-                val resolved = initVal match {
-                  case VarRef(name) =>
-                    state.vars.resolveId(name).value
-                  case lit @ Literal(_) => lit.typeCast(TypeHelper.resolve(theType))
-                  case x =>
-                    x
-                }
-
+                val resolved = resolve(state, theType, initVal)
                 val newVar = new Variable(state, theType)
                 state.setValue(resolved, newVar.info)
                 state.vars.addVariable(name, newVar)
@@ -585,7 +597,7 @@ object Executor {
 
           val name = param.getDeclarator.getName.getRawSignature
           val newVar = new Variable(state, paramInfo.getType)
-          state.setValue(arg, newVar.info)
+          state.setValue(resolve(state, paramInfo.getType, arg), newVar.info)
 
           state.vars.addVariable(name, newVar)
           Seq()

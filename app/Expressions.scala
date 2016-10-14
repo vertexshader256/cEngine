@@ -30,7 +30,7 @@ object Expressions {
         Seq(fieldRef.getFieldOwner)
       } else {
         
-        var baseAddr: Address = null
+        var baseAddr: Address = Address(-1)
         val structType = context.stack.pop match {
           case VarRef(name) => 
             val struct = context.vars.resolveId(name)
