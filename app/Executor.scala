@@ -39,6 +39,14 @@ case class Literal(lit: String) {
       lit.toDouble
     }
   }
+  
+  def typeCast(theType: IBasicType) = {
+    theType.getKind match {
+      case `eDouble` => lit.toDouble
+      case `eFloat` => lit.toFloat
+      case _        => cast
+    }
+  }
 }
 
 class State {
@@ -112,18 +120,7 @@ class State {
 
   // use Address type to prevent messing up argument order
   def setValue(newVal: Any, info: AddressInfo): Unit = {
-    
-    val literalConv = newVal match {
-      case lit @ Literal(literal) =>
-        TypeHelper.resolve(info.theType).getKind match {
-          case `eDouble` => literal.toDouble
-          case `eFloat` => literal.toFloat
-          case _        => lit.cast
-        }
-      case x => x
-    }
-    
-    literalConv match {
+    newVal match {
       case Address(addy)        => setValue(addy, info)
       case AddressInfo(addy, _) => setValue(addy, info)
       case newVal: Char    => data.put(info.address.value, newVal.toByte) // MUST convert to byte because writing char is 2 bytes!!!
@@ -131,7 +128,6 @@ class State {
       case newVal: Int     => data.putInt(info.address.value, newVal)
       case newVal: Float   => data.putFloat(info.address.value, newVal)
       case newVal: Double  => data.putDouble(info.address.value, newVal)
-  
       case newVal: Boolean => data.putChar(info.address.value, if (newVal) 1 else 0)
     }
   }
@@ -528,6 +524,7 @@ object Executor {
                 val resolved = initVal match {
                   case VarRef(name) =>
                     state.vars.resolveId(name).value
+                  case lit @ Literal(_) => lit.typeCast(TypeHelper.resolve(theType))
                   case x =>
                     x
                 }
