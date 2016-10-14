@@ -5,8 +5,31 @@ class RolloverTest extends StandardTest {
     val code = """
       void main() {
         char x = 128;
-        int y = x;
-        printf("%d\n", y);
+        char xplusone = 128 + 1;
+        unsigned char y = 255;
+        unsigned char yplusone = y + 1;
+        int x2 = x;
+        int y2 = y;
+        int x3 = xplusone;
+        int y3 = yplusone;
+        printf("%d %d %d %d\n", x2, y2, y3, x3);
+      }"""
+
+    checkResults(code)
+  }
+  
+  "short rollover test" should "print the correct results" in {
+    val code = """
+      void main() {
+        short x = 32767;
+        short xplusone = 32767 + 1;
+        unsigned short y = 65535;
+        unsigned short yplusone = y + 1;
+        int x2 = x;
+        int y2 = y;
+        int y3 = yplusone;
+        int x3 = xplusone;
+        printf("%d %d %d %d\n", x2, y2, y3, x3);
       }"""
 
     checkResults(code)
@@ -104,16 +127,15 @@ class PrimitiveTest extends StandardTest {
       {
         return data;
       }
-      
-//     still failing      
-//      short shortTest(unsigned short data)
+           
+//      short shortTest2(unsigned short data)
 //      {
 //        return data;
 //      }
   
       void main()
       {
-        printf("%d %d\n", intTest(4294967241), shortTest(4294967241));
+        printf("%d %d\n", intTest(4294967241), shortTest(4294967241)); //, shortTest2(38233));
         return 0;
       }
       """

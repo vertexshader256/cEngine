@@ -151,12 +151,13 @@ class State {
               newVal match {
                 case int: Int => data.putLong(info.address.value, int.toLong)
                 case long: Long => data.putLong(info.address.value, long)
-              }  
-          case `eInt`     => 
+              } 
+           case `eInt`     => 
               newVal match {
                 case boolean: Boolean => data.putInt(info.address.value, if (boolean) 1 else 0)
                 case long: Long => data.putInt(info.address.value, long.toInt)
                 case int: Int => data.putInt(info.address.value, int)
+                case short: Short => data.putInt(info.address.value, short.toInt)
                 case char: Char => 
                   data.putInt(info.address.value, char.toByte.toInt)
               }  
