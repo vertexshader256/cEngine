@@ -99,7 +99,7 @@ class State {
     import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 
     // if it is neither signed or unsigned, assume its signed
-    val isSigned = theType.isSigned || (!theType.isSigned && !theType.isUnsigned)
+    val isSigned = TypeHelper.isSigned(theType)
 
     if (theType.isShort && isSigned) {
       data.getShort(address)
@@ -113,10 +113,10 @@ class State {
       data.getDouble(address)
     } else if (theType.getKind == eFloat) {
       data.getFloat(address)
-    } else if (isSigned) {
-      data.getChar(address)
-    } else if (!isSigned) {
-      data.getChar(address) & 0xFF
+    } else if (theType.getKind == eChar && isSigned) {
+      data.get(address).toChar
+    } else if (theType.getKind == eChar && !isSigned) {
+      data.get(address).toChar & 0xFF
     }
   }
 
@@ -142,6 +142,25 @@ case class Address(value: Int) extends AnyVal {
 case class AddressInfo(address: Address, theType: IType)
 
 object TypeHelper {
+  
+  def isSigned(theType: IBasicType) = {
+    theType.isSigned || (!theType.isSigned && !theType.isUnsigned)
+  }
+  
+  // resolves 'Any' to 'AnyVal'
+  def resolve(state: State, theType: IType, any: Any): AnyVal = {
+    any match {
+      case VarRef(name) =>
+        state.vars.resolveId(name).value
+      case lit @ Literal(_) => lit.typeCast(TypeHelper.resolve(theType))
+      case AddressInfo(addy, _) => addy.value
+      case int: Int => int
+      case float: Float => float
+      case double: Double => double
+      case long: Long => long
+      case boolean: Boolean => boolean
+    }
+  }
 
   def resolve(theType: IType): IBasicType = theType match {
     case basicType: IBasicType    => basicType
@@ -450,20 +469,6 @@ object Executor {
         Seq()
       }
   }
-  
-  def resolve(state: State, theType: IType, any: Any): AnyVal = {
-    any match {
-      case VarRef(name) =>
-        state.vars.resolveId(name).value
-      case lit @ Literal(_) => lit.typeCast(TypeHelper.resolve(theType))
-      case AddressInfo(addy, _) => addy.value
-      case int: Int => int
-      case float: Float => float
-      case double: Double => double
-      case long: Long => long
-      case boolean: Boolean => boolean
-    }
-  }
 
   def parseDeclarator(decl: IASTDeclarator, direction: Direction, state: State): Seq[IASTNode] = {
     if (direction == Entering) {
@@ -540,7 +545,7 @@ object Executor {
                   }
                 }   
                 
-                val resolved = resolve(state, theType, initVal)
+                val resolved = TypeHelper.resolve(state, theType, initVal)
                 val newVar = new Variable(state, theType)
                 state.setValue(resolved, newVar.info)
                 state.vars.addVariable(name, newVar)
@@ -597,7 +602,7 @@ object Executor {
 
           val name = param.getDeclarator.getName.getRawSignature
           val newVar = new Variable(state, paramInfo.getType)
-          state.setValue(resolve(state, paramInfo.getType, arg), newVar.info)
+          state.setValue(TypeHelper.resolve(state, paramInfo.getType, arg), newVar.info)
 
           state.vars.addVariable(name, newVar)
           Seq()

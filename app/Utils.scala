@@ -16,7 +16,7 @@ object Visiting extends Direction
 case class Path(node: IASTNode, direction: Direction, index: Int)
 
 object Utils {
-
+  
   def parse(code: String, offset: Int): IASTCompletionNode = {
     val fileContent = FileContent.create("test", code.toCharArray)
     val log = new DefaultLogService()

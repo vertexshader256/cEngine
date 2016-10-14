@@ -9,6 +9,7 @@ import scala.util.control.Exception.allCatch
 import java.util.Formatter;
 import java.util.Locale;
 import Functions._
+import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
 
 object FunctionCallExpr {
   def parse(call: IASTFunctionCallExpression, direction: Direction, state: State, stack: State): Seq[IASTNode] = {
@@ -48,8 +49,8 @@ object FunctionCallExpr {
               case strLit: StringLiteral => strLit.str
               case AddressInfo(addy, theType) =>
                 val resolved = TypeHelper.resolve(theType)
-                resolved.toString match {
-                  case "char" if (theType.isInstanceOf[IPointerType] || theType.isInstanceOf[IArrayType]) => 
+                resolved.getKind match {
+                  case IBasicType.Kind.eChar if TypeHelper.isPointer(theType) => 
                     var current: Char = 0
                     var stringBuilder = new ListBuffer[Char]()
                     var i = 0
@@ -62,8 +63,6 @@ object FunctionCallExpr {
                     } while (current != 0)
                       
                     new String(stringBuilder.map(_.toByte).toArray, "UTF-8")
-                  case "char" =>
-                    stack.readVal(addy.value, resolved).asInstanceOf[Char] & 0xFF
                   case _ => 
                     stack.readVal(addy.value, resolved)
                 }        
