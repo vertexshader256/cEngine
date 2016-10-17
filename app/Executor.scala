@@ -65,6 +65,7 @@ class State {
     executionContext.push(vars)
 
     vars = new FunctionExecutionContext(globals, call.getExpressionType)
+    vars.pathStack.push(call)
 
     val name = call.getFunctionNameExpression match {
       case x: IASTIdExpression => x.getName.getRawSignature
@@ -355,6 +356,7 @@ protected class Variable(val state: State, val theType: IType) extends RuntimeVa
 class FunctionExecutionContext(globals: Map[String, RuntimeVariable], val returnType: IType) {
   val visited = new ListBuffer[IASTNode]()
   val varMap = Map[String, RuntimeVariable]() ++ globals
+  val pathStack = new Stack[IASTNode]()
 
   def resolveId(id: String) = varMap(id)
   def addVariable(id: String, theVar: RuntimeVariable) = varMap += (id -> theVar) 
@@ -768,7 +770,7 @@ class Executor(code: String) {
 
   val tUnit = Utils.getTranslationUnit(code)
   val engineState = new State
-  val pathStack = new Stack[IASTNode]()
+  
   var current: IASTNode = null
   var direction: Direction = Entering
 
@@ -788,9 +790,9 @@ class Executor(code: String) {
   engineState.executionContext.clear
   engineState.executionContext.push(new FunctionExecutionContext(engineState.globals, null)) // load initial stack
   engineState.vars = engineState.executionContext.head
-  pathStack.clear
-  pathStack.push(engineState.functionMap("main"))
-  current = pathStack.head
+  engineState.vars.pathStack.clear
+  engineState.vars.pathStack.push(engineState.functionMap("main"))
+  current = engineState.vars.pathStack.head
 
   def tick(): Unit = {
     direction = if (engineState.vars.visited.contains(current)) Exiting else Entering
@@ -801,9 +803,9 @@ class Executor(code: String) {
 
     if (engineState.isBreaking) {
       // unroll the path stack until we meet the first parent which is a loop
-      var reverse = pathStack.pop
+      var reverse = engineState.vars.pathStack.pop
       while (!reverse.isInstanceOf[IASTWhileStatement] && !reverse.isInstanceOf[IASTForStatement] && !reverse.isInstanceOf[IASTSwitchStatement]) {
-        reverse = pathStack.pop
+        reverse = engineState.vars.pathStack.pop
       }
 
       engineState.isBreaking = false
@@ -814,30 +816,30 @@ class Executor(code: String) {
       // unroll the path stack until we meet the first parent which is a loop
 
       var last: IASTNode = null
-      last = pathStack.pop
+      last = engineState.vars.pathStack.pop
       while (!last.isInstanceOf[IASTForStatement]) {
-        last = pathStack.pop
+        last = engineState.vars.pathStack.pop
       }
 
       val forLoop = last.asInstanceOf[IASTForStatement]
 
-      pathStack.push(forLoop)
-      pathStack.push(forLoop.getConditionExpression)
-      pathStack.push(forLoop.getIterationExpression)
+      engineState.vars.pathStack.push(forLoop)
+      engineState.vars.pathStack.push(forLoop.getConditionExpression)
+      engineState.vars.pathStack.push(forLoop.getIterationExpression)
 
       engineState.isContinuing = false
     }
 
     if (direction == Exiting) {
-      pathStack.pop
+      engineState.vars.pathStack.pop
     } else {
       engineState.vars.visited += current
     }
 
-    paths.reverse.foreach { path => pathStack.push(path) }
+    paths.reverse.foreach { path => engineState.vars.pathStack.push(path) }
 
-    if (!pathStack.isEmpty) {
-      current = pathStack.head
+    if (!engineState.vars.pathStack.isEmpty) {
+      current = engineState.vars.pathStack.head
     } else {
       current = null
     }
