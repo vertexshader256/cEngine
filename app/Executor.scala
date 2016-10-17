@@ -208,6 +208,13 @@ object TypeHelper {
           case float: Float => float.toDouble
         } 
       case `eBoolean` => if (newVal.asInstanceOf[Boolean]) 1 else 0
+      case `eVoid` =>
+        newVal match {
+          case int: Int => int
+          case double: Double => double
+          case float: Float => float
+          case char: Char => char
+        } 
     }
   }
   
@@ -509,7 +516,6 @@ object Executor {
       }
     case ret: IASTReturnStatement =>
       if (direction == Entering) {
-        
         if (ret.getReturnValue != null) {
           Seq(ret.getReturnValue)
         } else {
@@ -533,6 +539,7 @@ object Executor {
           })
         }
         state.isReturning = true
+        
         Seq()
       }
     case decl: IASTDeclarationStatement =>
@@ -799,8 +806,19 @@ class Executor(code: String) {
 
     //println(current.getClass.getSimpleName + ":" + direction)
 
+   if (engineState.isReturning) {
+      val oldVars = engineState.vars
+      engineState.vars = engineState.executionContext.pop
+      engineState.isReturning = false;
+     
+      
+       direction = Exiting
+    }
+    
     var paths: Seq[IASTNode] = Executor.step(current, engineState, direction)
 
+    
+    
     if (engineState.isBreaking) {
       // unroll the path stack until we meet the first parent which is a loop
       var reverse = engineState.vars.pathStack.pop
@@ -829,6 +847,8 @@ class Executor(code: String) {
 
       engineState.isContinuing = false
     }
+    
+    
 
     if (direction == Exiting) {
       engineState.vars.pathStack.pop
@@ -843,6 +863,8 @@ class Executor(code: String) {
     } else {
       current = null
     }
+    
+
   }
 
   def execute() = {
