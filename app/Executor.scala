@@ -805,19 +805,8 @@ class Executor(code: String) {
     direction = if (engineState.vars.visited.contains(current)) Exiting else Entering
 
     //println(current.getClass.getSimpleName + ":" + direction)
-
-   if (engineState.isReturning) {
-      val oldVars = engineState.vars
-      engineState.vars = engineState.executionContext.pop
-      engineState.isReturning = false;
-     
-      
-       direction = Exiting
-    }
     
-    var paths: Seq[IASTNode] = Executor.step(current, engineState, direction)
-
-    
+    var paths: Seq[IASTNode] = Executor.step(current, engineState, direction) 
     
     if (engineState.isBreaking) {
       // unroll the path stack until we meet the first parent which is a loop
