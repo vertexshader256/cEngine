@@ -68,20 +68,20 @@ class FunctionTest extends StandardTest {
     checkResults(code)
   }
   
-//  "A early return" should "print the correct results" in {
-//    val code = """
-//      void test2() {
-//        printf("1\n");
-//        return;
-//        printf("2\n");
-//      }
-//
-//      void main() {
-//        test2();
-//      }"""
-//
-//    checkResults(code)
-//  }
+  "A early return" should "print the correct results" in {
+    val code = """
+      void test2() {
+        printf("1\n");
+        return;
+        printf("2\n");
+      }
+
+      void main() {
+        test2();
+      }"""
+
+    checkResults(code)
+  }
 
   "chained function calls" should "print the correct results" in {
     val code = """

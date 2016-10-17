@@ -837,23 +837,30 @@ class Executor(code: String) {
       engineState.isContinuing = false
     }
     
-    
+    if (engineState.isReturning) {
+      var last: IASTNode = null
+      while (engineState.vars.pathStack.size > 1 && !last.isInstanceOf[IASTFunctionDefinition]) {
+        last = engineState.vars.pathStack.pop
+      }
 
-    if (direction == Exiting) {
-      engineState.vars.pathStack.pop
-    } else {
-      engineState.vars.visited += current
-    }
-
-    paths.reverse.foreach { path => engineState.vars.pathStack.push(path) }
-
-    if (!engineState.vars.pathStack.isEmpty) {
       current = engineState.vars.pathStack.head
+      engineState.isReturning = false
     } else {
-      current = null
-    }
-    
 
+      if (direction == Exiting) {
+        engineState.vars.pathStack.pop
+      } else {
+        engineState.vars.visited += current
+      }
+  
+      paths.reverse.foreach { path => engineState.vars.pathStack.push(path) }
+  
+      if (!engineState.vars.pathStack.isEmpty) {
+        current = engineState.vars.pathStack.head
+      } else {
+        current = null
+      }
+    }
   }
 
   def execute() = {
