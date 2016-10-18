@@ -1,5 +1,74 @@
 package scala.astViewer
 
+class StagingArea extends StandardTest {
+  
+}
+
+class RobustTests extends StandardTest {
+  
+  def robust(operator: Char) = {
+         """
+       void main() {
+        int a = 5;
+        char b = 64;
+        float c = 1.5f;
+        double d = 756.3;
+        long e = 3454;
+        short f = 123;
+        """ + {
+         def combinationWithRepeat(input: List[Char], size:Int) = {List.fill(size)(input).flatten.combinations(size).toList}
+          val perms = combinationWithRepeat(List('a', 'b', 'c', 'd', 'e', 'f'), 2).toList.flatMap{x => List(x, x.reverse)}
+          val result = perms.map{perm => 
+            if (perm(0) == 'c' || perm(1) == 'c' || perm(0) == 'd' || perm(1) == 'd') {
+              """printf("%f\n", """ + perm(0) + operator + perm(1) + ");"
+            } else {
+              """printf("%d\n", """ + perm(0) + operator + perm(1) + ");"
+            }
+          }
+          result.reduce(_ + "\n" + _)
+        } + "}"
+    }
+  
+  def robustDivide(operator: Char) = {
+         """
+       void main() {
+        int a = 5;
+        char b = 64;
+        float c = 1.5f;
+        double d = 756.3;
+        long e = 3454;
+        short f = 123;
+        """ + {
+         def combinationWithRepeat(input: List[Char], size:Int) = {List.fill(size)(input).flatten.combinations(size).toList}
+          val perms = combinationWithRepeat(List('a', 'b', 'c', 'd', 'e', 'f'), 2).toList.flatMap{x => List(x, x.reverse)}
+          val result = perms.map{perm => 
+            """printf("%f\n", """ + perm(0) + operator + perm(1) + ");"
+          }
+          result.reduce(_ + "\n" + _)
+        } + "}"
+    }
+  
+  "Addition robustness test" should "print the correct results" in {
+    val code = robust('+')
+    checkResults(code)
+  }
+  
+  "Subtraction robustness test" should "print the correct results" in {
+    val code = robust('-')
+    checkResults(code)
+  }
+  
+  "Multiplication robustness test" should "print the correct results" in {
+    val code = robust('*')
+    checkResults(code)
+  }
+  
+//  "Division robustness test" should "print the correct results" in {
+//    val code = robustDivide('/')
+//    checkResults(code)
+//  }
+}
+
 class BinaryExpr extends StandardTest {
   "Order of operations test 3" should "print the correct results" in {
     val code = """

@@ -194,6 +194,7 @@ object TypeHelper {
           case int: Int => int
           case short: Short => short.toInt
           case char: Char => char.toByte.toInt
+          case double: Double => double.toInt
         }  
      case `eFloat`   =>
         newVal match {
