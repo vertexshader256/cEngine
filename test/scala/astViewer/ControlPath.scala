@@ -191,6 +191,20 @@ class WhileStatement extends StandardTest {
   }
 }
 
+class TernaryTest extends StandardTest {
+  "A simple ternary evaluat" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 5 == 5 ? 3 : 1;
+        int y = 5 > 6 ? 3 : 1;
+        printf("%d %d\n", x, y);
+      }"""
+
+    checkResults(code)
+  }
+
+}
+
 class IfStatement extends StandardTest {
   "A simple if statement with true literal" should "print the correct results" in {
     val code = """

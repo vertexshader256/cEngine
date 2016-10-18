@@ -15,7 +15,31 @@ import org.eclipse.cdt.internal.core.dom.parser.c.CTypedef
 object Expressions {
 
   def parse(expr: IASTExpression, direction: Direction, context: State, stack: State): Seq[IASTNode] = expr match {
-    case cast: IASTCastExpression => // TODO
+    case ternary: IASTConditionalExpression =>
+       if (direction == Entering) {
+        Seq(ternary.getLogicalConditionExpression)
+      } else {
+        val result = context.stack.pop
+
+        val value = result match {
+          case VarRef(name) =>
+            context.vars.resolveId(name).value
+          case lit @ Literal(_) =>
+            lit.cast
+          case x => x
+        }
+
+        val conditionResult = value match {
+          case x: Int     => x == 1
+          case x: Boolean => x
+        }
+        if (conditionResult) {
+          Seq(ternary.getPositiveResultExpression)
+        } else {
+          Seq(ternary.getNegativeResultExpression)
+        }
+      }
+    case cast: IASTCastExpression =>
       if (direction == Entering) {
         Seq(cast.getOperand, cast.getTypeId)
       } else {
