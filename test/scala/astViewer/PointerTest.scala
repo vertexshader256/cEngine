@@ -1,5 +1,29 @@
 package scala.astViewer
 
+class StagingGround extends StandardTest {
+  "A function with a pointer as an argument" should "print the correct results" in {
+    val code = """
+      void add(int *x) {
+        (*x)++;
+      }
+      
+      // another way of incrementing
+      void add2(int *x) {
+        *x = *x + 1;
+      }
+      
+      void main() {
+        int y = 10;
+        add(&y);
+        add(&y);
+        add2(&y);
+        printf("%d\n", y);
+      }"""
+    
+    checkResults(code)
+  }
+}
+
 class PointerTest extends StandardTest {
   
   "A simple pointer assignment" should "print the correct results" in {
@@ -95,28 +119,6 @@ class PointerTest extends StandardTest {
         k = y;
         printf("%d %d\n", *y, *k);
         
-      }"""
-    
-    checkResults(code)
-  }
-  
-  "A function with a pointer as an argument" should "print the correct results" in {
-    val code = """
-      void add(int *x) {
-        (*x)++;
-      }
-      
-      // another way of incrementing
-      void add2(int *x) {
-        *x = *x + 1;
-      }
-      
-      void main() {
-        int y = 10;
-        add(&y);
-        add(&y);
-        add2(&y);
-        printf("%d\n", y);
       }"""
     
     checkResults(code)
