@@ -589,14 +589,29 @@ object Executor {
 
             val dimensions = arrayDecl.getArrayModifiers.filter{_.getConstantExpression != null}.map{dim => state.stack.pop.asInstanceOf[Literal].cast.asInstanceOf[Int]}
             
-            if (dimensions.isEmpty && decl.getInitializer != null) {
-              // Deals with string initializers
-              // e.g. char str[] = "Hello!\n";
-              val initString = state.stack.pop.asInstanceOf[Literal].cast.asInstanceOf[StringLiteral].str
-              val withNull = Utils.stripQuotes(initString).toCharArray() :+ 0.toChar // terminating null char
-              val theArrayPtr = new ArrayVariable(state, theType, Seq(withNull.size))
-              theArrayPtr.setValue(withNull)
-              state.vars.addVariable(name, theArrayPtr)
+            if (dimensions.isEmpty) {
+              
+              // something without dimensions must be getting initialized
+              val initializer = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
+              
+              if (TypeHelper.resolve(theType).getKind == eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
+                // Deals with string initializers
+                // e.g. char str[] = "Hello!\n";
+                val initString = state.stack.pop.asInstanceOf[Literal].cast.asInstanceOf[StringLiteral].str
+                val withNull = Utils.stripQuotes(initString).toCharArray() :+ 0.toChar // terminating null char
+                val theArrayPtr = new ArrayVariable(state, theType, Seq(withNull.size))
+                theArrayPtr.setValue(withNull)
+                state.vars.addVariable(name, theArrayPtr)
+              } else {
+                val list = initializer.getInitializerClause.asInstanceOf[IASTInitializerList]
+                val size = list.getSize
+                
+                val values = (0 until size).map{x => state.stack.pop.asInstanceOf[Literal].cast}.reverse
+  
+                val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], Array(size))
+                theArrayPtr.setValue(values.toArray)
+                state.vars.addVariable(name, theArrayPtr)
+              }
             } else {
               val numElements = if (dimensions.isEmpty) 0 else dimensions.reduce{_ * _}
               val initialArray = Array.fill[Any](numElements)(0)

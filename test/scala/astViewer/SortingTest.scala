@@ -30,7 +30,37 @@ package scala.astViewer
     }
   }
 
-class QuickSort extends StandardTest {
+//class InsertionSort extends StandardTest {
+//  "insertion sort test 1" should "print the correct results" in {
+//      val code = """
+//        void insertion_sort(int *a, int n) {
+//          int i = 0;
+//        	for(i = 1; i < n; ++i) {
+//        		int tmp = a[i];
+//        		int j = i;
+//        		while(j > 0 && tmp < a[j - 1]) {
+//        			a[j] = a[j - 1];
+//        			--j;
+//        		}
+//        		a[j] = tmp;
+//        	}
+//        }
+//         
+//        int main () {
+//            int a[] = {4, 65, 2, -31, 0, 99, 2, 83, 782, 1};
+//            int n = sizeof a / sizeof a[0];
+//            int i;
+//            for (i = 0; i < n; i++)
+//                printf("%d\n", a[i]);
+//            //insertion_sort(a, n);
+//        }
+//        """
+//      checkResults(code)
+//    }
+//  
+//}
+
+//class QuickSort extends StandardTest {
 //    "quick sort test 1" should "print the correct results" in {
 //      // http://rosettacode.org/wiki/Sorting_algorithms/Quicksort#C
 //      val code = """
@@ -68,4 +98,4 @@ class QuickSort extends StandardTest {
 //        """
 //      checkResults(code)
 //  }
-  }
+//  }

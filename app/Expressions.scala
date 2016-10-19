@@ -121,7 +121,9 @@ object Expressions {
           val dimensions = new ListBuffer[Int]()
           var typeItr: IType = arrayVarPtr.theType
           while (typeItr.isInstanceOf[IArrayType]) {
-            dimensions += typeItr.asInstanceOf[IArrayType].getSize.numericalValue.toInt
+            if (typeItr.asInstanceOf[IArrayType].getSize != null) {
+              dimensions += typeItr.asInstanceOf[IArrayType].getSize.numericalValue.toInt
+            }
             typeItr = typeItr.asInstanceOf[IArrayType].getType
           }
           

@@ -61,6 +61,7 @@ object BinaryExpr {
       case lit @ Literal(_) => lit.cast
       case VarRef(name) if (op != op_plusAssign &&
         op != op_minusAssign) => 
+          
         val theVar = context.vars.resolveId(name)
         if (TypeHelper.isPointer(theVar.theType)) {
           AddressInfo(Address(theVar.value.asInstanceOf[Int]), theVar.theType)
@@ -74,6 +75,7 @@ object BinaryExpr {
       case lit @ Literal(_) => lit.cast
       case VarRef(name) if (op != op_plusAssign &&
         op != op_minusAssign) => 
+          
         val theVar = context.vars.resolveId(name)
         if (TypeHelper.isPointer(theVar.theType)) {
           isOp1Pointer = true
@@ -82,7 +84,9 @@ object BinaryExpr {
         } else {
           theVar.value  
         }
-      case x => x
+      case AddressInfo(addy, theType) => context.readVal(addy.value, TypeHelper.resolve(theType))
+      case x => 
+        x
     }
   
     val result: Any = binaryExpr.getOperator match {
