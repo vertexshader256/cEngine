@@ -1,39 +1,5 @@
 package scala.astViewer
 
-class SizeOfTest extends StandardTest {
-
-  "A sizeof call on an int var" should "print the correct results" in {
-    val code = """
-      void main() {
-        int x;
-        double y;
-        printf("%d %d\n", sizeof(x), sizeof(y));
-      }"""
-
-    checkResults(code)
-  }
-  
-  "A sizeof call on an int type" should "print the correct results" in {
-    val code = """
-      void main() {
-        printf("%d %d %d %d\n", sizeof(int), sizeof(double), sizeof(float), sizeof(char));
-      }"""
-
-    checkResults(code)
-  }
-  
-  "A sizeof call on an array type" should "print the correct results" in {
-    val code = """
-      void main() {
-        int x[5];
-        char y[5];
-        printf("%d %d\n", sizeof(x), sizeof(y));
-      }"""
-
-    checkResults(code)
-  }
-}
-
 class FunctionTest extends StandardTest {
 
   "A function prototype" should "print the correct results" in {

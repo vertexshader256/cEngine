@@ -246,6 +246,12 @@ object Expressions {
             context.stack.pop match {
               case VarRef(name) =>
                 context.stack.push(context.vars.resolveId(name).sizeof)
+              case char: Char => context.stack.push(1)
+              case int: Int => context.stack.push(4)
+              case short: Short => context.stack.push(2)
+              case long: Long => context.stack.push(8)
+              case float: Float => context.stack.push(4)
+              case double: Double => context.stack.push(8)
             }
           case `op_amper` =>
             context.stack.pop match {

@@ -100,17 +100,22 @@ class PointerTest extends StandardTest {
     checkResults(code)
   }
   
-  "A pointer as a function arg" should "print the correct results" in {
+  "A function with a pointer as an argument" should "print the correct results" in {
     val code = """
-      void add(int *ptr) {
-        (*ptr)++;
+      void add(int *x) {
+        (*x)++;
+      }
+      
+      // another way of incrementing
+      void add2(int *x) {
+        *x = *x + 1;
       }
       
       void main() {
         int y = 10;
         add(&y);
         add(&y);
-        add(&y);
+        add2(&y);
         printf("%d\n", y);
       }"""
     
