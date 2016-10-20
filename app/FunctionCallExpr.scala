@@ -28,7 +28,7 @@ object FunctionCallExpr {
               if (TypeHelper.isPointer(theVar.theType)) {
                 AddressInfo(Address(theVar.value.asInstanceOf[Int]), theVar.theType)
               } else {
-                AddressInfo(theVar.address, theVar.theType)
+                state.readVal(theVar.address.value, TypeHelper.resolve(theVar.theType))
               } 
             case info @ AddressInfo(_, _) => info  
             case int: Int => int

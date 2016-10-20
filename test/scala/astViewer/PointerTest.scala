@@ -1,21 +1,7 @@
 package scala.astViewer
 
 class StagingGround extends StandardTest {
- "A function with a pointer to an unsized array as an argument" should "print the correct results" in {
-    val code = """
-      void add2(int *x, int y) {
-        printf("%d\n", y);
-      }
-      
-      void main() {
-        int a[] = {4, 65, 2, -31, 0, 99, 2, 83, 782, 1};
-        int n = sizeof a / sizeof a[0];
-        //printf("%d\n", n);
-        add2(a, n);
-      }"""
-    
-    checkResults(code)
-  }
+ 
 }
 
 class PointerTest extends StandardTest {
@@ -120,6 +106,21 @@ class PointerTest extends StandardTest {
         add(&y);
         add2(&y);
         printf("%d\n", y);
+      }"""
+    
+    checkResults(code)
+  }
+   
+  "A function with a pointer to an unsized array as an argument" should "print the correct results" in {
+    val code = """
+      void add2(int *x, int y) {
+        printf("%d\n", y);
+      }
+      
+      void main() {
+        int a[] = {4, 65, 2, -31, 0, 99, 2, 83, 782, 1};
+        int n = sizeof a / sizeof a[0];
+        add2(a, n);
       }"""
     
     checkResults(code)

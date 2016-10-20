@@ -713,9 +713,10 @@ object Executor {
 
           val name = param.getDeclarator.getName.getRawSignature
           val newVar = new Variable(state, paramInfo.getType)
-          state.setValue(TypeHelper.resolve(state, paramInfo.getType, arg), newVar.info)
 
+          state.setValue(TypeHelper.resolve(state, paramInfo.getType, arg), newVar.info)          
           state.vars.addVariable(name, newVar)
+          
           Seq()
         } else {
           Seq()
