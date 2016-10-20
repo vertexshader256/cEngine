@@ -606,7 +606,10 @@ object Executor {
                 val list = initializer.getInitializerClause.asInstanceOf[IASTInitializerList]
                 val size = list.getSize
                 
-                val values = (0 until size).map{x => state.stack.pop.asInstanceOf[Literal].cast}.reverse
+                val values = (0 until size).map{x => state.stack.pop match {
+                  case lit: Literal => lit.cast
+                  case int: Int => int
+                }}.reverse
   
                 val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], Array(size))
                 theArrayPtr.setValue(values.toArray)
