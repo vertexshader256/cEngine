@@ -114,7 +114,10 @@ class PointerTest extends StandardTest {
   "A function with a pointer to an unsized array as an argument" should "print the correct results" in {
     val code = """
       void add2(int *x, int y) {
-        printf("%d\n", y);
+        int i = 0;
+        for(i = 0; i < y; i++) {
+          printf("%d\n", x[i]);
+        }
       }
       
       void main() {

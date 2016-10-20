@@ -52,7 +52,7 @@ class InsertionSort extends StandardTest {
             int i;
             for (i = 0; i < n; i++)
                 printf("%d\n", a[i]);
-            //insertion_sort(a, n);
+            insertion_sort(a, n);
         }
         """
       checkResults(code)

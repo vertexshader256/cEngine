@@ -326,7 +326,22 @@ object Expressions {
           }
           Seq()
         } else {
-          Seq(bin.getOperand2, bin)
+          // short circuiting
+          if (bin.getOperator == IASTBinaryExpression.op_logicalOr) {
+            if (context.stack.head.asInstanceOf[Boolean]) {
+              Seq()
+            } else {
+              Seq(bin.getOperand2, bin)
+            }
+          } else if (bin.getOperator == IASTBinaryExpression.op_logicalAnd) {
+            if (!context.stack.head.asInstanceOf[Boolean]) {
+              Seq()
+            } else {
+              Seq(bin.getOperand2, bin)
+            }
+          } else {
+            Seq(bin.getOperand2, bin)
+          }
         }
       } else {
         Seq(bin.getOperand1)

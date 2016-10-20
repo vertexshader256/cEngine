@@ -170,6 +170,25 @@ class BinaryExpr extends StandardTest {
     checkResults(code)
   }
   
+  "short-circuiting" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 0;
+        int y = 0;
+        if (5 < 10 || ++x > 0) {
+          printf("%d\n", x);
+        }
+        
+        if (5 > 10 && ++y > 0) {
+          printf("%d\n", y);
+        } else {
+          printf("%d\n", y);
+        }
+      }"""
+
+    checkResults(code)
+  }
+  
   "A simple decrement test" should "print the correct results" in {
     val code = """
       void main() {
