@@ -74,6 +74,20 @@ object FunctionCallExpr {
           
           Functions.printf(state, resolved.map(_.asInstanceOf[Object]))
           Seq()
+        } else if (name == "strlen") {
+          val straddy = formattedOutputParams.head.asInstanceOf[AddressInfo]
+          var current: Char = 0
+          var stringBuilder = new ListBuffer[Char]()
+          var i = 0
+          do {
+            current = stack.readVal(straddy.address.value + i, TypeHelper.resolve(straddy.theType)).asInstanceOf[Char]
+            if (current != 0) {
+              stringBuilder += current
+              i += 1
+            }
+          } while (current != 0)
+          state.stack.push(i) 
+          Seq()
         } else {
           // load up the stack with the parameters
           formattedOutputParams.reverse.foreach { arg => state.stack.push(arg)}

@@ -1,7 +1,7 @@
 package scala.astViewer
 
 class ArrayStagingArea extends StandardTest {
-   
+  
 }
 
 class ArrayInitTest extends StandardTest {
@@ -16,6 +16,21 @@ class ArrayInitTest extends StandardTest {
         
         double z[5] = {5.6, 38.5, 2.945, 347.2, 378.2};
         printf("%f %f %f %f %f\n", z[0], z[1], z[2], z[3], z[4]);
+      }"""
+
+    checkResults(code)
+  }
+  
+  "array indexed with a division binary expression" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x[5] = {1, 2, 3, 4, 5};
+        int y = 4;
+        int z = 2;
+        printf("%d\n", x[2]);
+        printf("%d\n", x[4 / 2]);
+        printf("%d\n", x[y / 2]);
+        printf("%d\n", x[4 / z]);
       }"""
 
     checkResults(code)

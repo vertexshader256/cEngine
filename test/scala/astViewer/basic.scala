@@ -31,6 +31,21 @@ class AssignmentTest extends StandardTest {
   }
 }
 
+class PreprocessorTest extends StandardTest {
+  "A simple math expression with double assigned to integer" should "print the correct results" in {
+    val code = """
+      
+      #define PRINT(x) printf("%d\n", x)
+      
+      void main() {
+        int x = 54332;
+        PRINT(x);
+      }"""
+
+    checkResults(code)
+  }
+}
+
 class HelloWorld extends StandardTest {
 
   "Hello world" should "print the correct results" in {

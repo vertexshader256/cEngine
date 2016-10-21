@@ -16,6 +16,36 @@ class ForLooptest extends StandardTest {
     checkResults(code)
   }
   
+  "A for loop with multiple post expr" should "print the correct results" in {
+    val code = """
+      void main() {
+        int i = 0;
+        int j = 0;
+        int n = 7;
+        for (i = 0, j = n - 1; i < 5; i++, j--) {
+          printf("%d %d\n", i, j);
+        }
+      }"""
+
+    checkResults(code)
+  }
+  
+  "A for loop without a stopping point" should "print the correct results" in {
+    val code = """
+      void main() {
+        int i = 0;
+        int j = 0;
+        int n = 7;
+        for (i = 0, j = n - 1;; i++, j--) {
+          printf("%d %d\n", i, j);
+          if (i == 5)
+            break;
+        }
+      }"""
+
+    checkResults(code)
+  }
+  
   "A little more advanced for loop" should "print the correct results" in {
     val code = """
       void main() {

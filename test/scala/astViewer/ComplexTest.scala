@@ -57,28 +57,69 @@ class ComplexTest extends StandardTest {
   
   
   
-//  "FNV1a test" should "print the correct results" in {
+  "FNV1a test" should "print the correct results" in {
+    val code = """
+
+      const unsigned int Prime = 0x01000193; //   16777619
+      const unsigned int Seed  = 0x811C9DC5; // 2166136261
+
+      int fnv1a(unsigned char oneByte, int hash)
+      {
+        return (oneByte ^ hash) * Prime;
+      }
+  
+      void main()
+      {
+        printf("%d\n", fnv1a(10, Seed));
+        printf("%d\n", fnv1a(232, Seed));
+        printf("%d\n", fnv1a(110, Seed));
+        printf("%d\n", fnv1a(65, Seed));
+        return 0;
+      }
+      """
+
+    checkResults(code)
+  }  
+  
+//  "Caesar cipher" should "print the correct results" in {
 //    val code = """
-//
-//      const unsigned int Prime = 0x01000193; //   16777619
-//      const unsigned int Seed  = 0x811C9DC5; // 2166136261
-//
-//      int fnv1a(unsigned char oneByte, int hash)
+//       
+//      #define caesar(x) rot(13, x)
+//      #define decaesar(x) rot(13, x)
+//      #define decrypt_rot(x, y) rot((26-x), y)
+//       
+//      void rot(int c, char *str)
 //      {
-//        return (oneByte ^ hash) * Prime;
+//      	int l = strlen(str);
+//      	const char *alpha[2] = { "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
+//       
+//      	int i;
+//      	for (i = 0; i < l; i++)
+//      	{
+//      		if (!isalpha(str[i]))
+//      			continue;
+//       
+//      		str[i] = alpha[isupper(str[i])][((int)(tolower(str[i])-'a')+c)%26];
+//      	}
 //      }
-//  
-//      void main()
+//       
+//       
+//      int main()
 //      {
-//        printf("fnv1a result %d\n", fnv1a(10, Seed));
-//        return 0;
+//      	char str[] = "This is a top secret text message!";
+//       
+//      	printf("Original: %s\n", str);
+//      	caesar(str);
+//      	printf("Encrypted: %s\n", str);
+//      	decaesar(str);
+//      	printf("Decrypted: %s\n", str);
+//       
+//      	return 0;
 //      }
 //      """
 //
 //    checkResults(code)
 //  }  
-  
-
   
 //  "DJB2 test" should "print the correct results" in {
 //    val code = """
@@ -97,7 +138,7 @@ class ComplexTest extends StandardTest {
 //  
 //      void main()
 //      {
-//        char *test = "TestString";
+//        char test[] = "TestString";
 //        printf("djb2 result %d\n", djb2(test));
 //        return 0;
 //      }

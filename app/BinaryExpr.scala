@@ -296,6 +296,13 @@ object BinaryExpr {
           case (x: Int, y: Double) => x > y
           case (x: Double, y: Double) => x > y
         }
+      case `op_greaterEqual` =>
+        (op1, op2) match {
+          case (x: Int, y: Int) => x >= y
+          case (x: Double, y: Int) => x >= y
+          case (x: Int, y: Double) => x >= y
+          case (x: Double, y: Double) => x >= y
+        }  
       case `op_lessThan` =>
         (op1, op2) match {
           case (x: Int, y: Int) => x < y
@@ -303,6 +310,13 @@ object BinaryExpr {
           case (x: Int, y: Double) => x < y
           case (x: Double, y: Double) => x < y
         }
+      case `op_lessEqual` =>
+        (op1, op2) match {
+          case (x: Int, y: Int) => x <= y
+          case (x: Double, y: Int) => x <= y
+          case (x: Int, y: Double) => x <= y
+          case (x: Double, y: Double) => x <= y
+        }  
       case `op_modulo` =>
         (op1, op2) match {
           case (x: Int, y: Int) => x % y

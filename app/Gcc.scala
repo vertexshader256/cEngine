@@ -11,6 +11,31 @@ object Gcc {
   
   var count = 0
   
+  def preprocess(code: String): String = {
+    
+    var myCount = 0;
+    
+    synchronized {
+      myCount = count
+      count += 1
+    }
+    
+    val file = File("temp" + myCount + ".c")
+    val resultFile = File("temp" + myCount + ".o")
+    val exeFile = File("temp" + myCount + ".exe")
+
+    file.overwrite(code)
+    
+    val preprocessTokens = Seq("gcc") ++ Seq("-E", file.path.toString)
+    val runLogger = new RunLogger
+    
+    val builder = Process(preprocessTokens, File("").toJava)
+    val compile = builder.run(runLogger.process)
+    compile.exitValue()
+    
+    runLogger.stdout.reduce{_ + "\n" + _}
+  }
+  
   def compileAndGetOutput(code: String): Seq[String] = {
     
     val logger = new SyntaxLogger
@@ -48,13 +73,15 @@ object Gcc {
       val link = linker.run(linkerLogger.process)
       link.exitValue()
       
-      Thread.sleep(200)
-      
+      var i = 0
+      while (!File(exeFile.path.toString).exists && i < 1000) {
+          Thread.sleep(30)
+          i += 30
+      }
+
       val runner = Process(Seq(exeFile.path.toString), File("").toJava)
       val run = runner.run(runLogger.process)
       run.exitValue()
-      
-      
 
       runLogger.stdout
     } else {

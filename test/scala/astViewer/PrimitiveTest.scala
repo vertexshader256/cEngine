@@ -165,6 +165,18 @@ class PrimitiveTest extends StandardTest {
     checkResults(code)
   } 
   
+  "char ptr initialized to string" should "print the correct results" in {
+    val code = """
+      void main()
+      {
+        char *test = "TestString";
+        printf("%s\n", test);
+        return 0;
+      }
+      """
+    checkResults(code)
+  } 
+  
   "unsigned types as function arguments" should "print the correct results" in {
     val code = """
 

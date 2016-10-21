@@ -15,6 +15,12 @@ import org.eclipse.cdt.internal.core.dom.parser.c.CTypedef
 object Expressions {
 
   def parse(expr: IASTExpression, direction: Direction, context: State, stack: State): Seq[IASTNode] = expr match {
+    case exprList: IASTExpressionList =>
+      if (direction == Entering) {
+        exprList.getExpressions
+      } else {
+        Seq()
+      }
     case ternary: IASTConditionalExpression =>
        if (direction == Entering) {
         Seq(ternary.getLogicalConditionExpression)
@@ -112,8 +118,8 @@ object Expressions {
               case VarRef(indexVarName) =>
                 context.vars.resolveId(indexVarName).value
               case lit @ Literal(_) => lit.cast
-              case x: Int =>
-                x
+              case int: Int => int
+              case double: Double => double.toInt
             }).asInstanceOf[Int]
             itr = itr.getParent
           }
@@ -121,7 +127,8 @@ object Expressions {
           val dimensions = new ListBuffer[Int]()
           var typeItr: IType = arrayVarPtr.theType
           while (typeItr.isInstanceOf[IArrayType]) {
-            if (typeItr.asInstanceOf[IArrayType].getSize != null) {
+            if (typeItr.asInstanceOf[IArrayType].hasSize &&
+                typeItr.asInstanceOf[IArrayType].getSize.numericalValue != null) {
               dimensions += typeItr.asInstanceOf[IArrayType].getSize.numericalValue.toInt
             }
             typeItr = typeItr.asInstanceOf[IArrayType].getType

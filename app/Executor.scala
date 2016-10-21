@@ -501,16 +501,23 @@ object Executor {
       }
     case forLoop: IASTForStatement =>
       if (direction == Entering) {
-        Seq(forLoop.getInitializerStatement, forLoop.getConditionExpression)
+        Seq(Option(forLoop.getInitializerStatement), Option(forLoop.getConditionExpression)).flatten
       } else {
-        val shouldKeepLooping = state.stack.pop.asInstanceOf[Boolean]
+        val shouldKeepLooping = if (forLoop.getConditionExpression != null) {
+          state.stack.pop.asInstanceOf[Boolean]
+        } else {
+          true
+        }
 
         if (shouldKeepLooping) {
           state.clearVisited(forLoop.getBody)
           state.clearVisited(forLoop.getIterationExpression)
-          state.clearVisited(forLoop.getConditionExpression)
+          
+          if (forLoop.getConditionExpression != null) {
+            state.clearVisited(forLoop.getConditionExpression)
+          }
 
-          Seq(forLoop.getBody, forLoop.getIterationExpression, forLoop.getConditionExpression, forLoop)
+          Seq(Option(forLoop.getBody), Option(forLoop.getIterationExpression), Option(forLoop.getConditionExpression), Some(forLoop)).flatten
         } else {
           Seq()
         }
@@ -563,6 +570,14 @@ object Executor {
       }
   }
 
+  def createStringVariable(state: State, name: String, theType: IType, str: String): ArrayVariable = {
+    val withNull = Utils.stripQuotes(str).toCharArray() :+ 0.toChar // terminating null char
+    val theArrayPtr = new ArrayVariable(state, theType, Seq(withNull.size))
+    theArrayPtr.setValue(withNull)
+    state.vars.addVariable(name, theArrayPtr)
+    theArrayPtr
+  }
+  
   def parseDeclarator(decl: IASTDeclarator, direction: Direction, state: State): Seq[IASTNode] = {
     if (direction == Entering) {
       decl match {
@@ -587,7 +602,10 @@ object Executor {
         decl match {
           case arrayDecl: IASTArrayDeclarator =>
 
-            val dimensions = arrayDecl.getArrayModifiers.filter{_.getConstantExpression != null}.map{dim => state.stack.pop.asInstanceOf[Literal].cast.asInstanceOf[Int]}
+            val dimensions = arrayDecl.getArrayModifiers.filter{_.getConstantExpression != null}.map{dim => state.stack.pop match {
+              case lit: Literal => lit.cast.asInstanceOf[Int]
+              case VarRef(id) => state.vars.resolveId(id).value.asInstanceOf[Int]
+            }}
             
             if (dimensions.isEmpty) {
               
@@ -595,13 +613,9 @@ object Executor {
               val initializer = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
               
               if (TypeHelper.resolve(theType).getKind == eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
-                // Deals with string initializers
-                // e.g. char str[] = "Hello!\n";
-                val initString = state.stack.pop.asInstanceOf[Literal].cast.asInstanceOf[StringLiteral].str
-                val withNull = Utils.stripQuotes(initString).toCharArray() :+ 0.toChar // terminating null char
-                val theArrayPtr = new ArrayVariable(state, theType, Seq(withNull.size))
-                theArrayPtr.setValue(withNull)
-                state.vars.addVariable(name, theArrayPtr)
+                // char str[] = "Hello!\n";
+                val initString = state.stack.pop.asInstanceOf[Literal].cast.asInstanceOf[StringLiteral].str                
+                createStringVariable(state, name, theType, initString)
               } else {
                 val list = initializer.getInitializerClause.asInstanceOf[IASTInitializerList]
                 val size = list.getSize
@@ -640,20 +654,35 @@ object Executor {
                 newStruct
               case typedef: CTypedef =>
                 createVariable(typedef.getType, name)
-              case _ =>
-                
-                val initVal = if (!decl.getPointerOperators.isEmpty) {
-                  if (!state.stack.isEmpty) {
-                    state.stack.pop
-                  } else {
-                    0
-                  }
+              case qual: CQualifierType =>
+                createVariable(qual.getType, name)
+              case ptr: IPointerType =>
+                val initVal = if (!state.stack.isEmpty) {
+                  state.stack.pop
                 } else {
-                  if (!state.stack.isEmpty) {
-                    state.stack.pop
-                  } else {
-                    0
-                  }
+                  0
+                }
+
+                initVal match {  
+                  case Literal(str) => 
+                    // char *str = "hello world!";
+                    val initString = initVal.asInstanceOf[Literal].cast.asInstanceOf[StringLiteral].str
+                    createStringVariable(state, name, theType, initString)
+                  case _ =>
+                    val resolved = TypeHelper.resolve(state, theType, initVal)
+                    val newVar = new Variable(state, theType)
+                    state.setValue(resolved, newVar.info)
+                    state.vars.addVariable(name, newVar)
+                    newVar 
+                }
+                
+               
+              case basic: IBasicType =>
+                
+                val initVal = if (!state.stack.isEmpty) {
+                  state.stack.pop
+                } else {
+                  0
                 }   
                 
                 val resolved = TypeHelper.resolve(state, theType, initVal)
@@ -708,14 +737,18 @@ object Executor {
         }
       case param: IASTParameterDeclaration =>
         if (direction == Exiting) {
-          val arg = state.stack.pop
           val paramInfo = param.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
-
-          val name = param.getDeclarator.getName.getRawSignature
-          val newVar = new Variable(state, paramInfo.getType)
-
-          state.setValue(TypeHelper.resolve(state, paramInfo.getType, arg), newVar.info)          
-          state.vars.addVariable(name, newVar)
+          
+          if (!paramInfo.getType.isInstanceOf[IBasicType] || 
+              paramInfo.getType.asInstanceOf[IBasicType].getKind != eVoid) {
+            val arg = state.stack.pop
+  
+            val name = param.getDeclarator.getName.getRawSignature
+            val newVar = new Variable(state, paramInfo.getType)
+  
+            state.setValue(TypeHelper.resolve(state, paramInfo.getType, arg), newVar.info)          
+            state.vars.addVariable(name, newVar)
+          }
           
           Seq()
         } else {
