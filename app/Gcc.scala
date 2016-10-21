@@ -21,8 +21,6 @@ object Gcc {
     }
     
     val file = File("temp" + myCount + ".c")
-    val resultFile = File("temp" + myCount + ".o")
-    val exeFile = File("temp" + myCount + ".exe")
 
     file.overwrite(code)
     
@@ -32,6 +30,8 @@ object Gcc {
     val builder = Process(preprocessTokens, File("").toJava)
     val compile = builder.run(runLogger.process)
     compile.exitValue()
+    
+    file.delete(true)
     
     runLogger.stdout.reduce{_ + "\n" + _}
   }
