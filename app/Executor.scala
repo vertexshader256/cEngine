@@ -16,17 +16,32 @@ import scala.collection.mutable.Map
 case class VarRef(name: String)
 case class StringLiteral(str: String) extends AnyVal
 
-case class Literal(lit: String) {
+case class Literal(litStr: String) {
   def cast: AnyVal = {
 
     def isIntNumber(s: String): Boolean = (allCatch opt s.toInt).isDefined
     def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
     def isDoubleNumber(s: String): Boolean = (allCatch opt s.toDouble).isDefined
+    
+    val isLong = litStr.endsWith("L")
+    val isUnsignedLong = litStr.endsWith("UL")
+    
+    val pre: String = if (litStr.endsWith("L")) {
+      litStr.take(litStr.size - 1).mkString
+    } else if (litStr.endsWith("UL")) {
+      litStr.take(litStr.size - 2).mkString
+    } else {
+      litStr
+    }
+    
+    val lit = if (pre.startsWith("0x")) {
+      val bigInt = new BigInteger(pre.drop(2), 16);
+      bigInt.toString
+    } else {
+      pre
+    }
 
-    if (lit.startsWith("0x")) {
-      val bigInt = new BigInteger(lit.drop(2), 16);
-      bigInt.intValue
-    } else if (lit.head == '\"' && lit.last == '\"') {
+    if (lit.head == '\"' && lit.last == '\"') {
       StringLiteral(lit)
     } else if (lit.head == '\'' && lit.last == '\'' && lit.length == 3) {
       lit.toCharArray.apply(1)

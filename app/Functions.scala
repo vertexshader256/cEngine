@@ -6,7 +6,7 @@ import java.util.Locale;
 
 object Functions {
   def printf(context: State, args: Seq[Object]) = {
-    val formatString = args.head.asInstanceOf[String].replaceAll("^\"|\"$", "")
+    val formatString = args.head.asInstanceOf[String].replaceAll("^\"|\"$", "").replaceAll("%ld", "%d").replaceAll("%l", "%d")
  
     val buffer = new StringBuffer();
     val formatter = new Formatter(buffer, Locale.US);
