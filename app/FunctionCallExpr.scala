@@ -88,6 +88,9 @@ object FunctionCallExpr {
           } while (current != 0)
           state.stack.push(i) 
           Seq()
+        } else if (name == "rand") {
+          state.stack.push(scala.util.Random.nextInt) 
+          Seq()
         } else {
           // load up the stack with the parameters
           formattedOutputParams.reverse.foreach { arg => state.stack.push(arg)}

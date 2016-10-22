@@ -180,6 +180,13 @@ object Expressions {
         Seq(unary.getOperand)
       } else {
         unary.getOperator match {
+          case `op_not` => context.stack.pop match {
+            case VarRef(id) =>
+              stack.vars.resolveId(id).value match {
+                case bool: Boolean => context.stack.push(!bool)
+                case int: Int => context.stack.push(int == 0)
+              }
+          }
           case `op_minus` =>
 
             

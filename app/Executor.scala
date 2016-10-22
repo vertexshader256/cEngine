@@ -813,18 +813,23 @@ object Executor {
         }
       case typeId: IASTTypeId =>
         if (direction == Exiting) {
-          val declsepc = typeId.getDeclSpecifier.asInstanceOf[IASTSimpleDeclSpecifier]
-          val isPointer = typeId.getAbstractDeclarator.getPointerOperators.size > 1
-
-          import org.eclipse.cdt.core.dom.ast.IASTSimpleDeclSpecifier._
-          
-          val result = declsepc.getType match {
-            case `t_int` if isPointer => new CPointerType(new CBasicType(IBasicType.Kind.eInt, 0), 0)
-            case `t_int` if declsepc.isShort() => new CBasicType(IBasicType.Kind.eChar16, 0)
-            case `t_int`    => new CBasicType(IBasicType.Kind.eInt, 0)
-            case `t_float`  => new CBasicType(IBasicType.Kind.eFloat, 0)
-            case `t_double` => new CBasicType(IBasicType.Kind.eDouble, 0)           
-            case `t_char`   => new CBasicType(IBasicType.Kind.eChar, 0)
+          val result = typeId.getDeclSpecifier match {
+            case simple: IASTSimpleDeclSpecifier =>
+              val isPointer = typeId.getAbstractDeclarator.getPointerOperators.size > 1
+    
+              import org.eclipse.cdt.core.dom.ast.IASTSimpleDeclSpecifier._
+              
+              simple.getType match {
+                case `t_int` if isPointer => new CPointerType(new CBasicType(IBasicType.Kind.eInt, 0), 0)
+                case `t_int` if simple.isShort() => new CBasicType(IBasicType.Kind.eChar16, 0)
+                case `t_int`    => new CBasicType(IBasicType.Kind.eInt, 0)
+                case `t_float`  => new CBasicType(IBasicType.Kind.eFloat, 0)
+                case `t_double` => new CBasicType(IBasicType.Kind.eDouble, 0)           
+                case `t_char`   => new CBasicType(IBasicType.Kind.eChar, 0)
+              }
+            case simple: CASTTypedefNameSpecifier =>
+              println(simple.getName.resolveBinding().getClass.getSimpleName)
+              null
           }
 
           state.stack.push(result)

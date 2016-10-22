@@ -357,6 +357,14 @@ object BinaryExpr {
               case (x: Double, y: Double) => x - y
             }, vari.info)
         }
+        case `op_binaryXorAssign` =>
+        op1 match {
+          case VarRef(name) => 
+            val vari = context.vars.resolveId(name)
+            context.setValue((vari.value, op2) match {
+              case (x: Int, y: Int) => x ^ y
+            }, vari.info)
+        }
       case `op_logicalAnd` =>
         (op1, op2) match {
           case (x: Boolean, y: Boolean) => x && y

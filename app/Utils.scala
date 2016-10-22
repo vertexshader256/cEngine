@@ -7,6 +7,7 @@ import org.eclipse.cdt.core.dom.ast.{IASTNode, _}
 import org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage
 import org.eclipse.cdt.core.parser.{DefaultLogService, FileContent, IncludeFileContentProvider, ScannerInfo}
 import scala.collection.mutable.ListBuffer
+import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 
 sealed trait Direction
 object Entering extends Direction
@@ -41,6 +42,13 @@ object Utils {
     }
     results
   }
+  
+  def isAssignment(op: Int) = {
+      op == op_assign ||
+      op == op_plusAssign ||
+      op == op_minusAssign ||
+      op == op_binaryXorAssign
+    }
   
   def getDescendants(node: IASTNode): Seq[IASTNode] = {
     Seq(node) ++ node.getChildren.flatMap{x => getDescendants(x)}
