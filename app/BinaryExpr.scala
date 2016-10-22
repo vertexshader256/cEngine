@@ -46,37 +46,39 @@ object BinaryExpr {
       case float: Float => float 
     }
     
+    val theVal = stack.readVal(destinationAddress.address.value, TypeHelper.resolve(destinationAddress.theType))
+    
     op match {
       case `op_plusAssign` =>
-        op1 match {
-          case VarRef(name) => 
-            val vari = context.vars.resolveId(name)
-            context.setValue((vari.value, resolvedop2) match {
+        //op1 match {
+         // case VarRef(name) => 
+           // val vari = context.vars.resolveId(name)
+            context.setValue((theVal, resolvedop2) match {
               case (x: Int, y: Int) => x + y
               case (x: Double, y: Int) => x + y
               case (x: Int, y: Double) => x + y
               case (x: Double, y: Double) => x + y
-            }, vari.info)
+            }, destinationAddress)
             
-        }
+       // }
       case `op_minusAssign` =>
         op1 match {
           case VarRef(name) => 
             val vari = context.vars.resolveId(name)
-            context.setValue((vari.value, resolvedop2) match {
+            context.setValue((theVal, resolvedop2) match {
               case (x: Int, y: Int) => x - y
               case (x: Double, y: Int) => x - y
               case (x: Int, y: Double) => x - y
               case (x: Double, y: Double) => x - y
-            }, vari.info)
+            }, destinationAddress)
         }
       case `op_binaryXorAssign` =>
         op1 match {
           case VarRef(name) => 
             val vari = context.vars.resolveId(name)
-            context.setValue((vari.value, resolvedop2) match {
+            context.setValue((theVal, resolvedop2) match {
               case (x: Int, y: Int) => x ^ y
-            }, vari.info)
+            }, destinationAddress)
         }
       case `op_assign` =>
         stack.setValue(resolvedop2, destinationAddress)

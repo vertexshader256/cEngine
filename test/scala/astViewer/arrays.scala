@@ -143,6 +143,18 @@ class ArrayTest extends StandardTest {
     checkResults(code)
   }
   
+  "A trivial array increment" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x[5];
+        x[2] = 5;
+        x[2] += 1;
+        printf("%d\n", x[2]);
+      }"""
+
+    checkResults(code)
+  }
+  
   "A trivial array binary expression" should "print the correct results" in {
     val code = """
       void main() {
