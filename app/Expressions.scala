@@ -8,9 +8,8 @@ import java.util.Formatter;
 import java.util.Locale;
 import java.math.BigInteger
 import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
-import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
-import org.eclipse.cdt.internal.core.dom.parser.c.CStructure
-import org.eclipse.cdt.internal.core.dom.parser.c.CTypedef
+import org.eclipse.cdt.internal.core.dom.parser.c._
+import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 
 object Expressions {
 
@@ -50,9 +49,12 @@ object Expressions {
         Seq(cast.getOperand, cast.getTypeId)
       } else {
         val theType = context.stack.pop.asInstanceOf[IType]
-        val addressInfo = context.stack.pop.asInstanceOf[AddressInfo]
-        val refAddressInfo = AddressInfo(addressInfo.address, theType)
-        context.stack.push(refAddressInfo)
+        
+        context.stack.pop match {
+          case AddressInfo(address,_) => context.stack.push(AddressInfo(address, theType))
+          case VarRef(id) => stack.vars.resolveId(id).info
+        }
+
         Seq()
       }
     case fieldRef: IASTFieldReference =>
@@ -143,7 +145,7 @@ object Expressions {
           // We have to treat the destination op differently in an assignment
           val isParsingAssignmentDest = ancestors.find{ _.isInstanceOf[IASTBinaryExpression]}.map { binary =>
             val bin = binary.asInstanceOf[IASTBinaryExpression]
-            bin.getOperator == IASTBinaryExpression.op_assign
+            Utils.isAssignment(bin.getOperator)
           }.getOrElse(false)
           
           var offset = 0
@@ -327,12 +329,12 @@ object Expressions {
       if (direction == Exiting) {
 
         if (context.vars.visited.contains(bin.getOperand2)) {
-          val result = bin.getOperator match {
-            case IASTBinaryExpression.op_assign =>
+          val result = if (bin.getOperator == op_assign) {
               var op2: Any = context.stack.pop
               var op1: Any = context.stack.pop
               BinaryExpr.parseAssign(op1, op2, context, stack)
-            case _ => BinaryExpr.parse(bin, context, stack)
+          } else {    
+            BinaryExpr.parse(bin, context, stack)
           }
 
           if (result != null) {
