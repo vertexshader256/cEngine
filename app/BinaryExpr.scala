@@ -59,8 +59,7 @@ object BinaryExpr {
     
     val op2 = context.stack.pop match {
       case lit @ Literal(_) => lit.cast
-      case VarRef(name) if (op != op_plusAssign &&
-        op != op_minusAssign) => 
+      case VarRef(name) if (!Utils.isAssignment(op)) => 
           
         val theVar = context.vars.resolveId(name)
         if (TypeHelper.isPointer(theVar.theType)) {
@@ -73,8 +72,7 @@ object BinaryExpr {
     
     val op1 = context.stack.pop match {
       case lit @ Literal(_) => lit.cast
-      case VarRef(name) if (op != op_plusAssign &&
-        op != op_minusAssign) => 
+      case VarRef(name) if (!Utils.isAssignment(op)) => 
           
         val theVar = context.vars.resolveId(name)
         if (TypeHelper.isPointer(theVar.theType)) {
