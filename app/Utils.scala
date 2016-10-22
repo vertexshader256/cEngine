@@ -47,7 +47,9 @@ object Utils {
       op == op_assign ||
       op == op_plusAssign ||
       op == op_minusAssign ||
-      op == op_binaryXorAssign
+      op == op_binaryXorAssign ||
+      op == op_multiplyAssign ||
+      op == op_divideAssign
     }
   
   def getDescendants(node: IASTNode): Seq[IASTNode] = {

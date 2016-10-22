@@ -143,13 +143,15 @@ class ArrayTest extends StandardTest {
     checkResults(code)
   }
   
-  "A trivial array increment" should "print the correct results" in {
+  "assignment operators on an array element" should "print the correct results" in {
     val code = """
       void main() {
-        int x[5];
-        x[2] = 5;
-        x[2] += 1;
-        printf("%d\n", x[2]);
+        int x[5] = {1, 2, 3, 4, 5};
+        x[0] += 1;
+        x[1] -= 1;
+        x[2] *= 1;
+        x[3] ^= 1;
+        printf("%d %d %d %d\n", x[0], x[1], x[2], x[3]);
       }"""
 
     checkResults(code)

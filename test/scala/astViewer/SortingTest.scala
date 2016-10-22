@@ -43,16 +43,15 @@ package scala.astViewer
         	each(i, len) x[i] ^= INT_MIN;
         }
          
-        static inline void radix_sort_unsigned(uint *a, const size_t len)
+        static inline void radix_sort_unsigned(uint *a, const int len)
         {
         	rad_sort_u(a, a + len, (uint)INT_MIN);
         }
          
         int main(void)
         {
-        	int len = 16, x[16], i;
         	int len = 16, i;
-        	each(i, len) x[i] = rand() % 512 - 256;
+        	int x[16] = {64, 285, 27, 501, 348, -293, 487, 542, 1645, 4, 8523, 7625, 184, 5792, 45803, 274};
          
         	radix_sort(x, len);
          

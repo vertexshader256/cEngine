@@ -11,9 +11,7 @@ import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 object BinaryExpr {
   
   def parseAssign(op: Int, op1: Any, op2: Any, context: State, stack: State): Any = {
-    
-    
-    
+
     val destinationAddress: AddressInfo = op1 match {
       case VarRef(name) =>
         val variable = context.vars.resolveId(name)
@@ -50,36 +48,30 @@ object BinaryExpr {
     
     op match {
       case `op_plusAssign` =>
-        //op1 match {
-         // case VarRef(name) => 
-           // val vari = context.vars.resolveId(name)
-            context.setValue((theVal, resolvedop2) match {
-              case (x: Int, y: Int) => x + y
-              case (x: Double, y: Int) => x + y
-              case (x: Int, y: Double) => x + y
-              case (x: Double, y: Double) => x + y
-            }, destinationAddress)
-            
-       // }
+        context.setValue((theVal, resolvedop2) match {
+          case (x: Int, y: Int) => x + y
+          case (x: Double, y: Int) => x + y
+          case (x: Int, y: Double) => x + y
+          case (x: Double, y: Double) => x + y
+        }, destinationAddress)
       case `op_minusAssign` =>
-        op1 match {
-          case VarRef(name) => 
-            val vari = context.vars.resolveId(name)
-            context.setValue((theVal, resolvedop2) match {
-              case (x: Int, y: Int) => x - y
-              case (x: Double, y: Int) => x - y
-              case (x: Int, y: Double) => x - y
-              case (x: Double, y: Double) => x - y
-            }, destinationAddress)
-        }
+        context.setValue((theVal, resolvedop2) match {
+          case (x: Int, y: Int) => x - y
+          case (x: Double, y: Int) => x - y
+          case (x: Int, y: Double) => x - y
+          case (x: Double, y: Double) => x - y
+        }, destinationAddress)
+      case `op_multiplyAssign` =>
+        context.setValue((theVal, resolvedop2) match {
+          case (x: Int, y: Int) => x * y
+          case (x: Double, y: Int) => x * y
+          case (x: Int, y: Double) => x * y
+          case (x: Double, y: Double) => x * y
+        }, destinationAddress)
       case `op_binaryXorAssign` =>
-        op1 match {
-          case VarRef(name) => 
-            val vari = context.vars.resolveId(name)
-            context.setValue((theVal, resolvedop2) match {
-              case (x: Int, y: Int) => x ^ y
-            }, destinationAddress)
-        }
+        context.setValue((theVal, resolvedop2) match {
+          case (x: Int, y: Int) => x ^ y
+        }, destinationAddress)
       case `op_assign` =>
         stack.setValue(resolvedop2, destinationAddress)
     }  
