@@ -6,10 +6,14 @@ import scala.collection.mutable.{ListBuffer, Stack}
 import scala.util.control.Exception.allCatch
 import java.util.Formatter;
 import java.util.Locale;
+import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 
 object BinaryExpr {
   
-  def parseAssign(op1: Any, op2: Any, context: State, stack: State): Any = {
+  def parseAssign(op: Int, op1: Any, op2: Any, context: State, stack: State): Any = {
+    
+    
+    
     val destinationAddress: AddressInfo = op1 match {
       case VarRef(name) =>
         val variable = context.vars.resolveId(name)
@@ -42,7 +46,41 @@ object BinaryExpr {
       case float: Float => float 
     }
     
-    stack.setValue(resolvedop2, destinationAddress)
+    op match {
+      case `op_plusAssign` =>
+        op1 match {
+          case VarRef(name) => 
+            val vari = context.vars.resolveId(name)
+            context.setValue((vari.value, resolvedop2) match {
+              case (x: Int, y: Int) => x + y
+              case (x: Double, y: Int) => x + y
+              case (x: Int, y: Double) => x + y
+              case (x: Double, y: Double) => x + y
+            }, vari.info)
+            
+        }
+      case `op_minusAssign` =>
+        op1 match {
+          case VarRef(name) => 
+            val vari = context.vars.resolveId(name)
+            context.setValue((vari.value, resolvedop2) match {
+              case (x: Int, y: Int) => x - y
+              case (x: Double, y: Int) => x - y
+              case (x: Int, y: Double) => x - y
+              case (x: Double, y: Double) => x - y
+            }, vari.info)
+        }
+      case `op_binaryXorAssign` =>
+        op1 match {
+          case VarRef(name) => 
+            val vari = context.vars.resolveId(name)
+            context.setValue((vari.value, resolvedop2) match {
+              case (x: Int, y: Int) => x ^ y
+            }, vari.info)
+        }
+      case `op_assign` =>
+        stack.setValue(resolvedop2, destinationAddress)
+    }  
 
     resolvedop2
   }
@@ -332,37 +370,7 @@ object BinaryExpr {
           case (x: Char, y: Int) => x ^ y
           case (x: Int, y: Char) => x ^ y
         }   
-      case `op_plusAssign` =>
-        op1 match {
-          case VarRef(name) => 
-            val vari = context.vars.resolveId(name)
-            context.setValue((vari.value, op2) match {
-              case (x: Int, y: Int) => x + y
-              case (x: Double, y: Int) => x + y
-              case (x: Int, y: Double) => x + y
-              case (x: Double, y: Double) => x + y
-            }, vari.info)
-            
-        }
-      case `op_minusAssign` =>
-        op1 match {
-          case VarRef(name) => 
-            val vari = context.vars.resolveId(name)
-            context.setValue((vari.value, op2) match {
-              case (x: Int, y: Int) => x - y
-              case (x: Double, y: Int) => x - y
-              case (x: Int, y: Double) => x - y
-              case (x: Double, y: Double) => x - y
-            }, vari.info)
-        }
-        case `op_binaryXorAssign` =>
-        op1 match {
-          case VarRef(name) => 
-            val vari = context.vars.resolveId(name)
-            context.setValue((vari.value, op2) match {
-              case (x: Int, y: Int) => x ^ y
-            }, vari.info)
-        }
+      
       case `op_logicalAnd` =>
         (op1, op2) match {
           case (x: Boolean, y: Boolean) => x && y
