@@ -43,20 +43,19 @@ object FunctionCallExpr {
 
         if (name == "printf") {
           
+          val formatString = formattedOutputParams.head.asInstanceOf[StringLiteral].str
+          
           // here we resolve the addresses coming in
           val resolved = formattedOutputParams.map{x => 
             x match {
               case strLit: StringLiteral => strLit.str
               case AddressInfo(addy, theType) =>
-                val resolved = TypeHelper.resolve(theType)
-                resolved.getKind match {
-                  case IBasicType.Kind.eChar if TypeHelper.isPointer(theType) => 
                     // its a string!
                     var current: Char = 0
                     var stringBuilder = new ListBuffer[Char]()
                     var i = 0
                     do {
-                      current = stack.readVal(addy.value + i, resolved).asInstanceOf[Char]
+                      current = stack.readVal(addy.value + i, new CBasicType(IBasicType.Kind.eChar, 0)).asInstanceOf[Char]
                       if (current != 0) {
                         stringBuilder += current
                         i += 1
@@ -64,8 +63,8 @@ object FunctionCallExpr {
                     } while (current != 0)
                       
                     new String(stringBuilder.map(_.toByte).toArray, "UTF-8")
-                  case _ => 
-                    stack.readVal(addy.value, resolved)
+                } else {
+                    stack.readVal(addy.value, TypeHelper.resolve(theType))
                 }        
                 
               case x => x
