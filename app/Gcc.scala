@@ -10,17 +10,18 @@ import java.io.InputStream
 object Gcc {
   
   var count = 0
+  var count2 = 0
   
   def preprocess(code: String): String = {
     
     var myCount = 0;
     
     synchronized {
-      myCount = count
-      count += 1
+      myCount = count2
+      count2 += 1
     }
     
-    val file = File("temp" + myCount + ".c")
+    val file = File("tempPreproc" + myCount + ".c")
 
     file.overwrite(code)
     
