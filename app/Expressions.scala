@@ -282,8 +282,15 @@ object Expressions {
             context.stack.pop match {
               case VarRef(varName) =>       
                 val ptr = context.vars.resolveId(varName)
-                val refAddressInfo = AddressInfo(Address(ptr.value.asInstanceOf[Int]), TypeHelper.resolve(ptr.theType))
-                context.stack.push(refAddressInfo)
+
+                context.stack.push(
+                  if (Utils.isOnLeftSideOfAssignment(unary) || Utils.isNestedPointer(unary) || (unary.getParent.isInstanceOf[IASTUnaryExpression] &&
+                      unary.getParent.asInstanceOf[IASTUnaryExpression].getOperator == op_bracketedPrimary) ) { // (k*)++
+                    AddressInfo(Address(ptr.value.asInstanceOf[Int]), TypeHelper.resolve(ptr.theType))
+                  } else {
+                    stack.readVal(ptr.value.asInstanceOf[Int], TypeHelper.resolve(ptr.theType))
+                  }
+                )
               case address @ AddressInfo(addr, theType) =>
 
                 unary.getChildren.head match {

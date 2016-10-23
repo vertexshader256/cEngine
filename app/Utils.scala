@@ -52,6 +52,18 @@ object Utils {
       op == op_divideAssign
     }
   
+  def isNestedPointer(node: IASTNode) = {
+    val starParent = Utils.getAncestors(node).collect{ case x: IASTUnaryExpression => x}.filter(x => x.getOperator == IASTUnaryExpression.op_star)
+    !starParent.isEmpty
+  }
+  
+  def isOnLeftSideOfAssignment(node: IASTNode) = {
+    val assignmentParent = Utils.getAncestors(node).collect{ case x: IASTBinaryExpression => x}.filter(x => isAssignment(x.getOperator)).headOption
+    assignmentParent.map { parent =>
+      Utils.getAncestors(node).contains(parent.getOperand1) || parent.getOperand1 == node
+    }.getOrElse(false)
+  }
+
   def getDescendants(node: IASTNode): Seq[IASTNode] = {
     Seq(node) ++ node.getChildren.flatMap{x => getDescendants(x)}
   }

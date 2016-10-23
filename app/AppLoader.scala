@@ -44,7 +44,7 @@ object AstUtils {
       case x: CASTWhileStatement => "while"
       case x: CASTExpressionStatement => ""
       case x: CASTCompoundStatement => ""
-      case x: CASTUnaryExpression => ""
+      case x: CASTUnaryExpression => x.getRawSignature + "(" + x.getOperator + ")"
       case x: CASTEqualsInitializer => "="
       case x: CASTDeclarationStatement => ""
       case x: CASTTranslationUnit => ""
