@@ -50,6 +50,7 @@ object FunctionCallExpr {
             x match {
               case strLit: StringLiteral => strLit.str
               case AddressInfo(addy, theType) =>
+                if (formatString.contains("%s")) {
                     // its a string!
                     var current: Char = 0
                     var stringBuilder = new ListBuffer[Char]()
