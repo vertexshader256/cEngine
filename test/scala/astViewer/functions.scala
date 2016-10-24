@@ -1,5 +1,22 @@
 package scala.astViewer
 
+class FunctionStagingArea extends StandardTest {
+  "An unsigned pointer argument" should "print the correct results" in {
+    val code = """
+      void test2(unsigned int *x) {
+        printf("%d\n", x);
+      }
+
+      void main() {
+        int a = 5;
+        unsigned int *x = (unsigned int*) a;
+        test2(x);
+      }"""
+
+    checkResults(code)
+  }
+}
+
 class FunctionTest extends StandardTest {
 
   "A function prototype" should "print the correct results" in {
@@ -48,6 +65,8 @@ class FunctionTest extends StandardTest {
 
     checkResults(code)
   }
+  
+ 
 
   "chained function calls" should "print the correct results" in {
     val code = """

@@ -50,10 +50,10 @@ object Expressions {
       } else {
         val theType = context.stack.pop.asInstanceOf[IType]
         
-        context.stack.pop match {
-          case AddressInfo(address,_) => context.stack.push(AddressInfo(address, theType))
-          case VarRef(id) => stack.vars.resolveId(id).info
-        }
+        context.stack.push(context.stack.pop match {
+          case AddressInfo(address,_) => AddressInfo(address, theType)
+          case VarRef(id) => AddressInfo(Address(stack.vars.resolveId(id).value.asInstanceOf[Int]), theType)
+        })
 
         Seq()
       }
@@ -351,11 +351,13 @@ object Expressions {
         } else {
           // short circuiting
           if (bin.getOperator == IASTBinaryExpression.op_logicalOr) {
-            if (context.stack.head.asInstanceOf[Boolean]) {
-              Seq()
-            } else {
-              Seq(bin.getOperand2, bin)
+            
+            context.stack.head match {
+              case bool: Boolean if bool => Seq()
+              case int: Int if int > 0 => Seq()
+              case _ => Seq(bin.getOperand2, bin)
             }
+
           } else if (bin.getOperator == IASTBinaryExpression.op_logicalAnd) {
             
             context.stack.head match {

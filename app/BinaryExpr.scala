@@ -362,6 +362,7 @@ object BinaryExpr {
       case `op_logicalOr` =>
         (op1, op2) match {
           case (x: Boolean, y: Boolean) => x || y
+          case (x: Int, y: Boolean) => (x > 0) || y
         }
       case _ => throw new Exception("unhandled binary operator: " + binaryExpr.getOperator); null
     }
