@@ -25,19 +25,14 @@ object BinaryExpr {
       case lit @ Literal(_) => lit.cast
       case VarRef(name) => 
         context.vars.resolveId(name).value
-      case AddressInfo(addy, _) => 
+      case AddressInfo(addy, theType) => 
         val address = addy.value
-        op1 match {
-          case AddressInfo(_, theType) => stack.readVal(address, TypeHelper.resolve(theType))
-          case VarRef(name) => 
-            val variable = context.vars.resolveId(name)
-            if (!TypeHelper.isPointer(variable.theType)) {
-              // only if op1 is NOT a pointer, resolve op2
-              stack.readVal(address, TypeHelper.resolve(variable.theType))
-            } else {
-              address
-            }
-        }   
+        if (!TypeHelper.isPointer(destinationAddress.theType)) {
+          // only if op1 is NOT a pointer, resolve op2
+          stack.readVal(address, TypeHelper.resolve(destinationAddress.theType))
+        } else {
+          address
+        }
       case long: Long => long
       case int: Int => int
       case doub: Double => doub
