@@ -26,11 +26,20 @@ object FunctionCallExpr {
             case VarRef(name) => 
               val theVar = state.vars.resolveId(name)
               if (TypeHelper.isPointer(theVar.theType)) {
-                AddressInfo(Address(theVar.value.asInstanceOf[Int]), theVar.theType)
+                theVar.value.asInstanceOf[Int]
               } else {
                 state.readVal(theVar.address.value, TypeHelper.resolve(theVar.theType))
               } 
-            case info @ AddressInfo(_, _) => info  
+            case info @ AddressInfo(address, theType) => 
+              if (TypeHelper.isPointer(theType)) {  
+                address.value
+              } else { 
+                if (arg.isInstanceOf[IASTUnaryExpression] && arg.asInstanceOf[IASTUnaryExpression].getOperator == 5) {
+                  address.value
+                } else {
+                  state.readVal(address.value, TypeHelper.resolve(theType))
+                }
+              }
             case int: Int => int
             case float: Float => float
             case short: Short => short
@@ -49,14 +58,13 @@ object FunctionCallExpr {
           val resolved = formattedOutputParams.map{x => 
             x match {
               case strLit: StringLiteral => strLit.str
-              case AddressInfo(addy, theType) =>
-                if (formatString.contains("%s")) {
+              case addy: Int if formatString.contains("%s") => {
                     // its a string!
                     var current: Char = 0
                     var stringBuilder = new ListBuffer[Char]()
                     var i = 0
                     do {
-                      current = stack.readVal(addy.value + i, new CBasicType(IBasicType.Kind.eChar, 0)).asInstanceOf[Char]
+                      current = stack.readVal(addy + i, new CBasicType(IBasicType.Kind.eChar, 0)).asInstanceOf[Char]
                       if (current != 0) {
                         stringBuilder += current
                         i += 1
@@ -64,9 +72,10 @@ object FunctionCallExpr {
                     } while (current != 0)
                       
                     new String(stringBuilder.map(_.toByte).toArray, "UTF-8")
-                } else {
-                    stack.readVal(addy.value, TypeHelper.resolve(theType))
-                }        
+                }
+//                else {
+//                    stack.readVal(addy.value, TypeHelper.resolve(theType))
+//                }        
                 
               case x => x
             }

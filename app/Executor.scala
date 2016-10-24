@@ -52,6 +52,8 @@ case class Literal(litStr: String) {
     } else if (lit.contains('F') || lit.contains('f')) {
       val num = lit.toCharArray.filter(x => x != 'f' && x != 'F').mkString
       num.toFloat
+    } else if (lit == "'\\0'") {
+      0.toChar
     } else {
       lit.toDouble
     }
@@ -406,6 +408,8 @@ object Executor {
   }
 
   def parseStatement(statement: IASTStatement, state: State, direction: Direction): Seq[IASTNode] = statement match {
+    case breakStatement: IASTNullStatement =>
+      Seq()
     case breakStatement: IASTBreakStatement =>
       state.isBreaking = true
       Seq()
@@ -760,8 +764,9 @@ object Executor {
   
             val name = param.getDeclarator.getName.getRawSignature
             val newVar = new Variable(state, paramInfo.getType)
-  
+            
             state.setValue(TypeHelper.resolve(state, paramInfo.getType, arg), newVar.info)          
+        
             state.vars.addVariable(name, newVar)
           }
           

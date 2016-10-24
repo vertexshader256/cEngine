@@ -275,8 +275,7 @@ object Expressions {
             context.stack.pop match {
               case VarRef(name) =>
                 val variable = context.vars.resolveId(name)
-                val info = AddressInfo(variable.address, variable.theType)
-                context.stack.push(info)
+                context.stack.push(variable.info)
             }
           case `op_star` =>
             context.stack.pop match {

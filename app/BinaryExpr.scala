@@ -82,9 +82,6 @@ object BinaryExpr {
   def parse(binaryExpr: IASTBinaryExpression, context: State, stack: State): Any = {
     import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 
-    var isOp1Pointer = false
-    var pointerType: IType = null
-    
     val op = binaryExpr.getOperator
     
     // resolve literals
@@ -106,8 +103,6 @@ object BinaryExpr {
       case VarRef(name) => 
         val theVar = context.vars.resolveId(name)
         if (TypeHelper.isPointer(theVar.theType)) {
-          isOp1Pointer = true
-          pointerType = theVar.theType
           AddressInfo(Address(theVar.value.asInstanceOf[Int]), theVar.theType)
         } else {
           theVar.value  
@@ -374,11 +369,6 @@ object BinaryExpr {
       case _ => throw new Exception("unhandled binary operator: " + binaryExpr.getOperator); null
     }
     
-    if (isOp1Pointer) {
-      AddressInfo(Address(result.asInstanceOf[Int]), pointerType)
-    } else {
-      result
-    }
-    
+    result
   }
 }
