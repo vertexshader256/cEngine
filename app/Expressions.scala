@@ -188,6 +188,7 @@ object Expressions {
                 case bool: Boolean => context.stack.push(!bool)
                 case int: Int => context.stack.push(int == 0)
               }
+            case int: Int => context.stack.push(~int)
           }
           case `op_minus` =>
 

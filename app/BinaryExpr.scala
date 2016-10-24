@@ -309,6 +309,8 @@ object BinaryExpr {
         }  
       case `op_lessThan` =>
         (op1, op2) match {
+          case (AddressInfo(addy, theType), y: Int) => addy.value < y
+          case (AddressInfo(addy, theType), AddressInfo(addy2, theType2)) => addy.value < addy2.value
           case (x: Int, y: Int) => x < y
           case (x: Double, y: Int) => x < y
           case (x: Int, y: Double) => x < y
@@ -338,7 +340,12 @@ object BinaryExpr {
           case (x: Char, y: Int) => x ^ y
           case (x: Int, y: Char) => x ^ y
         }   
-      
+      case `op_binaryAnd` =>
+        (op1, op2) match {
+          case (x: Int, y: Int) => x & y
+          case (x: Char, y: Int) => x & y
+          case (x: Int, y: Char) => x & y
+        }
       case `op_logicalAnd` =>
         (op1, op2) match {
           case (x: Boolean, y: Boolean) => x && y
