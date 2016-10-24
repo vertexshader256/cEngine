@@ -62,10 +62,16 @@ object BinaryExpr {
         context.setValue((theVal, resolvedop2) match {
           case (x: Int, y: Int) => x ^ y
         }, dst)
+      case `op_shiftRightAssign` =>
+        context.setValue((theVal, resolvedop2) match {
+          case (x: Int, y: Int) => x >>> y
+        }, dst)
       case `op_assign` =>
         stack.setValue(resolvedop2, dst)
     }  
 
+    
+    
     resolvedop2
   }
   
@@ -302,6 +308,7 @@ object BinaryExpr {
         }
       case `op_greaterEqual` =>
         (op1, op2) match {
+          case (AddressInfo(addy, theType), AddressInfo(addy2, theType2)) => addy.value >= addy2.value
           case (x: Int, y: Int) => x >= y
           case (x: Double, y: Int) => x >= y
           case (x: Int, y: Double) => x >= y
@@ -349,6 +356,8 @@ object BinaryExpr {
       case `op_logicalAnd` =>
         (op1, op2) match {
           case (x: Boolean, y: Boolean) => x && y
+          case (x: Boolean, y: Int) => x && (y > 0)
+          case (x: Int, y: Boolean) => (x > 0) && y
         }
       case `op_logicalOr` =>
         (op1, op2) match {

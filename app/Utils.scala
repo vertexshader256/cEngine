@@ -49,7 +49,8 @@ object Utils {
       op == op_minusAssign ||
       op == op_binaryXorAssign ||
       op == op_multiplyAssign ||
-      op == op_divideAssign
+      op == op_divideAssign ||
+      op == op_shiftRightAssign
     }
   
   def isNestedPointer(node: IASTNode) = {

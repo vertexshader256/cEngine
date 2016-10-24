@@ -188,7 +188,7 @@ object Expressions {
                 case bool: Boolean => context.stack.push(!bool)
                 case int: Int => context.stack.push(int == 0)
               }
-            case int: Int => context.stack.push(~int)
+            case int: Int => context.stack.push(int == 0)
           }
           case `op_minus` =>
 
@@ -357,11 +357,13 @@ object Expressions {
               Seq(bin.getOperand2, bin)
             }
           } else if (bin.getOperator == IASTBinaryExpression.op_logicalAnd) {
-            if (!context.stack.head.asInstanceOf[Boolean]) {
-              Seq()
-            } else {
-              Seq(bin.getOperand2, bin)
+            
+            context.stack.head match {
+              case bool: Boolean if !bool => Seq()
+              case int: Int if int == 0 => Seq()
+              case _ => Seq(bin.getOperand2, bin)
             }
+
           } else {
             Seq(bin.getOperand2, bin)
           }
