@@ -170,6 +170,17 @@ class BinaryExpr extends StandardTest {
     checkResults(code)
   }
   
+  "Comparing two pointers" should "print the correct results" in {
+    val code = """
+      void main() {
+        int *x = 0;
+        int *y = 0;
+        printf("%d\n", x == y); // evals to 1 but looks like undefined behavior
+      }"""
+
+    checkResults(code)
+  }
+  
   "short-circuiting" should "print the correct results" in {
     val code = """
       void main() {

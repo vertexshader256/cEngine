@@ -170,6 +170,142 @@ class QuickSort extends StandardTest {
   }
 }
 
+class ShellSort extends StandardTest {
+    "shell sort test 1" should "print the correct results" in {
+      // http://rosettacode.org/wiki/Sorting_algorithms/Shell_sort#C
+      val code = """
+        void bead_sort(int *a, int len)
+        {
+        	int i, j, max, sum;
+        	unsigned char *beads;
+        #	define BEAD(i, j) beads[i * max + j]
+         
+        	for (i = 1, max = a[0]; i < len; i++)
+        		if (a[i] > max) max = a[i];
+         
+        	beads = calloc(1, max * len);
+         
+        	/* mark the beads */
+        	for (i = 0; i < len; i++)
+        		for (j = 0; j < a[i]; j++)
+        			BEAD(i, j) = 1;
+         
+        	for (j = 0; j < max; j++) {
+        		/* count how many beads are on each post */
+        		for (sum = i = 0; i < len; i++) {
+        			sum += BEAD(i, j);
+        			BEAD(i, j) = 0;
+        		}
+        		/* mark bottom sum beads */
+        		for (i = len - sum; i < len; i++) BEAD(i, j) = 1;
+        	}
+         
+        	for (i = 0; i < len; i++) {
+        		for (j = 0; j < max && BEAD(i, j); j++);
+        		a[i] = j;
+        	}
+        	free(beads);
+        }
+         
+        int main()
+        {
+        	int i, x[] = {5, 3, 1, 7, 4, 1, 1, 20};
+        	int len = sizeof(x)/sizeof(x[0]);
+         
+        	bead_sort(x, len);
+        	for (i = 0; i < len; i++)
+        		printf("%d\n", x[i]);
+         
+        	return 0;
+        }
+        """
+      checkResults(code)
+  }
+}
+
+class BogoSort extends StandardTest {
+    "bogo sort test 1" should "print the correct results" in {
+      // http://rosettacode.org/wiki/Sorting_algorithms/Bogo_sort#C
+      val code = """
+        #include <stdbool.h>
+        
+        bool is_sorted(int *a, int n)
+        {
+          while ( --n >= 1 ) {
+            if ( a[n] < a[n-1] ) return false;
+          }
+          return true;
+        }
+         
+        void shuffle(int *a, int n)
+        {
+          int i, t, r;
+          for(i=0; i < n; i++) {
+            t = a[i];
+            r = rand() % n;
+            a[i] = a[r];
+            a[r] = t;
+          }
+        }
+         
+        void bogosort(int *a, int n)
+        {
+          while ( !is_sorted(a, n) ) shuffle(a, n);
+        }
+         
+        int main()
+        {
+          int numbers[] = { 1, 10, 9,  7, 3, 0 };
+          int i;
+         
+          bogosort(numbers, 6);
+          for (i=0; i < 6; i++) printf("%d\n", numbers[i]);
+        }
+        """
+      checkResults(code)
+  }
+}
+
+class CircleSort extends StandardTest {
+    "circle sort test 1" should "print the correct results" in {
+      // http://rosettacode.org/wiki/Sorting_algorithms/Circle_sort#C
+      val code = """
+        int circle_sort_inner(int *start, int *end)
+        {
+        	int *p, *q, t, swapped;
+         
+        	if (start == end) return 0;
+         
+        	// funny "||" on next line is for the center element of odd-lengthed array
+        	for (swapped = 0, p = start, q = end; p<q || (p==q && ++q); p++, q--)
+        		if (*p > *q)
+        			t = *p, *p = *q, *q = t, swapped = 1;
+         
+        	// q == p-1 at this point
+        	return swapped | circle_sort_inner(start, q) | circle_sort_inner(p, end);
+        }
+         
+        //helper function to show arrays before each call
+        void circle_sort(int *x, int n)
+        {
+        	do {
+        		int i;
+        		for (i = 0; i < n; i++) printf("%d\n", x[i]);
+        	} while (circle_sort_inner(x, x + (n - 1)));
+        }
+         
+        int main(void)
+        {
+        	int x[] = {5, -1, 101, -4, 0, 1, 8, 6, 2, 3};
+        	circle_sort(x, sizeof(x) / sizeof(*x));
+         
+        	return 0;
+        }
+        """
+      checkResults(code)
+  }
+}
+
 class MergeSort extends StandardTest {
     "merge sort test 1" should "print the correct results" in {
       // http://quiz.geeksforgeeks.org/merge-sort/

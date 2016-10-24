@@ -265,6 +265,7 @@ object Expressions {
             context.stack.pop match {
               case VarRef(name) =>
                 context.stack.push(context.vars.resolveId(name).sizeof)
+              case AddressInfo(_,_) => context.stack.push(4)
               case char: Char => context.stack.push(1)
               case int: Int => context.stack.push(4)
               case short: Short => context.stack.push(2)

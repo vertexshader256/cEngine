@@ -40,6 +40,7 @@ object FunctionCallExpr {
                   state.readVal(address.value, TypeHelper.resolve(theType))
                 }
               }
+            case bool: Boolean => if (bool) 1 else 0
             case int: Int => int
             case float: Float => float
             case short: Short => short
@@ -98,7 +99,13 @@ object FunctionCallExpr {
           state.stack.push(i) 
           Seq()
         } else if (name == "rand") {
-          state.stack.push(scala.util.Random.nextInt) 
+          state.stack.push(Math.abs(scala.util.Random.nextInt)) 
+          Seq()
+        } else if (name == "calloc") {
+          state.stack.push(state.allocateSpace(formattedOutputParams.head.asInstanceOf[Int]))
+          Seq()
+        } else if (name == "free") {
+          // TODO
           Seq()
         } else {
           // load up the stack with the parameters

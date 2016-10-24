@@ -105,9 +105,13 @@ class State {
   var insertIndex = 0
 
   def allocateSpace(numBytes: Int): Address = {
-    val result = insertIndex
-    insertIndex += numBytes
-    Address(result)
+    if (numBytes > 0) {
+      val result = insertIndex
+      insertIndex += numBytes
+      Address(result)
+    } else {
+      Address(0)
+    }
   }
 
   def readVal(address: Int, theType: IBasicType): AnyVal = {
@@ -225,7 +229,11 @@ object TypeHelper {
           case double: Double => double
           case float: Float => float.toDouble
         } 
-      case `eBoolean` => if (newVal.asInstanceOf[Boolean]) 1 else 0
+      case `eBoolean` =>
+        newVal match {
+          case bool: Boolean => 1
+          case int: Int => if (int > 0) 1 else 0
+        } 
       case `eVoid` =>
         newVal match {
           case int: Int => int
@@ -310,7 +318,7 @@ trait RuntimeVariable {
   }
 
   def allocateSpace(state: State, aType: IType, numElements: Int): Address = {
-    if (aType.isInstanceOf[IArrayType] || aType.isInstanceOf[IPointerType]) {
+    if (TypeHelper.isPointer(aType)) {
       val intType = new CBasicType(IBasicType.Kind.eInt, 0)
       state.allocateSpace(TypeHelper.sizeof(intType))
     } else if (aType.isInstanceOf[CStructure]) {
@@ -590,7 +598,12 @@ object Executor {
   }
 
   def createStringVariable(state: State, name: String, theType: IType, str: String): ArrayVariable = {
-    val withNull = Utils.stripQuotes(str).toCharArray() :+ 0.toChar // terminating null char
+    val theStr = Utils.stripQuotes(str)
+    val withNull = if (!theStr.isEmpty) {
+      theStr.toCharArray() :+ 0.toChar // terminating null char
+    } else {
+      Array()
+    }
     val theArrayPtr = new ArrayVariable(state, theType, Seq(withNull.size))
     theArrayPtr.setValue(withNull)
     state.vars.addVariable(name, theArrayPtr)
@@ -685,7 +698,12 @@ object Executor {
                 initVal match {  
                   case Literal(str) => 
                     // char *str = "hello world!";
-                    val initString = initVal.asInstanceOf[Literal].cast.asInstanceOf[StringLiteral].str
+                    
+                    val initString = initVal.asInstanceOf[Literal].cast match {
+                      case StringLiteral(str) => str
+                      case int: Int if int == 0 => "\"\"" // null initializer
+                    }
+                    
                     createStringVariable(state, name, theType, initString)
                   case _ =>
                     val resolved = TypeHelper.resolve(state, theType, initVal)

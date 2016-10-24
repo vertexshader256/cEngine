@@ -28,6 +28,7 @@ object BinaryExpr {
         } else {
           address
         }
+      case Address(addy) => addy
       case long: Long => long
       case int: Int => int
       case doub: Double => doub
@@ -287,6 +288,7 @@ object BinaryExpr {
         }
       case `op_equals` =>
         (op1, op2) match {
+          case (AddressInfo(addy, theType), AddressInfo(addy2, theType2)) => addy.value == addy2.value
           case (x: Int, y: Int) => x == y
           case (x: Double, y: Int) => x == y
           case (x: Int, y: Double) => x == y
