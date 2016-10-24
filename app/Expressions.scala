@@ -186,9 +186,9 @@ object Expressions {
             case VarRef(id) =>
               stack.vars.resolveId(id).value match {
                 case bool: Boolean => context.stack.push(!bool)
-                case int: Int => context.stack.push(int == 0)
+                case int: Int => context.stack.push(if (int == 0) 1 else 0)
               }
-            case int: Int => context.stack.push(int == 0)
+            case int: Int => context.stack.push(if (int == 0) 1 else 0)
           }
           case `op_minus` =>
 

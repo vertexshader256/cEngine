@@ -12,6 +12,16 @@ class UnaryTest extends StandardTest {
     checkResults(code)
   }
   
+  "A simple binary NOT test" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 5;
+        int y = 0;
+        printf("%d %d\n", !x, !y);
+      }"""
+
+    checkResults(code)
+  }
   
   "A simple postfix decrement test" should "print the correct results" in {
     val code = """
