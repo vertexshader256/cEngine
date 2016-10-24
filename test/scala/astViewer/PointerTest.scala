@@ -155,6 +155,24 @@ class PointerTest extends StandardTest {
     checkResults(code)
   }
   
+  "some incremental pointer arithmetic" should "print the correct results" in {
+    val code = """
+      void main() {
+        char str[] = "Hello!\n";
+        char *x = str;
+        printf("%s", x);
+        x++;
+        printf("%s", x);
+        x++;
+        x++;
+        printf("%s", x);
+        x--;
+        printf("%s", x);
+      }"""
+
+    checkResults(code)
+  }
+  
   "some more advanced pointer arithmetic" should "print the correct results" in {
     val code = """
       void main() {
