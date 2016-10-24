@@ -12,24 +12,19 @@ object BinaryExpr {
   
   def parseAssign(op: Int, op1: Any, op2: Any, context: State, stack: State): Any = {
 
-    val destinationAddress: AddressInfo = op1 match {
+    val dst: AddressInfo = op1 match {
       case VarRef(name) =>
         val variable = context.vars.resolveId(name)
-        AddressInfo(variable.address, variable.theType)
-      case info @ AddressInfo(addy, _) => info
+        variable.info
+      case info @ AddressInfo(_, _) => info
     }
-    
-    // TODO: combine with resolve() function below?
-    
-    val resolvedop2 = op2 match {
-      case lit @ Literal(_) => lit.cast
-      case VarRef(name) => 
-        context.vars.resolveId(name).value
+
+    val resolvedop2 = resolveOperand(op2, context) match {
       case AddressInfo(addy, theType) => 
         val address = addy.value
-        if (!TypeHelper.isPointer(destinationAddress.theType)) {
+        if (!TypeHelper.isPointer(dst.theType)) {
           // only if op1 is NOT a pointer, resolve op2
-          stack.readVal(address, TypeHelper.resolve(destinationAddress.theType))
+          stack.readVal(address, TypeHelper.resolve(dst.theType))
         } else {
           address
         }
@@ -39,7 +34,7 @@ object BinaryExpr {
       case float: Float => float 
     }
     
-    val theVal = stack.readVal(destinationAddress.address.value, TypeHelper.resolve(destinationAddress.theType))
+    val theVal = stack.readVal(dst.address.value, TypeHelper.resolve(dst.theType))
     
     op match {
       case `op_plusAssign` =>
@@ -48,34 +43,34 @@ object BinaryExpr {
           case (x: Double, y: Int) => x + y
           case (x: Int, y: Double) => x + y
           case (x: Double, y: Double) => x + y
-        }, destinationAddress)
+        }, dst)
       case `op_minusAssign` =>
         context.setValue((theVal, resolvedop2) match {
           case (x: Int, y: Int) => x - y
           case (x: Double, y: Int) => x - y
           case (x: Int, y: Double) => x - y
           case (x: Double, y: Double) => x - y
-        }, destinationAddress)
+        }, dst)
       case `op_multiplyAssign` =>
         context.setValue((theVal, resolvedop2) match {
           case (x: Int, y: Int) => x * y
           case (x: Double, y: Int) => x * y
           case (x: Int, y: Double) => x * y
           case (x: Double, y: Double) => x * y
-        }, destinationAddress)
+        }, dst)
       case `op_binaryXorAssign` =>
         context.setValue((theVal, resolvedop2) match {
           case (x: Int, y: Int) => x ^ y
-        }, destinationAddress)
+        }, dst)
       case `op_assign` =>
-        stack.setValue(resolvedop2, destinationAddress)
+        stack.setValue(resolvedop2, dst)
     }  
 
     resolvedop2
   }
   
-  private def resolveOperand(context: State) = {
-    context.stack.pop match {
+  private def resolveOperand(op: Any, context: State) = {
+    op match {
       case lit @ Literal(_) => lit.cast
       case VarRef(name)  =>      
         val theVar = context.vars.resolveId(name)
@@ -95,8 +90,8 @@ object BinaryExpr {
     
     // resolve literals
     
-    val op2 = resolveOperand(context)
-    val op1 = resolveOperand(context)
+    val op2 = resolveOperand(context.stack.pop, context)
+    val op1 = resolveOperand(context.stack.pop, context)
   
     val result: Any = binaryExpr.getOperator match {
       case `op_multiply` =>
