@@ -79,14 +79,8 @@ object BinaryExpr {
     resolvedop2
   }
   
-  def parse(binaryExpr: IASTBinaryExpression, context: State, stack: State): Any = {
-    import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
-
-    val op = binaryExpr.getOperator
-    
-    // resolve literals
-    
-    val op2 = context.stack.pop match {
+  private def resolveOperand(context: State) = {
+    context.stack.pop match {
       case lit @ Literal(_) => lit.cast
       case VarRef(name)  =>      
         val theVar = context.vars.resolveId(name)
@@ -97,20 +91,17 @@ object BinaryExpr {
         }
       case x => x
     }
+  }
+  
+  def parse(binaryExpr: IASTBinaryExpression, context: State, stack: State): Any = {
+    import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
+
+    val op = binaryExpr.getOperator
     
-    val op1 = context.stack.pop match {
-      case lit @ Literal(_) => lit.cast
-      case VarRef(name) => 
-        val theVar = context.vars.resolveId(name)
-        if (TypeHelper.isPointer(theVar.theType)) {
-          AddressInfo(Address(theVar.value.asInstanceOf[Int]), theVar.theType)
-        } else {
-          theVar.value  
-        }
-      case AddressInfo(addy, theType) => context.readVal(addy.value, TypeHelper.resolve(theType))
-      case x => 
-        x
-    }
+    // resolve literals
+    
+    val op2 = resolveOperand(context)
+    val op1 = resolveOperand(context)
   
     val result: Any = binaryExpr.getOperator match {
       case `op_multiply` =>
