@@ -639,11 +639,14 @@ object Executor {
               case VarRef(id) => state.vars.resolveId(id).value.asInstanceOf[Int]
             }}
             
-            if (dimensions.isEmpty) {
-              
-              // something without dimensions must be getting initialized
-              val initializer = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
-              
+            val initializer = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
+            
+            // Oddly enough, it is possible to have a pointer to an array with no dimensions or initializer:
+            //    extern char *x[]
+            
+            if (dimensions.isEmpty && initializer != null) {             
+
+              println(arrayDecl.getParent.getRawSignature)
               if (TypeHelper.resolve(theType).getKind == eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
                 // char str[] = "Hello!\n";
                 val initString = state.stack.pop.asInstanceOf[Literal].cast.asInstanceOf[StringLiteral].str                
@@ -772,8 +775,10 @@ object Executor {
             Seq()
           }
         }
+      case ptr: IASTPointer =>
+        Seq()
       case param: IASTParameterDeclaration =>
-        if (direction == Exiting) {
+        if (direction == Exiting && !state.isPreprocessing) {
           val paramInfo = param.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
           
           if (!paramInfo.getType.isInstanceOf[IBasicType] || 
@@ -849,6 +854,7 @@ object Executor {
                 case `t_float`  => new CBasicType(IBasicType.Kind.eFloat, 0)
                 case `t_double` => new CBasicType(IBasicType.Kind.eDouble, 0)           
                 case `t_char`   => new CBasicType(IBasicType.Kind.eChar, 0)
+                case `t_void`   => new CBasicType(IBasicType.Kind.eVoid, 0)
               }
             case simple: CASTTypedefNameSpecifier =>
               println(simple.getName.resolveBinding().getClass.getSimpleName)

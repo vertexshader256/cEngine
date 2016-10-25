@@ -6,6 +6,48 @@ class StagingGround extends StandardTest {
 
 class PointerTest extends StandardTest {
   
+  "pointers of all types" should "print the correct results" in {
+    val code = """
+
+      void main() {
+        char a = 1;
+        short b = 1;
+        int c = 1;
+        long d = 1;
+        float e = 1.0;
+        double f = 1.0;
+        
+        char *a2;
+        short *b2;
+        int *c2;
+        long *d2;
+        float *e2;
+        double *f2;
+        
+        a2 = &a;
+        b2 = &b;
+        c2 = &c;
+        d2 = &d;
+        e2 = &e;
+        f2 = &f;
+        printf("%d %d %d %d %f %f\n", *a2, *b2, *c2, *d2, *e2, *f2);
+      }"""
+    
+    checkResults(code)
+  }
+  
+  "A pointer to a 2d array" should "print the correct results" in {
+    val code = """
+      extern char *x[];
+      
+      void main() {
+        
+        printf("%d\n", 5);
+      }"""
+    
+    checkResults(code)
+  }
+  
   "A simple pointer assignment" should "print the correct results" in {
     val code = """
       int x = 1;
