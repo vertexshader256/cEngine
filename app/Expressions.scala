@@ -51,8 +51,10 @@ object Expressions {
         val theType = context.stack.pop.asInstanceOf[IType]
         
         context.stack.push(context.stack.pop match {
+          case addy @ Address(_) => AddressInfo(addy, theType)
           case AddressInfo(address,_) => AddressInfo(address, theType)
           case VarRef(id) => AddressInfo(Address(stack.vars.resolveId(id).value.asInstanceOf[Int]), theType)
+          case lit @ Literal(str) => TypeHelper.coerece(TypeHelper.resolve(theType), lit.cast)
         })
 
         Seq()
@@ -265,7 +267,7 @@ object Expressions {
             context.stack.pop match {
               case VarRef(name) =>
                 context.stack.push(context.vars.resolveId(name).sizeof)
-              case AddressInfo(_,_) => context.stack.push(4)
+              case AddressInfo(_, theType) => context.stack.push(4)
               case char: Char => context.stack.push(1)
               case int: Int => context.stack.push(4)
               case short: Short => context.stack.push(2)
@@ -327,7 +329,7 @@ object Expressions {
       if (direction == Entering) {
         Seq(typeExpr.getTypeId)
       } else {
-        val theType = context.stack.pop.asInstanceOf[IBasicType]
+        val theType = context.stack.pop.asInstanceOf[IType]
         context.stack.push(TypeHelper.sizeof(theType))
         Seq()
       }

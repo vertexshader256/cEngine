@@ -38,6 +38,41 @@ class StructTest extends StandardTest {
     checkResults(code)
   }
   
+  "basic struct sizeof test" should "print the correct results" in {
+    val code = """
+      
+      struct Test {
+        int y;
+        int z;
+      };
+      
+      void main() {
+        printf("%d\n", sizeof(struct Test));
+      }"""
+
+    checkResults(code)
+  }
+  
+  "struct ptr assignment" should "print the correct results" in {
+    val code = """
+      
+      struct Test {
+        int y;
+        int z;
+      };
+      
+      void main() {
+        struct Test a = {1,2};
+        struct Test *x;
+        struct Test *y = &a;
+        struct Test *z = y;
+        x = y;
+        printf("%d %d %d %d\n", x->y, x->z, y->z, z->z);
+      }"""
+
+    checkResults(code)
+  }
+  
   "moderate struct test" should "print the correct results" in {
     val code = """
       

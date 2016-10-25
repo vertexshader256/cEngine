@@ -7,6 +7,7 @@ import scala.util.control.Exception.allCatch
 import java.util.Formatter;
 import java.util.Locale;
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
+import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
 
 object BinaryExpr {
   
@@ -35,7 +36,11 @@ object BinaryExpr {
       case float: Float => float 
     }
     
-    val theVal = stack.readVal(dst.address.value, TypeHelper.resolve(dst.theType))
+    val theVal = if (TypeHelper.isPointer(dst.theType)) {
+      stack.readVal(dst.address.value, new CBasicType(IBasicType.Kind.eInt, 0))
+    } else {
+      stack.readVal(dst.address.value, TypeHelper.resolve(dst.theType))
+    }
     
     op match {
       case `op_plusAssign` =>
@@ -296,6 +301,7 @@ object BinaryExpr {
         }
       case `op_notequals` =>
         (op1, op2) match {
+          case (AddressInfo(addy, theType), y: Int) => addy.value != y
           case (x: Int, y: Int) => x != y
           case (x: Double, y: Int) => x != y
           case (x: Int, y: Double) => x != y

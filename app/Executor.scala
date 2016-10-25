@@ -293,6 +293,7 @@ object TypeHelper {
         case `eDouble`              => 8
         case `eChar`                => 1
         case `eChar32`              => 4
+        case `eVoid`                => 4
       }
   }
   
@@ -859,6 +860,8 @@ object Executor {
             case simple: CASTTypedefNameSpecifier =>
               println(simple.getName.resolveBinding().getClass.getSimpleName)
               null
+            case elab: CASTElaboratedTypeSpecifier =>
+              elab.getName.resolveBinding().asInstanceOf[CStructure]
           }
 
           state.stack.push(result)

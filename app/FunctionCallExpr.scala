@@ -104,6 +104,9 @@ object FunctionCallExpr {
         } else if (name == "calloc") {
           state.stack.push(state.allocateSpace(formattedOutputParams.head.asInstanceOf[Int]))
           Seq()
+        } else if (name == "malloc") {
+          state.stack.push(state.allocateSpace(formattedOutputParams.head.asInstanceOf[Int]))
+          Seq()
         } else if (name == "free") {
           // TODO
           Seq()
