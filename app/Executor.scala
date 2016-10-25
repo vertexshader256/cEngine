@@ -353,7 +353,7 @@ protected class ArrayVariable(val state: State, val theType: IType, dimensions: 
 
   state.setValue(theArrayAddress.value, AddressInfo(info.address, new CBasicType(IBasicType.Kind.eInt, 0)))
   
-  val resolved = TypeHelper.resolve(theType)
+  def resolved = TypeHelper.resolve(theType)
 
   def sizeof: Int = {
     TypeHelper.sizeof(theType) * numElements
@@ -700,7 +700,7 @@ object Executor {
                 }
 
                 initVal match {  
-                  case Literal(str) => 
+                  case Literal(str) if !ptr.getType.isInstanceOf[CStructure] && TypeHelper.resolve(ptr.getType).getKind == `eChar` => 
                     // char *str = "hello world!";
                     
                     val initString = initVal.asInstanceOf[Literal].cast match {
@@ -710,9 +710,21 @@ object Executor {
                     
                     createStringVariable(state, name, theType, initString)
                   case _ =>
-                    val resolved = TypeHelper.resolve(state, theType, initVal)
+                    
                     val newVar = new Variable(state, theType)
-                    state.setValue(resolved, newVar.info)
+                    if (!ptr.getType.isInstanceOf[CStructure]) {
+                      val resolved = TypeHelper.resolve(state, theType, initVal)
+                      state.setValue(resolved, newVar.info)
+                    } else {
+                      initVal match {
+                        case lit @ Literal(_) => lit.cast
+                        case VarRef(id) => state.vars.resolveId(id).value
+                        case AddressInfo(address, theType) => state.setValue(address.value, newVar.info)
+                        case int: Int => state.setValue(int, newVar.info)
+                      }
+                      
+                      
+                    }
                     state.vars.addVariable(name, newVar)
                     newVar 
                 }

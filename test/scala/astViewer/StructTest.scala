@@ -116,9 +116,12 @@ class StructTest extends StandardTest {
         int y;
       };
       
+      struct Test *head = 0;
+      
       void main() {
         struct Test x;
-        struct Test *y = &x;
+        struct Test *y = head;
+        y = &x;
         y->y = 465;
         printf("%d %d\n", x.y, y->y);
       }"""
