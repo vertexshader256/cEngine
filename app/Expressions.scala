@@ -83,7 +83,9 @@ object Expressions {
             theType match {
               case typedef: CTypedef => typedef.getType.asInstanceOf[CStructure]
               case struct: CStructure => struct
-              case ptr: IPointerType => ptr.getType.asInstanceOf[CStructure]
+              case ptr: IPointerType => 
+                baseAddr = Address(context.readVal(addr.value, new CBasicType(IBasicType.Kind.eInt , 0)).asInstanceOf[Int])
+                ptr.getType.asInstanceOf[CStructure]
             }
         }    
         
