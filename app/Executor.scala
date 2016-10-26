@@ -718,7 +718,11 @@ object Executor {
                     } else {
                       initVal match {
                         case lit @ Literal(_) => lit.cast
-                        case VarRef(id) => state.vars.resolveId(id).value
+                        case VarRef(id) => 
+                          
+                          val variable = state.vars.resolveId(id)
+                          println(variable.value)
+                          state.setValue(variable.value, newVar.info)
                         case AddressInfo(address, theType) => state.setValue(address.value, newVar.info)
                         case int: Int => state.setValue(int, newVar.info)
                       }
