@@ -1,7 +1,46 @@
 package scala.astViewer
 
 class StructTestStaging extends StandardTest {
-   "struct initializer" should "print the correct results" in {
+  "binary expressions on field value" should "print the correct results" in {
+    val code = """
+      
+      struct Test {
+        int y;
+        int z;
+      };
+      
+      void main() {
+        struct Test a = {1,2};
+        printf("%d\n", a.y == 1);
+      }"""
+
+    checkResults(code)
+  } 
+}
+
+class StructTest extends StandardTest {
+  
+  "struct ptr assignment" should "print the correct results" in {
+    val code = """
+      
+      struct Test {
+        int y;
+        int z;
+      };
+      
+      void main() {
+        struct Test a = {1,2};
+        struct Test *x;
+        struct Test *y = &a;
+        struct Test *z = y;
+        x = y;
+        printf("%d %d %d %d\n", x->y, x->z, y->z, z->z);
+      }"""
+
+    checkResults(code)
+  } 
+  
+  "struct initializer" should "print the correct results" in {
     val code = """
       
       struct Test {
@@ -17,9 +56,7 @@ class StructTestStaging extends StandardTest {
 
     checkResults(code)
   }
-}
-
-class StructTest extends StandardTest {
+  
   "basic struct test" should "print the correct results" in {
     val code = """
       
@@ -53,21 +90,23 @@ class StructTest extends StandardTest {
     checkResults(code)
   }
   
-  "struct ptr assignment" should "print the correct results" in {
+  
+  
+  "setting a structure pointer equal to a pointer" should "print the correct results" in {
     val code = """
       
       struct Test {
         int y;
-        int z;
+        int x;
+        struct Test *next;
       };
       
+      struct Test *head = 0;
+      
       void main() {
-        struct Test a = {1,2};
-        struct Test *x;
-        struct Test *y = &a;
-        struct Test *z = y;
-        x = y;
-        printf("%d %d %d %d\n", x->y, x->z, y->z, z->z);
+        struct Test x = {0,0,0};
+        head = x.next;
+        printf("%d\n", head);
       }"""
 
     checkResults(code)
@@ -131,7 +170,4 @@ class StructTest extends StandardTest {
 
     checkResults(code)
   }
-  
- 
-  
 }

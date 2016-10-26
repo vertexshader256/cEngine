@@ -8,6 +8,7 @@ import java.util.Formatter;
 import java.util.Locale;
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
+import org.eclipse.cdt.internal.core.dom.parser.c.CStructure
 
 object BinaryExpr {
   
@@ -20,12 +21,22 @@ object BinaryExpr {
       case info @ AddressInfo(_, _) => info
     }
 
-    val resolvedop2 = resolveOperand(op2, context) match {
+    val resolvedop2 = op2 match {
+      case lit @ Literal(_) => lit.cast
+      case VarRef(name)  =>      
+        val theVar = context.vars.resolveId(name)
+        if (TypeHelper.isPointer(theVar.theType)) {
+          stack.readVal(theVar.address.value, new CBasicType(IBasicType.Kind.eInt, 0))
+        } else {
+          theVar.value  
+        }
       case AddressInfo(addy, theType) => 
         val address = addy.value
         if (!TypeHelper.isPointer(dst.theType)) {
           // only if op1 is NOT a pointer, resolve op2
           stack.readVal(address, TypeHelper.resolve(dst.theType))
+        } else if (TypeHelper.isPointer(theType) && !Utils.isNestedPointer(dst.theType)) {
+          stack.readVal(address, new CBasicType(IBasicType.Kind.eInt, 0))
         } else {
           address
         }
@@ -294,6 +305,7 @@ object BinaryExpr {
       case `op_equals` =>
         (op1, op2) match {
           case (AddressInfo(addy, theType), AddressInfo(addy2, theType2)) => addy.value == addy2.value
+          case (AddressInfo(addy, theType), y: Int) => context.readVal(addy.value, TypeHelper.resolve(theType)) == y
           case (x: Int, y: Int) => x == y
           case (x: Double, y: Int) => x == y
           case (x: Int, y: Double) => x == y
@@ -301,7 +313,7 @@ object BinaryExpr {
         }
       case `op_notequals` =>
         (op1, op2) match {
-          case (AddressInfo(addy, theType), y: Int) => addy.value != y
+          case (AddressInfo(addy, theType), y: Int) => context.readVal(addy.value, TypeHelper.resolve(theType)) != y
           case (x: Int, y: Int) => x != y
           case (x: Double, y: Int) => x != y
           case (x: Int, y: Double) => x != y

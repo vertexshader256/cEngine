@@ -58,6 +58,10 @@ object Utils {
     !starParent.isEmpty
   }
   
+  def isNestedPointer(theType: IType) = {
+    theType.isInstanceOf[IPointerType] && theType.asInstanceOf[IPointerType].getType.isInstanceOf[IPointerType]
+  }
+  
   def isOnLeftSideOfAssignment(node: IASTNode) = {
     val assignmentParent = Utils.getAncestors(node).collect{ case x: IASTBinaryExpression => x}.filter(x => isAssignment(x.getOperator)).headOption
     assignmentParent.map { parent =>

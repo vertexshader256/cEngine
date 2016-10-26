@@ -264,6 +264,7 @@ object TypeHelper {
   }
 
   def resolve(theType: IType): IBasicType = theType match {
+    case struct: CStructure       => new CBasicType(IBasicType.Kind.eInt, 0)
     case basicType: IBasicType    => basicType
     case typedef: ITypedef        => resolve(typedef.getType)
     case ptrType: IPointerType    => resolve(ptrType.getType)
@@ -566,12 +567,17 @@ object Executor {
             case lit @ Literal(_) => lit.cast
             case VarRef(id)       => 
               if (state.vars.returnType != null) {
-                TypeHelper.coerece(TypeHelper.resolve(state.vars.returnType), state.vars.resolveId(id).value)
+                if (TypeHelper.isPointer(state.vars.returnType)) {
+                  state.vars.resolveId(id).value.asInstanceOf[Int]
+                } else {
+                  TypeHelper.coerece(TypeHelper.resolve(state.vars.returnType), state.vars.resolveId(id).value)
+                }
               } else {
                 state.vars.resolveId(id).value
               }
             case int: Int         => int
             case doub: Double     => doub
+            case bool: Boolean    => bool
           })
         }
         state.isReturning = true

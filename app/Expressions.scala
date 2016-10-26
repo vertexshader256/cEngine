@@ -69,6 +69,7 @@ object Expressions {
           case VarRef(name) => 
             val struct = context.vars.resolveId(name)
             baseAddr = if (TypeHelper.isPointer(struct.theType)) {
+
               Address(struct.value.asInstanceOf[Int])
             } else {
               struct.address
@@ -100,6 +101,7 @@ object Expressions {
           }
         }
 
+        println(resultAddress)
         context.stack.push(resultAddress)        
         Seq()
       }
@@ -193,6 +195,7 @@ object Expressions {
                 case int: Int => context.stack.push(if (int == 0) 1 else 0)
               }
             case int: Int => context.stack.push(if (int == 0) 1 else 0)
+            case bool: Boolean => context.stack.push(!bool)
           }
           case `op_minus` =>
 
