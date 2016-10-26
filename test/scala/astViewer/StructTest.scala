@@ -114,6 +114,8 @@ class StructTest extends StandardTest {
       
       struct Test {
         int y;
+        int x;
+        struct Test *next;
       };
       
       struct Test *head = 0;
@@ -122,8 +124,9 @@ class StructTest extends StandardTest {
         struct Test x;
         struct Test *y = head;
         y = &x;
+        y->next = head;
         y->y = 465;
-        printf("%d %d\n", x.y, y->y);
+        printf("%d %d %d\n", x.y, y->y, y->next);
       }"""
 
     checkResults(code)

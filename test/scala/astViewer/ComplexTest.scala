@@ -20,15 +20,15 @@ class LinkedListTest extends StandardTest {
         //display the list
         void printList() {
            struct node *ptr = head;
-           printf("\n[ ");
-        	
+           
+           printf("%d\n", head->next);
+
            //start from the beginning
-           while(ptr != NULL) {
-              printf("(%d,%d) ",ptr->key,ptr->data);
-              ptr = ptr->next;
-           }
+           //while(ptr != NULL) {
+           //   printf("(%d,%d) ",ptr->key,ptr->data);
+           //   ptr = ptr->next;
+           //}
         	
-           printf(" ]");
         }
         
         //insert link at the first location
@@ -189,16 +189,17 @@ class LinkedListTest extends StandardTest {
         
         void main() {
            insertFirst(1,10);
+           
+           printf("%d\n", head->next);
+           
            insertFirst(2,20);
            insertFirst(3,30);
            insertFirst(4,1);
            insertFirst(5,40);
            insertFirst(6,56); 
-        
-           printf("Original List: "); 
-        	
+
            //print list
-           printList();
+//           printList();
         
 //           while(!isEmpty()) {            
 //              struct node *temp = deleteFirst();

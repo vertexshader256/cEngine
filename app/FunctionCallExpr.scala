@@ -10,6 +10,7 @@ import java.util.Formatter;
 import java.util.Locale;
 import Functions._
 import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
+import org.eclipse.cdt.internal.core.dom.parser.c.CStructure
 
 object FunctionCallExpr {
   def parse(call: IASTFunctionCallExpression, direction: Direction, state: State, stack: State): Seq[IASTNode] = {
@@ -31,8 +32,12 @@ object FunctionCallExpr {
                 state.readVal(theVar.address.value, TypeHelper.resolve(theVar.theType))
               } 
             case info @ AddressInfo(address, theType) => 
-              if (TypeHelper.isPointer(theType)) {  
-                address.value
+              if (TypeHelper.isPointer(theType)) {   
+                if (theType.isInstanceOf[IPointerType] && theType.asInstanceOf[IPointerType].getType.isInstanceOf[CStructure]) {
+                  state.readVal(address.value, new CBasicType(IBasicType.Kind.eInt, 0))
+                } else {
+                  address.value
+                }
               } else { 
                 if (arg.isInstanceOf[IASTUnaryExpression] && arg.asInstanceOf[IASTUnaryExpression].getOperator == 5) {
                   address.value
