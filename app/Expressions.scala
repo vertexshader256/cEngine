@@ -83,7 +83,7 @@ object Expressions {
             theType match {
               case typedef: CTypedef => typedef.getType.asInstanceOf[CStructure]
               case struct: CStructure => struct
-              //case basic: IBasicType => println(basic); null
+              case ptr: IPointerType => ptr.getType.asInstanceOf[CStructure]
             }
         }    
         

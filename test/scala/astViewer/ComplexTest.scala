@@ -197,6 +197,10 @@ class LinkedListTest extends StandardTest {
            insertFirst(4,1);
            insertFirst(5,40);
            insertFirst(6,56); 
+           
+           printf("%d\n", head->key);
+ //          printf("%d\n", head->next->key);
+ //          printf("%d\n", head->next->next->key);
 
            //print list
 //           printList();
