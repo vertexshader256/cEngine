@@ -95,9 +95,6 @@ object Expressions {
               theType match {
                 case typedef: CTypedef => typedef.getType.asInstanceOf[CStructure]
                 case struct: CStructure => struct
-//                case ptr: IPointerType => 
-//                  baseAddr = Address(context.readVal(addr.value, new CBasicType(IBasicType.Kind.eInt , 0)).asInstanceOf[Int])
-//                  ptr.getType.asInstanceOf[CStructure]
               }
           }
         }
@@ -302,21 +299,22 @@ object Expressions {
             context.stack.pop match {
               case VarRef(varName) =>       
                 val ptr = context.vars.resolveId(varName)
+                val ptrType = ptr.theType.asInstanceOf[IPointerType]
                 context.stack.push(
                   if (Utils.isOnLeftSideOfAssignment(unary) || Utils.isNestedPointer(ptr.theType) || (unary.getParent.isInstanceOf[IASTUnaryExpression] &&
                       unary.getParent.asInstanceOf[IASTUnaryExpression].getOperator == op_bracketedPrimary) ) { // (k*)++
-                    AddressInfo(Address(ptr.value.asInstanceOf[Int]), TypeHelper.resolve(ptr.theType))
+                    AddressInfo(Address(ptr.value.asInstanceOf[Int]), ptrType.getType)
                   } else {
                     stack.readVal(ptr.value.asInstanceOf[Int], TypeHelper.resolve(ptr.theType))
                   }
                 )
               case address @ AddressInfo(addr, theType) =>
-                    
+                
                 unary.getChildren.head match {
                   case unary: IASTUnaryExpression if unary.getOperator == op_star => 
                     // nested pointers
-
-                    val refAddressInfo = AddressInfo(Address(stack.readVal(addr.value, TypeHelper.resolve(theType)).asInstanceOf[Int]), theType)
+                      val ptrType = theType.asInstanceOf[IPointerType]
+                    val refAddressInfo = AddressInfo(Address(stack.readVal(addr.value, TypeHelper.resolve(theType)).asInstanceOf[Int]), ptrType.getType)
                     context.stack.push(refAddressInfo)
                   case _ => 
                     context.stack.push(stack.readVal(addr.value, TypeHelper.resolve(theType)))
