@@ -65,30 +65,42 @@ object Expressions {
       } else {
         
         var baseAddr: Address = Address(-1)
-        val structType = context.stack.pop match {
-          case VarRef(name) => 
-            val struct = context.vars.resolveId(name)
-            baseAddr = if (TypeHelper.isPointer(struct.theType)) {
-
-              Address(struct.value.asInstanceOf[Int])
-            } else {
-              struct.address
-            }
-            if (struct.theType.isInstanceOf[CStructure]) {
-              struct.theType.asInstanceOf[CStructure]
-            } else {
+        
+        val owner = context.stack.pop
+        
+        val structType = if (fieldRef.isPointerDereference) {
+          owner match {
+            case VarRef(name) => 
+              val struct = context.vars.resolveId(name)
+              baseAddr = Address(struct.value.asInstanceOf[Int])
               struct.theType.asInstanceOf[IPointerType].getType.asInstanceOf[CStructure]
-            }  
-          case AddressInfo(addr, theType) => 
-            baseAddr = addr
-            theType match {
-              case typedef: CTypedef => typedef.getType.asInstanceOf[CStructure]
-              case struct: CStructure => struct
-              case ptr: IPointerType => 
-                baseAddr = Address(context.readVal(addr.value, new CBasicType(IBasicType.Kind.eInt , 0)).asInstanceOf[Int])
-                ptr.getType.asInstanceOf[CStructure]
-            }
-        }    
+            case AddressInfo(addr, theType) => 
+              baseAddr = addr
+              theType match {
+                case typedef: CTypedef => typedef.getType.asInstanceOf[CStructure]
+                case struct: CStructure => struct
+                case ptr: IPointerType => 
+                  baseAddr = Address(context.readVal(addr.value, new CBasicType(IBasicType.Kind.eInt , 0)).asInstanceOf[Int])
+                  ptr.getType.asInstanceOf[CStructure]
+              }
+          }
+        } else {
+          owner match {
+            case VarRef(name) => 
+              val struct = context.vars.resolveId(name)
+              baseAddr = struct.address
+              struct.theType.asInstanceOf[CStructure]
+            case AddressInfo(addr, theType) => 
+              baseAddr = addr
+              theType match {
+                case typedef: CTypedef => typedef.getType.asInstanceOf[CStructure]
+                case struct: CStructure => struct
+//                case ptr: IPointerType => 
+//                  baseAddr = Address(context.readVal(addr.value, new CBasicType(IBasicType.Kind.eInt , 0)).asInstanceOf[Int])
+//                  ptr.getType.asInstanceOf[CStructure]
+              }
+          }
+        }
         
         var offset = 0
         var resultAddress: AddressInfo = null
