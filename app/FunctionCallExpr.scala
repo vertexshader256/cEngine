@@ -31,13 +31,12 @@ object FunctionCallExpr {
               } else {
                 state.readVal(theVar.address.value, TypeHelper.resolve(theVar.theType))
               } 
-            case info @ AddressInfo(address, theType) => 
+              
+            case Address(address) =>
+              address
+            case info @ AddressInfo(address, theType) =>
               if (TypeHelper.isPointer(theType)) {   
-                if (theType.isInstanceOf[IPointerType] && theType.asInstanceOf[IPointerType].getType.isInstanceOf[CStructure]) {
-                  state.readVal(address.value, new CBasicType(IBasicType.Kind.eInt, 0))
-                } else {
-                  address.value
-                }
+                state.readVal(address.value, new CBasicType(IBasicType.Kind.eInt, 0))
               } else { 
                 if (arg.isInstanceOf[IASTUnaryExpression] && arg.asInstanceOf[IASTUnaryExpression].getOperator == 5) {
                   address.value

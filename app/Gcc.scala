@@ -76,8 +76,8 @@ object Gcc {
       
       var i = 0
       while (!File(exeFile.path.toString).exists && i < 1000) {
-          Thread.sleep(10)
-          i += 10
+          Thread.sleep(50)
+          i += 50
       }
 
       val runner = Process(Seq(exeFile.path.toString), File("").toJava)

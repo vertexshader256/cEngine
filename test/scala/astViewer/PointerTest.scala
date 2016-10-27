@@ -36,6 +36,32 @@ class PointerTest extends StandardTest {
     checkResults(code)
   }
   
+  "a double pointer being dereferenced" should "print the correct results" in {
+   val code = """
+     
+     struct Test {
+        int y;
+        int z;
+      };
+     
+     struct Test *head = 0;
+     struct Test base = {483,2342};
+     
+     void test(struct Test **intPtr) {
+       printf("%d %d\n", (*intPtr)->y, (*intPtr)->z);
+       *intPtr = &base;
+     }
+     
+     void main() {
+       struct Test x = {24,54};
+       head = &x;
+       test(&head);
+       //printf("%d %d\n", head->y, head->z);
+     }  
+  """
+   checkResults(code)
+  }
+  
   "A pointer to a 2d array" should "print the correct results" in {
     val code = """
       extern char *x[];

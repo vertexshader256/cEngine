@@ -262,6 +262,7 @@ object TypeHelper {
         state.vars.resolveId(name).value
       case lit @ Literal(_) => lit.typeCast(TypeHelper.resolve(theType))
       case AddressInfo(addy, _) => addy.value
+      case Address(addy) => addy
       case int: Int => int
       case float: Float => float
       case double: Double => double
@@ -660,8 +661,6 @@ object Executor {
             //    extern char *x[]
             
             if (dimensions.isEmpty && initializer != null) {             
-
-              println(arrayDecl.getParent.getRawSignature)
               if (TypeHelper.resolve(theType).getKind == eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
                 // char str[] = "Hello!\n";
                 val initString = state.stack.pop.asInstanceOf[Literal].cast.asInstanceOf[StringLiteral].str                
@@ -724,7 +723,6 @@ object Executor {
                     
                     createStringVariable(state, name, theType, initString)
                   case _ =>
-                    
                     val newVar = new Variable(state, theType)
                     if (!ptr.getType.isInstanceOf[CStructure]) {
                       val resolved = TypeHelper.resolve(state, theType, initVal)
@@ -733,11 +731,15 @@ object Executor {
                       initVal match {
                         case lit @ Literal(_) => lit.cast
                         case VarRef(id) => 
-                          
                           val variable = state.vars.resolveId(id)
-                          println(variable.value)
                           state.setValue(variable.value, newVar.info)
-                        case AddressInfo(address, theType) => state.setValue(address.value, newVar.info)
+                        case AddressInfo(address, theType) => 
+                          if (TypeHelper.isPointer(theType)) {
+                            state.setValue(state.readVal(address.value, TypeHelper.resolve(theType)), newVar.info)
+                          } else {
+                            state.setValue(address.value, newVar.info)
+                          }
+                        case Address(addy) => addy
                         case int: Int => state.setValue(int, newVar.info)
                       }
                       
@@ -775,7 +777,7 @@ object Executor {
 
               var offset = 0
               values.foreach { case (value, field) =>
-                state.setValue(value, AddressInfo(newVar.address + offset, theType))
+                state.setValue(value, AddressInfo(newVar.address + offset, field.getType))
                 offset += TypeHelper.sizeof(field.getType)
               }
             }
@@ -802,7 +804,6 @@ object Executor {
           if (array.getConstantExpression != null) {
             Seq(array.getConstantExpression)
           } else {
-            // e.g char str[] = "test"
             Seq()
           }
         }
@@ -894,7 +895,6 @@ object Executor {
                 case `t_void`   => new CBasicType(IBasicType.Kind.eVoid, 0)
               }
             case simple: CASTTypedefNameSpecifier =>
-              println(simple.getName.resolveBinding().getClass.getSimpleName)
               null
             case elab: CASTElaboratedTypeSpecifier =>
               elab.getName.resolveBinding().asInstanceOf[CStructure]

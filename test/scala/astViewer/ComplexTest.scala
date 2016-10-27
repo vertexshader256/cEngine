@@ -172,9 +172,7 @@ class LinkedListTest extends StandardTest {
            struct node* prev   = NULL;
            struct node* current = *head_ref;
            struct node* next;
-           
-           printf("%d\n", head->key);
-           
+
            while (current != NULL) {
               next  = current->next;
               current->next = prev;   
@@ -183,27 +181,17 @@ class LinkedListTest extends StandardTest {
            }
         	
            *head_ref = prev;
-           printf("%d\n", (*head_ref)->key);
-           printf("%d\n", head->key);
-           
         }
         
         void main() {
            insertFirst(1,10);
-           
-           printf("%d\n", head->next);
-           
+
            insertFirst(2,20);
            insertFirst(3,30);
            insertFirst(4,1);
            insertFirst(5,40);
            insertFirst(6,56); 
-           
-           printf("%d\n", head->key);
-           printf("%d\n", head->next->key);
-           printf("%d\n", head->next->next->key);
 
-           //print list
            printList();
         
            while(!isEmpty()) {            

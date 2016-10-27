@@ -1,6 +1,50 @@
 package scala.astViewer
 
 class StructTestStaging extends StandardTest {
+}
+
+class StructTest extends StandardTest {
+  
+  "initializer list populating a pointer" should "print the correct results" in {
+    val code = """
+      
+      struct Test {
+        int y;
+        int x;
+        struct Test *next;
+      };
+
+      void main() {
+        struct Test x = {343, 543, 0};
+        printf("%d %d %d\n", x.y, x.y, x.next);
+      }"""
+
+    checkResults(code)
+  }
+  
+  "pointer to struct" should "print the correct results" in {
+    val code = """
+      
+      struct Test {
+        int y;
+        int x;
+        struct Test *next;
+      };
+      
+      struct Test *head = 0;
+      
+      void main() {
+        struct Test x = {343, 543, 0};
+        struct Test *y = head;
+        y = &x;
+        y->next = head;
+        y->y = 465;
+        printf("%d %d %d\n", x.y, y->y, y->next);
+      }"""
+
+    checkResults(code)
+  }
+  
   "binary expressions on field value" should "print the correct results" in {
     val code = """
       
@@ -16,9 +60,6 @@ class StructTestStaging extends StandardTest {
 
     checkResults(code)
   } 
-}
-
-class StructTest extends StandardTest {
   
   "struct ptr assignment" should "print the correct results" in {
     val code = """
@@ -148,26 +189,5 @@ class StructTest extends StandardTest {
     checkResults(code)
   }
   
-  "pointer to struct" should "print the correct results" in {
-    val code = """
-      
-      struct Test {
-        int y;
-        int x;
-        struct Test *next;
-      };
-      
-      struct Test *head = 0;
-      
-      void main() {
-        struct Test x;
-        struct Test *y = head;
-        y = &x;
-        y->next = head;
-        y->y = 465;
-        printf("%d %d %d\n", x.y, y->y, y->next);
-      }"""
-
-    checkResults(code)
-  }
+  
 }
