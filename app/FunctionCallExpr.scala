@@ -38,11 +38,7 @@ object FunctionCallExpr {
               if (TypeHelper.isPointer(theType)) {   
                 state.readVal(address.value, new CBasicType(IBasicType.Kind.eInt, 0))
               } else { 
-                if (arg.isInstanceOf[IASTUnaryExpression] && arg.asInstanceOf[IASTUnaryExpression].getOperator == 5) {
-                  address.value
-                } else {
-                  state.readVal(address.value, TypeHelper.resolve(theType))
-                }
+                state.readVal(address.value, TypeHelper.resolve(theType))
               }
             case bool: Boolean => if (bool) 1 else 0
             case int: Int => int
