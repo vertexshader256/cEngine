@@ -230,18 +230,18 @@ class LinkedListTest extends StandardTest {
 
            printList();
            foundLink = find(4);
+        	
+           if(foundLink != NULL) {
+              printf("(%d,%d)\n",foundLink->key,foundLink->data);
+           } else {
+              printf("Element not found.\n");
+           }
+        	
+           sort();
+        	
+           printList();
 //        	
-//           if(foundLink != NULL) {
-//              printf("(%d,%d)\n",foundLink->key,foundLink->data);
-//           } else {
-//              printf("Element not found.\n");
-//           }
-        	
-           //sort();
-        	
-           //printList();
-        	
-           //reverse(&head);
+//           reverse(&head);
 
            printList();
         }
