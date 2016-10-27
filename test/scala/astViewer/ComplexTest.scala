@@ -176,7 +176,7 @@ class LinkedListTest extends StandardTest {
            while (current != NULL) {
               next  = current->next;
               current->next = prev;   
-              prev = current;
+              //prev = current;
               current = next;
            }
         	

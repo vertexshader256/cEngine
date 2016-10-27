@@ -25,11 +25,7 @@ object BinaryExpr {
       case lit @ Literal(_) => lit.cast
       case VarRef(name)  =>      
         val theVar = context.vars.resolveId(name)
-        if (TypeHelper.isPointer(theVar.theType)) {
-          stack.readVal(theVar.address.value, new CBasicType(IBasicType.Kind.eInt, 0))
-        } else {
-          theVar.value  
-        }
+        theVar.value
       case AddressInfo(addy, theType) => 
         val address = addy.value
         if (!TypeHelper.isPointer(dst.theType)) {
