@@ -65,7 +65,7 @@ case class Literal(litStr: String) {
 }
 
 class State {
-  val stack = new Stack[Any]()
+  
   val executionContext = new Stack[FunctionExecutionContext]()
   val globals = Map[String, RuntimeVariable]()
   var vars: FunctionExecutionContext = null
@@ -77,12 +77,19 @@ class State {
   var isBreaking = false
   var isContinuing = false
   var isPreprocessing = true
+  
+  def stack = {
+    vars.stack
+  }
 
-  def callFunction(call: IASTFunctionCallExpression) = {
+  def callFunction(call: IASTFunctionCallExpression, args: Seq[Any]) = {
     executionContext.push(vars)
 
     vars = new FunctionExecutionContext(globals, call.getExpressionType)
     vars.pathStack.push(call)
+    
+        // load up the stack with the parameters
+    args.reverse.foreach { arg => vars.stack.push(arg)}
 
     val name = call.getFunctionNameExpression match {
       case x: IASTIdExpression => x.getName.getRawSignature
@@ -392,6 +399,7 @@ class FunctionExecutionContext(globals: Map[String, RuntimeVariable], val return
   val visited = new ListBuffer[IASTNode]()
   val varMap = Map[String, RuntimeVariable]() ++ globals
   val pathStack = new Stack[IASTNode]()
+  val stack = new Stack[Any]()
 
   def resolveId(id: String) = varMap(id)
   def addVariable(id: String, theVar: RuntimeVariable) = varMap += (id -> theVar) 
@@ -845,7 +853,13 @@ object Executor {
           state.functionMap += (fcnDef.getDeclarator.getName.getRawSignature -> fcnDef)
           Seq()
         } else if (direction == Exiting) {
-          state.vars = state.executionContext.pop
+          if (!state.vars.stack.isEmpty) {
+            val retVal = state.vars.stack.head
+            state.vars = state.executionContext.pop
+            state.vars.stack.push(retVal)
+          } else {
+            state.vars = state.executionContext.pop
+          }
           Seq()
         } else {
           Seq(fcnDef.getDeclarator, fcnDef.getBody)

@@ -116,9 +116,7 @@ object FunctionCallExpr {
           // TODO
           Seq()
         } else {
-          // load up the stack with the parameters
-          formattedOutputParams.reverse.foreach { arg => state.stack.push(arg)}
-          state.callFunction(call)
+          state.callFunction(call, formattedOutputParams)
         }
 
       } else {
