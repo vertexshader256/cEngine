@@ -3,8 +3,6 @@ package scala.astViewer
 class LinkedListTest extends StandardTest {
   "Linked list test" should "print the correct results" in {
     val code = """
-      //  #include <stdio.h>
-      //  #include <string.h>
         #include <stdlib.h>
         #include <stdbool.h>
         
@@ -174,7 +172,7 @@ class LinkedListTest extends StandardTest {
            struct node* prev   = NULL;
            struct node* current = *head_ref;
            struct node* next;
-        	
+           
            while (current != NULL) {
               next  = current->next;
               current->next = prev;   
@@ -240,8 +238,8 @@ class LinkedListTest extends StandardTest {
            sort();
         	
            printList();
-//        	
-//           reverse(&head);
+        	
+           reverse(&head);
 
            printList();
         }

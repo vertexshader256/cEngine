@@ -225,4 +225,19 @@ class ComplexFunctionTest extends StandardTest {
 
     checkResults(code)
   }
+  
+  "a function with double pointers as arguments" should "print the correct results" in {
+    val code = """
+      int func(int **x) {
+        (**x)++;
+      }
+      void main() {
+        int a = 0;
+        int *a2 = &a;
+        func(&a2);
+        printf("%d\n", a);
+      }"""
+
+    checkResults(code)
+  }
 }

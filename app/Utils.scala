@@ -52,12 +52,7 @@ object Utils {
       op == op_divideAssign ||
       op == op_shiftRightAssign
     }
-  
-  def isNestedPointer(node: IASTNode) = {
-    val starParent = Utils.getAncestors(node).collect{ case x: IASTUnaryExpression => x}.filter(x => x.getOperator == IASTUnaryExpression.op_star)
-    !starParent.isEmpty
-  }
-  
+
   def isNestedPointer(theType: IType) = {
     theType.isInstanceOf[IPointerType] && theType.asInstanceOf[IPointerType].getType.isInstanceOf[IPointerType]
   }

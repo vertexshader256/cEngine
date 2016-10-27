@@ -290,9 +290,8 @@ object Expressions {
             context.stack.pop match {
               case VarRef(varName) =>       
                 val ptr = context.vars.resolveId(varName)
-
                 context.stack.push(
-                  if (Utils.isOnLeftSideOfAssignment(unary) || Utils.isNestedPointer(unary) || (unary.getParent.isInstanceOf[IASTUnaryExpression] &&
+                  if (Utils.isOnLeftSideOfAssignment(unary) || Utils.isNestedPointer(ptr.theType) || (unary.getParent.isInstanceOf[IASTUnaryExpression] &&
                       unary.getParent.asInstanceOf[IASTUnaryExpression].getOperator == op_bracketedPrimary) ) { // (k*)++
                     AddressInfo(Address(ptr.value.asInstanceOf[Int]), TypeHelper.resolve(ptr.theType))
                   } else {
@@ -300,10 +299,11 @@ object Expressions {
                   }
                 )
               case address @ AddressInfo(addr, theType) =>
-
+                    
                 unary.getChildren.head match {
                   case unary: IASTUnaryExpression if unary.getOperator == op_star => 
                     // nested pointers
+
                     val refAddressInfo = AddressInfo(Address(stack.readVal(addr.value, TypeHelper.resolve(theType)).asInstanceOf[Int]), theType)
                     context.stack.push(refAddressInfo)
                   case _ => 
