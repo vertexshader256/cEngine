@@ -28,8 +28,6 @@ case class Literal(litStr: String) {
     
     val pre: String = if (litStr.endsWith("L")) {
       litStr.take(litStr.size - 1).mkString
-    } else if (litStr.endsWith("UL")) {
-      litStr.take(litStr.size - 2).mkString
     } else {
       litStr
     }
@@ -354,7 +352,6 @@ object Executor {
         Seq(doWhileLoop.getBody, doWhileLoop.getCondition)
       } else {
         val shouldLoop = state.stack.pop match {
-          case x: Int     => x == 1
           case x: Boolean => x
         }
 
@@ -455,14 +452,10 @@ object Executor {
             case lit @ Literal(_) if state.vars.returnType != null => lit.typeCast(TypeHelper.resolve(state.vars.returnType))
             case lit @ Literal(_) => lit.cast
             case VarRef(id)       => 
-              if (state.vars.returnType != null) {
-                if (TypeHelper.isPointer(state.vars.returnType)) {
-                  state.vars.resolveId(id).value.asInstanceOf[Int]
-                } else {
-                  TypeHelper.coerece(TypeHelper.resolve(state.vars.returnType), state.vars.resolveId(id).value)
-                }
+              if (TypeHelper.isPointer(state.vars.returnType)) {
+                state.vars.resolveId(id).value.asInstanceOf[Int]
               } else {
-                state.vars.resolveId(id).value
+                TypeHelper.coerece(TypeHelper.resolve(state.vars.returnType), state.vars.resolveId(id).value)
               }
             case int: Int         => int
             case doub: Double     => doub
@@ -495,11 +488,7 @@ object Executor {
 
   def createStringVariable(state: State, name: String, theType: IType, str: String): ArrayVariable = {
     val theStr = Utils.stripQuotes(str)
-    val withNull = if (!theStr.isEmpty) {
-      theStr.toCharArray() :+ 0.toChar // terminating null char
-    } else {
-      Array()
-    }
+    val withNull = theStr.toCharArray() :+ 0.toChar // terminating null char
     val theArrayPtr = new ArrayVariable(state, theType, Seq(withNull.size))
     theArrayPtr.setValue(withNull)
     state.vars.addVariable(name, theArrayPtr)
@@ -598,7 +587,6 @@ object Executor {
                     
                     val initString = initVal.asInstanceOf[Literal].cast match {
                       case StringLiteral(str) => str
-                      case int: Int if int == 0 => "\"\"" // null initializer
                     }
                     
                     createStringVariable(state, name, theType, initString)
@@ -758,8 +746,6 @@ object Executor {
               import org.eclipse.cdt.core.dom.ast.IASTSimpleDeclSpecifier._
               
               simple.getType match {
-                case `t_int` if isPointer => new CPointerType(new CBasicType(IBasicType.Kind.eInt, 0), 0)
-                case `t_int` if simple.isShort() => new CBasicType(IBasicType.Kind.eChar16, 0)
                 case `t_int`    => new CBasicType(IBasicType.Kind.eInt, 0)
                 case `t_float`  => new CBasicType(IBasicType.Kind.eFloat, 0)
                 case `t_double` => new CBasicType(IBasicType.Kind.eDouble, 0)           
@@ -775,13 +761,6 @@ object Executor {
           state.stack.push(result)
         }
         Seq()
-      case spec: IASTSimpleDeclSpecifier =>
-        if (direction == Entering) {
-          Seq()
-        } else {
-          state.stack.push(spec.getRawSignature)
-          Seq()
-        }
     }
   }
 }

@@ -52,7 +52,6 @@ object Expressions {
         
         context.stack.push(context.stack.pop match {
           case addy @ Address(_) => AddressInfo(addy, theType)
-          case AddressInfo(address,_) => AddressInfo(address, theType)
           case VarRef(id) => AddressInfo(Address(stack.vars.resolveId(id).value.asInstanceOf[Int]), theType)
           case lit @ Literal(str) => TypeHelper.coerece(TypeHelper.resolve(theType), lit.cast)
         })
@@ -77,7 +76,6 @@ object Expressions {
             case AddressInfo(addr, theType) => 
               baseAddr = addr
               theType match {
-                case typedef: CTypedef => typedef.getType.asInstanceOf[CStructure]
                 case struct: CStructure => struct
                 case ptr: IPointerType => 
                   baseAddr = Address(context.readVal(addr.value, new CBasicType(IBasicType.Kind.eInt , 0)).asInstanceOf[Int])
@@ -199,7 +197,6 @@ object Expressions {
           case `op_not` => context.stack.pop match {
             case VarRef(id) =>
               stack.vars.resolveId(id).value match {
-                case bool: Boolean => context.stack.push(!bool)
                 case int: Int => context.stack.push(if (int == 0) 1 else 0)
               }
             case int: Int => context.stack.push(if (int == 0) 1 else 0)
@@ -260,7 +257,6 @@ object Expressions {
 
               currentVal match {
                 case int: Int => stack.setValue(int + 1, AddressInfo(Address(address), theType))
-                case char: Char => stack.setValue(char + 1, AddressInfo(Address(address), theType))
               }
               
               context.stack.push(stack.readVal(address, theType))
@@ -370,7 +366,6 @@ object Expressions {
             
             context.stack.head match {
               case bool: Boolean if bool => Seq()
-              case int: Int if int > 0 => Seq()
               case _ => Seq(bin.getOperand2, bin)
             }
 
