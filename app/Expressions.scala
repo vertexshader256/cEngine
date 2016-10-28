@@ -24,21 +24,9 @@ object Expressions {
        if (direction == Entering) {
         Seq(ternary.getLogicalConditionExpression)
       } else {
-        val result = context.stack.pop
+        val result = context.stack.pop.asInstanceOf[Boolean]
 
-        val value = result match {
-          case VarRef(name) =>
-            context.vars.resolveId(name).value
-          case lit @ Literal(_) =>
-            lit.cast
-          case x => x
-        }
-
-        val conditionResult = value match {
-          case x: Int     => x == 1
-          case x: Boolean => x
-        }
-        if (conditionResult) {
+        if (result) {
           Seq(ternary.getPositiveResultExpression)
         } else {
           Seq(ternary.getNegativeResultExpression)
@@ -267,7 +255,6 @@ object Expressions {
 
               currentVal match {
                 case int: Int => stack.setValue(int - 1, AddressInfo(Address(address), theType))
-                case char: Char => stack.setValue(char - 1, AddressInfo(Address(address), theType))
               }
               
               context.stack.push(stack.readVal(address, theType))
@@ -276,7 +263,6 @@ object Expressions {
             context.stack.pop match {
               case VarRef(name) =>
                 context.stack.push(context.vars.resolveId(name).sizeof)
-              case AddressInfo(_, theType) => context.stack.push(4)
               case char: Char => context.stack.push(1)
               case int: Int => context.stack.push(4)
               case short: Short => context.stack.push(2)

@@ -18,17 +18,6 @@ case class Path(node: IASTNode, direction: Direction, index: Int)
 
 object Utils {
   
-  def parse(code: String, offset: Int): IASTCompletionNode = {
-    val fileContent = FileContent.create("test", code.toCharArray)
-    val log = new DefaultLogService()
-
-    GCCLanguage.getDefault().getCompletionNode(fileContent, new ScannerInfo(), null, null, log, offset);
-  }
-
-  def findFunctions(node: IASTTranslationUnit): Seq[IASTFunctionDefinition] = {
-    node.getDeclarations.collect{case decl: IASTFunctionDefinition => decl}
-  }
-  
   def stripQuotes(str: String): String = {
     str.tail.reverse.tail.reverse
   }
