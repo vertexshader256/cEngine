@@ -724,12 +724,7 @@ object Executor {
                     createStringVariable(state, name, theType, initString)
                   case _ =>
                     val newVar = new Variable(state, theType)
-                    if (!ptr.getType.isInstanceOf[CStructure]) {
-                      val resolved = TypeHelper.resolve(state, theType, initVal)
-                      state.setValue(resolved, newVar.info)
-                    } else {
                       initVal match {
-                        case lit @ Literal(_) => lit.cast
                         case VarRef(id) => 
                           val variable = state.vars.resolveId(id)
                           state.setValue(variable.value, newVar.info)
@@ -739,11 +734,8 @@ object Executor {
                           } else {
                             state.setValue(address.value, newVar.info)
                           }
-                        case Address(addy) => addy
                         case int: Int => state.setValue(int, newVar.info)
-                      }
-                      
-                      
+                        case _ =>
                     }
                     state.vars.addVariable(name, newVar)
                     newVar 

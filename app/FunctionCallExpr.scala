@@ -30,16 +30,11 @@ object FunctionCallExpr {
                 theVar.value.asInstanceOf[Int]
               } else {
                 state.readVal(theVar.address.value, TypeHelper.resolve(theVar.theType))
-              } 
-              
+              }   
             case Address(address) =>
               address
             case info @ AddressInfo(address, theType) =>
-              if (TypeHelper.isPointer(theType)) {   
-                state.readVal(address.value, new CBasicType(IBasicType.Kind.eInt, 0))
-              } else { 
-                state.readVal(address.value, TypeHelper.resolve(theType))
-              }
+              state.readVal(address.value, TypeHelper.resolve(theType))
             case bool: Boolean => if (bool) 1 else 0
             case int: Int => int
             case float: Float => float
