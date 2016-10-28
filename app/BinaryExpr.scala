@@ -12,11 +12,11 @@ import org.eclipse.cdt.internal.core.dom.parser.c.CStructure
 
 object BinaryExpr {
   
-  def parseAssign(node: IASTNode, op: Int, op1: Any, op2: Any, context: State, stack: State): Any = {
+  def parseAssign(node: IASTNode, op: Int, op1: Any, op2: Any, state: State): Any = {
 
     val dst: AddressInfo = op1 match {
       case VarRef(name) =>
-        val variable = context.vars.resolveId(name)
+        val variable = state.vars.resolveId(name)
         variable.info
       case info @ AddressInfo(_, _) => info
     }
@@ -24,15 +24,15 @@ object BinaryExpr {
     val resolvedop2 = op2 match {
       case lit @ Literal(_) => lit.cast
       case VarRef(name)  =>      
-        val theVar = context.vars.resolveId(name)
+        val theVar = state.vars.resolveId(name)
         theVar.value
       case AddressInfo(addy, theType) => 
         val address = addy.value
         if (!TypeHelper.isPointer(dst.theType)) {
           // only if op1 is NOT a pointer, resolve op2
-          stack.readVal(address, TypeHelper.resolve(dst.theType))
+          state.readVal(address, TypeHelper.resolve(dst.theType))
         } else if (TypeHelper.isPointer(theType) && !Utils.isNestedPointer(dst.theType)) {
-          stack.readVal(address, new CBasicType(IBasicType.Kind.eInt, 0))
+          state.readVal(address, new CBasicType(IBasicType.Kind.eInt, 0))
         } else {
           address
         }
@@ -44,43 +44,43 @@ object BinaryExpr {
     }
     
     val theVal = if (TypeHelper.isPointer(dst.theType)) {
-      stack.readVal(dst.address.value, new CBasicType(IBasicType.Kind.eInt, 0))
+      state.readVal(dst.address.value, new CBasicType(IBasicType.Kind.eInt, 0))
     } else {
-      stack.readVal(dst.address.value, TypeHelper.resolve(dst.theType))
+      state.readVal(dst.address.value, TypeHelper.resolve(dst.theType))
     }
     
     op match {
       case `op_plusAssign` =>
-        context.setValue((theVal, resolvedop2) match {
+        state.setValue((theVal, resolvedop2) match {
           case (x: Int, y: Int) => x + y
           case (x: Double, y: Int) => x + y
           case (x: Int, y: Double) => x + y
           case (x: Double, y: Double) => x + y
         }, dst)
       case `op_minusAssign` =>
-        context.setValue((theVal, resolvedop2) match {
+        state.setValue((theVal, resolvedop2) match {
           case (x: Int, y: Int) => x - y
           case (x: Double, y: Int) => x - y
           case (x: Int, y: Double) => x - y
           case (x: Double, y: Double) => x - y
         }, dst)
       case `op_multiplyAssign` =>
-        context.setValue((theVal, resolvedop2) match {
+        state.setValue((theVal, resolvedop2) match {
           case (x: Int, y: Int) => x * y
           case (x: Double, y: Int) => x * y
           case (x: Int, y: Double) => x * y
           case (x: Double, y: Double) => x * y
         }, dst)
       case `op_binaryXorAssign` =>
-        context.setValue((theVal, resolvedop2) match {
+        state.setValue((theVal, resolvedop2) match {
           case (x: Int, y: Int) => x ^ y
         }, dst)
       case `op_shiftRightAssign` =>
-        context.setValue((theVal, resolvedop2) match {
+        state.setValue((theVal, resolvedop2) match {
           case (x: Int, y: Int) => x >>> y
         }, dst)
       case `op_assign` =>
-        stack.setValue(resolvedop2, dst)
+        state.setValue(resolvedop2, dst)
     }  
 
     

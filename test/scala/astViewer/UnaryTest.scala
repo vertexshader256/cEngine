@@ -27,8 +27,14 @@ class UnaryTest extends StandardTest {
     val code = """
       void main() {
         int x = 5;
+        float y = 4.5;
+        double z = 5.4;
+        short u = 2;
         x--;
-        printf("%d\n", x);
+        y--;
+        z--;
+        u--;
+        printf("%d %f %f %d\n", x, y, z, u);
       }"""
 
     checkResults(code)

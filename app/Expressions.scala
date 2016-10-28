@@ -232,10 +232,15 @@ object Expressions {
             resolveVar(context.stack.pop, (address, theType) => {
               val currentVal = stack.readVal(address, theType)
               context.stack.push(currentVal)
+              val info = AddressInfo(Address(address), theType)
               
               currentVal match {
-                case int: Int => stack.setValue(int - 1, AddressInfo(Address(address), theType))
-                case char: Char => stack.setValue(char - 1, AddressInfo(Address(address), theType))
+                case int: Int => stack.setValue(int - 1, info)
+                case int: Int => stack.setValue(int - 1, info)
+                case char: Char => stack.setValue(char - 1, info)
+                case float: Float => stack.setValue(float - 1.0, info)
+                case double: Double => stack.setValue(double - 1.0, info)
+                case short: Short => stack.setValue(short - 1, info)
               }
               
             })
@@ -337,7 +342,7 @@ object Expressions {
           val result = if (Utils.isAssignment(bin.getOperator)) {
               var op2: Any = context.stack.pop
               var op1: Any = context.stack.pop
-              BinaryExpr.parseAssign(bin, bin.getOperator, op1, op2, context, stack)
+              BinaryExpr.parseAssign(bin, bin.getOperator, op1, op2, context)
           } else {    
             BinaryExpr.parse(bin, context, stack)
           }
