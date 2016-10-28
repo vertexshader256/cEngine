@@ -21,7 +21,6 @@ case class Literal(litStr: String) {
 
     def isIntNumber(s: String): Boolean = (allCatch opt s.toInt).isDefined
     def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
-    def isDoubleNumber(s: String): Boolean = (allCatch opt s.toDouble).isDefined
     
     val isLong = litStr.endsWith("L")
     val isUnsignedLong = litStr.endsWith("UL")
@@ -50,8 +49,6 @@ case class Literal(litStr: String) {
     } else if (lit.contains('F') || lit.contains('f')) {
       val num = lit.toCharArray.filter(x => x != 'f' && x != 'F').mkString
       num.toFloat
-    } else if (lit == "'\\0'") {
-      0.toChar
     } else {
       lit.toDouble
     }
@@ -91,7 +88,6 @@ class State {
 
     val name = call.getFunctionNameExpression match {
       case x: IASTIdExpression => x.getName.getRawSignature
-      case _                   => "Error"
     }
 
     Seq(functionMap(name))
@@ -149,18 +145,10 @@ class State {
   def setValue(newVal: AnyVal, info: AddressInfo): Unit = {
 
     newVal match {
-      case Address(addy)        => setValue(addy, info)
       case x => {
         
-        if (info.theType.isInstanceOf[IPointerType] || info.theType.isInstanceOf[CStructure]) {
-          newVal match {
-            case newVal: Char    => data.put(info.address.value, newVal.toByte) // MUST convert to byte because writing char is 2 bytes!!!
-            case newVal: Long    => data.putLong(info.address.value, newVal)
-            case newVal: Int     => data.putInt(info.address.value, newVal)
-            case newVal: Float   => data.putFloat(info.address.value, newVal)
-            case newVal: Double  => data.putDouble(info.address.value, newVal)
-            case newVal: Boolean => data.putChar(info.address.value, if (newVal) 1 else 0)
-          }
+        if (TypeHelper.isPointer(info.theType)) {
+          data.putInt(info.address.value, newVal.asInstanceOf[Int])
         } else {
           val theType = TypeHelper.resolve(info.theType)
       
@@ -173,9 +161,9 @@ class State {
             case `eInt`     => data.putInt(info.address.value, TypeHelper.coerece(theType, newVal).asInstanceOf[Int]) 
             case `eFloat`   => data.putFloat(info.address.value, TypeHelper.coerece(theType, newVal).asInstanceOf[Float])
             case `eDouble`  => data.putDouble(info.address.value, TypeHelper.coerece(theType, newVal).asInstanceOf[Double])
-            case `eBoolean` => data.putChar(info.address.value, if (TypeHelper.coerece(theType, newVal).asInstanceOf[Boolean]) 1 else 0)
           }
-      }}
+      }
+        }
     }
   }
 }
