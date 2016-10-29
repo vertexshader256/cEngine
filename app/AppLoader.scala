@@ -149,7 +149,7 @@ class AppLoader extends ApplicationLoader {
       def receive = {
         case msg: String =>
           if (msg == "Step") {
-            executor.tick()
+            executor.tick(null)
             out ! ("Step Response:" + executor.current.hashCode)
           } else if (msg.startsWith("Get Node Class Name:")) {
             val id = msg.split(":").last.trim.toInt
@@ -227,7 +227,7 @@ class AppLoader extends ApplicationLoader {
         Future {
 
           val state = new State
-          executor = new Executor(code, state)
+          executor = new Executor()
           
           Ok(AstUtils.getAllChildren(executor.tUnit))
         }

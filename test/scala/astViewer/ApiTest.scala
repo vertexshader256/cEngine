@@ -11,5 +11,6 @@ class ApiTest extends StandardTest {
     Gcc.runCode("int i = 1432;", state)
     Gcc.runCode("printf(\"%d\\n\", i);", state)
 
+    state.stdout.toSeq should equal (Seq("1432"))
   }
 }

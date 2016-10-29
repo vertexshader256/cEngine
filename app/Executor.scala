@@ -706,10 +706,14 @@ object Executor {
         } else if (direction == Exiting) {
           if (!state.vars.stack.isEmpty) {
             val retVal = state.vars.stack.head
-            state.vars = state.executionContext.pop
+            if (fcnDef.getDeclarator.getName.getRawSignature != "main") {
+              state.vars = state.executionContext.pop
+            }
             state.vars.stack.push(retVal)
           } else {
-            state.vars = state.executionContext.pop
+            if (fcnDef.getDeclarator.getName.getRawSignature != "main") {
+              state.vars = state.executionContext.pop
+            }
           }
           Seq()
         } else {
@@ -755,15 +759,20 @@ object Executor {
   }
 }
 
-class Executor(code: String, engineState: State) {
+class Executor() {
   
-  def init = {
+  var tUnit: IASTNode = null
+  
+  def init(code: String, reset: Boolean, engineState: State) = {
+    tUnit = Utils.getTranslationUnit(code)
     current = tUnit
 
+    engineState.functionMap.remove("main")
     engineState.executionContext.push(new FunctionExecutionContext(Map(), null)) // load initial stack
     engineState.vars = engineState.executionContext.head
   
-    execute()
+    engineState.isPreprocessing = true
+    execute(engineState)
     engineState.isPreprocessing = false
     engineState.stack.clear
   
@@ -772,21 +781,23 @@ class Executor(code: String, engineState: State) {
     engineState.globals ++= engineState.vars.varMap
   
     engineState.executionContext.pop
-    engineState.executionContext.push(new FunctionExecutionContext(engineState.globals, null)) // load initial stack
+    if (reset) {
+      engineState.executionContext.push(new FunctionExecutionContext(engineState.globals, null)) // load initial stack
+    }
     engineState.vars = engineState.executionContext.head
     engineState.vars.pathStack.clear
     engineState.vars.pathStack.push(engineState.functionMap("main"))
     current = engineState.vars.pathStack.head
   }
 
-  val tUnit = Utils.getTranslationUnit(code)
+  
   
   var current: IASTNode = null
   var direction: Direction = Entering
 
   
 
-  def tick(): Unit = {
+  def tick(engineState: State): Unit = {
     direction = if (engineState.vars.visited.contains(current)) Exiting else Entering
 
     //println(current.getClass.getSimpleName + ":" + direction)
@@ -848,9 +859,9 @@ class Executor(code: String, engineState: State) {
     }
   }
 
-  def execute() = {
+  def execute(engineState: State) = {
     while (current != null) {
-      tick()
+      tick(engineState)
     }
   }
 }
