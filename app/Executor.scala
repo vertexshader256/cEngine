@@ -16,49 +16,6 @@ import scala.collection.mutable.Map
 case class VarRef(name: String)
 case class StringLiteral(str: String) extends AnyVal
 
-case class Literal(litStr: String) {
-  def cast: AnyVal = {
-
-    def isIntNumber(s: String): Boolean = (allCatch opt s.toInt).isDefined
-    def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
-    
-    val isLong = litStr.endsWith("L")
-    val isUnsignedLong = litStr.endsWith("UL")
-    
-    val pre: String = if (litStr.endsWith("L")) {
-      litStr.take(litStr.size - 1).mkString
-    } else {
-      litStr
-    }
-    
-    val lit = if (pre.startsWith("0x")) {
-      val bigInt = new BigInteger(pre.drop(2), 16);
-      bigInt.toString
-    } else {
-      pre
-    }
-
-    if (lit.head == '\"' && lit.last == '\"') {
-      StringLiteral(lit)
-    } else if (lit.head == '\'' && lit.last == '\'' && lit.length == 3) {
-      lit.toCharArray.apply(1)
-    } else if (isIntNumber(lit)) {
-      lit.toInt
-    } else if (isLongNumber(lit)) {
-      lit.toLong
-    } else if (lit.contains('F') || lit.contains('f')) {
-      val num = lit.toCharArray.filter(x => x != 'f' && x != 'F').mkString
-      num.toFloat
-    } else {
-      lit.toDouble
-    }
-  }
-  
-  def typeCast(theType: IBasicType): AnyVal = {
-    TypeHelper.cast(theType, cast)
-  }
-}
-
 class State {
   
   val executionContext = new Stack[FunctionExecutionContext]()
@@ -155,12 +112,13 @@ class State {
           import IBasicType.Kind._   
           
           val result = TypeHelper.cast(theType, newVal)
-
+          
           theType.getKind match {
             case `eChar`    => data.put(info.address.value, result.asInstanceOf[Byte])
             case `eInt` if theType.isLong => data.putLong(info.address.value, result.asInstanceOf[Long])
             case `eInt` if theType.isShort => data.putShort(info.address.value, result.asInstanceOf[Short]) 
-            case `eInt` | `eBoolean` => data.putInt(info.address.value, result.asInstanceOf[Int]) 
+            case `eInt` => data.putInt(info.address.value, result.asInstanceOf[Int]) 
+            case `eBoolean` => data.putInt(info.address.value, result.asInstanceOf[Int]) 
             case `eFloat`   => data.putFloat(info.address.value, result.asInstanceOf[Float])
             case `eDouble`  => data.putDouble(info.address.value, result.asInstanceOf[Double])
           }
@@ -610,6 +568,7 @@ object Executor {
                 val resolved = TypeHelper.resolve(state, theType, initVal)
 
                 val newVar = new Variable(state, theType)
+                println("SETTING VALUE")
                 state.setValue(resolved, newVar.info)
                 state.vars.addVariable(name, newVar)
                 newVar

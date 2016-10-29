@@ -289,7 +289,7 @@ class ComplexTest extends StandardTest {
     
     void main()
     {
-      printf("%f\n", Q_rsqrt(9.0F)); // TODO: Dont require 'F' at end
+      printf("%f\n", Q_rsqrt(9.0));
       return 0;
     }
     """

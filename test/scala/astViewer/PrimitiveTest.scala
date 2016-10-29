@@ -1,5 +1,19 @@
 package scala.astViewer
 
+class StagingAreaPrimitive extends StandardTest {
+  "bool test" should "print the correct results" in {
+    val code = """
+      #include <stdbool.h>
+      
+      void main() {
+        bool x = 0;
+        printf("%d\n", x);
+      }"""
+
+    checkResults(code)
+  }
+}
+
 class LimitsTest extends StandardTest {
   
   "A limits.h test" should "print the correct results" in {
@@ -127,7 +141,10 @@ class PrimitiveTest extends StandardTest {
         char x = 'd';
         int y = 16;
         char z = y;
+        char null = '\0';
         printf("%c %c\n", x, z);
+        printf("%c\n", null);
+        // printf("%c %c %c\n", x, z, null); // TODO make this work
       }"""
 
     checkResults(code)
@@ -155,17 +172,7 @@ class PrimitiveTest extends StandardTest {
     checkResults(code)
   }
   
-  "bool test" should "print the correct results" in {
-    val code = """
-      #include <stdbool.h>
-      
-      void main() {
-        bool x = false;
-        printf("%d\n", x);
-      }"""
-
-    checkResults(code)
-  }
+ 
   
   "short overflow test" should "print the correct results" in {
     val code = """

@@ -41,6 +41,7 @@ package object astViewer {
           info("Gcc output: " + gccOutput)
           cEngineOutput should equal (gccOutput)
         case Failure(e) => 
+          e.printStackTrace()
           e.getMessage should equal (false)
       }
     }

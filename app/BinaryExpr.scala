@@ -274,19 +274,15 @@ object BinaryExpr {
         (op1, op2) match {
           case (AddressInfo(addy, theType), AddressInfo(addy2, theType2)) => addy.value == addy2.value
           case (AddressInfo(addy, theType), y: Int) => state.readVal(addy.value, TypeHelper.resolve(theType)) == y
+          case (x: Char, y: Int) => x == y
           case (x: Int, y: Int) => x == y
+          case (x: Char, y: Char) => x == y
           case (x: Double, y: Int) => x == y
           case (x: Int, y: Double) => x == y
           case (x: Double, y: Double) => x == y
         }
       case `op_notequals` =>
-        (op1, op2) match {
-          case (AddressInfo(addy, theType), y: Int) => state.readVal(addy.value, TypeHelper.resolve(theType)) != y
-          case (x: Int, y: Int) => x != y
-          case (x: Double, y: Int) => x != y
-          case (x: Int, y: Double) => x != y
-          case (x: Double, y: Double) => x != y
-        }
+        !performBinaryOperation(op1, op2, op_equals, state).asInstanceOf[Boolean]
       case `op_greaterThan` =>
         (op1, op2) match {
           case (AddressInfo(addy, theType), AddressInfo(addy2, theType2)) => addy.value > addy2.value
