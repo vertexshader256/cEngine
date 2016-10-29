@@ -43,23 +43,25 @@ object BinaryExpr {
       case float: Float => float 
     }
     
-    val theVal = if (TypeHelper.isPointer(dst.theType)) {
-      state.readVal(dst.address.value, new CBasicType(IBasicType.Kind.eInt, 0))
+    val theType = if (TypeHelper.isPointer(dst.theType)) {
+      TypeHelper.pointerType
     } else {
-      state.readVal(dst.address.value, TypeHelper.resolve(dst.theType))
+      TypeHelper.resolve(dst.theType)
     }
+    
+    val theVal = state.readVal(dst.address.value, theType)
     
     val result = op match {
       case `op_plusAssign` =>
-        performBinaryOperation(theVal, resolvedop2, op_plus, state)
+        performBinaryOperation(theVal, resolvedop2, op_plus, theType)
       case `op_minusAssign` =>
-        performBinaryOperation(theVal, resolvedop2, op_minus, state)
+        performBinaryOperation(theVal, resolvedop2, op_minus, theType)
       case `op_multiplyAssign` =>
-        performBinaryOperation(theVal, resolvedop2, op_multiply, state)
+        performBinaryOperation(theVal, resolvedop2, op_multiply, theType)
       case `op_binaryXorAssign` =>
-        performBinaryOperation(theVal, resolvedop2, op_binaryXor, state)
+        performBinaryOperation(theVal, resolvedop2, op_binaryXor, theType)
       case `op_shiftRightAssign` =>
-        performBinaryOperation(theVal, resolvedop2, op_shiftRight, state)
+        performBinaryOperation(theVal, resolvedop2, op_shiftRight, theType)
       case `op_assign` =>
         resolvedop2
     }  
@@ -69,21 +71,25 @@ object BinaryExpr {
     resolvedop2
   }
   
-  private def resolveOperand(op: Any, context: State) = {
+  private def resolveOperand(op: Any, context: State): AnyVal = {
     op match {
       case lit @ Literal(_) => lit.cast
       case VarRef(name)  =>      
         val theVar = context.vars.resolveId(name)
-        if (TypeHelper.isPointer(theVar.theType)) {
-          AddressInfo(Address(theVar.value.asInstanceOf[Int]), theVar.theType)
-        } else {
-          theVar.value  
-        }
-      case x => x
+        theVar.value  
+      case AddressInfo(addy, theType) =>
+        context.readVal(addy.value, TypeHelper.resolve(theType))
+      case int: Int => int
+      case float: Float => float
+      case double: Double => double
+      case short: Short => short
+      case char: Char => char
+      case boolean: Boolean => boolean
+      case long: Long => long
     }
   }
   
-  def performBinaryOperation(op1: Any, op2: Any, operator: Int, state: State): AnyVal = {
+  def performBinaryOperation(op1: AnyVal, op2: AnyVal, operator: Int, destType: IType): AnyVal = {
     operator match {
       case `op_multiply` =>
         (op1, op2) match {
@@ -131,8 +137,8 @@ object BinaryExpr {
         }
       case `op_plus` =>
         (op1, op2) match {
-          case (AddressInfo(addy, theType), y: Int) => addy.value + y * TypeHelper.sizeof(theType)
           case (x: Int, y: Char) => x + y
+          case (x: Int, y: Int) if (TypeHelper.isPointer(destType)) => x + y * TypeHelper.sizeof(TypeHelper.resolve(destType))
           case (x: Int, y: Int) => x + y
           case (x: Int, y: Short) => x + y
           case (x: Int, y: Float) => x + y
@@ -177,7 +183,7 @@ object BinaryExpr {
         }
       case `op_minus` =>
         (op1, op2) match {
-          case (AddressInfo(addy, theType), y: Int) => addy.value - y * TypeHelper.sizeof(theType)
+          case (x: Int, y: Int) if (TypeHelper.isPointer(destType)) => x - y * TypeHelper.sizeof(TypeHelper.resolve(destType))
           case (x: Int, y: Char) => x - y
           case (x: Int, y: Short) => x - y
           case (x: Int, y: Int) => x - y
@@ -272,8 +278,6 @@ object BinaryExpr {
         }
       case `op_equals` =>
         (op1, op2) match {
-          case (AddressInfo(addy, theType), AddressInfo(addy2, theType2)) => addy.value == addy2.value
-          case (AddressInfo(addy, theType), y: Int) => state.readVal(addy.value, TypeHelper.resolve(theType)) == y
           case (x: Char, y: Int) => x == y
           case (x: Int, y: Int) => x == y
           case (x: Char, y: Char) => x == y
@@ -282,10 +286,9 @@ object BinaryExpr {
           case (x: Double, y: Double) => x == y
         }
       case `op_notequals` =>
-        !performBinaryOperation(op1, op2, op_equals, state).asInstanceOf[Boolean]
+        !performBinaryOperation(op1, op2, op_equals, destType).asInstanceOf[Boolean]
       case `op_greaterThan` =>
         (op1, op2) match {
-          case (AddressInfo(addy, theType), AddressInfo(addy2, theType2)) => addy.value > addy2.value
           case (x: Int, y: Int) => x > y
           case (x: Double, y: Int) => x > y
           case (x: Int, y: Double) => x > y
@@ -293,7 +296,6 @@ object BinaryExpr {
         }
       case `op_greaterEqual` =>
         (op1, op2) match {
-          case (AddressInfo(addy, theType), AddressInfo(addy2, theType2)) => addy.value >= addy2.value
           case (x: Int, y: Int) => x >= y
           case (x: Double, y: Int) => x >= y
           case (x: Int, y: Double) => x >= y
@@ -301,8 +303,6 @@ object BinaryExpr {
         }  
       case `op_lessThan` =>
         (op1, op2) match {
-          case (AddressInfo(addy, theType), y: Int) => addy.value < y
-          case (AddressInfo(addy, theType), AddressInfo(addy2, theType2)) => addy.value < addy2.value
           case (x: Int, y: Int) => x < y
           case (x: Double, y: Int) => x < y
           case (x: Int, y: Double) => x < y
@@ -356,8 +356,14 @@ object BinaryExpr {
   def parse(binaryExpr: IASTBinaryExpression, state: State): Any = {
 
     val op2 = resolveOperand(state.stack.pop, state)
-    val op1 = resolveOperand(state.stack.pop, state)
+    val op1Raw = state.stack.pop
+    val op1 = resolveOperand(op1Raw, state)
   
-    performBinaryOperation(op1, op2, binaryExpr.getOperator, state)
+    if (op1Raw.isInstanceOf[VarRef]) {
+        val theVar = state.vars.resolveId(op1Raw.asInstanceOf[VarRef].name) 
+        performBinaryOperation(op1, op2, binaryExpr.getOperator, theVar.theType)
+    } else {
+      performBinaryOperation(op1, op2, binaryExpr.getOperator, null)
+    }
   }
 }

@@ -96,7 +96,8 @@ object Expressions {
           }
         }
 
-        context.stack.push(resultAddress)        
+        context.stack.push(resultAddress)
+             
         Seq()
       }
     case subscript: IASTArraySubscriptExpression =>
@@ -193,81 +194,53 @@ object Expressions {
             case bool: Boolean => context.stack.push(!bool)
           }
           case `op_minus` =>
-
-            
-            def negativeResolver(variable: RuntimeVariable) = {
-
-              val (currentVal, info) = resolveVar(AddressInfo(variable.address, variable.theType))
-              
-              val basicType = info.theType.asInstanceOf[IBasicType]
-              context.stack.push(basicType.getKind match {
-                case `eInt`    => -currentVal.asInstanceOf[Int]
-                case `eDouble` => -currentVal.asInstanceOf[Double]
-              })
-            }
-
-            val cast = context.stack.pop match {
+            val resolveLit = context.stack.pop match {
               case lit @ Literal(_) => lit.cast
               case x            => x
             }
 
-            cast match {
+            resolveLit match {
               case int: Int     => context.stack.push(-int)
               case doub: Double => context.stack.push(-doub)
-              //case variable @ Variable(_) => negativeResolver(variable)
               case VarRef(name) =>
                 val variable = context.vars.resolveId(name)
-                negativeResolver(variable)
+                
+                val (currentVal, info) = resolveVar(variable.info)
+              
+                val basicType = info.theType.asInstanceOf[IBasicType]
+                context.stack.push(basicType.getKind match {
+                  case `eInt`    => -currentVal.asInstanceOf[Int]
+                  case `eDouble` => -currentVal.asInstanceOf[Double]
+                })
             }
           case `op_postFixIncr` =>
-            
             val (currentVal, info) = resolveVar(context.stack.pop)
+            val newVal = BinaryExpr.performBinaryOperation(currentVal, 1, IASTBinaryExpression.op_plus, info.theType)
             
+            // push then set
             context.stack.push(currentVal)
-            
-            currentVal match {
-              case int: Int => stack.setValue(int + 1, info)
-              case char: Char => stack.setValue(char + 1, info)
-              case float: Float => stack.setValue(float + 1.0, info)
-              case double: Double => stack.setValue(double + 1.0, info)
-              case short: Short => stack.setValue(short + 1, info)
-            }      
+            stack.setValue(newVal, info)   
           case `op_postFixDecr` =>          
             val (currentVal, info) = resolveVar(context.stack.pop)
+            val newVal = BinaryExpr.performBinaryOperation(currentVal, 1, IASTBinaryExpression.op_minus, info.theType)
             
+            // push then set
             context.stack.push(currentVal)
-            currentVal match {
-              case int: Int => stack.setValue(int - 1, info)
-              case char: Char => stack.setValue(char - 1, info)
-              case float: Float => stack.setValue(float - 1.0, info)
-              case double: Double => stack.setValue(double - 1.0, info)
-              case short: Short => stack.setValue(short - 1, info)
-            }
+            stack.setValue(newVal, info)  
           case `op_prefixIncr` =>
-            val (currentVal, info) = resolveVar(context.stack.pop)
+            val (currentVal, info) = resolveVar(context.stack.pop)            
+            val newVal = BinaryExpr.performBinaryOperation(currentVal, 1, IASTBinaryExpression.op_plus, info.theType)
             
-            currentVal match {
-              case int: Int => stack.setValue(int + 1, info)
-              case char: Char => stack.setValue(char + 1, info)
-              case float: Float => stack.setValue(float + 1.0, info)
-              case double: Double => stack.setValue(double + 1.0, info)
-              case short: Short => stack.setValue(short + 1, info)
-            }
-            
+            // set then push
+            stack.setValue(newVal, info)  
             context.stack.push(stack.readVal(info.address.value, info.theType.asInstanceOf[IBasicType]))
           case `op_prefixDecr` =>
             val (currentVal, info) = resolveVar(context.stack.pop)
-
-            currentVal match {
-              case int: Int => stack.setValue(int - 1, info)
-              case char: Char => stack.setValue(char - 1, info)
-              case float: Float => stack.setValue(float - 1.0, info)
-              case double: Double => stack.setValue(double - 1.0, info)
-              case short: Short => stack.setValue(short - 1, info)
-            }
+            val newVal = BinaryExpr.performBinaryOperation(currentVal, 1, IASTBinaryExpression.op_minus, info.theType)
             
+            // set then push
+            stack.setValue(newVal, info)  
             context.stack.push(stack.readVal(info.address.value, info.theType.asInstanceOf[IBasicType]))
-
           case `op_sizeof` =>
             context.stack.pop match {
               case VarRef(name) =>
