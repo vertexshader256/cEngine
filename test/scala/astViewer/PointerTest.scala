@@ -1,7 +1,52 @@
 package scala.astViewer
 
 class StagingGround extends StandardTest {
- 
+ "A pointer with a unary expression" should "print the correct results" in {
+    val code = """
+      int z = 2;
+      int *k = &z;
+      void main() {
+        (*k)++;
+        int x = *k++;
+        printf("%d %d %d\n", *k, z, x);
+        
+      }"""
+    
+    checkResults(code)
+    
+    val code2 = """
+      int z = 2;
+      int *k = &z;
+      void main() {
+        (*k)--;
+        printf("%d %d\n", *k, z);
+        
+      }"""
+    
+    checkResults(code2)
+    
+    val code3 = """
+      int z = 2;
+      int *k = &z;
+      void main() {
+        --(*k);
+        printf("%d %d\n", *k, z);
+        
+      }"""
+    
+    checkResults(code3)
+    
+    val code4 = """
+      int z = 2;
+      int *k = &z;
+      void main() {
+        ++(*k);
+        printf("%d %d\n", *k, z);
+        
+      }"""
+    
+    checkResults(code4)
+  }
 }
 
 class PointerTest extends StandardTest {
@@ -111,51 +156,7 @@ class PointerTest extends StandardTest {
     checkResults(code)
   }
   
-  "A pointer with a unary expression" should "print the correct results" in {
-    val code = """
-      int z = 2;
-      int *k = &z;
-      void main() {
-        (*k)++;
-        printf("%d %d\n", *k, z);
-        
-      }"""
-    
-    checkResults(code)
-    
-    val code2 = """
-      int z = 2;
-      int *k = &z;
-      void main() {
-        (*k)--;
-        printf("%d %d\n", *k, z);
-        
-      }"""
-    
-    checkResults(code2)
-    
-    val code3 = """
-      int z = 2;
-      int *k = &z;
-      void main() {
-        --(*k);
-        printf("%d %d\n", *k, z);
-        
-      }"""
-    
-    checkResults(code3)
-    
-    val code4 = """
-      int z = 2;
-      int *k = &z;
-      void main() {
-        ++(*k);
-        printf("%d %d\n", *k, z);
-        
-      }"""
-    
-    checkResults(code4)
-  }
+  
   
    "A function with a pointer as an argument" should "print the correct results" in {
     val code = """
