@@ -49,38 +49,22 @@ object BinaryExpr {
       state.readVal(dst.address.value, TypeHelper.resolve(dst.theType))
     }
     
-    op match {
+    val result = op match {
       case `op_plusAssign` =>
-        
-        state.setValue(performBinaryOperation(theVal, resolvedop2, op_plus, state), dst)
-
+        performBinaryOperation(theVal, resolvedop2, op_plus, state)
       case `op_minusAssign` =>
-        state.setValue((theVal, resolvedop2) match {
-          case (x: Int, y: Int) => x - y
-          case (x: Double, y: Int) => x - y
-          case (x: Int, y: Double) => x - y
-          case (x: Double, y: Double) => x - y
-        }, dst)
+        performBinaryOperation(theVal, resolvedop2, op_minus, state)
       case `op_multiplyAssign` =>
-        state.setValue((theVal, resolvedop2) match {
-          case (x: Int, y: Int) => x * y
-          case (x: Double, y: Int) => x * y
-          case (x: Int, y: Double) => x * y
-          case (x: Double, y: Double) => x * y
-        }, dst)
+        performBinaryOperation(theVal, resolvedop2, op_multiply, state)
       case `op_binaryXorAssign` =>
-        state.setValue((theVal, resolvedop2) match {
-          case (x: Int, y: Int) => x ^ y
-        }, dst)
+        performBinaryOperation(theVal, resolvedop2, op_binaryXor, state)
       case `op_shiftRightAssign` =>
-        state.setValue((theVal, resolvedop2) match {
-          case (x: Int, y: Int) => x >>> y
-        }, dst)
+        performBinaryOperation(theVal, resolvedop2, op_shiftRight, state)
       case `op_assign` =>
-        state.setValue(resolvedop2, dst)
+        resolvedop2
     }  
-
     
+    state.setValue(result, dst)
     
     resolvedop2
   }
