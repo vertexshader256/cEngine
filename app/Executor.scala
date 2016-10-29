@@ -756,31 +756,35 @@ object Executor {
 }
 
 class Executor(code: String, engineState: State) {
+  
+  def init = {
+    current = tUnit
+
+    engineState.executionContext.push(new FunctionExecutionContext(Map(), null)) // load initial stack
+    engineState.vars = engineState.executionContext.head
+  
+    execute()
+    engineState.isPreprocessing = false
+    engineState.stack.clear
+  
+    println("_----------------------------------------------_")
+  
+    engineState.globals ++= engineState.vars.varMap
+  
+    engineState.executionContext.pop
+    engineState.executionContext.push(new FunctionExecutionContext(engineState.globals, null)) // load initial stack
+    engineState.vars = engineState.executionContext.head
+    engineState.vars.pathStack.clear
+    engineState.vars.pathStack.push(engineState.functionMap("main"))
+    current = engineState.vars.pathStack.head
+  }
 
   val tUnit = Utils.getTranslationUnit(code)
   
   var current: IASTNode = null
   var direction: Direction = Entering
 
-  current = tUnit
-
-  engineState.executionContext.push(new FunctionExecutionContext(Map(), null)) // load initial stack
-  engineState.vars = engineState.executionContext.head
-
-  execute()
-  engineState.isPreprocessing = false
-  engineState.stack.clear
-
-  println("_----------------------------------------------_")
-
-  engineState.globals ++= engineState.vars.varMap
-
-  engineState.executionContext.clear
-  engineState.executionContext.push(new FunctionExecutionContext(engineState.globals, null)) // load initial stack
-  engineState.vars = engineState.executionContext.head
-  engineState.vars.pathStack.clear
-  engineState.vars.pathStack.push(engineState.functionMap("main"))
-  current = engineState.vars.pathStack.head
+  
 
   def tick(): Unit = {
     direction = if (engineState.vars.visited.contains(current)) Exiting else Entering

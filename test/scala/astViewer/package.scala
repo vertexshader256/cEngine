@@ -22,6 +22,7 @@ package object astViewer {
         val start = System.nanoTime
         val state = new State
         val executor = new Executor(code, state)
+        executor.init
         executor.execute
         totalTime += (System.nanoTime - start)/1000000000.0
         state.stdout

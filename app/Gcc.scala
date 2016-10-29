@@ -20,6 +20,7 @@ object Gcc {
         """
 
       val executor = new Executor(exeCode, state)
+      executor.init
       executor.execute
       println(state.stdout)
     }
