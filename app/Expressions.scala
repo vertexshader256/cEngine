@@ -334,22 +334,21 @@ object Expressions {
         Seq()
       }
     case call: IASTFunctionCallExpression =>
-      FunctionCallExpr.parse(call, direction, context, stack)
+      FunctionCallExpr.parse(call, direction, context)
     case bin: IASTBinaryExpression =>
       if (direction == Exiting) {
-
         if (context.vars.visited.contains(bin.getOperand2)) {
           val result = if (Utils.isAssignment(bin.getOperator)) {
               var op2: Any = context.stack.pop
               var op1: Any = context.stack.pop
               BinaryExpr.parseAssign(bin, bin.getOperator, op1, op2, context)
           } else {    
-            BinaryExpr.parse(bin, context, stack)
+            BinaryExpr.parse(bin, context)
           }
 
-          if (result != null) {
+          //if (result != null) {
             context.stack.push(result)
-          }
+          //}
           Seq()
         } else {
           // short circuiting

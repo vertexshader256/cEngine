@@ -13,7 +13,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
 import org.eclipse.cdt.internal.core.dom.parser.c.CStructure
 
 object FunctionCallExpr {
-  def parse(call: IASTFunctionCallExpression, direction: Direction, state: State, stack: State): Seq[IASTNode] = {
+  def parse(call: IASTFunctionCallExpression, direction: Direction, state: State): Seq[IASTNode] = {
     if (direction == Exiting) {
         val name = call.getFunctionNameExpression match {
           case x: IASTIdExpression => x.getName.getRawSignature
@@ -60,7 +60,7 @@ object FunctionCallExpr {
                     var stringBuilder = new ListBuffer[Char]()
                     var i = 0
                     do {
-                      current = stack.readVal(addy + i, new CBasicType(IBasicType.Kind.eChar, 0)).asInstanceOf[Char]
+                      current = state.readVal(addy + i, new CBasicType(IBasicType.Kind.eChar, 0)).asInstanceOf[Char]
                       if (current != 0) {
                         stringBuilder += current
                         i += 1
@@ -85,7 +85,7 @@ object FunctionCallExpr {
           var stringBuilder = new ListBuffer[Char]()
           var i = 0
           do {
-            current = stack.readVal(straddy.address.value + i, TypeHelper.resolve(straddy.theType)).asInstanceOf[Char]
+            current = state.readVal(straddy.address.value + i, TypeHelper.resolve(straddy.theType)).asInstanceOf[Char]
             if (current != 0) {
               stringBuilder += current
               i += 1
