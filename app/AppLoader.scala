@@ -226,7 +226,8 @@ class AppLoader extends ApplicationLoader {
         println("GETTING AST")
         Future {
 
-          executor = new Executor(code)
+          val state = new State
+          executor = new Executor(code, state)
           
           Ok(AstUtils.getAllChildren(executor.tUnit))
         }

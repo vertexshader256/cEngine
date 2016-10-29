@@ -755,10 +755,9 @@ object Executor {
   }
 }
 
-class Executor(code: String) {
+class Executor(code: String, engineState: State) {
 
   val tUnit = Utils.getTranslationUnit(code)
-  val engineState = new State
   
   var current: IASTNode = null
   var direction: Direction = Entering

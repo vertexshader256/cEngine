@@ -9,6 +9,22 @@ import java.io.InputStream
 
 object Gcc {
   
+  
+  
+  def runCode(code: String, state: State) = {
+    
+      val exeCode = s"""
+        void main() {
+           $code
+        }
+        """
+
+      val executor = new Executor(exeCode, state)
+      executor.execute
+      println(state.stdout)
+    }
+  
+  
   var count = 0
   var count2 = 0
   
