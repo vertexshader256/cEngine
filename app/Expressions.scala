@@ -41,7 +41,7 @@ object Expressions {
         context.stack.push(context.stack.pop match {
           case addy @ Address(_) => AddressInfo(addy, theType)
           case VarRef(id) => AddressInfo(Address(stack.vars.resolveId(id).value.asInstanceOf[Int]), theType)
-          case lit @ Literal(str) => TypeHelper.coerece(TypeHelper.resolve(theType), lit.cast)
+          case lit @ Literal(str) => TypeHelper.cast(TypeHelper.resolve(theType), lit.cast)
         })
 
         Seq()

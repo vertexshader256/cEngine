@@ -55,7 +55,7 @@ case class Literal(litStr: String) {
   }
   
   def typeCast(theType: IBasicType): AnyVal = {
-    TypeHelper.coerece(theType, cast)
+    TypeHelper.cast(theType, cast)
   }
 }
 
@@ -155,7 +155,7 @@ class State {
       
           import IBasicType.Kind._   
           
-          val result = TypeHelper.coerece(theType, newVal)
+          val result = TypeHelper.cast(theType, newVal)
           
           theType.getKind match {
             case `eChar`    => data.put(info.address.value, result.asInstanceOf[Byte])
@@ -446,7 +446,7 @@ object Executor {
               if (TypeHelper.isPointer(state.vars.returnType)) {
                 state.vars.resolveId(id).value.asInstanceOf[Int]
               } else {
-                TypeHelper.coerece(TypeHelper.resolve(state.vars.returnType), state.vars.resolveId(id).value)
+                TypeHelper.cast(TypeHelper.resolve(state.vars.returnType), state.vars.resolveId(id).value)
               }
             case int: Int         => int
             case doub: Double     => doub

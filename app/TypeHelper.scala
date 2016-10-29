@@ -8,7 +8,8 @@ object TypeHelper {
   
   val pointerType = new CBasicType(IBasicType.Kind.eInt , 0)
   
-  def coerece(theType: IBasicType, newVal: Any): AnyVal = {
+  // casts 'newVal' to 'theType'
+  def cast(theType: IBasicType, newVal: Any): AnyVal = {
     theType.getKind match {
       case `eChar`    => 
         newVal match {
@@ -21,12 +22,7 @@ object TypeHelper {
           case int: Int => int.toLong
           case long: Long => long
         } 
-     case `eInt` if theType.isShort && TypeHelper.isSigned(theType) =>
-        newVal match {
-          case int: Int => int.toShort
-          case short: Short => short
-        }
-     case `eInt` if theType.isShort && !TypeHelper.isSigned(theType) =>
+     case `eInt` if theType.isShort =>
         newVal match {
           case int: Int => int.toShort
           case short: Short => short
@@ -54,6 +50,7 @@ object TypeHelper {
           case float: Float => float.toDouble
         } 
       case `eBoolean` =>
+        // booleans are integers in C
         newVal match {
           case bool: Boolean => 1
           case int: Int => if (int > 0) 1 else 0

@@ -155,6 +155,18 @@ class PrimitiveTest extends StandardTest {
     checkResults(code)
   }
   
+  "bool test" should "print the correct results" in {
+    val code = """
+      #include <stdbool.h>
+      
+      void main() {
+        bool x = false;
+        printf("%d %d\n", x, !x);
+      }"""
+
+    checkResults(code)
+  }
+  
   "short overflow test" should "print the correct results" in {
     val code = """
       void main() {
