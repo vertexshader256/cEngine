@@ -166,17 +166,17 @@ object Expressions {
     case unary: IASTUnaryExpression =>
       import org.eclipse.cdt.core.dom.ast.IASTUnaryExpression._
 
-      def resolveVar(variable: Any, func: (AnyVal, AddressInfo) => Unit) = {
+      def resolveVar(variable: Any): (AnyVal, AddressInfo) = {
         variable match {
           case VarRef(name) =>
             val variable = context.vars.resolveId(name)
             val theType = TypeHelper.resolve(variable.theType)
             val currentVal = stack.readVal(variable.address.value, theType)
-            func(currentVal, AddressInfo(variable.address, TypeHelper.resolve(variable.theType)))
+            (currentVal, AddressInfo(variable.address, TypeHelper.resolve(variable.theType)))
           case AddressInfo(addy, theType) => 
             val resolved = TypeHelper.resolve(theType)
             val currentVal = stack.readVal(addy.value, resolved)
-            func(currentVal, AddressInfo(addy, resolved))
+            (currentVal, AddressInfo(addy, resolved))
         }
       }
 
@@ -196,16 +196,15 @@ object Expressions {
 
             
             def negativeResolver(variable: RuntimeVariable) = {
+
+              val (currentVal, info) = resolveVar(AddressInfo(variable.address, variable.theType))
               
-              val info = AddressInfo(variable.address, variable.theType)
-              
-              resolveVar(info, (currentVal, info) => {
-                val basicType = info.theType.asInstanceOf[IBasicType]
-                context.stack.push(basicType.getKind match {
-                  case `eInt`    => -currentVal.asInstanceOf[Int]
-                  case `eDouble` => -currentVal.asInstanceOf[Double]
-                })
-            })}
+              val basicType = info.theType.asInstanceOf[IBasicType]
+              context.stack.push(basicType.getKind match {
+                case `eInt`    => -currentVal.asInstanceOf[Int]
+                case `eDouble` => -currentVal.asInstanceOf[Double]
+              })
+            }
 
             val cast = context.stack.pop match {
               case lit @ Literal(_) => lit.cast
@@ -221,53 +220,54 @@ object Expressions {
                 negativeResolver(variable)
             }
           case `op_postFixIncr` =>
-            resolveVar(context.stack.pop, (currentVal, info) => {
-              context.stack.push(currentVal)
-              
-              currentVal match {
-                case int: Int => stack.setValue(int + 1, info)
-                case char: Char => stack.setValue(char + 1, info)
-                case float: Float => stack.setValue(float + 1.0, info)
-                case double: Double => stack.setValue(double + 1.0, info)
-                case short: Short => stack.setValue(short + 1, info)
-              }
-            })
-          case `op_postFixDecr` =>
-            resolveVar(context.stack.pop, (currentVal, info) => {
-              context.stack.push(currentVal)
-              currentVal match {
-                case int: Int => stack.setValue(int - 1, info)
-                case char: Char => stack.setValue(char - 1, info)
-                case float: Float => stack.setValue(float - 1.0, info)
-                case double: Double => stack.setValue(double - 1.0, info)
-                case short: Short => stack.setValue(short - 1, info)
-              }
-              
-            })
+            
+            val (currentVal, info) = resolveVar(context.stack.pop)
+            
+            context.stack.push(currentVal)
+            
+            currentVal match {
+              case int: Int => stack.setValue(int + 1, info)
+              case char: Char => stack.setValue(char + 1, info)
+              case float: Float => stack.setValue(float + 1.0, info)
+              case double: Double => stack.setValue(double + 1.0, info)
+              case short: Short => stack.setValue(short + 1, info)
+            }      
+          case `op_postFixDecr` =>          
+            val (currentVal, info) = resolveVar(context.stack.pop)
+            
+            context.stack.push(currentVal)
+            currentVal match {
+              case int: Int => stack.setValue(int - 1, info)
+              case char: Char => stack.setValue(char - 1, info)
+              case float: Float => stack.setValue(float - 1.0, info)
+              case double: Double => stack.setValue(double - 1.0, info)
+              case short: Short => stack.setValue(short - 1, info)
+            }
           case `op_prefixIncr` =>
-            resolveVar(context.stack.pop, (currentVal, info) => {
-              currentVal match {
-                case int: Int => stack.setValue(int + 1, info)
-                case char: Char => stack.setValue(char + 1, info)
-                case float: Float => stack.setValue(float + 1.0, info)
-                case double: Double => stack.setValue(double + 1.0, info)
-                case short: Short => stack.setValue(short + 1, info)
-              }
-              
-              context.stack.push(stack.readVal(info.address.value, info.theType.asInstanceOf[IBasicType]))
-            })
+            val (currentVal, info) = resolveVar(context.stack.pop)
+            
+            currentVal match {
+              case int: Int => stack.setValue(int + 1, info)
+              case char: Char => stack.setValue(char + 1, info)
+              case float: Float => stack.setValue(float + 1.0, info)
+              case double: Double => stack.setValue(double + 1.0, info)
+              case short: Short => stack.setValue(short + 1, info)
+            }
+            
+            context.stack.push(stack.readVal(info.address.value, info.theType.asInstanceOf[IBasicType]))
           case `op_prefixDecr` =>
-            resolveVar(context.stack.pop, (currentVal, info) => {
-              currentVal match {
-                case int: Int => stack.setValue(int - 1, info)
-                case char: Char => stack.setValue(char - 1, info)
-                case float: Float => stack.setValue(float - 1.0, info)
-                case double: Double => stack.setValue(double - 1.0, info)
-                case short: Short => stack.setValue(short - 1, info)
-              }
-              
-              context.stack.push(stack.readVal(info.address.value, info.theType.asInstanceOf[IBasicType]))
-            })
+            val (currentVal, info) = resolveVar(context.stack.pop)
+
+            currentVal match {
+              case int: Int => stack.setValue(int - 1, info)
+              case char: Char => stack.setValue(char - 1, info)
+              case float: Float => stack.setValue(float - 1.0, info)
+              case double: Double => stack.setValue(double - 1.0, info)
+              case short: Short => stack.setValue(short - 1, info)
+            }
+            
+            context.stack.push(stack.readVal(info.address.value, info.theType.asInstanceOf[IBasicType]))
+
           case `op_sizeof` =>
             context.stack.pop match {
               case VarRef(name) =>
