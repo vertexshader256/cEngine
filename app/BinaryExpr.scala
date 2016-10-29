@@ -51,12 +51,9 @@ object BinaryExpr {
     
     op match {
       case `op_plusAssign` =>
-        state.setValue((theVal, resolvedop2) match {
-          case (x: Int, y: Int) => x + y
-          case (x: Double, y: Int) => x + y
-          case (x: Int, y: Double) => x + y
-          case (x: Double, y: Double) => x + y
-        }, dst)
+        
+        state.setValue(performBinaryOperation(theVal, resolvedop2, op_plus, state), dst)
+
       case `op_minusAssign` =>
         state.setValue((theVal, resolvedop2) match {
           case (x: Int, y: Int) => x - y
