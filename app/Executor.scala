@@ -568,7 +568,6 @@ object Executor {
                 val resolved = TypeHelper.resolve(state, theType, initVal)
 
                 val newVar = new Variable(state, theType)
-                println("SETTING VALUE")
                 state.setValue(resolved, newVar.info)
                 state.vars.addVariable(name, newVar)
                 newVar

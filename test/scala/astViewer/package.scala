@@ -16,13 +16,15 @@ package object astViewer {
   
   class StandardTest extends FlatSpec with ShouldMatchers with ParallelTestExecution {
     def checkResults(code: String) = {
-      val gccOutputFuture = Future[Seq[String]] { Gcc.compileAndGetOutput(code) }
+      
+      
+      val gccOutputFuture = Future[Seq[String]] { Gcc.compileAndGetOutput(codeWithStdio) }
     
       val cEngineOutputFuture = Future[ListBuffer[String]] {
         val start = System.nanoTime
         val state = new State
         val executor = new Executor()
-        executor.init(code, true, state)
+        executor.init(codeWithStdio, true, state)
         executor.execute(state)
         totalTime += (System.nanoTime - start)/1000000000.0
         state.stdout
