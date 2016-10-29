@@ -161,7 +161,7 @@ class PrimitiveTest extends StandardTest {
       
       void main() {
         bool x = false;
-        printf("%d %d\n", x, !x);
+        printf("%d\n", x);
       }"""
 
     checkResults(code)

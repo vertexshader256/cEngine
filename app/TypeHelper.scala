@@ -51,10 +51,11 @@ object TypeHelper {
         } 
       case `eBoolean` =>
         // booleans are integers in C
-        newVal match {
+        val result: Int = newVal match {
           case bool: Boolean => 1
           case int: Int => if (int > 0) 1 else 0
         } 
+        result
       case `eVoid` =>
         newVal match {
           case int: Int => int
@@ -117,6 +118,7 @@ object TypeHelper {
         case `eChar`                => 1
         case `eChar32`              => 4
         case `eVoid`                => 4
+        case `eBoolean`             => 4
       }
   }
   
