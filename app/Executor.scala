@@ -148,19 +148,22 @@ class State {
       case x => {
         
         if (TypeHelper.isPointer(info.theType)) {
+          // pointers will always be integers
           data.putInt(info.address.value, newVal.asInstanceOf[Int])
         } else {
           val theType = TypeHelper.resolve(info.theType)
       
-          import IBasicType.Kind._        
+          import IBasicType.Kind._   
+          
+          val result = TypeHelper.coerece(theType, newVal)
           
           theType.getKind match {
-            case `eChar`    => data.put(info.address.value, TypeHelper.coerece(theType, newVal).asInstanceOf[Byte])
-            case `eInt` if theType.isLong => data.putLong(info.address.value, TypeHelper.coerece(theType, newVal).asInstanceOf[Long])
-            case `eInt` if theType.isShort    => data.putShort(info.address.value, TypeHelper.coerece(theType, newVal).asInstanceOf[Short]) 
-            case `eInt`     => data.putInt(info.address.value, TypeHelper.coerece(theType, newVal).asInstanceOf[Int]) 
-            case `eFloat`   => data.putFloat(info.address.value, TypeHelper.coerece(theType, newVal).asInstanceOf[Float])
-            case `eDouble`  => data.putDouble(info.address.value, TypeHelper.coerece(theType, newVal).asInstanceOf[Double])
+            case `eChar`    => data.put(info.address.value, result.asInstanceOf[Byte])
+            case `eInt` if theType.isLong => data.putLong(info.address.value, result.asInstanceOf[Long])
+            case `eInt` if theType.isShort => data.putShort(info.address.value, result.asInstanceOf[Short]) 
+            case `eInt`     => data.putInt(info.address.value, result.asInstanceOf[Int]) 
+            case `eFloat`   => data.putFloat(info.address.value, result.asInstanceOf[Float])
+            case `eDouble`  => data.putDouble(info.address.value, result.asInstanceOf[Double])
           }
       }
         }
