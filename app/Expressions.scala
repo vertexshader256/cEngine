@@ -222,10 +222,15 @@ object Expressions {
             resolveVar(context.stack.pop, (address, theType) => {
               val currentVal = stack.readVal(address, theType)
               context.stack.push(currentVal)
+              val info = AddressInfo(Address(address), theType)
               
               currentVal match {
-                case int: Int => stack.setValue(int + 1, AddressInfo(Address(address), theType))
-                case char: Char => stack.setValue(char + 1, AddressInfo(Address(address), theType))
+                case int: Int => stack.setValue(int + 1, info)
+                case int: Int => stack.setValue(int + 1, info)
+                case char: Char => stack.setValue(char + 1, info)
+                case float: Float => stack.setValue(float + 1.0, info)
+                case double: Double => stack.setValue(double + 1.0, info)
+                case short: Short => stack.setValue(short + 1, info)
               }
             })
           case `op_postFixDecr` =>
@@ -346,9 +351,7 @@ object Expressions {
             BinaryExpr.parse(bin, context)
           }
 
-          //if (result != null) {
-            context.stack.push(result)
-          //}
+          context.stack.push(result)
           Seq()
         } else {
           // short circuiting

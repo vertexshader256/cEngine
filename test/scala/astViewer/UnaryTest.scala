@@ -40,6 +40,22 @@ class UnaryTest extends StandardTest {
     checkResults(code)
   }
   
+    val code = """
+      void main() {
+        int x = 5;
+        float y = 4.5;
+        double z = 5.4;
+        short u = 2;
+        x++;
+        y++;
+        z++;
+        u++;
+        printf("%d %f %f %d\n", x, y, z, u);
+      }"""
+
+    checkResults(code)
+  }
+  
   "A simple prefix init test" should "print the correct results" in {
     val code = """
       void main() {
