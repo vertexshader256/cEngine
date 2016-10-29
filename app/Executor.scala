@@ -587,7 +587,7 @@ object Executor {
                           state.setValue(variable.value, newVar.info)
                         case AddressInfo(address, theType) => 
                           if (TypeHelper.isPointer(theType)) {
-                            state.setValue(state.readVal(address.value, TypeHelper.resolve(theType)), newVar.info)
+                            state.setValue(state.readVal(address.value, TypeHelper.pointerType), newVar.info)
                           } else {
                             state.setValue(address.value, newVar.info)
                           }
