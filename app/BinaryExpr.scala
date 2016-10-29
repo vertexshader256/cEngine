@@ -102,17 +102,8 @@ object BinaryExpr {
     }
   }
   
-  def parse(binaryExpr: IASTBinaryExpression, context: State, stack: State): Any = {
-    import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
-
-    val op = binaryExpr.getOperator
-    
-    // resolve literals
-    
-    val op2 = resolveOperand(context.stack.pop, context)
-    val op1 = resolveOperand(context.stack.pop, context)
-  
-    val result: Any = binaryExpr.getOperator match {
+  def performBinaryOperation(op1: Any, op2: Any, operator: Int, state: State): AnyVal = {
+    operator match {
       case `op_multiply` =>
         (op1, op2) match {
           case (x: Int, y: Char) => x * y
@@ -301,7 +292,7 @@ object BinaryExpr {
       case `op_equals` =>
         (op1, op2) match {
           case (AddressInfo(addy, theType), AddressInfo(addy2, theType2)) => addy.value == addy2.value
-          case (AddressInfo(addy, theType), y: Int) => context.readVal(addy.value, TypeHelper.resolve(theType)) == y
+          case (AddressInfo(addy, theType), y: Int) => state.readVal(addy.value, TypeHelper.resolve(theType)) == y
           case (x: Int, y: Int) => x == y
           case (x: Double, y: Int) => x == y
           case (x: Int, y: Double) => x == y
@@ -309,7 +300,7 @@ object BinaryExpr {
         }
       case `op_notequals` =>
         (op1, op2) match {
-          case (AddressInfo(addy, theType), y: Int) => context.readVal(addy.value, TypeHelper.resolve(theType)) != y
+          case (AddressInfo(addy, theType), y: Int) => state.readVal(addy.value, TypeHelper.resolve(theType)) != y
           case (x: Int, y: Int) => x != y
           case (x: Double, y: Int) => x != y
           case (x: Int, y: Double) => x != y
@@ -381,8 +372,21 @@ object BinaryExpr {
           case (x: Boolean, y: Boolean) => x || y
           case (x: Int, y: Boolean) => (x > 0) || y
         }
-      case _ => throw new Exception("unhandled binary operator: " + binaryExpr.getOperator); null
+      case _ => throw new Exception("unhandled binary operator: " + operator); 0
     }
+  }
+  
+  def parse(binaryExpr: IASTBinaryExpression, context: State, stack: State): Any = {
+    import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
+
+    val op = binaryExpr.getOperator
+    
+    // resolve literals
+    
+    val op2 = resolveOperand(context.stack.pop, context)
+    val op1 = resolveOperand(context.stack.pop, context)
+  
+    val result: Any = performBinaryOperation(op1, op2, binaryExpr.getOperator, context)
     
     result
   }
