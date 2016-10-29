@@ -17,6 +17,7 @@ package object astViewer {
   class StandardTest extends FlatSpec with ShouldMatchers with ParallelTestExecution {
     def checkResults(code: String) = {
       
+      val codeWithStdio = "int printf (const char *, ...);" + code
       
       val gccOutputFuture = Future[Seq[String]] { Gcc.compileAndGetOutput(codeWithStdio) }
     

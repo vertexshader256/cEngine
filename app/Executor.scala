@@ -87,6 +87,8 @@ class State {
       data.getLong(address)
     } else if (theType.getKind == eInt) {
       data.getInt(address)
+    } else if (theType.getKind == eBoolean) {
+      data.getInt(address)
     } else if (theType.getKind == eDouble) {
       data.getDouble(address)
     } else if (theType.getKind == eFloat) {
@@ -95,6 +97,8 @@ class State {
       data.get(address).toChar
     } else if (theType.getKind == eChar && !isSigned) {
       data.get(address).toChar & 0xFF
+    } else {
+      throw new Exception("Bad read val")
     }
   }
 
@@ -564,6 +568,8 @@ object Executor {
                 } else {
                   0
                 }   
+                
+                
 
                 val resolved = TypeHelper.resolve(state, theType, initVal)
 

@@ -69,10 +69,6 @@ object FunctionCallExpr {
                       
                     new String(stringBuilder.map(_.toByte).toArray, "UTF-8")
                 }
-//                else {
-//                    stack.readVal(addy.value, TypeHelper.resolve(theType))
-//                }        
-                
               case x => x
             }
           }

@@ -6,7 +6,7 @@ class StagingAreaPrimitive extends StandardTest {
       #include <stdbool.h>
       
       void main() {
-        bool x = 0;
+        bool x = false;
         printf("%d\n", x);
       }"""
 
