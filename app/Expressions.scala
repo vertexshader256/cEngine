@@ -66,7 +66,7 @@ object Expressions {
               theType match {
                 case struct: CStructure => struct
                 case ptr: IPointerType => 
-                  baseAddr = Address(context.readVal(addr.value, new CBasicType(IBasicType.Kind.eInt , 0)).asInstanceOf[Int])
+                  baseAddr = Address(context.readVal(addr.value, TypeHelper.pointerType).asInstanceOf[Int])
                   ptr.getType.asInstanceOf[CStructure]
               }
           }
@@ -136,9 +136,7 @@ object Expressions {
             typeItr = typeItr.asInstanceOf[IArrayType].getType
           }
           
-          val intType = new CBasicType(IBasicType.Kind.eInt , 0) 
-  
-          val arrayAddress = stack.readVal(arrayVarPtr.address.value, intType).asInstanceOf[Int]
+          val arrayAddress = stack.readVal(arrayVarPtr.address.value, TypeHelper.pointerType).asInstanceOf[Int]
   
           val ancestors = Utils.getAncestors(subscript)
           
@@ -226,7 +224,6 @@ object Expressions {
               
               currentVal match {
                 case int: Int => stack.setValue(int + 1, info)
-                case int: Int => stack.setValue(int + 1, info)
                 case char: Char => stack.setValue(char + 1, info)
                 case float: Float => stack.setValue(float + 1.0, info)
                 case double: Double => stack.setValue(double + 1.0, info)
@@ -240,7 +237,6 @@ object Expressions {
               val info = AddressInfo(Address(address), theType)
               
               currentVal match {
-                case int: Int => stack.setValue(int - 1, info)
                 case int: Int => stack.setValue(int - 1, info)
                 case char: Char => stack.setValue(char - 1, info)
                 case float: Float => stack.setValue(float - 1.0, info)
@@ -256,7 +252,6 @@ object Expressions {
               
               currentVal match {
                 case int: Int => stack.setValue(int + 1, info)
-                case int: Int => stack.setValue(int + 1, info)
                 case char: Char => stack.setValue(char + 1, info)
                 case float: Float => stack.setValue(float + 1.0, info)
                 case double: Double => stack.setValue(double + 1.0, info)
@@ -271,7 +266,6 @@ object Expressions {
               val info = AddressInfo(Address(address), theType)
 
               currentVal match {
-                case int: Int => stack.setValue(int - 1, info)
                 case int: Int => stack.setValue(int - 1, info)
                 case char: Char => stack.setValue(char - 1, info)
                 case float: Float => stack.setValue(float - 1.0, info)
@@ -303,26 +297,32 @@ object Expressions {
               case VarRef(varName) =>       
                 val ptr = context.vars.resolveId(varName)
                 val ptrType = ptr.theType.asInstanceOf[IPointerType]
+                val isNested = ptrType.getType.isInstanceOf[IPointerType]
+                
+                val specialCase = unary.getParent.isInstanceOf[IASTUnaryExpression] &&
+                      unary.getParent.asInstanceOf[IASTUnaryExpression].getOperator == op_bracketedPrimary // (k*)++
+                
                 context.stack.push(
-                  if (Utils.isOnLeftSideOfAssignment(unary) || ptrType.getType.isInstanceOf[IPointerType] || (unary.getParent.isInstanceOf[IASTUnaryExpression] &&
-                      unary.getParent.asInstanceOf[IASTUnaryExpression].getOperator == op_bracketedPrimary)) { // (k*)++
-                    val deref = stack.readVal(ptr.address.value, new CBasicType(IBasicType.Kind.eInt , 0)).asInstanceOf[Int]
+                  if (Utils.isOnLeftSideOfAssignment(unary) || isNested || specialCase) { 
+                    val deref = stack.readVal(ptr.address.value, TypeHelper.pointerType).asInstanceOf[Int]
                     AddressInfo(Address(deref), ptrType.getType)
                   } else {
                     stack.readVal(ptr.value.asInstanceOf[Int], TypeHelper.resolve(ptr.theType))
                   }
                 )
               case address @ AddressInfo(addr, theType) =>
-                if (theType.isInstanceOf[IPointerType]) {
-                  // nested pointers
-                  val ptrType = theType.asInstanceOf[IPointerType]
-                  val deref = stack.readVal(addr.value, new CBasicType(IBasicType.Kind.eInt , 0)).asInstanceOf[Int]
-                  val refAddressInfo = AddressInfo(Address(deref), ptrType.getType)
-                  context.stack.push(refAddressInfo)
-                } else {
-                  context.stack.push(stack.readVal(addr.value, TypeHelper.resolve(theType)))
-                }
-            }
+                theType match {
+                  
+                  case ptr: IPointerType =>
+                    // nested pointers
+                    val deref = stack.readVal(addr.value, TypeHelper.pointerType).asInstanceOf[Int]
+                    val refAddressInfo = AddressInfo(Address(deref), ptr.getType)
+                    context.stack.push(refAddressInfo)
+                  case basic: IBasicType =>
+                    // actually dereference
+                    context.stack.push(stack.readVal(addr.value, basic))
+               }
+           }
           case `op_bracketedPrimary` => // not sure what this is for but I need it for weird stuff like (k*)++
         }
         Seq()

@@ -6,6 +6,8 @@ import org.eclipse.cdt.core.dom.ast._
 
 object TypeHelper {
   
+  val pointerType = new CBasicType(IBasicType.Kind.eInt , 0)
+  
   def coerece(theType: IBasicType, newVal: Any): AnyVal = {
     theType.getKind match {
       case `eChar`    => 
