@@ -173,7 +173,7 @@ object Expressions {
             val variable = context.vars.resolveId(name)
             val theType = TypeHelper.resolve(variable.theType)
             val currentVal = stack.readVal(variable.address.value, theType)
-            (currentVal, AddressInfo(variable.address, TypeHelper.resolve(variable.theType)))
+            (currentVal, AddressInfo(variable.address, variable.theType))
           case AddressInfo(addy, theType) => 
             val resolved = TypeHelper.resolve(theType)
             val currentVal = stack.readVal(addy.value, resolved)
