@@ -376,18 +376,11 @@ object BinaryExpr {
     }
   }
   
-  def parse(binaryExpr: IASTBinaryExpression, context: State, stack: State): Any = {
-    import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
+  def parse(binaryExpr: IASTBinaryExpression, state: State): Any = {
 
-    val op = binaryExpr.getOperator
-    
-    // resolve literals
-    
-    val op2 = resolveOperand(context.stack.pop, context)
-    val op1 = resolveOperand(context.stack.pop, context)
+    val op2 = resolveOperand(state.stack.pop, state)
+    val op1 = resolveOperand(state.stack.pop, state)
   
-    val result: Any = performBinaryOperation(op1, op2, binaryExpr.getOperator, context)
-    
-    result
+    performBinaryOperation(op1, op2, binaryExpr.getOperator, state)
   }
 }
