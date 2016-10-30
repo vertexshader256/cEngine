@@ -263,7 +263,7 @@ object Expressions {
               case char: Char =>
                 val target = Utils.getUnaryTarget(unary).foreach { name =>
                   val ptr = context.vars.resolveId(name.getRawSignature)
-                  stack.readVal(char, TypeHelper.resolve(ptr.theType))
+                  context.stack.push(stack.readVal(char, TypeHelper.resolve(ptr.theType)))
                 }
               case VarRef(varName) =>       
                 val ptr = context.vars.resolveId(varName)
