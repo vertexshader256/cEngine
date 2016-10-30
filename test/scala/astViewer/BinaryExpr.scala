@@ -1,7 +1,15 @@
 package scala.astViewer
 
 class StagingArea extends StandardTest {
-  
+  "A simple left shift test" should "print the correct results" in {
+    val code = """
+      void main() {
+        unsigned long hash = 193471921;
+        printf("%d\n", (hash << 5));
+      }
+      """
+    checkResults(code)
+  }
 }
 
 class RobustTests extends StandardTest {
@@ -156,6 +164,8 @@ class BinaryExpr extends StandardTest {
 
     checkResults(code)
   }
+  
+  
   
   "A simple increment test" should "print the correct results" in {
     val code = """

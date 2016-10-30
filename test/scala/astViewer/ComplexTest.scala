@@ -392,32 +392,37 @@ class ComplexTest extends StandardTest {
 //
 //    checkResults(code)
 //  }  
-  
-  "DJB2 test" should "print the correct results" in {
-    val code = """
-
-      unsigned long
-      djb2(unsigned char *str)
-      {
-          unsigned long hash = 5381;
-          int c;
-      
-          while (c = *str++) {
-              hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
-              printf("%d\n", hash);
-          }
-      
-          return hash;
-      }
-  
-      void main()
-      {
-        char test[] = "TestString";
-        printf("djb2 result %d\n", djb2(test));
-        return 0;
-      }
-      """
-
-    checkResults(code)
-  }
 }
+
+ class DJB2Test extends StandardTest {
+    "DJB2 test" should "print the correct results" in {
+      val code = """
+  
+        unsigned long
+        djb2(unsigned char *str)
+        {
+            unsigned long hash = 5381;
+            int c;
+        
+            while (c = *str++) {
+            printf("%d\n", c);
+            printf("%d\n", ((hash << 5)));
+            printf("%d\n", ((hash << 5) + hash));
+                hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+                printf("%d\n", hash);
+            }
+        
+            return hash;
+        }
+    
+        void main()
+        {
+          char test[] = "TestString";
+          printf("djb2 result %d\n", djb2(test));
+          return 0;
+        }
+        """
+  
+      checkResults(code)
+    }
+ }

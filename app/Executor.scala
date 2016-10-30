@@ -83,6 +83,8 @@ class State {
       data.getShort(address)
     } else if (theType.isShort && !isSigned) {
       data.getShort(address) & 0xFFFF
+    } else if (theType.getKind == eInt && theType.isLong && theType.isUnsigned) {
+      data.getLong(address) & 0x00000000ffffffffL
     } else if (theType.getKind == eInt && theType.isLong) {
       data.getLong(address)
     } else if (theType.getKind == eInt) {
