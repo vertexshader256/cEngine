@@ -276,6 +276,11 @@ object BinaryExpr {
           case (x: Long, y: Int) => x >> y
           case (x: Int, y: Int) => x >> y
         }
+      case `op_shiftLeft` =>
+        (op1, op2) match {
+          case (x: Long, y: Int) => x << y
+          case (x: Int, y: Int) => x << y
+        }
       case `op_equals` =>
         (op1, op2) match {
           case (x: Char, y: Int) => x == y
