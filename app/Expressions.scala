@@ -265,6 +265,11 @@ object Expressions {
                   val ptr = context.vars.resolveId(name.getRawSignature)
                   context.stack.push(stack.readVal(char, TypeHelper.resolve(ptr.theType)))
                 }
+              case int: Int =>
+                val target = Utils.getUnaryTarget(unary).foreach { name =>
+                  val ptr = context.vars.resolveId(name.getRawSignature)
+                  context.stack.push(stack.readVal(int, TypeHelper.resolve(ptr.theType)))
+                }
               case VarRef(varName) =>       
                 val ptr = context.vars.resolveId(varName)
                 val ptrType = ptr.theType.asInstanceOf[IPointerType]
