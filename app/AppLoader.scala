@@ -138,6 +138,7 @@ class AppLoader extends ApplicationLoader {
  
 
   var executor: Executor = null
+  var state: State = null
   
  class AkkaWebSockets(implicit system: ActorSystem, mat: Materializer) extends Controller {
 
@@ -149,7 +150,7 @@ class AppLoader extends ApplicationLoader {
       def receive = {
         case msg: String =>
           if (msg == "Step") {
-            executor.tick(null)
+            executor.tick(state)
             out ! ("Step Response:" + executor.current.hashCode)
           } else if (msg.startsWith("Get Node Class Name:")) {
             val id = msg.split(":").last.trim.toInt
@@ -226,8 +227,8 @@ class AppLoader extends ApplicationLoader {
         println("GETTING AST")
         Future {
 
-          val state = new State
-          val executor = new Executor()
+          state = new State
+          executor = new Executor()
           executor.init(code, true, state)
 
           Ok(AstUtils.getAllChildren(executor.tUnit))
