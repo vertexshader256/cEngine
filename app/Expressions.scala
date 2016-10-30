@@ -233,14 +233,14 @@ object Expressions {
             
             // set then push
             stack.setValue(newVal, info)  
-            context.stack.push(stack.readVal(info.address.value, info.theType.asInstanceOf[IBasicType]))
+            context.stack.push(newVal)
           case `op_prefixDecr` =>
             val (currentVal, info) = resolveVar(context.stack.pop)
             val newVal = BinaryExpr.performBinaryOperation(currentVal, 1, IASTBinaryExpression.op_minus, info.theType)
             
             // set then push
             stack.setValue(newVal, info)  
-            context.stack.push(stack.readVal(info.address.value, info.theType.asInstanceOf[IBasicType]))
+            context.stack.push(newVal)
           case `op_sizeof` =>
             context.stack.pop match {
               case VarRef(name) =>
