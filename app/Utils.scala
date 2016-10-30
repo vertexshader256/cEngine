@@ -53,6 +53,15 @@ object Utils {
     }.getOrElse(false)
   }
 
+  def getUnaryTarget(node: IASTNode): Option[IASTName] = {
+    if (node.isInstanceOf[IASTIdExpression]) {
+      Some(node.asInstanceOf[IASTIdExpression].getName)
+    } else {
+      val childUnaries = node.getChildren.collect{ case x: IASTUnaryExpression => x}
+      childUnaries.map(_.getOperand).map(getUnaryTarget).flatten.headOption
+    }
+  }
+  
   def getDescendants(node: IASTNode): Seq[IASTNode] = {
     Seq(node) ++ node.getChildren.flatMap{x => getDescendants(x)}
   }

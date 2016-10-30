@@ -15,51 +15,17 @@ class StagingGround extends StandardTest {
     checkResults(code)
   }
   
- "A pointer with a unary expression" should "print the correct results" in {
+ "some basic pointer arithmetic" should "print the correct results" in {
     val code = """
-      int z = 2;
-      int *k = &z;
       void main() {
-        (*k)++;
-        int x = *k++;
-        printf("%d %d %d\n", *k, z, x);
-        
+        char str[] = "Hello!\n";
+        char *x = str + 1;
+        printf("%s", x);
+        *x++;
+        printf("%s", x);
       }"""
-    
+
     checkResults(code)
-    
-    val code2 = """
-      int z = 2;
-      int *k = &z;
-      void main() {
-        (*k)--;
-        printf("%d %d\n", *k, z);
-        
-      }"""
-    
-    checkResults(code2)
-    
-    val code3 = """
-      int z = 2;
-      int *k = &z;
-      void main() {
-        --(*k);
-        printf("%d %d\n", *k, z);
-        
-      }"""
-    
-    checkResults(code3)
-    
-    val code4 = """
-      int z = 2;
-      int *k = &z;
-      void main() {
-        ++(*k);
-        printf("%d %d\n", *k, z);
-        
-      }"""
-    
-    checkResults(code4)
   }
 }
 
@@ -227,16 +193,54 @@ class PointerTest extends StandardTest {
     checkResults(code)
   }
   
-  "some basic pointer arithmetic" should "print the correct results" in {
+  "A pointer with a unary expression" should "print the correct results" in {
     val code = """
+      int z = 2;
+      int *k = &z;
       void main() {
-        char str[] = "Hello!\n";
-        char *x = str + 1;
-        printf("%s", x);
+        (*k)++;
+        int x = (*k)++;
+        printf("%d %d %d\n", *k, z, x);
+        
       }"""
-
+    
     checkResults(code)
+    
+    val code2 = """
+      int z = 2;
+      int *k = &z;
+      void main() {
+        (*k)--;
+        printf("%d %d\n", *k, z);
+        
+      }"""
+    
+    checkResults(code2)
+    
+    val code3 = """
+      int z = 2;
+      int *k = &z;
+      void main() {
+        --(*k);
+        printf("%d %d\n", *k, z);
+        
+      }"""
+    
+    checkResults(code3)
+    
+    val code4 = """
+      int z = 2;
+      int *k = &z;
+      void main() {
+        ++(*k);
+        printf("%d %d\n", *k, z);
+        
+      }"""
+    
+    checkResults(code4)
   }
+  
+  
   
   "some incremental pointer arithmetic" should "print the correct results" in {
     val code = """

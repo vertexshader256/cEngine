@@ -260,6 +260,11 @@ object Expressions {
             }
           case `op_star` =>
             context.stack.pop match {
+              case char: Char =>
+                val target = Utils.getUnaryTarget(unary).foreach { name =>
+                  val ptr = context.vars.resolveId(name.getRawSignature)
+                  stack.readVal(char, TypeHelper.resolve(ptr.theType))
+                }
               case VarRef(varName) =>       
                 val ptr = context.vars.resolveId(varName)
                 val ptrType = ptr.theType.asInstanceOf[IPointerType]
