@@ -79,12 +79,10 @@ class State {
     // if it is neither signed or unsigned, assume its signed
     val isSigned = TypeHelper.isSigned(theType)
 
-    if (theType.isShort && isSigned) {
+    val result: AnyVal = if (theType.isShort && isSigned) {
       data.getShort(address)
     } else if (theType.isShort && !isSigned) {
       data.getShort(address) & 0xFFFF
-    } else if (theType.getKind == eInt && theType.isLong && theType.isUnsigned) {
-      data.getLong(address) & 0x00000000ffffffffL
     } else if (theType.getKind == eInt && theType.isLong) {
       data.getLong(address)
     } else if (theType.getKind == eInt) {
@@ -102,6 +100,8 @@ class State {
     } else {
       throw new Exception("Bad read val")
     }
+    
+    TypeHelper.cast(theType, result)
   }
 
   // use Address type to prevent messing up argument order
@@ -119,14 +119,13 @@ class State {
           
           val result = TypeHelper.cast(theType, newVal)
           
-          theType.getKind match {
-            case `eChar`    => data.put(info.address.value, result.asInstanceOf[Byte])
-            case `eInt` if theType.isLong => data.putLong(info.address.value, result.asInstanceOf[Long])
-            case `eInt` if theType.isShort => data.putShort(info.address.value, result.asInstanceOf[Short]) 
-            case `eInt` => data.putInt(info.address.value, result.asInstanceOf[Int]) 
-            case `eBoolean` => data.putInt(info.address.value, result.asInstanceOf[Int]) 
-            case `eFloat`   => data.putFloat(info.address.value, result.asInstanceOf[Float])
-            case `eDouble`  => data.putDouble(info.address.value, result.asInstanceOf[Double])
+          result match {
+            case char: Char    => data.put(info.address.value, char.toByte)
+            case long: Long => data.putLong(info.address.value, long)
+            case short: Short  => data.putShort(info.address.value, short) 
+            case int: Int => data.putInt(info.address.value, int) 
+            case float: Float   => data.putFloat(info.address.value, float)
+            case double: Double  => data.putDouble(info.address.value, double)
           }
       }
         }
@@ -570,8 +569,6 @@ object Executor {
                 } else {
                   0
                 }   
-                
-                
 
                 val resolved = TypeHelper.resolve(state, theType, initVal)
 

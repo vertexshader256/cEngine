@@ -11,17 +11,34 @@ object TypeHelper {
   // casts 'newVal' to 'theType'
   def cast(theType: IBasicType, newVal: Any): AnyVal = {
     theType.getKind match {
+      case `eChar` if theType.isUnsigned    => 
+        newVal match {
+          case int: Int => int.toChar.toByte.toChar & 0xFF
+          case char: Char => char.toByte.toChar & 0xFF
+          case byte: Byte => byte.toChar & 0xFF
+        } 
       case `eChar`    => 
         newVal match {
-          case int: Int => int.toByte// MUST convert to byte because writing char is 2 bytes!!!
-          case char: Char => char.toByte
-          case byte: Byte => byte
+          case int: Int => int.toChar.toByte.toChar
+          case char: Char => char.toByte.toChar
+          case byte: Byte => byte.toChar
+        } 
+     case `eInt` if theType.isLong && theType.isUnsigned =>
+        newVal match {
+          case int: Int => int.toLong & 0x00000000ffffffffL
+          case long: Long => long & 0x00000000ffffffffL
         } 
      case `eInt` if theType.isLong =>
         newVal match {
           case int: Int => int.toLong
           case long: Long => long
         } 
+     case `eInt` if theType.isShort & theType.isUnsigned =>
+        newVal match {
+          case int: Int => int.toShort & 0xFFFF
+          case short: Short => short & 0xFFFF
+          case long: Long => long.toShort & 0xFFFF
+        }  
      case `eInt` if theType.isShort =>
         newVal match {
           case int: Int => int.toShort

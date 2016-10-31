@@ -405,11 +405,7 @@ class ComplexTest extends StandardTest {
             int c;
         
             while (c = *str++) {
-            printf("%d\n", c);
-            printf("%d\n", ((hash << 5)));
-            printf("%d\n", ((hash << 5) + hash));
                 hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
-                printf("%d\n", hash);
             }
         
             return hash;
