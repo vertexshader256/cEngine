@@ -368,7 +368,10 @@ object Executor {
         Seq(Option(forLoop.getInitializerStatement), Option(forLoop.getConditionExpression)).flatten
       } else {
         val shouldKeepLooping = if (forLoop.getConditionExpression != null) {
-          state.stack.pop.asInstanceOf[Boolean]
+          state.stack.pop match {
+            case bool: Boolean => bool
+            case int: Int => int > 0
+          }
         } else {
           true
         }

@@ -53,6 +53,7 @@ object TypeHelper {
           case short: Short => short.toInt
           case char: Char => char.toByte.toInt
           case double: Double => double.toInt
+          case float: Float => float.toInt
         }  
      case `eFloat`   =>
         newVal match {

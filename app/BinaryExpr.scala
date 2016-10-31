@@ -366,7 +366,14 @@ object BinaryExpr {
   
     if (op1Raw.isInstanceOf[VarRef]) {
         val theVar = state.vars.resolveId(op1Raw.asInstanceOf[VarRef].name) 
-        performBinaryOperation(op1, op2, binaryExpr.getOperator, theVar.theType)
+        val result = performBinaryOperation(op1, op2, binaryExpr.getOperator, theVar.theType)
+        
+        // HACKY: figure out how to better deal with unsigned binary ops
+        if (result.isInstanceOf[Long] && TypeHelper.resolve(theVar.theType).isUnsigned) {
+          TypeHelper.cast(TypeHelper.resolve(theVar.theType), result)
+        } else {
+          result
+        }
     } else {
       performBinaryOperation(op1, op2, binaryExpr.getOperator, null)
     }
