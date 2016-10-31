@@ -79,11 +79,10 @@ class State {
     // if it is neither signed or unsigned, assume its signed
     val isSigned = TypeHelper.isSigned(theType)
 
-    val result: AnyVal = if (theType.isShort && isSigned) {
+    val result: AnyVal = 
+    if (theType.getKind == eInt && theType.isShort) {
       data.getShort(address)
-    } else if (theType.isShort && !isSigned) {
-      data.getShort(address) & 0xFFFF
-    } else if (theType.getKind == eInt && theType.isLong) {
+    }  else if (theType.getKind == eInt && theType.isLong) {
       data.getLong(address)
     } else if (theType.getKind == eInt) {
       data.getInt(address)
@@ -93,10 +92,8 @@ class State {
       data.getDouble(address)
     } else if (theType.getKind == eFloat) {
       data.getFloat(address)
-    } else if (theType.getKind == eChar && isSigned) {
+    } else if (theType.getKind == eChar) {
       data.get(address).toChar
-    } else if (theType.getKind == eChar && !isSigned) {
-      data.get(address).toChar & 0xFF
     } else {
       throw new Exception("Bad read val")
     }
