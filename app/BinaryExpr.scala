@@ -21,8 +21,8 @@ object BinaryExpr {
       case info @ AddressInfo(_, _) => info
     }
 
-    val resolvedop2 = op2 match {
-      case lit @ Literal(_) => lit.cast
+    val resolvedop2: AnyVal = op2 match {
+      case lit @ Literal(_) => lit.cast.value
       case VarRef(name)  =>      
         val theVar = state.vars.resolveId(name)
         theVar.value
@@ -344,7 +344,7 @@ object BinaryExpr {
    
     def resolveOperand(op: Any, context: State): AnyVal = {
       op match {
-        case lit @ Literal(_) => lit.cast
+        case lit @ Literal(_) => lit.cast.value
         case Primitive(theVal, _) => theVal
         case VarRef(name)  =>      
           val theVar = context.vars.resolveId(name)

@@ -43,7 +43,7 @@ object FunctionCallExpr {
             case long: Long => long
             case doub: Double => doub
             case char: Char => char.toInt.toByte
-            case lit @ Literal(_) => lit.cast
+            case lit @ Literal(_) => lit.cast.value
           }
         }
 

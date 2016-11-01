@@ -41,7 +41,7 @@ object Expressions {
         context.stack.push(context.stack.pop match {
           case addy @ Address(_) => AddressInfo(addy, theType)
           case VarRef(id) => AddressInfo(Address(stack.vars.resolveId(id).value.asInstanceOf[Int]), theType)
-          case lit @ Literal(str) => TypeHelper.cast(TypeHelper.resolve(theType), lit.cast)
+          case lit @ Literal(str) => TypeHelper.cast(TypeHelper.resolve(theType), lit.cast.value)
         })
 
         Seq()
@@ -117,13 +117,15 @@ object Expressions {
           val indexes = new ListBuffer[Int]()
           var itr: IASTNode = subscript
           while (itr.isInstanceOf[IASTArraySubscriptExpression]) {
-            indexes += (context.stack.pop match {
+            val result: Int = (context.stack.pop match {
               case VarRef(indexVarName) =>
-                context.vars.resolveId(indexVarName).value
-              case lit @ Literal(_) => lit.cast
+                context.vars.resolveId(indexVarName).value.asInstanceOf[Int]
+              case lit @ Literal(_) => lit.cast.value.asInstanceOf[Int]
               case int: Int => int
               case double: Double => double.toInt
-            }).asInstanceOf[Int]
+            })
+            
+            indexes += result
             itr = itr.getParent
           }
           

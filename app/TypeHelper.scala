@@ -9,7 +9,7 @@ object TypeHelper {
   val pointerType = new CBasicType(IBasicType.Kind.eInt , 0)
   
   // casts 'newVal' to 'theType'
-  def cast(theType: IBasicType, newVal: Any): Primitive = {
+  def cast(theType: IBasicType, newVal: AnyVal): Primitive = {
     val casted: AnyVal = theType.getKind match {
       case `eChar` if theType.isUnsigned    => 
         newVal match {

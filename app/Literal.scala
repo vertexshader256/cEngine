@@ -6,9 +6,10 @@ import scala.collection.mutable.{ ListBuffer, Stack }
 import scala.util.control.Exception.allCatch
 import java.math.BigInteger
 import scala.collection.mutable.Map
+import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
 
 case class Literal(litStr: String) {
-  def cast: AnyVal = {
+  def cast: Primitive = {
 
     def isIntNumber(s: String): Boolean = (allCatch opt s.toInt).isDefined
     def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
@@ -30,26 +31,26 @@ case class Literal(litStr: String) {
     }
 
     if (lit.head == '\"' && lit.last == '\"') {
-      StringLiteral(lit)
+      Primitive(StringLiteral(lit), new CBasicType(IBasicType.Kind.eChar, 0))
     } else if (lit.head == '\'' && lit.last == '\'' && (lit.size == 3 || lit == "'\\0'")) {
       if (lit == "'\\0'") {
-        0
+        Primitive(0, new CBasicType(IBasicType.Kind.eFloat, 0))
       } else {
-        lit.toCharArray.apply(1)
+        Primitive(lit.toCharArray.apply(1), new CBasicType(IBasicType.Kind.eChar, 0))
       }
     } else if (isIntNumber(lit)) {
-      lit.toInt
+      Primitive(lit.toInt, new CBasicType(IBasicType.Kind.eFloat, 0))
     } else if (isLongNumber(lit)) {
-      lit.toLong
+      Primitive(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
     } else if (lit.contains('F') || lit.contains('f')) {
       val num = lit.toCharArray.filter(x => x != 'f' && x != 'F').mkString
-      num.toFloat
+      Primitive(num.toFloat, new CBasicType(IBasicType.Kind.eFloat, 0))
     } else {
-      lit.toDouble
+      Primitive(lit.toDouble, new CBasicType(IBasicType.Kind.eDouble, 0))
     }
   }
   
   def typeCast(theType: IBasicType): Primitive = {
-    TypeHelper.cast(theType, cast)
+    TypeHelper.cast(theType, cast.value)
   }
 }

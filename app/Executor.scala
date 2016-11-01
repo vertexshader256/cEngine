@@ -216,12 +216,13 @@ protected class ArrayVariable(val state: State, val theType: IType, dimensions: 
         element match {
           case lit @ Literal(_) =>
             state.setValue(lit.typeCast(resolved).value, AddressInfo(theArrayAddress + i, resolved))
+          case Primitive(newVal, _) => state.setValue(newVal, AddressInfo(theArrayAddress + i, resolved))
           case int: Int =>
             state.setValue(int, AddressInfo(theArrayAddress + i, resolved))
           case char: Char =>
             state.setValue(char, AddressInfo(theArrayAddress + i, resolved))
-          case double: Double =>
-            state.setValue(double, AddressInfo(theArrayAddress + i, resolved))
+//          case double: Double =>
+//            state.setValue(double, AddressInfo(theArrayAddress + i, resolved))
         }
         i += TypeHelper.sizeof(resolved)
       }
@@ -294,7 +295,7 @@ object Executor {
         Seq(caseStatement.getExpression)
       } else {
 
-        val caseExpr = state.stack.pop.asInstanceOf[Literal].cast
+        val caseExpr = state.stack.pop.asInstanceOf[Literal].cast.value
         val switchExpr = state.stack.pop
 
         state.stack.push(switchExpr)
@@ -333,7 +334,7 @@ object Executor {
       } else {
 
         val cast = state.stack.pop match {
-          case lit @ Literal(_) => lit.cast
+          case lit @ Literal(_) => lit.cast.value
           case x                => x
         }
 
@@ -361,7 +362,7 @@ object Executor {
           case VarRef(name) =>
             state.vars.resolveId(name).value
           case lit @ Literal(_) =>
-            lit.cast
+            lit.cast.value
           case x => x
         }
 
@@ -416,7 +417,7 @@ object Executor {
           val returnVal = state.stack.pop
           state.stack.push(returnVal match {
             case lit @ Literal(_) if state.vars.returnType != null => lit.typeCast(TypeHelper.resolve(state.vars.returnType))
-            case lit @ Literal(_) => lit.cast
+            case lit @ Literal(_) => lit.cast.value
             case VarRef(id)       => 
               if (TypeHelper.isPointer(state.vars.returnType)) {
                 state.vars.resolveId(id).pointerValue
@@ -488,7 +489,7 @@ object Executor {
 
             val dimensions = arrayDecl.getArrayModifiers.filter{_.getConstantExpression != null}.map{dim => state.stack.pop match {
               // can we can assume dimensions are integers
-              case lit: Literal => lit.cast.asInstanceOf[Int]
+              case lit: Literal => lit.cast.value.asInstanceOf[Int]
               case VarRef(id) => state.vars.resolveId(id).value.asInstanceOf[Int]
             }}
             
@@ -500,7 +501,7 @@ object Executor {
             if (dimensions.isEmpty && initializer != null) {             
               if (TypeHelper.resolve(theType).getKind == eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
                 // char str[] = "Hello!\n";
-                val initString = state.stack.pop.asInstanceOf[Literal].cast.asInstanceOf[StringLiteral].str                
+                val initString = state.stack.pop.asInstanceOf[Literal].cast.value.asInstanceOf[StringLiteral].str                
                 createStringVariable(state, name, theType, initString)
               } else {
                 val list = initializer.getInitializerClause.asInstanceOf[IASTInitializerList]
@@ -554,7 +555,7 @@ object Executor {
                     // char *str = "hello world!";
                     
                     val initString = initVal.asInstanceOf[Literal].cast match {
-                      case StringLiteral(str) => str
+                      case Primitive(StringLiteral(str),_) => str
                     }
                     
                     createStringVariable(state, name, theType, initString)
@@ -606,7 +607,7 @@ object Executor {
 
               var offset = 0
               values.foreach { case (value, field) =>
-                state.setValue(value, AddressInfo(newVar.address + offset, field.getType))
+                state.setValue(value.value, AddressInfo(newVar.address + offset, field.getType))
                 offset += TypeHelper.sizeof(field.getType)
               }
             }
