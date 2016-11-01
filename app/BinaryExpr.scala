@@ -25,7 +25,7 @@ object BinaryExpr {
       case lit @ Literal(_) => lit.cast.value
       case VarRef(name)  =>      
         val theVar = state.vars.resolveId(name)
-        theVar.value
+        theVar.value.value
       case AddressInfo(addr, theType) => 
         if (!TypeHelper.isPointer(dst.theType)) {
           // only if op1 is NOT a pointer, resolve op2
@@ -353,7 +353,7 @@ object BinaryExpr {
         case Primitive(theVal, _) => theVal
         case VarRef(name)  =>      
           val theVar = context.vars.resolveId(name)
-          theVar.value  
+          theVar.value.value
         case AddressInfo(addy, theType) =>
           context.readVal(addy, TypeHelper.resolve(theType))
         case int: Int => int

@@ -94,7 +94,7 @@ object TypeHelper {
   def resolve(state: State, theType: IType, any: Any): Primitive = {
     Primitive(any match {
       case VarRef(name) =>
-        state.vars.resolveId(name).value
+        state.vars.resolveId(name).value.value
       case lit @ Literal(_) => lit.typeCast(TypeHelper.resolve(theType)).value
       case AddressInfo(addy, _) => addy.value
       case Address(addy) => addy

@@ -157,11 +157,11 @@ trait RuntimeVariable {
   def sizeof: Int
   def info = AddressInfo(address, theType)
   
-  def value: AnyVal = {
+  def value: Primitive = {
     if (TypeHelper.isPointer(theType)) {
-      state.readVal(address, TypeHelper.pointerType)
+      Primitive(state.readVal(address, TypeHelper.pointerType), TypeHelper.pointerType)
     } else {
-      state.readVal(address, TypeHelper.resolve(theType))
+      Primitive(state.readVal(address, TypeHelper.resolve(theType)), theType)
     }
   }
   
@@ -301,7 +301,7 @@ object Executor {
         state.stack.push(switchExpr)
 
         val resolved = switchExpr match {
-          case VarRef(x) => state.vars.resolveId(x).value
+          case VarRef(x) => state.vars.resolveId(x).value.value
           case int: Int  => int
         }
 
@@ -369,6 +369,7 @@ object Executor {
 
         val conditionResult = value match {
           case x: Int     => x > 0
+          case Primitive(x: Int, _)     => x > 0
           case x: Boolean => x
         }
         if (conditionResult) {
@@ -423,7 +424,7 @@ object Executor {
               if (TypeHelper.isPointer(state.vars.returnType)) {
                 state.vars.resolveId(id).pointerValue
               } else {
-                TypeHelper.cast(TypeHelper.resolve(state.vars.returnType), state.vars.resolveId(id).value)
+                TypeHelper.cast(TypeHelper.resolve(state.vars.returnType), state.vars.resolveId(id).value.value)
               }
             case Primitive(theVal, _) => theVal
             case int: Int         => int
@@ -491,7 +492,7 @@ object Executor {
             val dimensions = arrayDecl.getArrayModifiers.filter{_.getConstantExpression != null}.map{dim => state.stack.pop match {
               // can we can assume dimensions are integers
               case lit: Literal => lit.cast.value.asInstanceOf[Int]
-              case VarRef(id) => state.vars.resolveId(id).value.asInstanceOf[Int]
+              case VarRef(id) => state.vars.resolveId(id).value.value.asInstanceOf[Int]
             }}
             
             val initializer = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
@@ -565,7 +566,7 @@ object Executor {
                       initVal match {
                         case VarRef(id) => 
                           val variable = state.vars.resolveId(id)
-                          state.setValue(variable.value, newVar.info)
+                          state.setValue(variable.value.value, newVar.info)
                         case AddressInfo(address, theType) => 
                           if (TypeHelper.isPointer(theType)) {
                             state.setValue(state.readVal(address, TypeHelper.pointerType), newVar.info)

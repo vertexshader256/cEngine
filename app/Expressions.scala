@@ -40,7 +40,7 @@ object Expressions {
         
         context.stack.push(context.stack.pop match {
           case addy @ Address(_) => AddressInfo(addy, theType)
-          case VarRef(id) => AddressInfo(Address(stack.vars.resolveId(id).value.asInstanceOf[Int]), theType)
+          case VarRef(id) => AddressInfo(Address(stack.vars.resolveId(id).value.value.asInstanceOf[Int]), theType)
           case lit @ Literal(str) => TypeHelper.cast(TypeHelper.resolve(theType), lit.cast.value)
         })
 
@@ -59,7 +59,7 @@ object Expressions {
           owner match {
             case VarRef(name) => 
               val struct = context.vars.resolveId(name)
-              baseAddr = Address(struct.value.asInstanceOf[Int])
+              baseAddr = Address(struct.value.value.asInstanceOf[Int])
               struct.theType.asInstanceOf[IPointerType].getType.asInstanceOf[CStructure]
             case AddressInfo(addr, theType) => 
               baseAddr = addr
@@ -119,7 +119,7 @@ object Expressions {
           while (itr.isInstanceOf[IASTArraySubscriptExpression]) {
             val result: Int = (context.stack.pop match {
               case VarRef(indexVarName) =>
-                context.vars.resolveId(indexVarName).value.asInstanceOf[Int]
+                context.vars.resolveId(indexVarName).value.value.asInstanceOf[Int]
               case lit @ Literal(_) => lit.cast.value.asInstanceOf[Int]
               case int: Int => int
               case double: Double => double.toInt
@@ -190,7 +190,7 @@ object Expressions {
         unary.getOperator match {
           case `op_not` => context.stack.pop match {
             case VarRef(id) =>
-              stack.vars.resolveId(id).value match {
+              stack.vars.resolveId(id).value.value match {
                 case int: Int => context.stack.push(if (int == 0) 1 else 0)
               }
             case int: Int               => context.stack.push(if (int == 0) 1 else 0)
@@ -288,7 +288,7 @@ object Expressions {
                     val deref = stack.readPtrVal(ptr.address)
                     AddressInfo(Address(deref), ptrType.getType)
                   } else {
-                    stack.readVal(Address(ptr.value.asInstanceOf[Int]), TypeHelper.resolve(ptr.theType))
+                    stack.readVal(Address(ptr.value.value.asInstanceOf[Int]), TypeHelper.resolve(ptr.theType))
                   }
                 )
               case address @ AddressInfo(addr, theType) =>
