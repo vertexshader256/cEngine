@@ -159,7 +159,7 @@ trait RuntimeVariable {
   
   def value: Primitive = {
     if (TypeHelper.isPointer(theType)) {
-      Primitive(state.readVal(address, TypeHelper.pointerType), TypeHelper.pointerType)
+      Primitive(state.readVal(address, TypeHelper.pointerType), theType)
     } else {
       Primitive(state.readVal(address, TypeHelper.resolve(theType)), theType)
     }
