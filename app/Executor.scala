@@ -13,7 +13,7 @@ import java.math.BigInteger
 import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 import scala.collection.mutable.Map
 
-case class Primitive(value: AnyVal, theType: IBasicType)
+case class Primitive(value: AnyVal, theType: IType)
 case class VarRef(name: String)
 case class StringLiteral(str: String) extends AnyVal
 
