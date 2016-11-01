@@ -27,7 +27,7 @@ object FunctionCallExpr {
             case VarRef(name) => 
               val theVar = state.vars.resolveId(name)
               if (TypeHelper.isPointer(theVar.theType)) {
-                theVar.value.asInstanceOf[Int]
+                state.readPtrVal(theVar.address)
               } else {
                 state.readVal(theVar.address.value, TypeHelper.resolve(theVar.theType))
               }   

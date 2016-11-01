@@ -72,6 +72,10 @@ class State {
       Address(0)
     }
   }
+  
+  def readPtrVal(address: Address) = {
+    readVal(address.value, TypeHelper.pointerType).asInstanceOf[Int]
+  }
 
   def readVal(address: Int, theType: IBasicType): AnyVal = {
 
@@ -102,6 +106,10 @@ class State {
     TypeHelper.cast(theType, result).value
   }
 
+  def putPointer(addr: Address, newVal: AnyVal) = {
+    data.putInt(addr.value, newVal.asInstanceOf[Int])
+  }
+  
   // use Address type to prevent messing up argument order
   def setValue(newVal: AnyVal, info: AddressInfo): Unit = {
 
@@ -109,7 +117,7 @@ class State {
       case x => {
         if (TypeHelper.isPointer(info.theType)) {
           // pointers will always be integers
-          data.putInt(info.address.value, newVal.asInstanceOf[Int])
+          putPointer(info.address, newVal)
         } else {
           val theType = TypeHelper.resolve(info.theType)
 
@@ -154,6 +162,10 @@ trait RuntimeVariable {
     } else {
       state.readVal(address.value, TypeHelper.resolve(theType))
     }
+  }
+  
+  def pointerValue: Int = {
+    state.readVal(address.value, TypeHelper.pointerType).asInstanceOf[Int]
   }
 
   def allocateSpace(state: State, aType: IType, numElements: Int): Address = {
@@ -406,7 +418,7 @@ object Executor {
             case lit @ Literal(_) => lit.cast
             case VarRef(id)       => 
               if (TypeHelper.isPointer(state.vars.returnType)) {
-                state.vars.resolveId(id).value.asInstanceOf[Int]
+                state.vars.resolveId(id).pointerValue
               } else {
                 TypeHelper.cast(TypeHelper.resolve(state.vars.returnType), state.vars.resolveId(id).value)
               }
@@ -474,6 +486,7 @@ object Executor {
           case arrayDecl: IASTArrayDeclarator =>
 
             val dimensions = arrayDecl.getArrayModifiers.filter{_.getConstantExpression != null}.map{dim => state.stack.pop match {
+              // can we can assume dimensions are integers
               case lit: Literal => lit.cast.asInstanceOf[Int]
               case VarRef(id) => state.vars.resolveId(id).value.asInstanceOf[Int]
             }}

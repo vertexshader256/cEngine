@@ -66,7 +66,7 @@ object Expressions {
               theType match {
                 case struct: CStructure => struct
                 case ptr: IPointerType => 
-                  baseAddr = Address(context.readVal(addr.value, TypeHelper.pointerType).asInstanceOf[Int])
+                  baseAddr = Address(context.readPtrVal(addr))
                   ptr.getType.asInstanceOf[CStructure]
               }
           }
@@ -137,7 +137,7 @@ object Expressions {
             typeItr = typeItr.asInstanceOf[IArrayType].getType
           }
           
-          val arrayAddress = stack.readVal(arrayVarPtr.address.value, TypeHelper.pointerType).asInstanceOf[Int]
+          val arrayAddress = stack.readPtrVal(arrayVarPtr.address)
   
           val ancestors = Utils.getAncestors(subscript)
           
@@ -282,7 +282,7 @@ object Expressions {
                 
                 context.stack.push(
                   if (Utils.isOnLeftSideOfAssignment(unary) || isNested || specialCase) { 
-                    val deref = stack.readVal(ptr.address.value, TypeHelper.pointerType).asInstanceOf[Int]
+                    val deref = stack.readPtrVal(ptr.address)
                     AddressInfo(Address(deref), ptrType.getType)
                   } else {
                     stack.readVal(ptr.value.asInstanceOf[Int], TypeHelper.resolve(ptr.theType))
@@ -293,7 +293,7 @@ object Expressions {
                   
                   case ptr: IPointerType =>
                     // nested pointers
-                    val deref = stack.readVal(addr.value, TypeHelper.pointerType).asInstanceOf[Int]
+                    val deref = stack.readPtrVal(addr)
                     val refAddressInfo = AddressInfo(Address(deref), ptr.getType)
                     context.stack.push(refAddressInfo)
                   case basic: IBasicType =>
