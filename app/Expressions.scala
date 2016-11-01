@@ -123,6 +123,7 @@ object Expressions {
               case lit @ Literal(_) => lit.cast.value.asInstanceOf[Int]
               case int: Int => int
               case double: Double => double.toInt
+              case Primitive(x, _) => x.asInstanceOf[Int]
             })
             
             indexes += result
@@ -169,17 +170,17 @@ object Expressions {
     case unary: IASTUnaryExpression =>
       import org.eclipse.cdt.core.dom.ast.IASTUnaryExpression._
 
-      def resolveVar(variable: Any): (AnyVal, AddressInfo) = {
+      def resolveVar(variable: Any): (Primitive, AddressInfo) = {
         variable match {
           case VarRef(name) =>
             val variable = context.vars.resolveId(name)
             val theType = TypeHelper.resolve(variable.theType)
             val currentVal = stack.readVal(variable.address, theType)
-            (currentVal, AddressInfo(variable.address, variable.theType))
+            (Primitive(currentVal, variable.theType), AddressInfo(variable.address, variable.theType))
           case AddressInfo(addy, theType) => 
             val resolved = TypeHelper.resolve(theType)
             val currentVal = stack.readVal(addy, resolved)
-            (currentVal, AddressInfo(addy, resolved))
+            (Primitive(currentVal, resolved), AddressInfo(addy, resolved))
         }
       }
 
@@ -213,34 +214,34 @@ object Expressions {
               
                 val basicType = info.theType.asInstanceOf[IBasicType]
                 context.stack.push(basicType.getKind match {
-                  case `eInt`    => -currentVal.asInstanceOf[Int]
-                  case `eDouble` => -currentVal.asInstanceOf[Double]
+                  case `eInt`    => -currentVal.value.asInstanceOf[Int]
+                  case `eDouble` => -currentVal.value.asInstanceOf[Double]
                 })
             }
           case `op_postFixIncr` =>
             val (currentVal, info) = resolveVar(context.stack.pop)
-            val newVal = BinaryExpr.performBinaryOperation(currentVal, 1, IASTBinaryExpression.op_plus, info.theType)
+            val newVal = BinaryExpr.performBinaryOperation(currentVal, 1, IASTBinaryExpression.op_plus)
             
             // push then set
             context.stack.push(currentVal)
             stack.setValue(newVal, info)   
           case `op_postFixDecr` =>          
             val (currentVal, info) = resolveVar(context.stack.pop)
-            val newVal = BinaryExpr.performBinaryOperation(currentVal, 1, IASTBinaryExpression.op_minus, info.theType)
+            val newVal = BinaryExpr.performBinaryOperation(currentVal, 1, IASTBinaryExpression.op_minus)
             
             // push then set
             context.stack.push(currentVal)
             stack.setValue(newVal, info)  
           case `op_prefixIncr` =>
             val (currentVal, info) = resolveVar(context.stack.pop)            
-            val newVal = BinaryExpr.performBinaryOperation(currentVal, 1, IASTBinaryExpression.op_plus, info.theType)
+            val newVal = BinaryExpr.performBinaryOperation(currentVal, 1, IASTBinaryExpression.op_plus)
             
             // set then push
             stack.setValue(newVal, info)  
             context.stack.push(newVal)
           case `op_prefixDecr` =>
             val (currentVal, info) = resolveVar(context.stack.pop)
-            val newVal = BinaryExpr.performBinaryOperation(currentVal, 1, IASTBinaryExpression.op_minus, info.theType)
+            val newVal = BinaryExpr.performBinaryOperation(currentVal, 1, IASTBinaryExpression.op_minus)
             
             // set then push
             stack.setValue(newVal, info)  
@@ -264,12 +265,12 @@ object Expressions {
             }
           case `op_star` =>
             context.stack.pop match {
-              case char: Char =>
+              case Primitive(char: Char, _) =>
                 val target = Utils.getUnaryTarget(unary).foreach { name =>
                   val ptr = context.vars.resolveId(name.getRawSignature)
                   context.stack.push(stack.readVal(Address(char), TypeHelper.resolve(ptr.theType)))
                 }
-              case int: Int =>
+              case Primitive(int: Int, _) =>
                 val target = Utils.getUnaryTarget(unary).foreach { name =>
                   val ptr = context.vars.resolveId(name.getRawSignature)
                   context.stack.push(stack.readVal(Address(int), TypeHelper.resolve(ptr.theType)))

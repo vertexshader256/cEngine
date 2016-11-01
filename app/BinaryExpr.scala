@@ -48,19 +48,19 @@ object BinaryExpr {
       TypeHelper.resolve(dst.theType)
     }
     
-    val theVal = state.readVal(dst.address, theType)
+    val theVal = Primitive(state.readVal(dst.address, theType), theType)
     
     val result = op match {
       case `op_plusAssign` =>
-        performBinaryOperation(theVal, resolvedop2, op_plus, theType)
+        performBinaryOperation(theVal, resolvedop2, op_plus)
       case `op_minusAssign` =>
-        performBinaryOperation(theVal, resolvedop2, op_minus, theType)
+        performBinaryOperation(theVal, resolvedop2, op_minus)
       case `op_multiplyAssign` =>
-        performBinaryOperation(theVal, resolvedop2, op_multiply, theType)
+        performBinaryOperation(theVal, resolvedop2, op_multiply)
       case `op_binaryXorAssign` =>
-        performBinaryOperation(theVal, resolvedop2, op_binaryXor, theType)
+        performBinaryOperation(theVal, resolvedop2, op_binaryXor)
       case `op_shiftRightAssign` =>
-        performBinaryOperation(theVal, resolvedop2, op_shiftRight, theType)
+        performBinaryOperation(theVal, resolvedop2, op_shiftRight)
       case `op_assign` =>
         resolvedop2
     }  
@@ -71,7 +71,10 @@ object BinaryExpr {
   }
   
   
-  def performBinaryOperation(op1: AnyVal, op2: AnyVal, operator: Int, destType: IType): AnyVal = {
+  def performBinaryOperation(prim1: Primitive, op2: AnyVal, operator: Int): AnyVal = {
+    
+    val op1 = prim1.value
+    
     operator match {
       case `op_multiply` =>
         (op1, op2) match {
@@ -120,7 +123,7 @@ object BinaryExpr {
       case `op_plus` =>
         (op1, op2) match {
           case (x: Int, y: Char) => x + y
-          case (x: Int, y: Int) if (TypeHelper.isPointer(destType)) => x + y * TypeHelper.sizeof(TypeHelper.resolve(destType))
+          case (x: Int, y: Int) if (TypeHelper.isPointer(prim1.theType)) => x + y * TypeHelper.sizeof(TypeHelper.resolve(prim1.theType))
           case (x: Int, y: Int) => x + y
           case (x: Int, y: Short) => x + y
           case (x: Int, y: Float) => x + y
@@ -165,7 +168,7 @@ object BinaryExpr {
         }
       case `op_minus` =>
         (op1, op2) match {
-          case (x: Int, y: Int) if (TypeHelper.isPointer(destType)) => x - y * TypeHelper.sizeof(TypeHelper.resolve(destType))
+          case (x: Int, y: Int) if (TypeHelper.isPointer(prim1.theType)) => x - y * TypeHelper.sizeof(TypeHelper.resolve(prim1.theType))
           case (x: Int, y: Char) => x - y
           case (x: Int, y: Short) => x - y
           case (x: Int, y: Int) => x - y
@@ -273,7 +276,7 @@ object BinaryExpr {
           case (x: Double, y: Double) => x == y
         }
       case `op_notequals` =>
-        !performBinaryOperation(op1, op2, op_equals, destType).asInstanceOf[Boolean]
+        !performBinaryOperation(prim1, op2, op_equals).asInstanceOf[Boolean]
       case `op_greaterThan` =>
         (op1, op2) match {
           case (x: Int, y: Int) => x > y
@@ -367,7 +370,7 @@ object BinaryExpr {
   
     if (op1Raw.isInstanceOf[VarRef]) {
         val theVar = state.vars.resolveId(op1Raw.asInstanceOf[VarRef].name) 
-        val result = performBinaryOperation(op1, op2, binaryExpr.getOperator, theVar.theType)
+        val result = performBinaryOperation(Primitive(op1, theVar.theType), op2, binaryExpr.getOperator)
         
         // HACKY: figure out how to better deal with unsigned binary ops
         if (result.isInstanceOf[Long] && TypeHelper.resolve(theVar.theType).isUnsigned) {
@@ -376,7 +379,7 @@ object BinaryExpr {
           result
         }
     } else {
-      performBinaryOperation(op1, op2, binaryExpr.getOperator, null)
+      performBinaryOperation(Primitive(op1, null), op2, binaryExpr.getOperator)
     }
   }
 }
