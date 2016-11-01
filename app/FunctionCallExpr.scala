@@ -29,13 +29,13 @@ object FunctionCallExpr {
               if (TypeHelper.isPointer(theVar.theType)) {
                 state.readPtrVal(theVar.address)
               } else {
-                state.readVal(theVar.address.value, TypeHelper.resolve(theVar.theType))
+                state.readVal(theVar.address, TypeHelper.resolve(theVar.theType))
               }   
             case Address(address) =>
               address
             case Primitive(theVal, _) => theVal
             case AddressInfo(address, theType) =>
-              state.readVal(address.value, TypeHelper.resolve(theType))
+              state.readVal(address, TypeHelper.resolve(theType))
             case bool: Boolean => if (bool) 1 else 0
             case int: Int => int
             case float: Float => float
@@ -61,7 +61,7 @@ object FunctionCallExpr {
                     var stringBuilder = new ListBuffer[Char]()
                     var i = 0
                     do {
-                      current = state.readVal(addy + i, new CBasicType(IBasicType.Kind.eChar, 0)).asInstanceOf[Char]
+                      current = state.readVal(Address(addy + i), new CBasicType(IBasicType.Kind.eChar, 0)).asInstanceOf[Char]
                       if (current != 0) {
                         stringBuilder += current
                         i += 1
@@ -82,7 +82,7 @@ object FunctionCallExpr {
           var stringBuilder = new ListBuffer[Char]()
           var i = 0
           do {
-            current = state.readVal(straddy.address.value + i, TypeHelper.resolve(straddy.theType)).asInstanceOf[Char]
+            current = state.readVal(straddy.address + i, TypeHelper.resolve(straddy.theType)).asInstanceOf[Char]
             if (current != 0) {
               stringBuilder += current
               i += 1

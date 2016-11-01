@@ -158,7 +158,7 @@ object Expressions {
           if (isParsingAssignmentDest) {
             context.stack.push(AddressInfo(elementAddress, TypeHelper.resolve(arrayVarPtr.theType)))
           } else {
-            context.stack.push(stack.readVal(elementAddress.value, TypeHelper.resolve(arrayVarPtr.theType)))
+            context.stack.push(stack.readVal(elementAddress, TypeHelper.resolve(arrayVarPtr.theType)))
           }
         }
 
@@ -172,11 +172,11 @@ object Expressions {
           case VarRef(name) =>
             val variable = context.vars.resolveId(name)
             val theType = TypeHelper.resolve(variable.theType)
-            val currentVal = stack.readVal(variable.address.value, theType)
+            val currentVal = stack.readVal(variable.address, theType)
             (currentVal, AddressInfo(variable.address, variable.theType))
           case AddressInfo(addy, theType) => 
             val resolved = TypeHelper.resolve(theType)
-            val currentVal = stack.readVal(addy.value, resolved)
+            val currentVal = stack.readVal(addy, resolved)
             (currentVal, AddressInfo(addy, resolved))
         }
       }
@@ -265,12 +265,12 @@ object Expressions {
               case char: Char =>
                 val target = Utils.getUnaryTarget(unary).foreach { name =>
                   val ptr = context.vars.resolveId(name.getRawSignature)
-                  context.stack.push(stack.readVal(char, TypeHelper.resolve(ptr.theType)))
+                  context.stack.push(stack.readVal(Address(char), TypeHelper.resolve(ptr.theType)))
                 }
               case int: Int =>
                 val target = Utils.getUnaryTarget(unary).foreach { name =>
                   val ptr = context.vars.resolveId(name.getRawSignature)
-                  context.stack.push(stack.readVal(int, TypeHelper.resolve(ptr.theType)))
+                  context.stack.push(stack.readVal(Address(int), TypeHelper.resolve(ptr.theType)))
                 }
               case VarRef(varName) =>       
                 val ptr = context.vars.resolveId(varName)
@@ -285,7 +285,7 @@ object Expressions {
                     val deref = stack.readPtrVal(ptr.address)
                     AddressInfo(Address(deref), ptrType.getType)
                   } else {
-                    stack.readVal(ptr.value.asInstanceOf[Int], TypeHelper.resolve(ptr.theType))
+                    stack.readVal(Address(ptr.value.asInstanceOf[Int]), TypeHelper.resolve(ptr.theType))
                   }
                 )
               case address @ AddressInfo(addr, theType) =>
@@ -298,7 +298,7 @@ object Expressions {
                     context.stack.push(refAddressInfo)
                   case basic: IBasicType =>
                     // actually dereference
-                    context.stack.push(stack.readVal(addr.value, basic))
+                    context.stack.push(stack.readVal(addr, basic))
                }
            }
           case `op_bracketedPrimary` => // not sure what this is for but I need it for weird stuff like (k*)++

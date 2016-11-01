@@ -74,15 +74,16 @@ class State {
   }
   
   def readPtrVal(address: Address) = {
-    readVal(address.value, TypeHelper.pointerType).asInstanceOf[Int]
+    readVal(address, TypeHelper.pointerType).asInstanceOf[Int]
   }
 
-  def readVal(address: Int, theType: IBasicType): AnyVal = {
+  def readVal(addr: Address, theType: IBasicType): AnyVal = {
 
     import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 
     // if it is neither signed or unsigned, assume its signed
     val isSigned = TypeHelper.isSigned(theType)
+    val address = addr.value
 
     val result: AnyVal = 
     if (theType.getKind == eInt && theType.isShort) {
@@ -158,14 +159,14 @@ trait RuntimeVariable {
   
   def value: AnyVal = {
     if (TypeHelper.isPointer(theType)) {
-      state.readVal(address.value, TypeHelper.pointerType)
+      state.readVal(address, TypeHelper.pointerType)
     } else {
-      state.readVal(address.value, TypeHelper.resolve(theType))
+      state.readVal(address, TypeHelper.resolve(theType))
     }
   }
   
   def pointerValue: Int = {
-    state.readVal(address.value, TypeHelper.pointerType).asInstanceOf[Int]
+    state.readVal(address, TypeHelper.pointerType).asInstanceOf[Int]
   }
 
   def allocateSpace(state: State, aType: IType, numElements: Int): Address = {
@@ -565,7 +566,7 @@ object Executor {
                           state.setValue(variable.value, newVar.info)
                         case AddressInfo(address, theType) => 
                           if (TypeHelper.isPointer(theType)) {
-                            state.setValue(state.readVal(address.value, TypeHelper.pointerType), newVar.info)
+                            state.setValue(state.readVal(address, TypeHelper.pointerType), newVar.info)
                           } else {
                             state.setValue(address.value, newVar.info)
                           }

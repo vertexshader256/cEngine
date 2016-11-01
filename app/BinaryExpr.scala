@@ -26,15 +26,14 @@ object BinaryExpr {
       case VarRef(name)  =>      
         val theVar = state.vars.resolveId(name)
         theVar.value
-      case AddressInfo(addy, theType) => 
-        val address = addy.value
+      case AddressInfo(addr, theType) => 
         if (!TypeHelper.isPointer(dst.theType)) {
           // only if op1 is NOT a pointer, resolve op2
-          state.readVal(address, TypeHelper.resolve(dst.theType))
+          state.readVal(addr, TypeHelper.resolve(dst.theType))
         } else if (TypeHelper.isPointer(theType) && !Utils.isNestedPointer(dst.theType)) {
-          state.readVal(address, new CBasicType(IBasicType.Kind.eInt, 0))
+          state.readVal(addr, new CBasicType(IBasicType.Kind.eInt, 0))
         } else {
-          address
+          addr.value
         }
       case Address(addy) => addy
       case long: Long => long
@@ -49,7 +48,7 @@ object BinaryExpr {
       TypeHelper.resolve(dst.theType)
     }
     
-    val theVal = state.readVal(dst.address.value, theType)
+    val theVal = state.readVal(dst.address, theType)
     
     val result = op match {
       case `op_plusAssign` =>
@@ -79,7 +78,7 @@ object BinaryExpr {
         val theVar = context.vars.resolveId(name)
         theVar.value  
       case AddressInfo(addy, theType) =>
-        context.readVal(addy.value, TypeHelper.resolve(theType))
+        context.readVal(addy, TypeHelper.resolve(theType))
       case int: Int => int
       case float: Float => float
       case double: Double => double
