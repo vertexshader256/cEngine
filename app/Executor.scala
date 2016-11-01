@@ -339,6 +339,7 @@ object Executor {
         }
 
         val shouldLoop = cast match {
+          case Primitive(x: Int,_)     => x > 0
           case x: Int     => x > 0
           case x: Boolean => x
         }

@@ -21,7 +21,7 @@ object BinaryExpr {
       case info @ AddressInfo(_, _) => info
     }
 
-    val resolvedop2: AnyVal = op2 match {
+    val resolvedop2 = Primitive(op2 match {
       case lit @ Literal(_) => lit.cast.value
       case VarRef(name)  =>      
         val theVar = state.vars.resolveId(name)
@@ -36,11 +36,12 @@ object BinaryExpr {
           addr.value
         }
       case Address(addy) => addy
+      case Primitive(x, _) => x
       case long: Long => long
       case int: Int => int
       case doub: Double => doub
       case float: Float => float 
-    }
+    }, null)
     
     val theType = if (TypeHelper.isPointer(dst.theType)) {
       TypeHelper.pointerType
@@ -62,7 +63,7 @@ object BinaryExpr {
       case `op_shiftRightAssign` =>
         performBinaryOperation(theVal, resolvedop2, op_shiftRight)
       case `op_assign` =>
-        resolvedop2
+        resolvedop2.value
     }  
     
     state.setValue(result, dst)
@@ -71,9 +72,10 @@ object BinaryExpr {
   }
   
   
-  def performBinaryOperation(prim1: Primitive, op2: AnyVal, operator: Int): AnyVal = {
+  def performBinaryOperation(prim1: Primitive, prim2: Primitive, operator: Int): AnyVal = {
     
     val op1 = prim1.value
+    val op2 = prim2.value
     
     operator match {
       case `op_multiply` =>
@@ -276,7 +278,7 @@ object BinaryExpr {
           case (x: Double, y: Double) => x == y
         }
       case `op_notequals` =>
-        !performBinaryOperation(prim1, op2, op_equals).asInstanceOf[Boolean]
+        !performBinaryOperation(prim1, prim2, op_equals).asInstanceOf[Boolean]
       case `op_greaterThan` =>
         (op1, op2) match {
           case (x: Int, y: Int) => x > y
@@ -370,7 +372,7 @@ object BinaryExpr {
   
     if (op1Raw.isInstanceOf[VarRef]) {
         val theVar = state.vars.resolveId(op1Raw.asInstanceOf[VarRef].name) 
-        val result = performBinaryOperation(Primitive(op1, theVar.theType), op2, binaryExpr.getOperator)
+        val result = performBinaryOperation(Primitive(op1, theVar.theType), Primitive(op2, null), binaryExpr.getOperator)
         
         // HACKY: figure out how to better deal with unsigned binary ops
         if (result.isInstanceOf[Long] && TypeHelper.resolve(theVar.theType).isUnsigned) {
@@ -379,7 +381,7 @@ object BinaryExpr {
           result
         }
     } else {
-      performBinaryOperation(Primitive(op1, null), op2, binaryExpr.getOperator)
+      performBinaryOperation(Primitive(op1, null), Primitive(op2, null), binaryExpr.getOperator)
     }
   }
 }
