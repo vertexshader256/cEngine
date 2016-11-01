@@ -63,21 +63,21 @@ object BinaryExpr {
       case `op_shiftRightAssign` =>
         performBinaryOperation(theVal, resolvedop2, op_shiftRight)
       case `op_assign` =>
-        resolvedop2.value
+        resolvedop2
     }  
     
-    state.setValue(result, dst)
+    state.setValue(result.value, dst)
     
     resolvedop2
   }
   
   
-  def performBinaryOperation(prim1: Primitive, prim2: Primitive, operator: Int): AnyVal = {
+  def performBinaryOperation(prim1: Primitive, prim2: Primitive, operator: Int): Primitive = {
     
     val op1 = prim1.value
     val op2 = prim2.value
     
-    operator match {
+    val result: AnyVal = operator match {
       case `op_multiply` =>
         (op1, op2) match {
           case (x: Int, y: Char) => x * y
@@ -278,7 +278,7 @@ object BinaryExpr {
           case (x: Double, y: Double) => x == y
         }
       case `op_notequals` =>
-        !performBinaryOperation(prim1, prim2, op_equals).asInstanceOf[Boolean]
+        !performBinaryOperation(prim1, prim2, op_equals).value.asInstanceOf[Boolean]
       case `op_greaterThan` =>
         (op1, op2) match {
           case (x: Int, y: Int) => x > y
@@ -343,9 +343,11 @@ object BinaryExpr {
         }
       case _ => throw new Exception("unhandled binary operator: " + operator); 0
     }
+
+    Primitive(result, prim1.theType)
   }
   
-  def parse(binaryExpr: IASTBinaryExpression, state: State): Any = {
+  def parse(binaryExpr: IASTBinaryExpression, state: State): AnyVal = {
    
     def resolveOperand(op: Any, context: State): Primitive = {
       op match {
@@ -372,16 +374,16 @@ object BinaryExpr {
   
     if (op1Raw.isInstanceOf[VarRef]) {
         val theVar = state.vars.resolveId(op1Raw.asInstanceOf[VarRef].name) 
-        val result = performBinaryOperation(op1, op2, binaryExpr.getOperator)
+        val result = performBinaryOperation(op1, op2, binaryExpr.getOperator).value
         
         // HACKY: figure out how to better deal with unsigned binary ops
         if (result.isInstanceOf[Long] && TypeHelper.resolve(theVar.theType).isUnsigned) {
-          TypeHelper.cast(TypeHelper.resolve(theVar.theType), result)
+          TypeHelper.cast(TypeHelper.resolve(theVar.theType), result).value
         } else {
           result
         }
     } else {
-      performBinaryOperation(op1, op2, binaryExpr.getOperator)
+      performBinaryOperation(op1, op2, binaryExpr.getOperator).value
     }
   }
 }

@@ -220,28 +220,28 @@ object Expressions {
             }
           case `op_postFixIncr` =>
             val (currentVal, info) = resolveVar(context.stack.pop)
-            val newVal = BinaryExpr.performBinaryOperation(currentVal, Primitive(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_plus)
+            val newVal = BinaryExpr.performBinaryOperation(currentVal, Primitive(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_plus).value
             
             // push then set
             context.stack.push(currentVal)
             stack.setValue(newVal, info)   
           case `op_postFixDecr` =>          
             val (currentVal, info) = resolveVar(context.stack.pop)
-            val newVal = BinaryExpr.performBinaryOperation(currentVal, Primitive(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_minus)
+            val newVal = BinaryExpr.performBinaryOperation(currentVal, Primitive(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_minus).value
             
             // push then set
             context.stack.push(currentVal)
             stack.setValue(newVal, info)  
           case `op_prefixIncr` =>
             val (currentVal, info) = resolveVar(context.stack.pop)            
-            val newVal = BinaryExpr.performBinaryOperation(currentVal, Primitive(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_plus)
+            val newVal = BinaryExpr.performBinaryOperation(currentVal, Primitive(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_plus).value
             
             // set then push
             stack.setValue(newVal, info)  
             context.stack.push(newVal)
           case `op_prefixDecr` =>
             val (currentVal, info) = resolveVar(context.stack.pop)
-            val newVal = BinaryExpr.performBinaryOperation(currentVal, Primitive(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_minus)
+            val newVal = BinaryExpr.performBinaryOperation(currentVal, Primitive(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_minus).value
             
             // set then push
             stack.setValue(newVal, info)  
