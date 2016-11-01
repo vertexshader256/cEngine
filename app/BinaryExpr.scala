@@ -70,24 +70,6 @@ object BinaryExpr {
     resolvedop2
   }
   
-  private def resolveOperand(op: Any, context: State): AnyVal = {
-    op match {
-      case lit @ Literal(_) => lit.cast
-      case Primitive(theVal, _) => theVal
-      case VarRef(name)  =>      
-        val theVar = context.vars.resolveId(name)
-        theVar.value  
-      case AddressInfo(addy, theType) =>
-        context.readVal(addy, TypeHelper.resolve(theType))
-      case int: Int => int
-      case float: Float => float
-      case double: Double => double
-      case short: Short => short
-      case char: Char => char
-      case boolean: Boolean => boolean
-      case long: Long => long
-    }
-  }
   
   def performBinaryOperation(op1: AnyVal, op2: AnyVal, operator: Int, destType: IType): AnyVal = {
     operator match {
@@ -359,7 +341,26 @@ object BinaryExpr {
   }
   
   def parse(binaryExpr: IASTBinaryExpression, state: State): Any = {
-
+   
+    def resolveOperand(op: Any, context: State): AnyVal = {
+      op match {
+        case lit @ Literal(_) => lit.cast
+        case Primitive(theVal, _) => theVal
+        case VarRef(name)  =>      
+          val theVar = context.vars.resolveId(name)
+          theVar.value  
+        case AddressInfo(addy, theType) =>
+          context.readVal(addy, TypeHelper.resolve(theType))
+        case int: Int => int
+        case float: Float => float
+        case double: Double => double
+        case short: Short => short
+        case char: Char => char
+        case boolean: Boolean => boolean
+        case long: Long => long
+      }
+    }
+    
     val op2 = resolveOperand(state.stack.pop, state)
     val op1Raw = state.stack.pop
     val op1 = resolveOperand(op1Raw, state)
