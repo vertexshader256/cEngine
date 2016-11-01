@@ -344,7 +344,11 @@ object BinaryExpr {
       case _ => throw new Exception("unhandled binary operator: " + operator); 0
     }
 
-    Primitive(result, prim1.theType)
+    if (result.isInstanceOf[Long] && TypeHelper.resolve(prim1.theType).isUnsigned) {
+      TypeHelper.cast(TypeHelper.resolve(prim1.theType), result)
+    } else {
+      Primitive(result, prim1.theType)
+    }
   }
   
   def parse(binaryExpr: IASTBinaryExpression, state: State): AnyVal = {
@@ -369,21 +373,8 @@ object BinaryExpr {
     }
     
     val op2 = resolveOperand(state.stack.pop, state)
-    val op1Raw = state.stack.pop
-    val op1 = resolveOperand(op1Raw, state)
+    val op1 = resolveOperand(state.stack.pop, state)
   
-    if (op1Raw.isInstanceOf[VarRef]) {
-        val theVar = state.vars.resolveId(op1Raw.asInstanceOf[VarRef].name) 
-        val result = performBinaryOperation(op1, op2, binaryExpr.getOperator).value
-        
-        // HACKY: figure out how to better deal with unsigned binary ops
-        if (result.isInstanceOf[Long] && TypeHelper.resolve(theVar.theType).isUnsigned) {
-          TypeHelper.cast(TypeHelper.resolve(theVar.theType), result).value
-        } else {
-          result
-        }
-    } else {
-      performBinaryOperation(op1, op2, binaryExpr.getOperator).value
-    }
+    performBinaryOperation(op1, op2, binaryExpr.getOperator).value
   }
 }
