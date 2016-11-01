@@ -91,8 +91,8 @@ object TypeHelper {
   }
   
   // resolves 'Any' to 'AnyVal'
-  def resolve(state: State, theType: IType, any: Any): AnyVal = {
-    any match {
+  def resolve(state: State, theType: IType, any: Any): Primitive = {
+    Primitive(any match {
       case VarRef(name) =>
         state.vars.resolveId(name).value
       case lit @ Literal(_) => lit.typeCast(TypeHelper.resolve(theType)).value
@@ -104,7 +104,7 @@ object TypeHelper {
       case double: Double => double
       case long: Long => long
       case boolean: Boolean => boolean
-    }
+    }, TypeHelper.resolve(theType))
   }
 
   def resolve(theType: IType): IBasicType = theType match {
