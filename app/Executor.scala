@@ -13,6 +13,7 @@ import java.math.BigInteger
 import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 import scala.collection.mutable.Map
 
+case class Primitive(value: AnyVal, theType: IBasicType)
 case class VarRef(name: String)
 case class StringLiteral(str: String) extends AnyVal
 
@@ -98,7 +99,7 @@ class State {
       throw new Exception("Bad read val")
     }
     
-    TypeHelper.cast(theType, result)
+    TypeHelper.cast(theType, result).value
   }
 
   // use Address type to prevent messing up argument order
@@ -114,7 +115,7 @@ class State {
 
           import IBasicType.Kind._   
           
-          val result = TypeHelper.cast(theType, newVal)
+          val result = TypeHelper.cast(theType, newVal).value
           
           result match {
             case char: Char    => data.put(info.address.value, char.toByte)
@@ -201,7 +202,7 @@ protected class ArrayVariable(val state: State, val theType: IType, dimensions: 
       array.foreach { element =>
         element match {
           case lit @ Literal(_) =>
-            state.setValue(lit.typeCast(resolved), AddressInfo(theArrayAddress + i, resolved))
+            state.setValue(lit.typeCast(resolved).value, AddressInfo(theArrayAddress + i, resolved))
           case int: Int =>
             state.setValue(int, AddressInfo(theArrayAddress + i, resolved))
           case char: Char =>
@@ -409,6 +410,7 @@ object Executor {
               } else {
                 TypeHelper.cast(TypeHelper.resolve(state.vars.returnType), state.vars.resolveId(id).value)
               }
+            case Primitive(theVal, _) => theVal
             case int: Int         => int
             case doub: Double     => doub
             case bool: Boolean    => bool

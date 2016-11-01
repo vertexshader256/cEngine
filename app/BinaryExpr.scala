@@ -74,6 +74,7 @@ object BinaryExpr {
   private def resolveOperand(op: Any, context: State): AnyVal = {
     op match {
       case lit @ Literal(_) => lit.cast
+      case Primitive(theVal, _) => theVal
       case VarRef(name)  =>      
         val theVar = context.vars.resolveId(name)
         theVar.value  

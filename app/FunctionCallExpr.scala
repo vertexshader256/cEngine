@@ -33,6 +33,7 @@ object FunctionCallExpr {
               }   
             case Address(address) =>
               address
+            case Primitive(theVal, _) => theVal
             case AddressInfo(address, theType) =>
               state.readVal(address.value, TypeHelper.resolve(theType))
             case bool: Boolean => if (bool) 1 else 0

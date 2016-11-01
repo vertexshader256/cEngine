@@ -190,7 +190,8 @@ object Expressions {
               stack.vars.resolveId(id).value match {
                 case int: Int => context.stack.push(if (int == 0) 1 else 0)
               }
-            case int: Int => context.stack.push(if (int == 0) 1 else 0)
+            case int: Int               => context.stack.push(if (int == 0) 1 else 0)
+            case Primitive(int: Int, _) => context.stack.push(if (int == 0) 1 else 0)
             case bool: Boolean => context.stack.push(!bool)
           }
           case `op_minus` =>
@@ -201,7 +202,8 @@ object Expressions {
 
             resolveLit match {
               case int: Int     => context.stack.push(-int)
-              case doub: Double => context.stack.push(-doub)
+              case Primitive(int: Int, _)     => context.stack.push(-int)
+              case Primitive(doub: Double, _) => context.stack.push(-doub)
               case VarRef(name) =>
                 val variable = context.vars.resolveId(name)
                 

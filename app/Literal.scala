@@ -49,7 +49,7 @@ case class Literal(litStr: String) {
     }
   }
   
-  def typeCast(theType: IBasicType): AnyVal = {
+  def typeCast(theType: IBasicType): Primitive = {
     TypeHelper.cast(theType, cast)
   }
 }

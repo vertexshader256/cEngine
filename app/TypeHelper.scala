@@ -9,8 +9,8 @@ object TypeHelper {
   val pointerType = new CBasicType(IBasicType.Kind.eInt , 0)
   
   // casts 'newVal' to 'theType'
-  def cast(theType: IBasicType, newVal: Any): AnyVal = {
-    theType.getKind match {
+  def cast(theType: IBasicType, newVal: Any): Primitive = {
+    val casted: AnyVal = theType.getKind match {
       case `eChar` if theType.isUnsigned    => 
         newVal match {
           case int: Int => int.toChar.toByte.toChar & 0xFF
@@ -82,6 +82,8 @@ object TypeHelper {
           case char: Char => char
         } 
     }
+    
+    Primitive(casted, theType)
   }
   
   def isSigned(theType: IBasicType) = {
@@ -93,9 +95,10 @@ object TypeHelper {
     any match {
       case VarRef(name) =>
         state.vars.resolveId(name).value
-      case lit @ Literal(_) => lit.typeCast(TypeHelper.resolve(theType))
+      case lit @ Literal(_) => lit.typeCast(TypeHelper.resolve(theType)).value
       case AddressInfo(addy, _) => addy.value
       case Address(addy) => addy
+      case Primitive(theVal, _) => theVal
       case int: Int => int
       case float: Float => float
       case double: Double => double
