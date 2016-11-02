@@ -74,10 +74,10 @@ class State {
   }
   
   def readPtrVal(address: Address) = {
-    readVal(address, TypeHelper.pointerType).asInstanceOf[Int]
+    readVal(address, TypeHelper.pointerType).value.asInstanceOf[Int]
   }
 
-  def readVal(addr: Address, theType: IBasicType): AnyVal = {
+  def readVal(addr: Address, theType: IBasicType): Primitive = {
 
     import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 
@@ -99,12 +99,12 @@ class State {
     } else if (theType.getKind == eFloat) {
       data.getFloat(address)
     } else if (theType.getKind == eChar) {
-      data.get(address).toChar
+      data.get(address) // a C 'char' is a Java 'byte'
     } else {
       throw new Exception("Bad read val")
     }
     
-    TypeHelper.cast(theType, result).value
+    TypeHelper.cast(theType, result)
   }
 
   def putPointer(addr: Address, newVal: AnyVal) = {
@@ -127,7 +127,7 @@ class State {
           val result = TypeHelper.cast(theType, newVal).value
           
           result match {
-            case char: Char    => data.put(info.address.value, char.toByte)
+            case char: Character    => data.put(info.address.value, char)
             case long: Long => data.putLong(info.address.value, long)
             case short: Short  => data.putShort(info.address.value, short) 
             case int: Int => data.putInt(info.address.value, int) 
@@ -159,14 +159,14 @@ trait RuntimeVariable {
   
   def value: Primitive = {
     if (TypeHelper.isPointer(theType)) {
-      Primitive(state.readVal(address, TypeHelper.pointerType), theType)
+      Primitive(state.readVal(address, TypeHelper.pointerType).value, theType)
     } else {
-      Primitive(state.readVal(address, TypeHelper.resolve(theType)), theType)
+      Primitive(state.readVal(address, TypeHelper.resolve(theType)).value, theType)
     }
   }
   
   def pointerValue: Int = {
-    state.readVal(address, TypeHelper.pointerType).asInstanceOf[Int]
+    state.readVal(address, TypeHelper.pointerType).value.asInstanceOf[Int]
   }
 
   def allocateSpace(state: State, aType: IType, numElements: Int): Address = {
@@ -220,7 +220,7 @@ protected class ArrayVariable(val state: State, val theType: IType, dimensions: 
           case int: Int =>
             state.setValue(int, AddressInfo(theArrayAddress + i, resolved))
           case char: Char =>
-            state.setValue(char, AddressInfo(theArrayAddress + i, resolved))
+            state.setValue(char.toByte, AddressInfo(theArrayAddress + i, resolved))
 //          case double: Double =>
 //            state.setValue(double, AddressInfo(theArrayAddress + i, resolved))
         }
@@ -572,7 +572,7 @@ object Executor {
                           state.setValue(variable.value.value, newVar.info)
                         case AddressInfo(address, theType) => 
                           if (TypeHelper.isPointer(theType)) {
-                            state.setValue(state.readVal(address, TypeHelper.pointerType), newVar.info)
+                            state.setValue(state.readVal(address, TypeHelper.pointerType).value, newVar.info)
                           } else {
                             state.setValue(address.value, newVar.info)
                           }

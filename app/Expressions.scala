@@ -175,11 +175,11 @@ object Expressions {
           case VarRef(name) =>
             val variable = context.vars.resolveId(name)
             val theType = TypeHelper.resolve(variable.theType)
-            val currentVal = stack.readVal(variable.address, theType)
+            val currentVal = stack.readVal(variable.address, theType).value
             (Primitive(currentVal, variable.theType), AddressInfo(variable.address, variable.theType))
           case AddressInfo(addy, theType) => 
             val resolved = TypeHelper.resolve(theType)
-            val currentVal = stack.readVal(addy, resolved)
+            val currentVal = stack.readVal(addy, resolved).value
             (Primitive(currentVal, resolved), AddressInfo(addy, resolved))
         }
       }
@@ -247,16 +247,17 @@ object Expressions {
             stack.setValue(newVal, info)  
             context.stack.push(newVal)
           case `op_sizeof` =>
-            context.stack.pop match {
+            context.stack.push(context.stack.pop match {
               case VarRef(name) =>
-                context.stack.push(context.vars.resolveId(name).sizeof)
-              case char: Char => context.stack.push(1)
-              case int: Int => context.stack.push(4)
-              case short: Short => context.stack.push(2)
-              case long: Long => context.stack.push(8)
-              case float: Float => context.stack.push(4)
-              case double: Double => context.stack.push(8)
-            }
+                context.vars.resolveId(name).sizeof
+              case Primitive(_, theType) => TypeHelper.sizeof(theType)  
+              case _: Character => 1
+              case _: Int => 4
+              case _: Short => 2
+              case _: Long => 8
+              case _: Float => 4
+              case _: Double => 8
+            })
           case `op_amper` =>
             context.stack.pop match {
               case VarRef(name) =>
@@ -265,7 +266,7 @@ object Expressions {
             }
           case `op_star` =>
             context.stack.pop match {
-              case Primitive(char: Char, _) =>
+              case Primitive(char: Character, _) =>
                 val target = Utils.getUnaryTarget(unary).foreach { name =>
                   val ptr = context.vars.resolveId(name.getRawSignature)
                   context.stack.push(stack.readVal(Address(char), TypeHelper.resolve(ptr.theType)))

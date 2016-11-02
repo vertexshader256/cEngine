@@ -14,14 +14,13 @@ object TypeHelper {
       case `eChar` if theType.isUnsigned    => 
         newVal match {
           case int: Int => int & 0xFFFFFFFF
-          case char: Char => char.toByte.toChar & 0xFF
-          case byte: Byte => byte.toChar & 0xFF
+          case char: Character => char & 0xFF
         } 
       case `eChar`    => 
         newVal match {
-          case int: Int => int.toChar.toByte.toChar
-          case char: Char => char.toByte.toChar
-          case byte: Byte => byte.toChar
+          case int: Int => int.toChar.toByte
+          case char: Character => char
+          case char: Char => char.toByte
         } 
      case `eInt` if theType.isLong && theType.isUnsigned =>
         newVal match {
@@ -51,7 +50,7 @@ object TypeHelper {
           case long: Long => long.toInt
           case int: Int => int
           case short: Short => short.toInt
-          case char: Char => char.toByte.toInt
+          case char: Character => char.toInt
           case double: Double => double.toInt
           case float: Float => float.toInt
         }  
@@ -79,7 +78,7 @@ object TypeHelper {
           case int: Int => int
           case double: Double => double
           case float: Float => float
-          case char: Char => char
+          case char: Character => char
         } 
     }
     
