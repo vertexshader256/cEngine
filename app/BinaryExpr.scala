@@ -344,7 +344,7 @@ object BinaryExpr {
       case _ => throw new Exception("unhandled binary operator: " + operator); 0
     }
 
-    if (result.isInstanceOf[Long] && TypeHelper.resolve(prim1.theType).isUnsigned) {
+    if (!result.isInstanceOf[Boolean] && TypeHelper.resolve(prim1.theType).isUnsigned) {
       TypeHelper.cast(TypeHelper.resolve(prim1.theType), result)
     } else {
       Primitive(result, prim1.theType)

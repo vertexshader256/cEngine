@@ -13,7 +13,7 @@ object TypeHelper {
     val casted: AnyVal = theType.getKind match {
       case `eChar` if theType.isUnsigned    => 
         newVal match {
-          case int: Int => int.toChar.toByte.toChar & 0xFF
+          case int: Int => int & 0xFFFFFFFF
           case char: Char => char.toByte.toChar & 0xFF
           case byte: Byte => byte.toChar & 0xFF
         } 
