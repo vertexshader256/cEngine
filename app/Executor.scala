@@ -385,7 +385,10 @@ object Executor {
         Seq(Option(forLoop.getInitializerStatement), Option(forLoop.getConditionExpression)).flatten
       } else {
         val shouldKeepLooping = if (forLoop.getConditionExpression != null) {
-          state.stack.pop match {
+          
+          val result = TypeHelper.resolve(state, new CBasicType(IBasicType.Kind.eInt, 0), state.stack.pop).value
+          
+          result match {
             case bool: Boolean => bool
             case int: Int => int > 0
           }
