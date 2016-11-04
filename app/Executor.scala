@@ -580,9 +580,9 @@ object Executor {
                     val newVar = new Variable(state, theType)
                     state.setValue(int, newVar.info)
                     newVar
-                  case Primitive(int: Int,_) => 
+                  case prim @ Primitive(_, newType) => 
                     val newVar = new Variable(state, theType)
-                    state.setValue(int, newVar.info)
+                    state.setValue(prim.value, newVar.info)
                     newVar
                   case StringLiteral(str) =>
                     createStringVariable(state, theType, str)

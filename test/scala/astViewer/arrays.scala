@@ -1,7 +1,29 @@
 package scala.astViewer
 
 class ArrayStagingArea extends StandardTest {
-  
+  "A 2d array" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x[2][2];
+        int i, j = 0;
+        int count = 0;
+        
+        for (i = 0; i < 2; i++) {
+          for (j = 0; j < 2; j++) {
+            x[i][j] = count;
+            count += 1;
+          }
+        }
+        
+        for (i = 0; i < 2; i++) {
+          for (j = 0; j < 2; j++) {
+            printf("%d\n", x[i][j]);
+          }
+        }  
+      }"""
+
+    checkResults(code)
+  }
 }
 
 class ArrayInitTest extends StandardTest {
@@ -54,29 +76,7 @@ class ArrayInitTest extends StandardTest {
 }
 
 class HigherDimArrays extends StandardTest {
-  "A 2d array" should "print the correct results" in {
-    val code = """
-      void main() {
-        int x[2][2];
-        int i, j = 0;
-        int count = 0;
-        
-        for (i = 0; i < 2; i++) {
-          for (j = 0; j < 2; j++) {
-            x[i][j] = count;
-            count += 1;
-          }
-        }
-        
-        for (i = 0; i < 2; i++) {
-          for (j = 0; j < 2; j++) {
-            printf("%d\n", x[i][j]);
-          }
-        }  
-      }"""
-
-    checkResults(code)
-  }
+  
   
   "A rectangular 2d array" should "print the correct results" in {
     val code = """
