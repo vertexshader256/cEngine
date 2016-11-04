@@ -1,6 +1,20 @@
 package scala.astViewer
 
 class StagingGround extends StandardTest {
+   "arrays of strings" should "print the correct results" in {
+    val code = """
+      void main() {
+        const char *alpha[2] = { "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
+        printf("%c\n", alpha[0][0]);
+        //printf("%d\n", strlen(alpha[0]));
+      }"""
+
+    checkResults(code)
+  }
+}
+
+class PointerTest extends StandardTest {
+  
   "some more advanced pointer arithmetic" should "print the correct results" in {
     val code = """
       void main() {
@@ -27,9 +41,6 @@ class StagingGround extends StandardTest {
 
     checkResults(code)
   }
-}
-
-class PointerTest extends StandardTest {
   
   "pointers of all types" should "print the correct results" in {
     val code = """
@@ -261,16 +272,7 @@ class PointerTest extends StandardTest {
   }
   
   
-  "arrays of strings" should "print the correct results" in {
-    val code = """
-      void main() {
-        const char *alpha[2] = { "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
-        printf("%c\n", alpha[0][0]);
-        printf("%d\n", strlen(alpha[0]));
-      }"""
-
-    checkResults(code)
-  }
+ 
   
   
 }

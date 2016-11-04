@@ -526,25 +526,26 @@ object Executor {
               }
             } else {
               val numElements = if (dimensions.isEmpty) 0 else dimensions.reduce{_ * _}
-              val initialArray = Array.fill[Any](numElements)(0)
+              val initialArray = new ListBuffer[Any]()//Array.fill[Any](numElements)(0)
 
               if (!state.stack.isEmpty) {
                 var i = 0
-                for (i <- (numElements - 1) to 0 by -1) {
-                  val newInit = state.stack.pop
-                  
+                
+                val initVals = (0 until numElements).map{x => state.stack.pop}.reverse
+                
+                initVals.foreach { newInit =>
                   if (newInit.isInstanceOf[StringLiteral]) {
                      val newVar = createStringVariable(state, theType, newInit.asInstanceOf[StringLiteral].str)
                      state.vars.addVariable(name, newVar)
-                     initialArray(i) = newVar.address
+                     initialArray += newVar.address
                   } else {
-                    initialArray(i) = newInit
+                    initialArray += newInit
                   }
                 }
               }
               
               val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)
-              theArrayPtr.setValue(initialArray)
+              theArrayPtr.setValue(initialArray.toArray)
               state.vars.addVariable(name, theArrayPtr)
             }
           case decl: CASTDeclarator =>
