@@ -42,6 +42,7 @@ object Expressions {
           case addy @ Address(_) => AddressInfo(addy, theType)
           case VarRef(id) => AddressInfo(Address(stack.vars.resolveId(id).value.value.asInstanceOf[Int]), theType)
           case lit @ Literal(str) => TypeHelper.cast(TypeHelper.resolve(theType), lit.cast.value)
+          case int: Int => TypeHelper.cast(TypeHelper.resolve(theType), int)
         })
 
         Seq()
@@ -313,8 +314,12 @@ object Expressions {
       if (direction == Exiting) {
         //println("PUSHING LIT: " + castLiteral(lit))
 
-        context.stack.push(Literal(lit.getRawSignature))
-
+        val litStr = lit.getRawSignature
+        if (litStr.head == '\"' && litStr.last == '\"') {
+          context.stack.push(StringLiteral(litStr))
+        } else {
+          context.stack.push(Literal(lit.getRawSignature))
+        }
       }
       Seq()
     case id: IASTIdExpression =>

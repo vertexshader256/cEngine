@@ -214,6 +214,8 @@ protected class ArrayVariable(val state: State, val theType: IType, dimensions: 
       var i = 0
       array.foreach { element =>
         element match {
+          case addr @ Address(addy) => 
+            state.setValue(addy, AddressInfo(theArrayAddress + i, TypeHelper.pointerType))
           case lit @ Literal(_) =>
             state.setValue(lit.typeCast(resolved).value, AddressInfo(theArrayAddress + i, resolved))
           case Primitive(newVal, _) => state.setValue(newVal, AddressInfo(theArrayAddress + i, resolved))
@@ -459,12 +461,11 @@ object Executor {
       }
   }
 
-  def createStringVariable(state: State, name: String, theType: IType, str: String): ArrayVariable = {
+  def createStringVariable(state: State, theType: IType, str: String): RuntimeVariable = {
     val theStr = Utils.stripQuotes(str)
     val withNull = theStr.toCharArray() :+ 0.toChar // terminating null char
     val theArrayPtr = new ArrayVariable(state, theType, Seq(withNull.size))
     theArrayPtr.setValue(withNull)
-    state.vars.addVariable(name, theArrayPtr)
     theArrayPtr
   }
   
@@ -500,14 +501,16 @@ object Executor {
             
             val initializer = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
             
-            // Oddly enough, it is possible to have a pointer to an array with no dimensions or initializer:
+            // Oddly enough, it is possible to have a pointer to an array with no dimensions OR initializer:
             //    extern char *x[]
             
-            if (dimensions.isEmpty && initializer != null) {             
+            if (dimensions.isEmpty && initializer != null) {       
+              
               if (TypeHelper.resolve(theType).getKind == eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
                 // char str[] = "Hello!\n";
-                val initString = state.stack.pop.asInstanceOf[Literal].cast.value.asInstanceOf[StringLiteral].str                
-                createStringVariable(state, name, theType, initString)
+                val initString = state.stack.pop.asInstanceOf[StringLiteral].str                
+                val newVar = createStringVariable(state, theType, initString)
+                state.vars.addVariable(name, newVar)
               } else {
                 val list = initializer.getInitializerClause.asInstanceOf[IASTInitializerList]
                 val size = list.getSize
@@ -529,7 +532,14 @@ object Executor {
                 var i = 0
                 for (i <- (numElements - 1) to 0 by -1) {
                   val newInit = state.stack.pop
-                  initialArray(i) = newInit
+                  
+                  if (newInit.isInstanceOf[StringLiteral]) {
+                     val newVar = createStringVariable(state, theType, newInit.asInstanceOf[StringLiteral].str)
+                     state.vars.addVariable(name, newVar)
+                     initialArray(i) = newVar.address
+                  } else {
+                    initialArray(i) = newInit
+                  }
                 }
               }
               
@@ -549,48 +559,45 @@ object Executor {
               case qual: CQualifierType =>
                 createVariable(qual.getType, name)
               case ptr: IPointerType =>
-                val initVal = if (!state.stack.isEmpty) {
-                  state.stack.pop
-                } else {
-                  0
-                }
-
-                initVal match {  
-                  case Literal(str) if !ptr.getType.isInstanceOf[CStructure] && TypeHelper.resolve(ptr.getType).getKind == `eChar` => 
-                    // char *str = "hello world!";
-                    
-                    val initString = initVal.asInstanceOf[Literal].cast match {
-                      case Primitive(StringLiteral(str),_) => str
-                    }
-                    
-                    createStringVariable(state, name, theType, initString)
-                  case _ =>
+                val initVal = Option(decl.getInitializer).map(x => state.stack.pop).getOrElse(0)
+                
+                val newVar = initVal match {
+                  case VarRef(id) => 
+                    val variable = state.vars.resolveId(id)
                     val newVar = new Variable(state, theType)
-                      initVal match {
-                        case VarRef(id) => 
-                          val variable = state.vars.resolveId(id)
-                          state.setValue(variable.value.value, newVar.info)
-                        case AddressInfo(address, theType) => 
-                          if (TypeHelper.isPointer(theType)) {
-                            state.setValue(state.readVal(address, TypeHelper.pointerType).value, newVar.info)
-                          } else {
-                            state.setValue(address.value, newVar.info)
-                          }
-                        case int: Int => state.setValue(int, newVar.info)
-                        case _ =>
+                    state.setValue(variable.value.value, newVar.info)
+                    newVar
+                  case AddressInfo(address, addrType) => 
+                    val newVar = new Variable(state, theType)
+                    if (TypeHelper.isPointer(addrType)) {
+                      state.setValue(state.readVal(address, TypeHelper.pointerType).value, newVar.info)
+                    } else {
+                      state.setValue(address.value, newVar.info)
                     }
-                    state.vars.addVariable(name, newVar)
-                    newVar 
+                    newVar
+                  case int: Int => 
+                    val newVar = new Variable(state, theType)
+                    state.setValue(int, newVar.info)
+                    newVar
+                  case Primitive(int: Int,_) => 
+                    val newVar = new Variable(state, theType)
+                    state.setValue(int, newVar.info)
+                    newVar
+                  case StringLiteral(str) =>
+                    createStringVariable(state, theType, str)
+                  case lit @ Literal(_) => 
+                    val newVar = new Variable(state, theType) // TODO: Not setting value? Whats going on here?
+                    newVar
+                  case Address(int) => 
+                    val newVar = new Variable(state, theType) // TODO: Not setting value? Whats going on here?
+                    newVar
                 }
                 
+                state.vars.addVariable(name, newVar)
+                newVar               
                
               case basic: IBasicType =>
-                
-                val initVal = if (!state.stack.isEmpty) {
-                  state.stack.pop
-                } else {
-                  0
-                }   
+                val initVal = Option(decl.getInitializer).map(x => state.stack.pop).getOrElse(0)   
 
                 val resolved = TypeHelper.resolve(state, theType, initVal).value
 

@@ -36,7 +36,7 @@ case class Literal(litStr: String) {
       if (lit == "'\\0'") {
         Primitive(0, new CBasicType(IBasicType.Kind.eFloat, 0))
       } else {
-        Primitive(lit.toCharArray.apply(1), new CBasicType(IBasicType.Kind.eChar, 0))
+        Primitive(lit.toCharArray.apply(1).toByte, new CBasicType(IBasicType.Kind.eChar, 0))
       }
     } else if (isIntNumber(lit)) {
       Primitive(lit.toInt, new CBasicType(IBasicType.Kind.eFloat, 0))

@@ -261,6 +261,18 @@ class PointerTest extends StandardTest {
   }
   
   
+  "arrays of strings" should "print the correct results" in {
+    val code = """
+      void main() {
+        const char *alpha[2] = { "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
+        printf("%c\n", alpha[0][0]);
+        printf("%d\n", strlen(alpha[0]));
+      }"""
+
+    checkResults(code)
+  }
+  
+  
 }
 
 class DoublePointer extends StandardTest {

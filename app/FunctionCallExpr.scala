@@ -44,12 +44,13 @@ object FunctionCallExpr {
             case doub: Double => doub
             case char: Character => char
             case lit @ Literal(_) => lit.cast.value
+            case StringLiteral(str) => str
           }
         }
 
         if (name == "printf") {
           
-          val formatString = formattedOutputParams.head.asInstanceOf[StringLiteral].str
+          val formatString = formattedOutputParams.head.asInstanceOf[String]
           
           // here we resolve the addresses coming in
           val resolved = formattedOutputParams.map{x => 
@@ -77,14 +78,15 @@ object FunctionCallExpr {
           Functions.printf(state, resolved.map(_.asInstanceOf[Object]))
           Seq()
         } else if (name == "strlen") {
-          val straddy = formattedOutputParams.head.asInstanceOf[AddressInfo]
-          var current: Char = 0
-          var stringBuilder = new ListBuffer[Char]()
+          val straddy = formattedOutputParams.head match {
+            case AddressInfo(addr, _) => addr.value
+            case int: Int => int
+          }
+          var current: Character = 0
           var i = 0
           do {
-            current = state.readVal(straddy.address + i, TypeHelper.resolve(straddy.theType)).asInstanceOf[Char]
+            current = state.readVal(Address(straddy + i), new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[Character]
             if (current != 0) {
-              stringBuilder += current
               i += 1
             }
           } while (current != 0)
@@ -92,6 +94,18 @@ object FunctionCallExpr {
           Seq()
         } else if (name == "rand") {
           state.stack.push(Math.abs(scala.util.Random.nextInt)) 
+          Seq()
+        } else if (name == "isalpha") {
+          val theChar = formattedOutputParams.head.asInstanceOf[Character].toChar
+          state.stack.push(if (theChar.isLetter) 1 else 0) 
+          Seq()
+        } else if (name == "tolower") {
+          val theChar = formattedOutputParams.head.asInstanceOf[Character].toChar
+          state.stack.push(theChar.toLower.toByte) 
+          Seq()
+        } else if (name == "isupper") {
+          val theChar = formattedOutputParams.head.asInstanceOf[Character].toChar
+          state.stack.push(if (theChar.isUpper) 1 else 0) 
           Seq()
         } else if (name == "calloc") {
           state.stack.push(state.allocateSpace(formattedOutputParams.head.asInstanceOf[Int]))

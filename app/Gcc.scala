@@ -95,6 +95,7 @@ object Gcc {
           Thread.sleep(50)
           i += 50
       }
+      Thread.sleep(50)
 
       val runner = Process(Seq(exeFile.path.toString), File("").toJava)
       val run = runner.run(runLogger.process)
