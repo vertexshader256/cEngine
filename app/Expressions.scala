@@ -152,12 +152,14 @@ object Expressions {
           }.getOrElse(false)
           
           var offset = 0
+          
+          //var aType = arrayVarPtr.theType
 
           indexes.zipWithIndex.foreach{ case (arrayIndex, index) =>
-            offset += arrayIndex * dimensions.slice(0, index).reduceOption{_ * _}.getOrElse(1)
+            offset += arrayIndex * dimensions.slice(0, index).reduceOption{_ * _}.getOrElse(1) * TypeHelper.sizeof(arrayVarPtr.theType)
           }
 
-          val elementAddress = Address(arrayAddress) + offset * TypeHelper.sizeof(arrayVarPtr.theType)
+          val elementAddress = Address(arrayAddress) + offset
   
           if (isParsingAssignmentDest) {
             context.stack.push(AddressInfo(elementAddress, TypeHelper.resolve(arrayVarPtr.theType)))

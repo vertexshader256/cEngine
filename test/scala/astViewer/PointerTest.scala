@@ -6,6 +6,7 @@ class StagingGround extends StandardTest {
       void main() {
         const char *alpha[2] = { "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
         printf("%c\n", alpha[0][0]);
+        printf("%c\n", alpha[1][10]);
         //printf("%d\n", strlen(alpha[0]));
       }"""
 
