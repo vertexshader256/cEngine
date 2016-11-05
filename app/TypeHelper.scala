@@ -9,78 +9,85 @@ object TypeHelper {
   val pointerType = new CBasicType(IBasicType.Kind.eInt , 0)
   
   // casts 'newVal' to 'theType'
-  def cast(theType: IBasicType, newVal: AnyVal): Primitive = {
-    val casted: AnyVal = theType.getKind match {
-      case `eChar` if theType.isUnsigned    => 
-        newVal match {
-          case int: Int => int & 0xFFFFFFFF
-          case char: Character => char & 0xFF
-        } 
-      case `eChar`    => 
-        newVal match {
-          case int: Int => int.toChar.toByte
-          case char: Character => char
-          case char: Char => char.toByte
-        } 
-     case `eInt` if theType.isLong && theType.isUnsigned =>
-        newVal match {
-          case int: Int => int.toLong & 0x00000000ffffffffL
-          case long: Long => long & 0x00000000ffffffffL
-        } 
-     case `eInt` if theType.isLong =>
-        newVal match {
-          case int: Int => int.toLong
-          case long: Long => long
-        } 
-     case `eInt` if theType.isShort & theType.isUnsigned =>
-        newVal match {
-          case int: Int => int.toShort & 0xFFFF
-          case short: Short => short & 0xFFFF
-          case long: Long => long.toShort & 0xFFFF
-        }  
-     case `eInt` if theType.isShort =>
-        newVal match {
-          case int: Int => int.toShort
-          case short: Short => short
-          case long: Long => long.toShort
-        }  
-     case `eInt`     => 
-        newVal match {
-          case boolean: Boolean => if (boolean) 1 else 0
-          case long: Long => long.toInt
-          case int: Int => int
-          case short: Short => short.toInt
-          case char: Character => char.toInt
-          case double: Double => double.toInt
-          case float: Float => float.toInt
-        }  
-     case `eFloat`   =>
-        newVal match {
-          case int: Int => int.toFloat
-          case double: Double => double.toFloat
-          case float: Float => float
-        }  
-     case `eDouble`  =>
-        newVal match {
-          case int: Int => int.toDouble
-          case double: Double => double
-          case float: Float => float.toDouble
-        } 
-      case `eBoolean` =>
-        // booleans are integers in C
-        val result: Int = newVal match {
-          case bool: Boolean => 1
-          case int: Int => if (int > 0) 1 else 0
-        } 
-        result
-      case `eVoid` =>
-        newVal match {
-          case int: Int => int
-          case double: Double => double
-          case float: Float => float
-          case char: Character => char
-        } 
-    }
+  def cast(theType: IType, newVal: AnyVal): Primitive = {
+    val casted: AnyVal = theType match {
+      case typedef: CTypedef => cast(typedef.getType, newVal).value
+      case qual: IQualifierType => cast(qual.getType, newVal).value
+      case ptr: IPointerType => newVal.asInstanceOf[Int]
+      case array: IArrayType => newVal.asInstanceOf[Int]
+      case basic: IBasicType =>
+       basic.getKind match {
+          case `eChar` if basic.isUnsigned    => 
+            newVal match {
+              case int: Int => int & 0xFFFFFFFF
+              case char: Character => char & 0xFF
+            } 
+          case `eChar`    => 
+            newVal match {
+              case int: Int => int.toChar.toByte
+              case char: Character => char
+              case char: Char => char.toByte
+            } 
+         case `eInt` if basic.isLong && basic.isUnsigned =>
+            newVal match {
+              case int: Int => int.toLong & 0x00000000ffffffffL
+              case long: Long => long & 0x00000000ffffffffL
+            } 
+         case `eInt` if basic.isLong =>
+            newVal match {
+              case int: Int => int.toLong
+              case long: Long => long
+            } 
+         case `eInt` if basic.isShort & basic.isUnsigned =>
+            newVal match {
+              case int: Int => int.toShort & 0xFFFF
+              case short: Short => short & 0xFFFF
+              case long: Long => long.toShort & 0xFFFF
+            }  
+         case `eInt` if basic.isShort =>
+            newVal match {
+              case int: Int => int.toShort
+              case short: Short => short
+              case long: Long => long.toShort
+            }  
+         case `eInt`     => 
+            newVal match {
+              case boolean: Boolean => if (boolean) 1 else 0
+              case long: Long => long.toInt
+              case int: Int => int
+              case short: Short => short.toInt
+              case char: Character => char.toInt
+              case double: Double => double.toInt
+              case float: Float => float.toInt
+            }  
+         case `eFloat`   =>
+            newVal match {
+              case int: Int => int.toFloat
+              case double: Double => double.toFloat
+              case float: Float => float
+            }  
+         case `eDouble`  =>
+            newVal match {
+              case int: Int => int.toDouble
+              case double: Double => double
+              case float: Float => float.toDouble
+            } 
+          case `eBoolean` =>
+            // booleans are integers in C
+            val result: Int = newVal match {
+              case bool: Boolean => 1
+              case int: Int => if (int > 0) 1 else 0
+            } 
+            result
+          case `eVoid` =>
+            newVal match {
+              case int: Int => int
+              case double: Double => double
+              case float: Float => float
+              case char: Character => char
+            } 
+        }
+      }
     
     Primitive(casted, theType)
   }

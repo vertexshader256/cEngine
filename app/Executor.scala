@@ -77,31 +77,38 @@ class State {
     readVal(address, TypeHelper.pointerType).value.asInstanceOf[Int]
   }
 
-  def readVal(addr: Address, theType: IBasicType): Primitive = {
+  def readVal(addr: Address, theType: IType): Primitive = {
 
     import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 
-    // if it is neither signed or unsigned, assume its signed
-    val isSigned = TypeHelper.isSigned(theType)
     val address = addr.value
-
-    val result: AnyVal = 
-    if (theType.getKind == eInt && theType.isShort) {
-      data.getShort(address)
-    }  else if (theType.getKind == eInt && theType.isLong) {
-      data.getLong(address)
-    } else if (theType.getKind == eInt) {
-      data.getInt(address)
-    } else if (theType.getKind == eBoolean) {
-      data.getInt(address)
-    } else if (theType.getKind == eDouble) {
-      data.getDouble(address)
-    } else if (theType.getKind == eFloat) {
-      data.getFloat(address)
-    } else if (theType.getKind == eChar) {
-      data.get(address) // a C 'char' is a Java 'byte'
-    } else {
-      throw new Exception("Bad read val")
+    
+    val result: AnyVal = theType match {
+      case basic: IBasicType =>
+        // if it is neither signed or unsigned, assume its signed
+        val isSigned = TypeHelper.isSigned(basic)
+    
+        if (basic.getKind == eInt && basic.isShort) {
+          data.getShort(address)
+        }  else if (basic.getKind == eInt && basic.isLong) {
+          data.getLong(address)
+        } else if (basic.getKind == eInt) {
+          data.getInt(address)
+        } else if (basic.getKind == eBoolean) {
+          data.getInt(address)
+        } else if (basic.getKind == eDouble) {
+          data.getDouble(address)
+        } else if (basic.getKind == eFloat) {
+          data.getFloat(address)
+        } else if (basic.getKind == eChar) {
+          data.get(address) // a C 'char' is a Java 'byte'
+        } else {
+          throw new Exception("Bad read val")
+        }
+      case ptr: IPointerType => data.getInt(address)
+      case array: IArrayType => data.getInt(address)
+      case qual: IQualifierType => readVal(addr, qual.getType).value
+      case typedef: CTypedef => readVal(addr, typedef.getType).value
     }
     
     TypeHelper.cast(theType, result)
@@ -114,29 +121,16 @@ class State {
   // use Address type to prevent messing up argument order
   def setValue(newVal: AnyVal, info: AddressInfo): Unit = {
 
-    newVal match {
-      case x => {
-        if (TypeHelper.isPointer(info.theType)) {
-          // pointers will always be integers
-          putPointer(info.address, newVal)
-        } else {
-          val theType = TypeHelper.resolve(info.theType)
-
-          import IBasicType.Kind._   
-          
-          val result = TypeHelper.cast(theType, newVal).value
-          
-          result match {
-            case char: Character    => data.put(info.address.value, char)
-            case long: Long => data.putLong(info.address.value, long)
-            case short: Short  => data.putShort(info.address.value, short) 
-            case int: Int => data.putInt(info.address.value, int) 
-            case float: Float   => data.putFloat(info.address.value, float)
-            case double: Double  => data.putDouble(info.address.value, double)
-          }
+      val result = TypeHelper.cast(info.theType, newVal).value
+      
+      result match {
+        case char: Character    => data.put(info.address.value, char)
+        case long: Long => data.putLong(info.address.value, long)
+        case short: Short  => data.putShort(info.address.value, short) 
+        case int: Int => data.putInt(info.address.value, int) 
+        case float: Float   => data.putFloat(info.address.value, float)
+        case double: Double  => data.putDouble(info.address.value, double)
       }
-        }
-    }
   }
 }
 
@@ -158,11 +152,7 @@ trait RuntimeVariable {
   def info = AddressInfo(address, theType)
   
   def value: Primitive = {
-    if (TypeHelper.isPointer(theType)) {
-      Primitive(state.readVal(address, TypeHelper.pointerType).value, theType)
-    } else {
-      Primitive(state.readVal(address, TypeHelper.resolve(theType)).value, theType)
-    }
+    Primitive(state.readVal(address, theType).value, theType)
   }
   
   def pointerValue: Int = {
@@ -429,7 +419,7 @@ object Executor {
               if (TypeHelper.isPointer(state.vars.returnType)) {
                 state.vars.resolveId(id).pointerValue
               } else {
-                TypeHelper.cast(TypeHelper.resolve(state.vars.returnType), state.vars.resolveId(id).value.value)
+                TypeHelper.cast(state.vars.returnType, state.vars.resolveId(id).value.value)
               }
             case Primitive(theVal, _) => theVal
             case int: Int         => int
@@ -728,8 +718,6 @@ object Executor {
         if (direction == Exiting) {
           val result = typeId.getDeclSpecifier match {
             case simple: IASTSimpleDeclSpecifier =>
-              val isPointer = typeId.getAbstractDeclarator.getPointerOperators.size > 1
-    
               import org.eclipse.cdt.core.dom.ast.IASTSimpleDeclSpecifier._
               
               simple.getType match {

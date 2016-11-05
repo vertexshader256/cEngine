@@ -27,14 +27,7 @@ object BinaryExpr {
         val theVar = state.vars.resolveId(name)
         theVar.value.value
       case AddressInfo(addr, theType) => 
-        if (!TypeHelper.isPointer(dst.theType)) {
-          // only if op1 is NOT a pointer, resolve op2
-          state.readVal(addr, TypeHelper.resolve(dst.theType)).value
-        } else if (TypeHelper.isPointer(theType) && !Utils.isNestedPointer(dst.theType)) {
-          state.readVal(addr, new CBasicType(IBasicType.Kind.eInt, 0)).value
-        } else {
-          addr.value
-        }
+        state.readVal(addr, dst.theType).value
       case Address(addy) => addy
       case Primitive(x, _) => x
       case long: Long => long
@@ -42,14 +35,8 @@ object BinaryExpr {
       case doub: Double => doub
       case float: Float => float 
     }, null)
-    
-    val theType = if (TypeHelper.isPointer(dst.theType)) {
-      TypeHelper.pointerType
-    } else {
-      TypeHelper.resolve(dst.theType)
-    }
-    
-    val theVal = Primitive(state.readVal(dst.address, theType).value, theType)
+        
+    val theVal = Primitive(state.readVal(dst.address, dst.theType).value, dst.theType)
     
     val result = op match {
       case `op_plusAssign` =>
