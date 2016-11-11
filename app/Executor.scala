@@ -15,6 +15,20 @@ import scala.collection.mutable.Map
 
 case class Primitive(value: AnyVal, theType: IType)
 case class VarRef(name: String)
+
+object Variable {                              
+  def apply(x: Int): Int = x * 2
+  def unapply(any: Any)(implicit state: State): Option[(Primitive, AddressInfo)] = {
+    if (any.isInstanceOf[VarRef]) {
+      val ref = any.asInstanceOf[VarRef]
+      val vari = state.vars.resolveId(ref.name)
+      Some((vari.value, vari.info))
+    } else {
+      None
+    }
+  }
+}
+
 case class StringLiteral(str: String) extends AnyVal
 
 class State {
@@ -623,13 +637,13 @@ object Executor {
     }
   }
 
-  def step(current: IASTNode, state: State, direction: Direction): Seq[IASTNode] = {
+  def step(current: IASTNode, direction: Direction)(implicit state: State): Seq[IASTNode] = {
 
     current match {
       case statement: IASTStatement =>
         Executor.parseStatement(statement, state, direction)
       case expression: IASTExpression =>
-        Expressions.parse(expression, direction, state, state)
+        Expressions.parse(expression, direction, state)
       case array: IASTArrayModifier =>
         if (direction == Exiting) {
           Seq()
@@ -783,7 +797,7 @@ class Executor() {
 
     //println(current.getClass.getSimpleName + ":" + direction)
     
-    var paths: Seq[IASTNode] = Executor.step(current, engineState, direction) 
+    var paths: Seq[IASTNode] = Executor.step(current, direction)(engineState)
     
     if (engineState.isBreaking) {
       // unroll the path stack until we meet the first parent which is a loop

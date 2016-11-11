@@ -13,7 +13,7 @@ import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 
 object Expressions {
 
-  def parse(expr: IASTExpression, direction: Direction, context: State, stack: State): Seq[IASTNode] = expr match {
+  def parse(expr: IASTExpression, direction: Direction, stack: State)(implicit context: State): Seq[IASTNode] = expr match {
     case exprList: IASTExpressionList =>
       if (direction == Entering) {
         exprList.getExpressions
@@ -175,11 +175,10 @@ object Expressions {
 
       def resolveVar(variable: Any): (Primitive, AddressInfo) = {
         variable match {
-          case VarRef(name) =>
-            val variable = context.vars.resolveId(name)
-            val theType = TypeHelper.resolve(variable.theType)
-            val currentVal = stack.readVal(variable.address, theType).value
-            (Primitive(currentVal, variable.theType), AddressInfo(variable.address, variable.theType))
+          case Variable(value, info) =>
+            val theType = TypeHelper.resolve(info.theType)
+            val currentVal = stack.readVal(info.address, theType).value
+            (Primitive(currentVal, info.theType), info)
           case AddressInfo(addy, theType) => 
             val resolved = TypeHelper.resolve(theType)
             val currentVal = stack.readVal(addy, resolved).value
