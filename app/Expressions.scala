@@ -109,9 +109,7 @@ object Expressions {
         if (!subscript.getArrayExpression.isInstanceOf[IASTArraySubscriptExpression]) {
 
           val arrayVarPtr: AddressInfo = context.stack.pop match {
-            case VarRef(name) => 
-              val variable = context.vars.resolveId(name)
-              AddressInfo(variable.address, variable.theType)
+            case Variable(_, info) => info
             case addr @ AddressInfo(_, theType) => addr
           }
           
@@ -119,8 +117,8 @@ object Expressions {
           var itr: IASTNode = subscript
           while (itr.isInstanceOf[IASTArraySubscriptExpression]) {
             val result: Int = (context.stack.pop match {
-              case VarRef(indexVarName) =>
-                context.vars.resolveId(indexVarName).value.value.asInstanceOf[Int]
+              case Variable(value, _) =>
+                value.value.asInstanceOf[Int]
               case lit @ Literal(_) => lit.cast.value.asInstanceOf[Int]
               case int: Int => int
               case double: Double => double.toInt
@@ -190,15 +188,15 @@ object Expressions {
         Seq(unary.getOperand)
       } else {
         unary.getOperator match {
-          case `op_not` => context.stack.pop match {
-            case VarRef(id) =>
-              stack.vars.resolveId(id).value.value match {
-                case int: Int => context.stack.push(if (int == 0) 1 else 0)
+          case `op_not` => context.stack.push(context.stack.pop match {
+            case Variable(value, info) =>
+              value.value match {
+                case int: Int => if (int == 0) 1 else 0
               }
-            case int: Int               => context.stack.push(if (int == 0) 1 else 0)
-            case Primitive(int: Int, _) => context.stack.push(if (int == 0) 1 else 0)
-            case bool: Boolean => context.stack.push(!bool)
-          }
+            case int: Int               => if (int == 0) 1 else 0
+            case Primitive(int: Int, _) => if (int == 0) 1 else 0
+            case bool: Boolean => !bool
+          })
           case `op_minus` =>
             val resolveLit = context.stack.pop match {
               case lit @ Literal(_) => lit.cast
