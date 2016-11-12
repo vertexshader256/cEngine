@@ -40,7 +40,7 @@ object Expressions {
         
         context.stack.push(context.stack.pop match {
           case addy @ Address(_) => AddressInfo(addy, theType)
-          case VarRef(id) => AddressInfo(Address(stack.vars.resolveId(id).value.value.asInstanceOf[Int]), theType)
+          case Variable(value, _) => AddressInfo(Address(value.value.asInstanceOf[Int]), theType)
           case lit @ Literal(str) => TypeHelper.cast(TypeHelper.resolve(theType), lit.cast.value)
           case int: Int => TypeHelper.cast(TypeHelper.resolve(theType), int)
         })
@@ -58,10 +58,9 @@ object Expressions {
         
         val structType = if (fieldRef.isPointerDereference) {
           owner match {
-            case VarRef(name) => 
-              val struct = context.vars.resolveId(name)
-              baseAddr = Address(struct.value.value.asInstanceOf[Int])
-              struct.theType.asInstanceOf[IPointerType].getType.asInstanceOf[CStructure]
+            case Variable(value, info) => 
+              baseAddr = Address(value.value.asInstanceOf[Int])
+              info.theType.asInstanceOf[IPointerType].getType.asInstanceOf[CStructure]
             case AddressInfo(addr, theType) => 
               baseAddr = addr
               theType match {
@@ -73,10 +72,10 @@ object Expressions {
           }
         } else {
           owner match {
-            case VarRef(name) => 
-              val struct = context.vars.resolveId(name)
-              baseAddr = struct.address
-              struct.theType.asInstanceOf[CStructure]
+            case VarRef(id) =>
+              val theVar = context.vars.resolveId(id)
+              baseAddr = theVar.address
+              theVar.theType.asInstanceOf[CStructure]
             case AddressInfo(addr, theType) => 
               baseAddr = addr
               theType match {
@@ -207,12 +206,10 @@ object Expressions {
               case int: Int     => context.stack.push(-int)
               case Primitive(int: Int, _)     => context.stack.push(-int)
               case Primitive(doub: Double, _) => context.stack.push(-doub)
-              case VarRef(name) =>
-                val variable = context.vars.resolveId(name)
-                
-                val (currentVal, info) = resolveVar(variable.info)
+              case Variable(value, info) =>
+                val (currentVal, resolvedInfo) = resolveVar(info)
               
-                val basicType = info.theType.asInstanceOf[IBasicType]
+                val basicType = resolvedInfo.theType.asInstanceOf[IBasicType]
                 context.stack.push(basicType.getKind match {
                   case `eInt`    => -currentVal.value.asInstanceOf[Int]
                   case `eDouble` => -currentVal.value.asInstanceOf[Double]
@@ -260,9 +257,9 @@ object Expressions {
             })
           case `op_amper` =>
             context.stack.pop match {
-              case VarRef(name) =>
-                val variable = context.vars.resolveId(name)
-                context.stack.push(variable.address)
+              case VarRef(id) =>
+                val theVar = context.vars.resolveId(id)
+                context.stack.push(theVar.address)
             }
           case `op_star` =>
             context.stack.pop match {
@@ -276,9 +273,8 @@ object Expressions {
                   val ptr = context.vars.resolveId(name.getRawSignature)
                   context.stack.push(stack.readVal(Address(int), TypeHelper.resolve(ptr.theType)))
                 }
-              case VarRef(varName) =>       
-                val ptr = context.vars.resolveId(varName)
-                val ptrType = ptr.theType.asInstanceOf[IPointerType]
+              case Variable(value, info) =>       
+                val ptrType = info.theType.asInstanceOf[IPointerType]
                 val isNested = ptrType.getType.isInstanceOf[IPointerType]
                 
                 val specialCase = unary.getParent.isInstanceOf[IASTUnaryExpression] &&
@@ -286,10 +282,10 @@ object Expressions {
                 
                 context.stack.push(
                   if (Utils.isOnLeftSideOfAssignment(unary) || isNested || specialCase) { 
-                    val deref = stack.readPtrVal(ptr.address)
+                    val deref = stack.readPtrVal(info.address)
                     AddressInfo(Address(deref), ptrType.getType)
                   } else {
-                    stack.readVal(Address(ptr.value.value.asInstanceOf[Int]), TypeHelper.resolve(ptr.theType))
+                    stack.readVal(Address(value.value.asInstanceOf[Int]), TypeHelper.resolve(info.theType))
                   }
                 )
               case address @ AddressInfo(addr, theType) =>

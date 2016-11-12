@@ -274,7 +274,7 @@ object Executor {
     codeToRun
   }
 
-  def parseStatement(statement: IASTStatement, state: State, direction: Direction): Seq[IASTNode] = statement match {
+  def parseStatement(statement: IASTStatement, direction: Direction)(implicit state: State): Seq[IASTNode] = statement match {
     case breakStatement: IASTNullStatement =>
       Seq()
     case breakStatement: IASTBreakStatement =>
@@ -307,7 +307,7 @@ object Executor {
         state.stack.push(switchExpr)
 
         val resolved = switchExpr match {
-          case VarRef(x) => state.vars.resolveId(x).value.value
+          case Variable(value, _) => value.value
           case int: Int  => int
         }
 
@@ -366,8 +366,7 @@ object Executor {
         val result = state.stack.pop
 
         val value = result match {
-          case VarRef(name) =>
-            state.vars.resolveId(name).value
+          case Variable(value, _) => value
           case lit @ Literal(_) =>
             lit.cast.value
           case x => x
@@ -473,7 +472,7 @@ object Executor {
     theArrayPtr
   }
   
-  def parseDeclarator(decl: IASTDeclarator, direction: Direction, state: State): Seq[IASTNode] = {
+  def parseDeclarator(decl: IASTDeclarator, direction: Direction)(implicit state: State): Seq[IASTNode] = {
     if (direction == Entering) {
       decl match {
         case array: IASTArrayDeclarator =>
@@ -500,7 +499,7 @@ object Executor {
             val dimensions = arrayDecl.getArrayModifiers.filter{_.getConstantExpression != null}.map{dim => state.stack.pop match {
               // can we can assume dimensions are integers
               case lit: Literal => lit.cast.value.asInstanceOf[Int]
-              case VarRef(id) => state.vars.resolveId(id).value.value.asInstanceOf[Int]
+              case Variable(value, _) => value.value.asInstanceOf[Int]
             }}
             
             val initializer = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
@@ -567,10 +566,9 @@ object Executor {
                 val initVal = Option(decl.getInitializer).map(x => state.stack.pop).getOrElse(0)
                 
                 val newVar = initVal match {
-                  case VarRef(id) => 
-                    val variable = state.vars.resolveId(id)
+                  case Variable(value, info) => 
                     val newVar = new Variable(state, theType)
-                    state.setValue(variable.value.value, newVar.info)
+                    state.setValue(value.value, newVar.info)
                     newVar
                   case AddressInfo(address, addrType) => 
                     val newVar = new Variable(state, theType)
@@ -641,7 +639,7 @@ object Executor {
 
     current match {
       case statement: IASTStatement =>
-        Executor.parseStatement(statement, state, direction)
+        Executor.parseStatement(statement, direction)
       case expression: IASTExpression =>
         Expressions.parse(expression, direction, state)
       case array: IASTArrayModifier =>
@@ -695,7 +693,7 @@ object Executor {
           Seq()
         }
       case decl: IASTDeclarator =>
-        Executor.parseDeclarator(decl, direction, state)
+        Executor.parseDeclarator(decl, direction)
       case fcnDef: IASTFunctionDefinition =>
         if (state.isPreprocessing) {
           state.functionMap += (fcnDef.getDeclarator.getName.getRawSignature -> fcnDef)
