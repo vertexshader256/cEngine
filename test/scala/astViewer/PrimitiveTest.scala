@@ -96,6 +96,22 @@ class SizeOfTest extends StandardTest {
 
     checkResults(code)
   }
+  
+  "A sizeof call on a pointer element" should "print the correct results" in {
+    val code = """
+      void main() {
+        int *a;
+        char *b;
+        long *c;
+        short *d;
+        float *e;
+        double *f;
+        
+        printf("%d %d\n", sizeof(a[3]), sizeof(b[3]), sizeof(c[3]), sizeof(d[3]), sizeof(e[3]), sizeof(f[3]));
+      }"""
+
+    checkResults(code)
+  }
 }
 
 class RolloverTest extends StandardTest {

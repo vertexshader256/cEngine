@@ -104,7 +104,11 @@ object FunctionCallExpr {
           state.stack.push(if (theChar.isUpper) 1 else 0) 
           Seq()
         } else if (name == "calloc") {
-          state.stack.push(state.allocateSpace(formattedOutputParams.head.asInstanceOf[Int]))
+          val numBlocks = formattedOutputParams(0).asInstanceOf[Int]
+          val blockSize = formattedOutputParams(1).asInstanceOf[Int]
+          val addr = state.allocateSpace(numBlocks * blockSize)
+          state.stack.push(addr)
+         // state.clearMemory(addr, numBlocks * blockSize)
           Seq()
         } else if (name == "malloc") {
           state.stack.push(state.allocateSpace(formattedOutputParams.head.asInstanceOf[Int]))

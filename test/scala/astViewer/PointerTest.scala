@@ -9,7 +9,7 @@ class StagingGround extends StandardTest {
         char str[] = "Hello!\n";
         char *x = str + 2;
         char z = x[2];
-        printf("%d\n", z);
+        printf("%c\n", z);
       }"""
 
     checkResults(code)

@@ -150,18 +150,29 @@ object Expressions {
           
           var offset = 0
           
-          //var aType = arrayVarPtr.theType
+          val aType = arrayVarPtr.theType match {
+            case ptr: IPointerType if ptr.getType.isInstanceOf[IBasicType] => ptr.getType
+            case array: IArrayType if array.getType.isInstanceOf[IBasicType] => array.getType
+            case _ => TypeHelper.resolve(arrayVarPtr.theType)
+          }
 
           indexes.zipWithIndex.foreach{ case (arrayIndex, index) =>
-            offset += arrayIndex * dimensions.slice(0, index).reduceOption{_ * _}.getOrElse(1) * TypeHelper.sizeof(arrayVarPtr.theType)
+            
+            val step = TypeHelper.sizeof(aType)
+            
+            println(arrayIndex + ":" + step)
+            
+            offset += arrayIndex * dimensions.slice(0, index).reduceOption{_ * _}.getOrElse(1) * step
           }
+          
+          println("OFFSET: " + offset)
 
           val elementAddress = Address(arrayAddress) + offset
   
           if (isParsingAssignmentDest) {
-            context.stack.push(AddressInfo(elementAddress, TypeHelper.resolve(arrayVarPtr.theType)))
+            context.stack.push(AddressInfo(elementAddress, aType))
           } else {
-            context.stack.push(stack.readVal(elementAddress, TypeHelper.resolve(arrayVarPtr.theType)))
+            context.stack.push(stack.readVal(elementAddress, aType))
           }
         }
 
