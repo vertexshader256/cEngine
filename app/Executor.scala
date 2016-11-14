@@ -146,6 +146,16 @@ class State {
         case double: Double  => data.putDouble(info.address.value, double)
       }
   }
+  
+  // use Address type to prevent messing up argument order
+  def setValue(newVal: AnyVal, address: Address): Unit = newVal match {
+    case char: Character    => data.put(address.value, char)
+    case long: Long => data.putLong(address.value, long)
+    case short: Short  => data.putShort(address.value, short) 
+    case int: Int => data.putInt(address.value, int) 
+    case float: Float   => data.putFloat(address.value, float)
+    case double: Double  => data.putDouble(address.value, double)
+  }
 }
 
 case class Address(value: Int) extends AnyVal {
@@ -219,14 +229,15 @@ protected class ArrayVariable(val state: State, val theType: IType, dimensions: 
       array.foreach { element =>
         element match {
           case addr @ Address(addy) => 
-            state.setValue(addy, AddressInfo(theArrayAddress + i, TypeHelper.pointerType))
+            state.setValue(addy, theArrayAddress + i)
           case lit @ Literal(_) =>
-            state.setValue(lit.typeCast(resolved).value, AddressInfo(theArrayAddress + i, resolved))
-          case Primitive(newVal, _) => state.setValue(newVal, AddressInfo(theArrayAddress + i, resolved))
+            state.setValue(lit.typeCast(resolved).value, theArrayAddress + i)
+          case Primitive(newVal, _) =>
+            state.setValue(newVal, theArrayAddress + i)
           case int: Int =>
-            state.setValue(int, AddressInfo(theArrayAddress + i, resolved))
+            state.setValue(int, theArrayAddress + i)
           case char: Char =>
-            state.setValue(char.toByte, AddressInfo(theArrayAddress + i, resolved))
+            state.setValue(char.toByte, theArrayAddress + i)
 //          case double: Double =>
 //            state.setValue(double, AddressInfo(theArrayAddress + i, resolved))
         }
@@ -568,23 +579,23 @@ object Executor {
                 val newVar = initVal match {
                   case Variable(value, info) => 
                     val newVar = new Variable(state, theType)
-                    state.setValue(value.value, newVar.info)
+                    state.setValue(value.value, newVar.address)
                     newVar
                   case AddressInfo(address, addrType) => 
                     val newVar = new Variable(state, theType)
                     if (TypeHelper.isPointer(addrType)) {
-                      state.setValue(state.readVal(address, TypeHelper.pointerType).value, newVar.info)
+                      state.setValue(state.readVal(address, TypeHelper.pointerType).value, newVar.address)
                     } else {
-                      state.setValue(address.value, newVar.info)
+                      state.setValue(address.value, newVar.address)
                     }
                     newVar
                   case int: Int => 
                     val newVar = new Variable(state, theType)
-                    state.setValue(int, newVar.info)
+                    state.setValue(int, newVar.address)
                     newVar
                   case prim @ Primitive(_, newType) => 
                     val newVar = new Variable(state, theType)
-                    state.setValue(prim.value, newVar.info)
+                    state.setValue(prim.value, newVar.address)
                     newVar
                   case StringLiteral(str) =>
                     createStringVariable(state, theType, str)
