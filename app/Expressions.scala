@@ -232,27 +232,27 @@ object Expressions {
             
             // push then set
             context.stack.push(currentVal)
-            stack.setValue(newVal, info)   
+            stack.setValue(newVal, info.address)   
           case `op_postFixDecr` =>          
             val (currentVal, info) = resolveVar(context.stack.pop)
             val newVal = BinaryExpr.performBinaryOperation(currentVal, Primitive(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_minus).value
             
             // push then set
             context.stack.push(currentVal)
-            stack.setValue(newVal, info)  
+            stack.setValue(newVal, info.address)  
           case `op_prefixIncr` =>
             val (currentVal, info) = resolveVar(context.stack.pop)            
             val newVal = BinaryExpr.performBinaryOperation(currentVal, Primitive(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_plus).value
             
             // set then push
-            stack.setValue(newVal, info)  
+            stack.setValue(newVal, info.address)  
             context.stack.push(newVal)
           case `op_prefixDecr` =>
             val (currentVal, info) = resolveVar(context.stack.pop)
             val newVal = BinaryExpr.performBinaryOperation(currentVal, Primitive(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_minus).value
             
             // set then push
-            stack.setValue(newVal, info)  
+            stack.setValue(newVal, info.address)  
             context.stack.push(newVal)
           case `op_sizeof` =>
             context.stack.push(context.stack.pop match {

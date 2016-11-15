@@ -134,17 +134,8 @@ class State {
   
   // use Address type to prevent messing up argument order
   def setValue(newVal: AnyVal, info: AddressInfo): Unit = {
-
-      val result = TypeHelper.cast(info.theType, newVal).value
-      
-      result match {
-        case char: Character    => data.put(info.address.value, char)
-        case long: Long => data.putLong(info.address.value, long)
-        case short: Short  => data.putShort(info.address.value, short) 
-        case int: Int => data.putInt(info.address.value, int) 
-        case float: Float   => data.putFloat(info.address.value, float)
-        case double: Double  => data.putDouble(info.address.value, double)
-      }
+      val result = TypeHelper.cast(info.theType, newVal).value      
+      setValue(result, info.address)
   }
   
   // use Address type to prevent messing up argument order
@@ -215,7 +206,7 @@ protected class ArrayVariable(val state: State, val theType: IType, dimensions: 
   // where we store the reference
   val address: Address = allocateSpace(state, theType, 1)
 
-  state.setValue(theArrayAddress.value, AddressInfo(info.address, new CBasicType(IBasicType.Kind.eInt, 0)))
+  state.setValue(theArrayAddress.value, info.address)
   
   def resolved = TypeHelper.resolve(theType)
 
@@ -633,7 +624,7 @@ object Executor {
 
               var offset = 0
               values.foreach { case (value, field) =>
-                state.setValue(value.value, AddressInfo(newVar.address + offset, field.getType))
+                state.setValue(value.value, newVar.address + offset)
                 offset += TypeHelper.sizeof(field.getType)
               }
             }
