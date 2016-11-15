@@ -464,6 +464,7 @@ object Executor {
     val theStr = Utils.stripQuotes(str)
     val withNull = theStr.toCharArray() :+ 0.toChar // terminating null char
     val theArrayPtr = new ArrayVariable(state, theType, Seq(withNull.size))
+    state.setArray(withNull, AddressInfo(theArrayPtr.theArrayAddress, theType))
     theArrayPtr
   }
   
@@ -519,6 +520,7 @@ object Executor {
                 }}.reverse
   
                 val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], Array(size))
+                state.setArray(values.toArray, AddressInfo(theArrayPtr.theArrayAddress, theArrayPtr.info.theType))
                 state.vars.addVariable(name, theArrayPtr)
               }
             } else {
@@ -542,6 +544,7 @@ object Executor {
               }
               
               val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)
+              state.setArray(initialArray.toArray, AddressInfo(theArrayPtr.theArrayAddress, theArrayPtr.info.theType))
               state.vars.addVariable(name, theArrayPtr)
             }
           case decl: CASTDeclarator =>
