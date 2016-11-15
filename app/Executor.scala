@@ -131,12 +131,28 @@ class State {
   def putPointer(addr: Address, newVal: AnyVal) = {
     data.putInt(addr.value, newVal.asInstanceOf[Int])
   }
-  
-  // use Address type to prevent messing up argument order
-//  def setValue(newVal: AnyVal, info: AddressInfo): Unit = {
-//      val result = TypeHelper.cast(info.theType, newVal).value      
-//      setValue(result, info.address)
-//  }
+
+  def setArray(array: Array[_], info: AddressInfo): Unit = {
+      var i = 0
+      val resolved = TypeHelper.resolve(info.theType)
+      array.foreach { element =>
+        element match {
+          case addr @ Address(addy) => 
+            setValue(addy, info.address + i)
+          case lit @ Literal(_) =>
+            setValue(lit.typeCast(resolved).value, info.address + i)
+          case Primitive(newVal, _) =>
+            setValue(newVal, info.address + i)
+          case int: Int =>
+            setValue(int, info.address + i)
+          case char: Char =>
+            setValue(char.toByte, info.address + i)
+//          case double: Double =>
+//            state.setValue(double, AddressInfo(theArrayAddress + i, resolved))
+        }
+        i += TypeHelper.sizeof(resolved)
+      }
+  }
   
   // use Address type to prevent messing up argument order
   def setValue(newVal: AnyVal, address: Address): Unit = newVal match {
@@ -207,34 +223,12 @@ protected class ArrayVariable(val state: State, val theType: IType, dimensions: 
   val address: Address = allocateSpace(state, theType, 1)
 
   state.setValue(theArrayAddress.value, info.address)
-  
-  def resolved = TypeHelper.resolve(theType)
 
   def sizeof: Int = {
     TypeHelper.sizeof(theType) * numElements
   }
 
-  def setValue(value: Any): Unit = value match {
-    case array: Array[_] =>
-      var i = 0
-      array.foreach { element =>
-        element match {
-          case addr @ Address(addy) => 
-            state.setValue(addy, theArrayAddress + i)
-          case lit @ Literal(_) =>
-            state.setValue(lit.typeCast(resolved).value, theArrayAddress + i)
-          case Primitive(newVal, _) =>
-            state.setValue(newVal, theArrayAddress + i)
-          case int: Int =>
-            state.setValue(int, theArrayAddress + i)
-          case char: Char =>
-            state.setValue(char.toByte, theArrayAddress + i)
-//          case double: Double =>
-//            state.setValue(double, AddressInfo(theArrayAddress + i, resolved))
-        }
-        i += TypeHelper.sizeof(resolved)
-      }
-  }
+  
 }
 
 protected class Variable(val state: State, val theType: IType) extends RuntimeVariable {
@@ -470,7 +464,6 @@ object Executor {
     val theStr = Utils.stripQuotes(str)
     val withNull = theStr.toCharArray() :+ 0.toChar // terminating null char
     val theArrayPtr = new ArrayVariable(state, theType, Seq(withNull.size))
-    theArrayPtr.setValue(withNull)
     theArrayPtr
   }
   
@@ -526,7 +519,6 @@ object Executor {
                 }}.reverse
   
                 val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], Array(size))
-                theArrayPtr.setValue(values.toArray)
                 state.vars.addVariable(name, theArrayPtr)
               }
             } else {
@@ -550,7 +542,6 @@ object Executor {
               }
               
               val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)
-              theArrayPtr.setValue(initialArray.toArray)
               state.vars.addVariable(name, theArrayPtr)
             }
           case decl: CASTDeclarator =>
