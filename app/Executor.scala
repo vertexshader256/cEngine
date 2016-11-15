@@ -133,10 +133,10 @@ class State {
   }
   
   // use Address type to prevent messing up argument order
-  def setValue(newVal: AnyVal, info: AddressInfo): Unit = {
-      val result = TypeHelper.cast(info.theType, newVal).value      
-      setValue(result, info.address)
-  }
+//  def setValue(newVal: AnyVal, info: AddressInfo): Unit = {
+//      val result = TypeHelper.cast(info.theType, newVal).value      
+//      setValue(result, info.address)
+//  }
   
   // use Address type to prevent messing up argument order
   def setValue(newVal: AnyVal, address: Address): Unit = newVal match {
@@ -607,7 +607,8 @@ object Executor {
                 val resolved = TypeHelper.resolve(state, theType, initVal).value
 
                 val newVar = new Variable(state, theType)
-                state.setValue(resolved, newVar.info)
+                val casted = TypeHelper.cast(newVar.info.theType, resolved).value
+                state.setValue(casted, newVar.info.address)
                 state.vars.addVariable(name, newVar)
                 newVar
             }
@@ -667,7 +668,9 @@ object Executor {
             val name = param.getDeclarator.getName.getRawSignature
             val newVar = new Variable(state, paramInfo.getType)
             
-            state.setValue(TypeHelper.resolve(state, paramInfo.getType, arg).value, newVar.info)          
+            val resolved = TypeHelper.resolve(state, paramInfo.getType, arg).value
+            val casted = TypeHelper.cast(newVar.info.theType, resolved).value
+            state.setValue(casted, newVar.info.address)          
         
             state.vars.addVariable(name, newVar)
           }

@@ -53,7 +53,8 @@ object BinaryExpr {
         resolvedop2
     }  
     
-    state.setValue(result.value, dst)
+    val casted = TypeHelper.cast(dst.theType, result.value).value
+    state.setValue(casted, dst.address)
     
     resolvedop2
   }
