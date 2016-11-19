@@ -109,6 +109,26 @@ class BinaryExpr extends StandardTest {
 
     checkResults(code)
   }
+  
+  "AND expression with a char" should "print the correct results" in {
+    val code = """
+      void main() {
+        char x[3] = {1,2,3};
+        if (1 == 1 && x[2]) {
+          printf("path1\n");
+        } else {
+          printf("path2\n");
+        }
+        
+        if (x[1] && 3 == 3) {
+          printf("path1\n");
+        } else {
+          printf("path2\n");
+        }
+      }"""
+
+    checkResults(code)
+  }
 
   "Two expressions ORed" should "print the correct results" in {
     val code = """
@@ -165,8 +185,6 @@ class BinaryExpr extends StandardTest {
     checkResults(code)
   }
   
-  
-  
   "A simple increment test" should "print the correct results" in {
     val code = """
       void main() {
@@ -175,6 +193,30 @@ class BinaryExpr extends StandardTest {
         x += 1;
         y += 1.5;
         printf("%d %f\n", x, y);
+      }"""
+
+    checkResults(code)
+  }
+  
+  "A more advanced increment test" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 15;
+        char v[5] = {43,45,21,53,1};
+        x += v[2];
+        printf("%d\n", x);
+      }"""
+
+    checkResults(code)
+  }
+  
+  "A more advanced decrement test" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 15;
+        char v[5] = {43,45,21,53,1};
+        x -= v[2];
+        printf("%d\n", x);
       }"""
 
     checkResults(code)

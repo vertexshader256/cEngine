@@ -27,7 +27,7 @@ object BinaryExpr {
         val theVar = state.vars.resolveId(name)
         theVar.value.value
       case AddressInfo(addr, theType) => 
-        state.readVal(addr, dst.theType).value
+        state.readVal(addr, theType).value
       case Address(addy) => addy
       case Primitive(x, _) => x
       case long: Long => long
@@ -322,7 +322,9 @@ object BinaryExpr {
         (op1, op2) match {
           case (x: Boolean, y: Boolean) => x && y
           case (x: Boolean, y: Int) => x && (y > 0)
+          case (x: Boolean, y: Character) => x && (y > 0)
           case (x: Int, y: Boolean) => (x > 0) && y
+          case (x: Character, y: Boolean) => (x > 0) && y
         }
       case `op_logicalOr` =>
         (op1, op2) match {

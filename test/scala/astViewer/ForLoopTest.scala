@@ -43,6 +43,18 @@ class ForLooptest extends StandardTest {
     checkResults(code)
   }
   
+  "A for loop without an expression" should "print the correct results" in {
+    val code = """
+      void main() {
+        int j = 0;
+        int max = 24;
+        for (j = 0; j < max; j++);
+        printf("%d\n", j);
+      }"""
+
+    checkResults(code)
+  }
+  
   "A for loop without a stopping point" should "print the correct results" in {
     val code = """
       void main() {
