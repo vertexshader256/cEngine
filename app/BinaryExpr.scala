@@ -35,7 +35,7 @@ object BinaryExpr {
       case doub: Double => doub
       case float: Float => float 
     }, null)
-        
+    
     val theVal = Primitive(state.readVal(dst.address, dst.theType).value, dst.theType)
     
     val result = op match {
@@ -53,7 +53,7 @@ object BinaryExpr {
         resolvedop2
     }  
     
-    val casted = TypeHelper.cast(dst.theType, result.value).value
+    val casted = TypeHelper.downcast(dst.theType, result.value).value
     state.setValue(casted, dst.address)
     
     resolvedop2
