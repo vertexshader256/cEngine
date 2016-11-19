@@ -30,6 +30,8 @@ class ArrayInitTest extends StandardTest {
   "Sized arrays initialized with initLists" should "print the correct results" in {
     val code = """
       void main() {
+        int padding; // lets test an offset
+        
         int x[5] = {1, 2, 3, 4, 5};
         printf("%d %d %d %d %d\n", x[0], x[1], x[2], x[3], x[4]);
         
@@ -76,8 +78,7 @@ class ArrayInitTest extends StandardTest {
 }
 
 class HigherDimArrays extends StandardTest {
-  
-  
+   
   "A rectangular 2d array" should "print the correct results" in {
     val code = """
       void main() {

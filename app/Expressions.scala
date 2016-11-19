@@ -148,27 +148,32 @@ object Expressions {
             Utils.isAssignment(bin.getOperator)
           }.getOrElse(false)
           
-          var offset = 0
+          var offset = arrayAddress
+
+          var aType = context.resolve(arrayVarPtr.theType)
           
-          val aType = arrayVarPtr.theType match {
-            case ptr: IPointerType if ptr.getType.isInstanceOf[IBasicType] => ptr.getType
-            case array: IArrayType if array.getType.isInstanceOf[IBasicType] => array.getType
-            case _ => TypeHelper.resolve(arrayVarPtr.theType)
+          indexes.foreach{ arrayIndex =>
+            aType match {
+              case array: IArrayType =>
+                val step = 4
+                offset = context.readPtrVal(Address(offset + arrayIndex * step))
+                aType = array.getType
+              case ptr: IPointerType =>
+                val step = 4
+                offset = context.readPtrVal(Address(offset + arrayIndex * step))
+                aType = ptr.getType
+              case basic: IBasicType =>
+                val step = TypeHelper.sizeof(basic)
+                offset += arrayIndex * step
+            }
+          
+            if (aType.isInstanceOf[IQualifierType]) {
+              aType = aType.asInstanceOf[IQualifierType].getType
+            }
           }
 
-          indexes.zipWithIndex.foreach{ case (arrayIndex, index) =>
-            
-            val step = TypeHelper.sizeof(aType)
-            
-            println(arrayIndex + ":" + step)
-            
-            offset += arrayIndex * dimensions.slice(0, index).reduceOption{_ * _}.getOrElse(1) * step
-          }
+          val elementAddress = Address(offset)
           
-          println("OFFSET: " + offset)
-
-          val elementAddress = Address(arrayAddress) + offset
-  
           if (isParsingAssignmentDest) {
             context.stack.push(AddressInfo(elementAddress, aType))
           } else {

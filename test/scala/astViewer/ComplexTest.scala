@@ -370,16 +370,11 @@ class CaesarCipherTest extends StandardTest {
       	{
       		if (!isalpha(str[i]))
       			continue;
-          printf("%c\n", str[i]);
-          printf("%d\n", ((int)(tolower(str[i])-'a')+c)%26);
-          printf("%d\n", isupper(str[i]));
-          printf("%c\n", alpha[0][0]);
-      		str[i] = alpha[isupper(str[i])][((int)(tolower(str[i])-'a')+c)%26];
-      		
+
+      		str[i] = alpha[isupper(str[i])][((int)(tolower(str[i])-'a')+c)%26];		
       	}
       }
-       
-       
+          
       int main()
       {
       	char str[] = "This is a top secret text message!";

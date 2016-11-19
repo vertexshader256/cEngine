@@ -150,8 +150,25 @@ class State {
 //          case double: Double =>
 //            state.setValue(double, AddressInfo(theArrayAddress + i, resolved))
         }
+
         i += TypeHelper.sizeof(resolved)
       }
+  }
+  
+  def resolve(theType: IType): IType = {
+    val result = theType match {
+      case ptr: IPointerType => ptr.getType
+      case typedef: ITypedef => typedef.getType
+      case array: IArrayType => array.getType
+      case qual: IQualifierType => qual.getType
+      case _ => TypeHelper.resolve(theType)
+    }
+    
+    if (result.isInstanceOf[IQualifierType] || result.isInstanceOf[ITypedef]) {
+      resolve(result)
+    } else {
+      result
+    }
   }
   
   // use Address type to prevent messing up argument order
@@ -212,23 +229,45 @@ trait RuntimeVariable {
   }
 }
 
-protected class ArrayVariable(val state: State, val theType: IType, dimensions: Seq[Int]) extends RuntimeVariable {
+protected class ArrayVariable(val state: State, val theType: IType, dim: Seq[Int]) extends RuntimeVariable {
 
+  val dimensions = dim.reverse
+  
   val numElements = if (dimensions.isEmpty) 0 else dimensions.reduce{_ * _}
 
-  // where we store the actual data
-  val theArrayAddress = allocateSpace(state, TypeHelper.resolve(theType), numElements)
+  val address: Address = allocateSpace(state, TypeHelper.pointerType, 1)
+  
+  
+  
+  
+  def allocateData(subType: IType, dimensions: Seq[Int]): Address = {
+    // where we store the actual data
 
-  // where we store the reference
-  val address: Address = allocateSpace(state, theType, 1)
+      val addr = allocateSpace(state, TypeHelper.pointerType, dimensions.head)
+      for (i <- (0 until dimensions.head)) {
+        
+        val sub = state.resolve(subType)
+
+        if (dimensions.size > 1) {
+          val subaddr = allocateData(sub, dimensions.tail)
+          state.setValue(subaddr.value, addr + i * 4)
+        }
+      }
+      addr
+  }
+  
+  val theArrayAddress = if (!dimensions.isEmpty) {    
+    val sub = state.resolve(theType)  
+    allocateData(sub, dimensions)
+  } else {
+    Address(0)
+  }
 
   state.setValue(theArrayAddress.value, info.address)
 
   def sizeof: Int = {
     TypeHelper.sizeof(theType) * numElements
   }
-
-  
 }
 
 protected class Variable(val state: State, val theType: IType) extends RuntimeVariable {
@@ -460,12 +499,13 @@ object Executor {
       }
   }
 
-  def createStringVariable(state: State, theType: IType, str: String): RuntimeVariable = {
+  def createStringVariable(state: State, str: String): Address = {
     val theStr = Utils.stripQuotes(str)
     val withNull = theStr.toCharArray() :+ 0.toChar // terminating null char
-    val theArrayPtr = new ArrayVariable(state, theType, Seq(withNull.size))
-    state.setArray(withNull, AddressInfo(theArrayPtr.theArrayAddress, theType))
-    theArrayPtr
+    val strAddr = state.allocateSpace(withNull.size)
+    
+    state.setArray(withNull, AddressInfo(strAddr, new CBasicType(IBasicType.Kind.eChar, 0)))
+    strAddr
   }
   
   def parseDeclarator(decl: IASTDeclarator, direction: Direction)(implicit state: State): Seq[IASTNode] = {
@@ -508,8 +548,10 @@ object Executor {
               if (TypeHelper.resolve(theType).getKind == eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
                 // char str[] = "Hello!\n";
                 val initString = state.stack.pop.asInstanceOf[StringLiteral].str                
-                val newVar = createStringVariable(state, theType, initString)
-                state.vars.addVariable(name, newVar)
+                val strAddr = createStringVariable(state, initString)
+                val theArrayPtr = new Variable(state, theType.asInstanceOf[IArrayType])
+                state.setValue(strAddr.value, theArrayPtr.address)
+                state.vars.addVariable(name, theArrayPtr)
               } else {
                 val list = initializer.getInitializerClause.asInstanceOf[IASTInitializerList]
                 val size = list.getSize
@@ -525,7 +567,9 @@ object Executor {
               }
             } else {
               val numElements = if (dimensions.isEmpty) 0 else dimensions.reduce{_ * _}
-              val initialArray = new ListBuffer[Any]()//Array.fill[Any](numElements)(0)
+              val initialArray = new ListBuffer[Any]()
+              
+              val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)
 
               if (!state.stack.isEmpty) {
                 var i = 0
@@ -534,17 +578,20 @@ object Executor {
                 
                 initVals.foreach { newInit =>
                   if (newInit.isInstanceOf[StringLiteral]) {
-                     val newVar = createStringVariable(state, theType, newInit.asInstanceOf[StringLiteral].str)
-                     state.vars.addVariable(name, newVar)
-                     initialArray += newVar.address
+                    initialArray += createStringVariable(state, newInit.asInstanceOf[StringLiteral].str)
                   } else {
                     initialArray += newInit
                   }
                 }
               }
               
-              val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)
-              state.setArray(initialArray.toArray, AddressInfo(theArrayPtr.theArrayAddress, theArrayPtr.info.theType))
+              // TODO: Clean up this crap
+              if (!initialArray.isEmpty && initialArray.head.isInstanceOf[Address]) {
+                state.setArray(initialArray.toArray, AddressInfo(theArrayPtr.theArrayAddress, TypeHelper.pointerType))
+              } else {
+                state.setArray(initialArray.toArray, AddressInfo(theArrayPtr.theArrayAddress, theArrayPtr.info.theType))
+              }
+              
               state.vars.addVariable(name, theArrayPtr)
             }
           case decl: CASTDeclarator =>
@@ -583,7 +630,10 @@ object Executor {
                     state.setValue(prim.value, newVar.address)
                     newVar
                   case StringLiteral(str) =>
-                    createStringVariable(state, theType, str)
+                    val newVar = new Variable(state, theType)
+                    val strAddr = createStringVariable(state, str)
+                    state.setValue(strAddr.value, newVar.address)
+                    newVar
                   case lit @ Literal(_) => 
                     val newVar = new Variable(state, theType) // TODO: Not setting value? Whats going on here?
                     newVar

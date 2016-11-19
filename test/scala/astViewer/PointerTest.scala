@@ -2,18 +2,19 @@ package scala.astViewer
 
 class StagingGround extends StandardTest {
    
-    
-   "pointer indexing" should "print the correct results" in {
+   "arrays of strings" should "print the correct results" in {
     val code = """
       void main() {
-        char str[] = "Hello!\n";
-        char *x = str + 2;
-        char z = x[2];
-        printf("%c\n", z);
+        const char *alpha[2] = { "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
+        printf("%c\n", alpha[0][0]);
+        printf("%c\n", alpha[1][10]);
+        //printf("%d\n", strlen(alpha[0]));
       }"""
 
     checkResults(code)
   }
+    
+  
 }
 
 class PointerTest extends StandardTest {
@@ -32,13 +33,13 @@ class PointerTest extends StandardTest {
     checkResults(code)
   }
   
-   "arrays of strings" should "print the correct results" in {
+   "pointer indexing" should "print the correct results" in {
     val code = """
       void main() {
-        const char *alpha[2] = { "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
-        printf("%c\n", alpha[0][0]);
-        printf("%c\n", alpha[1][10]);
-        //printf("%d\n", strlen(alpha[0]));
+        char str[] = "Hello!\n";
+        char *x = str + 2;
+        char z = x[2];
+        printf("%c\n", z);
       }"""
 
     checkResults(code)
