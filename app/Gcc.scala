@@ -41,7 +41,7 @@ object Gcc {
 
     file.overwrite(code)
     
-    val preprocessTokens = Seq("gcc") ++ Seq("-E", file.path.toString)
+    val preprocessTokens = Seq("gcc") ++ Seq("-E", file.path.toString, "-I", "C:\\Scala\\Git\\astViewer\\app")
     val runLogger = new RunLogger
     
     val builder = Process(preprocessTokens, File("").toJava)
@@ -73,9 +73,10 @@ object Gcc {
     file.overwrite(code)
     
     val sourceFileTokens = Seq("-c", file.path.toString)
+    val includeTokens = Seq("-I", "C:\\Scala\\Git\\astViewer\\app")
 
     val processTokens =
-        Seq("gcc") ++ sourceFileTokens
+        Seq("gcc") ++ sourceFileTokens ++ includeTokens
   
     val builder = Process(processTokens, File("").toJava)
     val compile = builder.run(logger.process)

@@ -9,6 +9,7 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.Duration
 import scala.util.Success
 import scala.util.Failure
+import better.files._
 
 package object astViewer {
   
@@ -17,7 +18,11 @@ package object astViewer {
   class StandardTest extends FlatSpec with ShouldMatchers with ParallelTestExecution {
     def checkResults(code: String) = {
       
-      val codeWithStdio = "int printf (const char *, ...);" + code
+      
+
+      //val codeWithStdio = File("app\\tinyprintf.c").contentAsString + code
+      
+      val codeWithStdio = code
       
       val gccOutputFuture = Future[Seq[String]] { Gcc.compileAndGetOutput(codeWithStdio) }
     

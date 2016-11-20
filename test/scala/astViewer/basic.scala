@@ -47,12 +47,15 @@ class PreprocessorTest extends StandardTest {
 }
 
 class HelloWorld extends StandardTest {
-
+  
   "Hello world" should "print the correct results" in {
     val code =
       """
+
       void main() {
-        printf("%s\n", "Hello world!");
+        //init_printf(0,myputC);
+        //tfp_printf("HELLO\n");
+        printf("Hello World!\n");
       }"""
 
     checkResults(code)

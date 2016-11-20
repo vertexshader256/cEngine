@@ -68,10 +68,11 @@ object Utils {
 
   def getTranslationUnit(code: String): IASTTranslationUnit = {
     val preprocess = Gcc.preprocess(code)
+
     val fileContent = FileContent.create("test", preprocess.toCharArray)
     val symbolMap = new HashMap[String, String];
 
-    val systemIncludes = List(new File(raw"C:\MinGW\include"), new File(raw"C:\MinGW\include\GL"), new File(raw"C:\MinGW\lib\gcc\mingw32\4.6.2\include"))
+    val systemIncludes = List(new File(raw"C:\Scala\Git\astViewer\app"), new File(raw"C:\MinGW\include"), new File(raw"C:\MinGW\include\GL"), new File(raw"C:\MinGW\lib\gcc\mingw32\4.6.2\include"))
 
     val info = new ScannerInfo(symbolMap, systemIncludes.toArray.map(_.getAbsolutePath))
     val log = new DefaultLogService()
@@ -79,6 +80,7 @@ object Utils {
     val includes = IncludeFileContentProvider.getEmptyFilesProvider
 
     val tUnit = GCCLanguage.getDefault().getASTTranslationUnit(fileContent, info, includes, null, opts, log)
+
     tUnit
   }
 }
