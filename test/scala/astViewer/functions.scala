@@ -158,6 +158,18 @@ class FunctionTest extends StandardTest {
 
     checkResults(code)
   }
+  
+  "a function with a string as an argument" should "print the correct results" in {
+    val code = """
+      void thePrint(char *str) {
+        printf(str);
+      }
+      void main() {
+        thePrint("Test\n");
+      }"""
+
+    checkResults(code)
+  }
 
   "complex function calls" should "print the correct results" in {
     val code = """
