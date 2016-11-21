@@ -43,6 +43,8 @@ object FunctionCallExpr {
             case StringLiteral(str) => str
           }
         }
+        
+        
 
         if (name == "printf") {
           
@@ -53,20 +55,9 @@ object FunctionCallExpr {
             x match {
               case strLit: StringLiteral => strLit.str
               case addy: Int if formatString.contains("%s") => {
-                    // its a string!
-                    var current: Char = 0
-                    var stringBuilder = new ListBuffer[Char]()
-                    var i = 0
-                    do {
-                      current = state.readVal(Address(addy + i), new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[Byte].toChar
-                      if (current != 0) {
-                        stringBuilder += current
-                        i += 1
-                      }
-                    } while (current != 0)
-                      
-                    new String(stringBuilder.map(_.toByte).toArray, "UTF-8")
-                }
+                  // its a string!
+                  state.readString(Address(addy))
+              }
               case x => x
             }
           }
