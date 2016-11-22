@@ -264,6 +264,7 @@ object Expressions {
               case VarRef(name) =>
                 context.vars.resolveId(name).sizeof
               case Primitive(_, theType) => TypeHelper.sizeof(theType)  
+              case AddressInfo(_, theType) => TypeHelper.sizeof(theType)  
               case _: Character => 1
               case _: Int => 4
               case _: Short => 2
@@ -290,8 +291,12 @@ object Expressions {
                   context.stack.push(stack.readVal(Address(int), TypeHelper.resolve(ptr.theType)))
                 }
               case Variable(value, info) =>       
-                val ptrType = info.theType.asInstanceOf[IPointerType]
-                val isNested = ptrType.getType.isInstanceOf[IPointerType]
+                val (ptrType, nestedType) = info.theType match {
+                  case ptr: IPointerType => (ptr, ptr.getType)
+                  case array: IArrayType => (array, array.getType)
+                }
+                
+                val isNested = nestedType.isInstanceOf[IPointerType]
                 
                 val specialCase = unary.getParent.isInstanceOf[IASTUnaryExpression] &&
                       unary.getParent.asInstanceOf[IASTUnaryExpression].getOperator == op_bracketedPrimary // (k*)++
@@ -299,7 +304,7 @@ object Expressions {
                 context.stack.push(
                   if (Utils.isOnLeftSideOfAssignment(unary) || isNested || specialCase) { 
                     val deref = stack.readPtrVal(info.address)
-                    AddressInfo(Address(deref), ptrType.getType)
+                    AddressInfo(Address(deref), nestedType)
                   } else {
                     stack.readVal(Address(value.value.asInstanceOf[Int]), TypeHelper.resolve(info.theType))
                   }

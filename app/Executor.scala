@@ -373,6 +373,7 @@ object Executor {
       } else {
         val shouldLoop = state.stack.pop match {
           case x: Boolean => x
+          case int: Int => int > 0
         }
 
         if (shouldLoop) {
