@@ -91,6 +91,15 @@ class State {
     readVal(address, TypeHelper.pointerType).value.asInstanceOf[Int]
   }
   
+  def createStringVariable(str: String): Address = {
+    val theStr = Utils.stripQuotes(str)
+    val withNull = theStr.toCharArray() :+ 0.toChar // terminating null char
+    val strAddr = allocateSpace(withNull.size)
+    
+    setArray(withNull, AddressInfo(strAddr, new CBasicType(IBasicType.Kind.eChar, 0)))
+    strAddr
+  }
+  
   def readString(address: Address): String = {
      var current: Char = 0
       var stringBuilder = new ListBuffer[Char]()
@@ -514,15 +523,6 @@ object Executor {
         Seq()
       }
   }
-
-  def createStringVariable(state: State, str: String): Address = {
-    val theStr = Utils.stripQuotes(str)
-    val withNull = theStr.toCharArray() :+ 0.toChar // terminating null char
-    val strAddr = state.allocateSpace(withNull.size)
-    
-    state.setArray(withNull, AddressInfo(strAddr, new CBasicType(IBasicType.Kind.eChar, 0)))
-    strAddr
-  }
   
   def parseDeclarator(decl: IASTDeclarator, direction: Direction)(implicit state: State): Seq[IASTNode] = {
     if (direction == Entering) {
@@ -564,7 +564,7 @@ object Executor {
               if (TypeHelper.resolve(theType).getKind == eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
                 // char str[] = "Hello!\n";
                 val initString = state.stack.pop.asInstanceOf[StringLiteral].str                
-                val strAddr = createStringVariable(state, initString)
+                val strAddr = state.createStringVariable(initString)
                 val theArrayPtr = new Variable(state, theType.asInstanceOf[IArrayType])
                 state.setValue(strAddr.value, theArrayPtr.address)
                 state.vars.addVariable(name, theArrayPtr)
@@ -594,7 +594,7 @@ object Executor {
                 
                 initVals.foreach { newInit =>
                   if (newInit.isInstanceOf[StringLiteral]) {
-                    initialArray += createStringVariable(state, newInit.asInstanceOf[StringLiteral].str)
+                    initialArray += state.createStringVariable(newInit.asInstanceOf[StringLiteral].str)
                   } else {
                     initialArray += newInit
                   }
@@ -647,7 +647,7 @@ object Executor {
                     newVar
                   case StringLiteral(str) =>
                     val newVar = new Variable(state, theType)
-                    val strAddr = createStringVariable(state, str)
+                    val strAddr = state.createStringVariable(str)
                     state.setValue(strAddr.value, newVar.address)
                     newVar
                   case lit @ Literal(_) => 
