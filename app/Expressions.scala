@@ -291,9 +291,9 @@ object Expressions {
                   context.stack.push(stack.readVal(Address(int), TypeHelper.resolve(ptr.theType)))
                 }
               case Variable(value, info) =>       
-                val (ptrType, nestedType) = info.theType match {
-                  case ptr: IPointerType => (ptr, ptr.getType)
-                  case array: IArrayType => (array, array.getType)
+                val nestedType = info.theType match {
+                  case ptr: IPointerType => ptr.getType
+                  case array: IArrayType => array.getType
                 }
                 
                 val isNested = nestedType.isInstanceOf[IPointerType]
