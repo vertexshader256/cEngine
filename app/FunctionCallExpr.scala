@@ -40,23 +40,33 @@ object FunctionCallExpr {
             case doub: Double => doub
             case char: Character => char
             case lit @ Literal(_) => lit.cast.value
-            case StringLiteral(str) => str
+            case StringLiteral(str) => 
+              val strAddr = state.createStringVariable(str)
+              strAddr
           }
         }
         
-        
+        var formatString: String = null
 
         if (name == "printf") {
-          
-          val formatString = formattedOutputParams.head.asInstanceOf[String]
-          
+
           // here we resolve the addresses coming in
           val resolved = formattedOutputParams.map{x => 
             x match {
               case strLit: StringLiteral => strLit.str
-              case addy: Int if formatString.contains("%s") => {
+              case addy: Int if formatString != null && formatString.contains("%s") => {
                   // its a string!
                   state.readString(Address(addy))
+              }
+              case addy @ Address(addr) => {
+                  // its a string!
+                
+                if (formatString == null) {
+                  formatString = state.readString(addy)
+                  formatString
+                } else {
+                  state.readString(addy)
+                }
               }
               case x => x
             }
