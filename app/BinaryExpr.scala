@@ -337,7 +337,7 @@ object BinaryExpr {
     if (!result.isInstanceOf[Boolean] && TypeHelper.resolve(prim1.theType).isUnsigned) {
       TypeHelper.cast(TypeHelper.resolve(prim1.theType), result).value
     } else {
-      Primitive(result, prim1.theType).value
+      result
     }
   }
   
