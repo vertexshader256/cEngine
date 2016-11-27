@@ -201,6 +201,7 @@ class State {
     case long: Long => data.putLong(address.value, long)
     case short: Short  => data.putShort(address.value, short) 
     case int: Int => data.putInt(address.value, int) 
+    case Address(int) => data.putInt(address.value, int) 
     case float: Float   => data.putFloat(address.value, float)
     case double: Double  => data.putDouble(address.value, double)
   }
