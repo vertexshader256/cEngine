@@ -50,17 +50,17 @@ object BinaryExpr {
       case `op_shiftRightAssign` =>
         performBinaryOperation(theVal, resolvedop2, op_shiftRight)
       case `op_assign` =>
-        resolvedop2
+        resolvedop2.value
     }  
     
-    val casted = TypeHelper.downcast(dst.theType, result.value).value
+    val casted = TypeHelper.downcast(dst.theType, result).value
     state.setValue(casted, dst.address)
     
     resolvedop2
   }
   
   
-  def performBinaryOperation(prim1: Primitive, prim2: Primitive, operator: Int): Primitive = {
+  def performBinaryOperation(prim1: Primitive, prim2: Primitive, operator: Int): AnyVal = {
     
     val op1 = prim1.value
     val op2 = prim2.value
@@ -266,7 +266,7 @@ object BinaryExpr {
           case (x: Double, y: Double) => x == y
         }
       case `op_notequals` =>
-        !performBinaryOperation(prim1, prim2, op_equals).value.asInstanceOf[Boolean]
+        !performBinaryOperation(prim1, prim2, op_equals).asInstanceOf[Boolean]
       case `op_greaterThan` =>
         (op1, op2) match {
           case (x: Int, y: Int) => x > y
@@ -335,9 +335,9 @@ object BinaryExpr {
     }
 
     if (!result.isInstanceOf[Boolean] && TypeHelper.resolve(prim1.theType).isUnsigned) {
-      TypeHelper.cast(TypeHelper.resolve(prim1.theType), result)
+      TypeHelper.cast(TypeHelper.resolve(prim1.theType), result).value
     } else {
-      Primitive(result, prim1.theType)
+      Primitive(result, prim1.theType).value
     }
   }
   
@@ -365,6 +365,6 @@ object BinaryExpr {
     val op2 = resolveOperand(state.stack.pop, state)
     val op1 = resolveOperand(state.stack.pop, state)
   
-    performBinaryOperation(op1, op2, binaryExpr.getOperator).value
+    performBinaryOperation(op1, op2, binaryExpr.getOperator)
   }
 }
