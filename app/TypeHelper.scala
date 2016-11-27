@@ -235,4 +235,11 @@ object TypeHelper {
   }
   
   def isPointer(theType: IType) = theType.isInstanceOf[IArrayType] || theType.isInstanceOf[IPointerType]
+  
+  def getPointedType(theType: IType): IType = {
+    theType match {
+      case ptr: IPointerType => ptr.getType
+      case array: IArrayType => array.getType
+    }
+  }
 }

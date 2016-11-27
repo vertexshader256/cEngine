@@ -23,14 +23,23 @@ object FunctionCallExpr {
         val argList = call.getArguments.map { arg => (arg, state.stack.pop) }
         
         val formattedOutputParams: Array[Any] = argList.map { case (arg, value) => 
+          
+          //println(arg + ":" + value)         
+          
           value match {
             case VarRef(name) => 
               val theVar = state.vars.resolveId(name)
-              state.readVal(theVar.address, theVar.theType).value 
+              if (TypeHelper.isPointer(theVar.theType) && TypeHelper.getPointedType(theVar.theType).isInstanceOf[IBasicType] &&
+                  TypeHelper.getPointedType(theVar.theType).asInstanceOf[IBasicType].getKind == IBasicType.Kind.eChar) {
+                Address(state.readVal(theVar.address, theVar.theType).value.asInstanceOf[Int])
+              } else {
+                state.readVal(theVar.address, theVar.theType).value
+              }
             case Address(address) =>
               address
-            case Primitive(theVal, _) => theVal
-            case AddressInfo(address, theType) =>
+            case Primitive(theVal, _) =>             
+              theVal
+            case AddressInfo(address, theType) => 
               state.readVal(address, TypeHelper.resolve(theType)).value
             case bool: Boolean => if (bool) 1 else 0
             case int: Int => int
@@ -54,10 +63,6 @@ object FunctionCallExpr {
           val resolved = formattedOutputParams.map{x => 
             x match {
               case strLit: StringLiteral => strLit.str
-              case addy: Int if formatString != null && formatString.contains("%s") => {
-                  // its a string!
-                  state.readString(Address(addy))
-              }
               case addy @ Address(addr) => {
                   // its a string!
                 
