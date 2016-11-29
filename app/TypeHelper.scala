@@ -199,12 +199,13 @@ object TypeHelper {
   }
 
   def resolve(theType: IType): IBasicType = theType match {
-    case struct: CStructure       => new CBasicType(IBasicType.Kind.eInt, 0)
+    case struct: CStructure       => TypeHelper.pointerType
     case basicType: IBasicType    => basicType
     case typedef: ITypedef        => resolve(typedef.getType)
     case ptrType: IPointerType    => resolve(ptrType.getType)
     case arrayType: IArrayType    => resolve(arrayType.getType)
     case qualType: IQualifierType => resolve(qualType.getType)
+    case fcn: IFunctionType       => TypeHelper.pointerType
   }
 
   def sizeof(theType: IType): Int = theType match {

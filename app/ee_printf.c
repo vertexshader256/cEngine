@@ -31,7 +31,8 @@ This code is based on a file that contains the following:
 
 */
 
-#include <coremark.h>
+//#include <coremark.h>
+#include <stddef.h>
 #include <stdarg.h>
 
 #define ZEROPAD  	(1<<0)	/* Pad with zero */
@@ -581,7 +582,8 @@ void uart_send_char(char c) {
   char str[2];
   str[0] = c;
   str[1] = '\0';
-  putsnonl(str);
+  
+  putc(c);
 }
 
 int ee_printf(const char *fmt, ...)

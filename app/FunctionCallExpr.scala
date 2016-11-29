@@ -113,7 +113,12 @@ object FunctionCallExpr {
         } else if (name == "free") {
           // TODO
           Seq()
-        } else {
+        } else if (name == "__builtin_va_start") {
+          Seq()
+        } else if (name == "__builtin_va_end") {
+          Seq()
+        } 
+        else {
           state.callFunction(call, formattedOutputParams)
         }
 

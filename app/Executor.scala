@@ -407,6 +407,7 @@ object Executor {
 
         val shouldLoop = cast match {
           case ValueInfo(x: Int,_)     => x > 0
+          case ValueInfo(x: Character,_)     => x > 0
           case x: Int     => x > 0
           case x: Boolean => x
         }
@@ -457,6 +458,7 @@ object Executor {
           result match {
             case bool: Boolean => bool
             case int: Int => int > 0
+            case char: Character => char > 0
           }
         } else {
           true

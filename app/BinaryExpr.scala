@@ -19,6 +19,7 @@ object BinaryExpr {
         val variable = state.vars.resolveId(name)
         variable.info
       case info @ AddressInfo(_, _) => info
+      case ValueInfo(value, info) => AddressInfo(Address(value.asInstanceOf[Byte].toInt), info)
     }
 
     val resolvedop2 = ValueInfo(op2 match {

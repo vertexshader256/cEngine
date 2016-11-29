@@ -20,7 +20,7 @@ package object astViewer {
       
       
 
-      //val codeWithStdio = File("app\\tinyprintf.c").contentAsString + code
+      //val codeWithStdio = File("app\\ee_printf.c").contentAsString + code
       
       val codeWithStdio = code
       

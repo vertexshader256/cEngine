@@ -29,6 +29,18 @@ class ForLooptest extends StandardTest {
     checkResults(code)
   }
   
+  "A simple for loop with a char to evaluate" should "print the correct results" in {
+    val code = """
+      void main() {
+        char i = 10;
+        for (i = 0; i; i--) {
+          printf("%d\n", i);
+        }
+      }"""
+
+    checkResults(code)
+  }
+  
   "A for loop with multiple post expr" should "print the correct results" in {
     val code = """
       void main() {

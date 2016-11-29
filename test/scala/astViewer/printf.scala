@@ -16,6 +16,20 @@ class printf extends StandardTest {
     checkResults(code)
   }
   
+  "printing with custom print function" should "print the correct results" in {
+    val code = """
+      void main() {
+        ee_printf("Hello World!\n");
+        ee_printf("%s %s\n", "Hello", "World!");
+        ee_printf("%d\n", 1);
+        ee_printf("%s\n", "Hello World!");
+        ee_printf("%.2f\n", 1.47453);
+        ee_printf("%.1f\n", 1.47453);
+      }"""
+
+    checkResults(code)
+  }
+  
   "printing a string with inline pointer arithmetic" should "print the correct results" in {
     val code = """
       void main() {
