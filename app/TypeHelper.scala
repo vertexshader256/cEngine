@@ -97,8 +97,8 @@ object TypeHelper {
     val casted: AnyVal = theType match {
       case typedef: CTypedef => cast(typedef.getType, newVal).value
       case qual: IQualifierType => cast(qual.getType, newVal).value
-      case ptr: IPointerType => newVal.asInstanceOf[Int]
-      case array: IArrayType => newVal.asInstanceOf[Int]
+      case ptr: IPointerType => if (newVal.isInstanceOf[Address]) newVal.asInstanceOf[Address] else newVal.asInstanceOf[Int]
+      case array: IArrayType => if (newVal.isInstanceOf[Address]) newVal.asInstanceOf[Address] else newVal.asInstanceOf[Int]
       case basic: IBasicType =>
        basic.getKind match {
           case `eChar` if basic.isUnsigned    => 

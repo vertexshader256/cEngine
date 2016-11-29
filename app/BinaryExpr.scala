@@ -362,7 +362,7 @@ object BinaryExpr {
     }
   }
   
-  def parse(binaryExpr: IASTBinaryExpression, state: State): AnyVal = {
+  def parse(binaryExpr: IASTBinaryExpression, state: State): Any = {
    
     def resolve(op: Any, context: State): AnyVal = {
       op match {
@@ -396,6 +396,8 @@ object BinaryExpr {
         
         if (!result.isInstanceOf[Boolean] && TypeHelper.resolve(theVar.value.theType).isUnsigned) {
           TypeHelper.cast(TypeHelper.resolve(theVar.value.theType), result).value
+        } else if (!result.isInstanceOf[Boolean] && TypeHelper.isPointer(theVar.theType)) {
+          ValueInfo(Address(result.asInstanceOf[Int]), theVar.theType)
         } else {
           result
         }
