@@ -370,28 +370,44 @@ object BinaryExpr {
   
   def parse(binaryExpr: IASTBinaryExpression, state: State): AnyVal = {
    
-    def resolveOperand(op: Any, context: State): ValueInfo = {
+    def resolve(op: Any, context: State): AnyVal = {
       op match {
-        case lit @ Literal(_) => lit.cast
-        case prim @ ValueInfo(_, _) => prim
+        case lit @ Literal(_) => lit.cast.value
+        case prim @ ValueInfo(_, _) => prim.value
         case VarRef(name)  =>      
           val theVar = context.vars.resolveId(name)
-          theVar.value
+          theVar.value.value
         case AddressInfo(addy, theType) =>
-          ValueInfo(context.readVal(addy, TypeHelper.resolve(theType)).value, theType)
-        case int: Int => ValueInfo(int, new CBasicType(IBasicType.Kind.eInt, 0))
-        case float: Float => ValueInfo(float, new CBasicType(IBasicType.Kind.eFloat, 0))
-        case double: Double => ValueInfo(double, new CBasicType(IBasicType.Kind.eDouble, 0))
-        case short: Short => ValueInfo(short, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_SHORT))
-        case char: Character => ValueInfo(char, new CBasicType(IBasicType.Kind.eChar, 0))
-        case boolean: Boolean => ValueInfo(boolean, new CBasicType(IBasicType.Kind.eInt, 0))
-        case long: Long => ValueInfo(long, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
+          context.readVal(addy, TypeHelper.resolve(theType)).value
+        case int: Int => int
+        case float: Float => float
+        case double: Double => double
+        case short: Short => short
+        case char: Character => char
+        case boolean: Boolean => boolean
+        case long: Long => long
       }
     }
     
-    val op2 = resolveOperand(state.stack.pop, state)
-    val op1 = resolveOperand(state.stack.pop, state)
+    val op2 = resolve(state.stack.pop, state)
     
-    evaluate(op1, op2.value, binaryExpr.getOperator)
+    val rawOp1 = state.stack.pop
+    
+    rawOp1 match {
+      case VarRef(name)  =>
+        val theVar = state.vars.resolveId(name)
+        val result = performTypedBinaryOperation(theVar.value, op2, binaryExpr.getOperator).getOrElse{
+          performBinaryOperation(theVar.value.value, op2, binaryExpr.getOperator)
+        }
+        
+        if (!result.isInstanceOf[Boolean] && TypeHelper.resolve(theVar.value.theType).isUnsigned) {
+          TypeHelper.cast(TypeHelper.resolve(theVar.value.theType), result).value
+        } else {
+          result
+        }
+      case _ =>
+        val simple = resolve(rawOp1, state)
+        performBinaryOperation(simple, op2, binaryExpr.getOperator)
+    }
   }
 }
