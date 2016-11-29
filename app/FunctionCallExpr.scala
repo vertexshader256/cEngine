@@ -22,9 +22,7 @@ object FunctionCallExpr {
         
         val argList = call.getArguments.map { arg => (arg, state.stack.pop) }
         
-        val formattedOutputParams: Array[Any] = argList.map { case (arg, value) => 
-          
-          //println(arg + ":" + value)         
+        val formattedOutputParams: Array[AnyVal] = argList.map { case (arg, value) => 
           
           value match {
             case VarRef(name) => 
@@ -54,8 +52,6 @@ object FunctionCallExpr {
               strAddr
           }
         }
-        
-        var formatString: String = null
 
         if (name == "printf") {
 
@@ -65,13 +61,7 @@ object FunctionCallExpr {
               case strLit: StringLiteral => strLit.str
               case addy @ Address(addr) => {
                   // its a string!
-                
-                if (formatString == null) {
-                  formatString = state.readString(addy)
-                  formatString
-                } else {
-                  state.readString(addy)
-                }
+                state.readString(addy)
               }
               case x => x
             }
@@ -81,7 +71,8 @@ object FunctionCallExpr {
           Seq()
         } else if (name == "strlen") {
           val straddy = formattedOutputParams.head match {
-            case AddressInfo(addr, _) => addr.value
+            //case AddressInfo(addr, _) => addr.value
+            case Address(addr) => addr
             case int: Int => int
           }
           var current: Character = 0
