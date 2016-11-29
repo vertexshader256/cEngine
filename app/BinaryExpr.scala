@@ -357,14 +357,8 @@ object BinaryExpr {
   }
   
   def evaluate(op1: ValueInfo, op2: AnyVal, operator: Int) = {
-    val result = performTypedBinaryOperation(op1, op2, operator).getOrElse{
+    performTypedBinaryOperation(op1, op2, operator).getOrElse{
       performBinaryOperation(op1.value, op2, operator)
-    }
-    
-    if (!result.isInstanceOf[Boolean] && TypeHelper.resolve(op1.theType).isUnsigned) {
-      TypeHelper.cast(TypeHelper.resolve(op1.theType), result).value
-    } else {
-      result
     }
   }
   
