@@ -16,30 +16,33 @@ class ForLooptest extends StandardTest {
     checkResults(code)
   }
   
-  "A simple for loop with an integer to evaluate" should "print the correct results" in {
-    val code = """
-      void main() {
+  "robust for loop test" should "print the correct results" in {
+      val code = """
+       void main() {
         int x = 0;
-        int i = 10;
-        for (i = 0; i; i--) {
-          printf("%d\n", i);
-        }
-      }"""
-
-    checkResults(code)
-  }
-  
-  "A simple for loop with a char to evaluate" should "print the correct results" in {
-    val code = """
-      void main() {
-        char i = 10;
-        for (i = 0; i; i--) {
-          printf("%d\n", i);
-        }
-      }"""
-
-    checkResults(code)
-  }
+        int a = 0;
+        char b = 0;
+        float c = 0.0f;
+        double d = 0.0;
+        long e = 0;
+        short f = 0;
+        """ + List('a', 'b', 'e', 'f').map{ x => s"""
+            x = 0;
+            for ($x = 0; $x < 10; $x = $x + 1) {
+              x = x + 1;
+            }
+            
+            printf("%d\\n", x);"""
+          }.reduce(_ + "\n" + _) ++ List('c', 'd').map{ x => s"""
+            x = 0;
+            for ($x = 0.0; $x < 10.0; $x = $x + 1.0) {
+              x = x + 1;
+            }
+            
+            printf("%d\\n", x);"""
+          }.reduce(_ + "\n" + _) + "}"
+      checkResults(code)
+    }
   
   "A for loop with multiple post expr" should "print the correct results" in {
     val code = """

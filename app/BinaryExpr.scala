@@ -304,9 +304,17 @@ object BinaryExpr {
       case `op_lessThan` =>
         (op1, op2) match {
           case (x: Int, y: Int) => x < y
+          case (x: Short, y: Int) => x < y
+          case (x: Character, y: Int) => x < y
+          case (x: Long, y: Int) => x < y
+          case (x: Int, y: Short) => x < y
+          case (x: Int, y: Character) => x < y
+          case (x: Int, y: Long) => x < y
           case (x: Double, y: Int) => x < y
           case (x: Int, y: Double) => x < y
           case (x: Double, y: Double) => x < y
+          case (x: Float, y: Double) => x < y
+          case (x: Float, y: Float) => x < y
         }
       case `op_lessEqual` =>
         (op1, op2) match {
