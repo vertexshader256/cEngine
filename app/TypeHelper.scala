@@ -9,7 +9,7 @@ object TypeHelper {
   val pointerType = new CBasicType(IBasicType.Kind.eInt , 0)
   
   // casts 'newVal' to 'theType'
-  def cast(theType: IType, newVal: AnyVal): Primitive = {
+  def cast(theType: IType, newVal: AnyVal): ValueInfo = {
     val casted: AnyVal = theType match {
       case typedef: CTypedef => cast(typedef.getType, newVal).value
       case qual: IQualifierType => cast(qual.getType, newVal).value
@@ -89,11 +89,11 @@ object TypeHelper {
         }
       }
     
-    Primitive(casted, theType)
+    ValueInfo(casted, theType)
   }
   
   // casts 'newVal' to 'theType'
-  def downcast(theType: IType, newVal: AnyVal): Primitive = {
+  def downcast(theType: IType, newVal: AnyVal): ValueInfo = {
     val casted: AnyVal = theType match {
       case typedef: CTypedef => cast(typedef.getType, newVal).value
       case qual: IQualifierType => cast(qual.getType, newVal).value
@@ -173,7 +173,7 @@ object TypeHelper {
         }
       }
     
-    Primitive(casted, theType)
+    ValueInfo(casted, theType)
   }
   
   def isSigned(theType: IBasicType) = {
@@ -181,14 +181,14 @@ object TypeHelper {
   }
   
   // resolves 'Any' to 'AnyVal'
-  def resolve(state: State, theType: IType, any: Any): Primitive = {
-    Primitive(any match {
+  def resolve(state: State, theType: IType, any: Any): ValueInfo = {
+    ValueInfo(any match {
       case VarRef(name) =>
         state.vars.resolveId(name).value.value
       case lit @ Literal(_) => lit.typeCast(TypeHelper.resolve(theType)).value
       case AddressInfo(addy, _) => addy.value
       case Address(addy) => addy
-      case Primitive(theVal, _) => theVal
+      case ValueInfo(theVal, _) => theVal
       case int: Int => int
       case float: Float => float
       case double: Double => double

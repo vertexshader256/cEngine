@@ -121,7 +121,7 @@ object Expressions {
               case lit @ Literal(_) => lit.cast.value.asInstanceOf[Int]
               case int: Int => int
               case double: Double => double.toInt
-              case Primitive(x, _) => x.asInstanceOf[Int]
+              case ValueInfo(x, _) => x.asInstanceOf[Int]
             })
             
             indexes += result
@@ -186,16 +186,16 @@ object Expressions {
     case unary: IASTUnaryExpression =>
       import org.eclipse.cdt.core.dom.ast.IASTUnaryExpression._
 
-      def resolveVar(variable: Any): (Primitive, AddressInfo) = {
+      def resolveVar(variable: Any): (ValueInfo, AddressInfo) = {
         variable match {
           case Variable(value, info) =>
             val theType = TypeHelper.resolve(info.theType)
             val currentVal = stack.readVal(info.address, theType).value
-            (Primitive(currentVal, info.theType), info)
+            (ValueInfo(currentVal, info.theType), info)
           case AddressInfo(addy, theType) => 
             val resolved = TypeHelper.resolve(theType)
             val currentVal = stack.readVal(addy, resolved).value
-            (Primitive(currentVal, resolved), AddressInfo(addy, resolved))
+            (ValueInfo(currentVal, resolved), AddressInfo(addy, resolved))
         }
       }
 
@@ -209,7 +209,7 @@ object Expressions {
                 case int: Int => if (int == 0) 1 else 0
               }
             case int: Int               => if (int == 0) 1 else 0
-            case Primitive(int: Int, _) => if (int == 0) 1 else 0
+            case ValueInfo(int: Int, _) => if (int == 0) 1 else 0
             case bool: Boolean => !bool
           })
           case `op_minus` =>
@@ -220,8 +220,8 @@ object Expressions {
 
             resolveLit match {
               case int: Int     => context.stack.push(-int)
-              case Primitive(int: Int, _)     => context.stack.push(-int)
-              case Primitive(doub: Double, _) => context.stack.push(-doub)
+              case ValueInfo(int: Int, _)     => context.stack.push(-int)
+              case ValueInfo(doub: Double, _) => context.stack.push(-doub)
               case Variable(value, info) =>
                 val (currentVal, resolvedInfo) = resolveVar(info)
               
@@ -233,28 +233,28 @@ object Expressions {
             }
           case `op_postFixIncr` =>
             val (currentVal, info) = resolveVar(context.stack.pop)
-            val newVal = BinaryExpr.performBinaryOperation(currentVal, Primitive(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_plus)
+            val newVal = BinaryExpr.performBinaryOperation(currentVal, ValueInfo(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_plus)
             
             // push then set
             context.stack.push(currentVal)
             stack.setValue(newVal, info.address)   
           case `op_postFixDecr` =>          
             val (currentVal, info) = resolveVar(context.stack.pop)
-            val newVal = BinaryExpr.performBinaryOperation(currentVal, Primitive(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_minus)
+            val newVal = BinaryExpr.performBinaryOperation(currentVal, ValueInfo(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_minus)
             
             // push then set
             context.stack.push(currentVal)
             stack.setValue(newVal, info.address)  
           case `op_prefixIncr` =>
             val (currentVal, info) = resolveVar(context.stack.pop)            
-            val newVal = BinaryExpr.performBinaryOperation(currentVal, Primitive(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_plus)
+            val newVal = BinaryExpr.performBinaryOperation(currentVal, ValueInfo(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_plus)
             
             // set then push
             stack.setValue(newVal, info.address)  
             context.stack.push(newVal)
           case `op_prefixDecr` =>
             val (currentVal, info) = resolveVar(context.stack.pop)
-            val newVal = BinaryExpr.performBinaryOperation(currentVal, Primitive(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_minus)
+            val newVal = BinaryExpr.performBinaryOperation(currentVal, ValueInfo(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_minus)
             
             // set then push
             stack.setValue(newVal, info.address)  
@@ -263,7 +263,7 @@ object Expressions {
             context.stack.push(context.stack.pop match {
               case VarRef(name) =>
                 context.vars.resolveId(name).sizeof
-              case Primitive(_, theType) => TypeHelper.sizeof(theType)  
+              case ValueInfo(_, theType) => TypeHelper.sizeof(theType)  
               case AddressInfo(_, theType) => TypeHelper.sizeof(theType)  
               case _: Character => 1
               case _: Int => 4
@@ -280,12 +280,12 @@ object Expressions {
             }
           case `op_star` =>
             context.stack.pop match {
-              case Primitive(char: Character, _) =>
+              case ValueInfo(char: Character, _) =>
                 val target = Utils.getUnaryTarget(unary).foreach { name =>
                   val ptr = context.vars.resolveId(name.getRawSignature)
                   context.stack.push(stack.readVal(Address(char), TypeHelper.resolve(ptr.theType)))
                 }
-              case Primitive(int: Int, _) =>
+              case ValueInfo(int: Int, _) =>
                 val target = Utils.getUnaryTarget(unary).foreach { name =>
                   val ptr = context.vars.resolveId(name.getRawSignature)
                   context.stack.push(stack.readVal(Address(int), TypeHelper.resolve(ptr.theType)))

@@ -13,12 +13,12 @@ import java.math.BigInteger
 import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 import scala.collection.mutable.Map
 
-case class Primitive(value: AnyVal, theType: IType)
+case class ValueInfo(value: AnyVal, theType: IType)
 case class VarRef(name: String)
 
 object Variable {                              
   def apply(x: Int): Int = x * 2
-  def unapply(any: Any)(implicit state: State): Option[(Primitive, AddressInfo)] = {
+  def unapply(any: Any)(implicit state: State): Option[(ValueInfo, AddressInfo)] = {
     if (any.isInstanceOf[VarRef]) {
       val ref = any.asInstanceOf[VarRef]
       val vari = state.vars.resolveId(ref.name)
@@ -115,7 +115,7 @@ class State {
       new String(stringBuilder.map(_.toByte).toArray, "UTF-8")
   }
 
-  def readVal(addr: Address, theType: IType): Primitive = {
+  def readVal(addr: Address, theType: IType): ValueInfo = {
 
     import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 
@@ -165,7 +165,7 @@ class State {
             setValue(addy, info.address + i)
           case lit @ Literal(_) =>
             setValue(lit.typeCast(resolved).value, info.address + i)
-          case Primitive(newVal, _) =>
+          case ValueInfo(newVal, _) =>
             setValue(newVal, info.address + i)
           case int: Int =>
             setValue(int, info.address + i)
@@ -224,8 +224,8 @@ trait RuntimeVariable {
   def sizeof: Int
   def info = AddressInfo(address, theType)
   
-  def value: Primitive = {
-    Primitive(state.readVal(address, theType).value, theType)
+  def value: ValueInfo = {
+    ValueInfo(state.readVal(address, theType).value, theType)
   }
   
   def pointerValue: Int = {
@@ -406,7 +406,7 @@ object Executor {
         }
 
         val shouldLoop = cast match {
-          case Primitive(x: Int,_)     => x > 0
+          case ValueInfo(x: Int,_)     => x > 0
           case x: Int     => x > 0
           case x: Boolean => x
         }
@@ -435,7 +435,7 @@ object Executor {
 
         val conditionResult = value match {
           case x: Int     => x > 0
-          case Primitive(x: Int, _)     => x > 0
+          case ValueInfo(x: Int, _)     => x > 0
           case x: Boolean => x
         }
         if (conditionResult) {
@@ -495,7 +495,7 @@ object Executor {
               } else {
                 TypeHelper.cast(state.vars.returnType, state.vars.resolveId(id).value.value)
               }
-            case Primitive(theVal, _) => theVal
+            case ValueInfo(theVal, _) => theVal
             case int: Int         => int
             case doub: Double     => doub
             case bool: Boolean    => bool
@@ -642,7 +642,7 @@ object Executor {
                     val newVar = new Variable(state, theType)
                     state.setValue(int, newVar.address)
                     newVar
-                  case prim @ Primitive(_, newType) => 
+                  case prim @ ValueInfo(_, newType) => 
                     val newVar = new Variable(state, theType)
                     state.setValue(prim.value, newVar.address)
                     newVar

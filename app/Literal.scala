@@ -9,7 +9,7 @@ import scala.collection.mutable.Map
 import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
 
 case class Literal(litStr: String) {
-  def cast: Primitive = {
+  def cast: ValueInfo = {
 
     def isIntNumber(s: String): Boolean = (allCatch opt s.toInt).isDefined
     def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
@@ -31,26 +31,26 @@ case class Literal(litStr: String) {
     }
 
     if (lit.head == '\"' && lit.last == '\"') {
-      Primitive(StringLiteral(lit), new CBasicType(IBasicType.Kind.eChar, 0))
+      ValueInfo(StringLiteral(lit), new CBasicType(IBasicType.Kind.eChar, 0))
     } else if (lit.head == '\'' && lit.last == '\'' && (lit.size == 3 || lit == "'\\0'")) {
       if (lit == "'\\0'") {
-        Primitive(0, new CBasicType(IBasicType.Kind.eFloat, 0))
+        ValueInfo(0, new CBasicType(IBasicType.Kind.eFloat, 0))
       } else {
-        Primitive(lit.toCharArray.apply(1).toByte, new CBasicType(IBasicType.Kind.eChar, 0))
+        ValueInfo(lit.toCharArray.apply(1).toByte, new CBasicType(IBasicType.Kind.eChar, 0))
       }
     } else if (isIntNumber(lit)) {
-      Primitive(lit.toInt, new CBasicType(IBasicType.Kind.eFloat, 0))
+      ValueInfo(lit.toInt, new CBasicType(IBasicType.Kind.eFloat, 0))
     } else if (isLongNumber(lit)) {
-      Primitive(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
+      ValueInfo(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
     } else if (lit.contains('F') || lit.contains('f')) {
       val num = lit.toCharArray.filter(x => x != 'f' && x != 'F').mkString
-      Primitive(num.toFloat, new CBasicType(IBasicType.Kind.eFloat, 0))
+      ValueInfo(num.toFloat, new CBasicType(IBasicType.Kind.eFloat, 0))
     } else {
-      Primitive(lit.toDouble, new CBasicType(IBasicType.Kind.eDouble, 0))
+      ValueInfo(lit.toDouble, new CBasicType(IBasicType.Kind.eDouble, 0))
     }
   }
   
-  def typeCast(theType: IBasicType): Primitive = {
+  def typeCast(theType: IBasicType): ValueInfo = {
     TypeHelper.cast(theType, cast.value)
   }
 }

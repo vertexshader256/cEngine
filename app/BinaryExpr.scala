@@ -21,7 +21,7 @@ object BinaryExpr {
       case info @ AddressInfo(_, _) => info
     }
 
-    val resolvedop2 = Primitive(op2 match {
+    val resolvedop2 = ValueInfo(op2 match {
       case lit @ Literal(_) => lit.cast.value
       case VarRef(name)  =>      
         val theVar = state.vars.resolveId(name)
@@ -29,14 +29,14 @@ object BinaryExpr {
       case AddressInfo(addr, theType) => 
         state.readVal(addr, theType).value
       case Address(addy) => addy
-      case Primitive(x, _) => x
+      case ValueInfo(x, _) => x
       case long: Long => long
       case int: Int => int
       case doub: Double => doub
       case float: Float => float 
     }, null)
     
-    val theVal = Primitive(state.readVal(dst.address, dst.theType).value, dst.theType)
+    val theVal = ValueInfo(state.readVal(dst.address, dst.theType).value, dst.theType)
     
     val result = op match {
       case `op_plusAssign` =>
@@ -60,7 +60,7 @@ object BinaryExpr {
   }
   
   
-  def performBinaryOperation(prim1: Primitive, prim2: Primitive, operator: Int): AnyVal = {
+  def performBinaryOperation(prim1: ValueInfo, prim2: ValueInfo, operator: Int): AnyVal = {
     
     val op1 = prim1.value
     val op2 = prim2.value
@@ -343,22 +343,22 @@ object BinaryExpr {
   
   def parse(binaryExpr: IASTBinaryExpression, state: State): AnyVal = {
    
-    def resolveOperand(op: Any, context: State): Primitive = {
+    def resolveOperand(op: Any, context: State): ValueInfo = {
       op match {
         case lit @ Literal(_) => lit.cast
-        case prim @ Primitive(_, _) => prim
+        case prim @ ValueInfo(_, _) => prim
         case VarRef(name)  =>      
           val theVar = context.vars.resolveId(name)
           theVar.value
         case AddressInfo(addy, theType) =>
-          Primitive(context.readVal(addy, TypeHelper.resolve(theType)).value, TypeHelper.resolve(theType))
-        case int: Int => Primitive(int, new CBasicType(IBasicType.Kind.eInt, 0))
-        case float: Float => Primitive(float, new CBasicType(IBasicType.Kind.eFloat, 0))
-        case double: Double => Primitive(double, new CBasicType(IBasicType.Kind.eDouble, 0))
-        case short: Short => Primitive(short, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_SHORT))
-        case char: Character => Primitive(char, new CBasicType(IBasicType.Kind.eChar, 0))
-        case boolean: Boolean => Primitive(boolean, new CBasicType(IBasicType.Kind.eInt, 0))
-        case long: Long => Primitive(long, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
+          ValueInfo(context.readVal(addy, TypeHelper.resolve(theType)).value, theType)
+        case int: Int => ValueInfo(int, new CBasicType(IBasicType.Kind.eInt, 0))
+        case float: Float => ValueInfo(float, new CBasicType(IBasicType.Kind.eFloat, 0))
+        case double: Double => ValueInfo(double, new CBasicType(IBasicType.Kind.eDouble, 0))
+        case short: Short => ValueInfo(short, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_SHORT))
+        case char: Character => ValueInfo(char, new CBasicType(IBasicType.Kind.eChar, 0))
+        case boolean: Boolean => ValueInfo(boolean, new CBasicType(IBasicType.Kind.eInt, 0))
+        case long: Long => ValueInfo(long, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
       }
     }
     

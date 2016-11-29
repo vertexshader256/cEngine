@@ -37,7 +37,7 @@ object FunctionCallExpr {
               }
             case Address(address) =>
               address
-            case Primitive(theVal, _) =>             
+            case ValueInfo(theVal, _) =>             
               theVal
             case AddressInfo(address, theType) => 
               state.readVal(address, TypeHelper.resolve(theType)).value
