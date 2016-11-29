@@ -144,6 +144,17 @@ class ArrayTest extends StandardTest {
     checkResults(code)
   }
   
+  "An array with dimensions from a binary expr" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x[5*5];
+        x[23] = 5;
+        printf("%d\n", x[23]);
+      }"""
+
+    checkResults(code)
+  }
+  
   "assignment operators on an array element" should "print the correct results" in {
     val code = """
       void main() {

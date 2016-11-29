@@ -553,6 +553,7 @@ object Executor {
               // can we can assume dimensions are integers
               case lit: Literal => lit.cast.value.asInstanceOf[Int]
               case Variable(value, _) => value.value.asInstanceOf[Int]
+              case int: Int => int
             }}
             
             val initializer = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
