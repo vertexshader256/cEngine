@@ -40,15 +40,15 @@ object BinaryExpr {
     
     val result = op match {
       case `op_plusAssign` =>
-        performBinaryOperation(theVal, resolvedop2, op_plus)
+        performBinaryOperation(theVal.value, resolvedop2.value, op_plus)
       case `op_minusAssign` =>
-        performBinaryOperation(theVal, resolvedop2, op_minus)
+        performBinaryOperation(theVal.value, resolvedop2.value, op_minus)
       case `op_multiplyAssign` =>
-        performBinaryOperation(theVal, resolvedop2, op_multiply)
+        performBinaryOperation(theVal.value, resolvedop2.value, op_multiply)
       case `op_binaryXorAssign` =>
-        performBinaryOperation(theVal, resolvedop2, op_binaryXor)
+        performBinaryOperation(theVal.value, resolvedop2.value, op_binaryXor)
       case `op_shiftRightAssign` =>
-        performBinaryOperation(theVal, resolvedop2, op_shiftRight)
+        performBinaryOperation(theVal.value, resolvedop2.value, op_shiftRight)
       case `op_assign` =>
         resolvedop2.value
     }  
@@ -59,11 +59,32 @@ object BinaryExpr {
     resolvedop2
   }
   
-  
-  def performBinaryOperation(prim1: ValueInfo, prim2: ValueInfo, operator: Int): AnyVal = {
+  def performTypedBinaryOperation(left: ValueInfo, right: AnyVal, operator: Int): Option[AnyVal] = {
     
-    val op1 = prim1.value
-    val op2 = prim2.value
+    val op1 = left.value
+    val op2 = right
+    
+    val result: Option[AnyVal] = operator match {
+      case `op_plus` =>
+        (op1, op2) match {
+          case (x: Int, y: Int) if (TypeHelper.isPointer(left.theType)) => Some(x + y * TypeHelper.sizeof(TypeHelper.resolve(left.theType)))
+          case _ => None
+        }
+      case `op_minus` =>
+        (op1, op2) match {
+          case (x: Int, y: Int) if (TypeHelper.isPointer(left.theType)) => Some(x - y * TypeHelper.sizeof(TypeHelper.resolve(left.theType)))
+          case _ => None
+        }
+      case _ => None
+    }
+
+    result
+  }
+  
+  def performBinaryOperation(left: AnyVal, right: AnyVal, operator: Int): AnyVal = {
+    
+    val op1 = left
+    val op2 = right
     
     val result: AnyVal = operator match {
       case `op_multiply` =>
@@ -113,7 +134,6 @@ object BinaryExpr {
       case `op_plus` =>
         (op1, op2) match {
           case (x: Int, y: Character) => x + y
-          case (x: Int, y: Int) if (TypeHelper.isPointer(prim1.theType)) => x + y * TypeHelper.sizeof(TypeHelper.resolve(prim1.theType))
           case (x: Int, y: Int) => x + y
           case (x: Int, y: Short) => x + y
           case (x: Int, y: Float) => x + y
@@ -158,7 +178,6 @@ object BinaryExpr {
         }
       case `op_minus` =>
         (op1, op2) match {
-          case (x: Int, y: Int) if (TypeHelper.isPointer(prim1.theType)) => x - y * TypeHelper.sizeof(TypeHelper.resolve(prim1.theType))
           case (x: Int, y: Character) => x - y
           case (x: Int, y: Short) => x - y
           case (x: Int, y: Int) => x - y
@@ -266,7 +285,7 @@ object BinaryExpr {
           case (x: Double, y: Double) => x == y
         }
       case `op_notequals` =>
-        !performBinaryOperation(prim1, prim2, op_equals).asInstanceOf[Boolean]
+        !performBinaryOperation(left, right, op_equals).asInstanceOf[Boolean]
       case `op_greaterThan` =>
         (op1, op2) match {
           case (x: Int, y: Int) => x > y
@@ -334,8 +353,16 @@ object BinaryExpr {
       case _ => throw new Exception("unhandled binary operator: " + operator); 0
     }
 
-    if (!result.isInstanceOf[Boolean] && TypeHelper.resolve(prim1.theType).isUnsigned) {
-      TypeHelper.cast(TypeHelper.resolve(prim1.theType), result).value
+    result
+  }
+  
+  def evaluate(op1: ValueInfo, op2: AnyVal, operator: Int) = {
+    val result = performTypedBinaryOperation(op1, op2, operator).getOrElse{
+      performBinaryOperation(op1.value, op2, operator)
+    }
+    
+    if (!result.isInstanceOf[Boolean] && TypeHelper.resolve(op1.theType).isUnsigned) {
+      TypeHelper.cast(TypeHelper.resolve(op1.theType), result).value
     } else {
       result
     }
@@ -364,7 +391,7 @@ object BinaryExpr {
     
     val op2 = resolveOperand(state.stack.pop, state)
     val op1 = resolveOperand(state.stack.pop, state)
-  
-    performBinaryOperation(op1, op2, binaryExpr.getOperator)
+    
+    evaluate(op1, op2.value, binaryExpr.getOperator)
   }
 }

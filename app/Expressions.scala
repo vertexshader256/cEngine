@@ -233,28 +233,28 @@ object Expressions {
             }
           case `op_postFixIncr` =>
             val (currentVal, info) = resolveVar(context.stack.pop)
-            val newVal = BinaryExpr.performBinaryOperation(currentVal, ValueInfo(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_plus)
+            val newVal = BinaryExpr.evaluate(currentVal, 1, IASTBinaryExpression.op_plus)
             
             // push then set
             context.stack.push(currentVal)
             stack.setValue(newVal, info.address)   
           case `op_postFixDecr` =>          
             val (currentVal, info) = resolveVar(context.stack.pop)
-            val newVal = BinaryExpr.performBinaryOperation(currentVal, ValueInfo(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_minus)
+            val newVal = BinaryExpr.evaluate(currentVal, 1, IASTBinaryExpression.op_minus)
             
             // push then set
             context.stack.push(currentVal)
             stack.setValue(newVal, info.address)  
           case `op_prefixIncr` =>
             val (currentVal, info) = resolveVar(context.stack.pop)            
-            val newVal = BinaryExpr.performBinaryOperation(currentVal, ValueInfo(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_plus)
+            val newVal = BinaryExpr.evaluate(currentVal, 1, IASTBinaryExpression.op_plus)
             
             // set then push
             stack.setValue(newVal, info.address)  
             context.stack.push(newVal)
           case `op_prefixDecr` =>
             val (currentVal, info) = resolveVar(context.stack.pop)
-            val newVal = BinaryExpr.performBinaryOperation(currentVal, ValueInfo(1, new CBasicType(IBasicType.Kind.eInt, 0)), IASTBinaryExpression.op_minus)
+            val newVal = BinaryExpr.evaluate(currentVal, 1, IASTBinaryExpression.op_minus)
             
             // set then push
             stack.setValue(newVal, info.address)  
