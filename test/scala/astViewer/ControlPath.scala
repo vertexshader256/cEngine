@@ -158,6 +158,36 @@ class WhileStatement extends StandardTest {
     checkResults(code)
   }
   
+  "robust while loop test" should "print the correct results" in {
+      val code = """
+       void main() {
+        int x = 0;
+        int a = 0;
+        char b = 0;
+        float c = 0.0f;
+        double d = 0.0;
+        long e = 0;
+        short f = 0;
+        """ + List('a', 'b', 'e', 'f').map{ x => s"""
+            x = 0;
+            while ($x < 10) {
+              $x = $x + 1;
+              x++;
+            }
+            
+            printf("%d\\n", x);"""
+          }.reduce(_ + "\n" + _) ++ List('c', 'd').map{ x => s"""
+            x = 0;
+            while ($x < 10.0) {
+              $x = $x + 1.0;
+              x++;
+            }
+            
+            printf("%d\\n", x);"""
+          }.reduce(_ + "\n" + _) + "}"
+      checkResults(code)
+    }
+  
   "A simple while statement with a break" should "print the correct results" in {
     val code = """
       void main() {
