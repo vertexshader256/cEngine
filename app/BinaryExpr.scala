@@ -22,36 +22,23 @@ object BinaryExpr {
       case ValueInfo(value, info) => AddressInfo(Address(value.asInstanceOf[Byte].toInt), info)
     }
 
-    val resolvedop2 = ValueInfo(op2 match {
-      case lit @ Literal(_) => lit.cast.value
-      case VarRef(name)  =>      
-        val theVar = state.vars.resolveId(name)
-        theVar.value.value
-      case AddressInfo(addr, theType) => 
-        state.readVal(addr, theType).value
-      case Address(addy) => addy
-      case ValueInfo(x, _) => x
-      case long: Long => long
-      case int: Int => int
-      case doub: Double => doub
-      case float: Float => float 
-    }, null)
+    val resolvedop2 = TypeHelper.resolve(op2, state)
     
     val theVal = ValueInfo(state.readVal(dst.address, dst.theType).value, dst.theType)
     
     val result = op match {
       case `op_plusAssign` =>
-        performBinaryOperation(theVal.value, resolvedop2.value, op_plus)
+        performBinaryOperation(theVal.value, resolvedop2, op_plus)
       case `op_minusAssign` =>
-        performBinaryOperation(theVal.value, resolvedop2.value, op_minus)
+        performBinaryOperation(theVal.value, resolvedop2, op_minus)
       case `op_multiplyAssign` =>
-        performBinaryOperation(theVal.value, resolvedop2.value, op_multiply)
+        performBinaryOperation(theVal.value, resolvedop2, op_multiply)
       case `op_binaryXorAssign` =>
-        performBinaryOperation(theVal.value, resolvedop2.value, op_binaryXor)
+        performBinaryOperation(theVal.value, resolvedop2, op_binaryXor)
       case `op_shiftRightAssign` =>
-        performBinaryOperation(theVal.value, resolvedop2.value, op_shiftRight)
+        performBinaryOperation(theVal.value, resolvedop2, op_shiftRight)
       case `op_assign` =>
-        resolvedop2.value
+        resolvedop2
     }  
     
     val casted = TypeHelper.downcast(dst.theType, result).value

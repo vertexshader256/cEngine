@@ -119,6 +119,8 @@ object FunctionCallExpr {
           // TODO
           Seq()
         } else if (name == "__builtin_va_start") {
+          //varArgs += state.stack.pop
+          //varArgs += state.stack.pop
           Seq()
         } else if (name == "__builtin_va_end") {
           Seq()

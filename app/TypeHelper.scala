@@ -212,6 +212,7 @@ object TypeHelper {
       op match {
         case lit @ Literal(_) => lit.cast.value
         case prim @ ValueInfo(_, _) => prim.value
+        case Address(addr) => addr
         case VarRef(name)  =>      
           val theVar = context.vars.resolveId(name)
           theVar.value.value
