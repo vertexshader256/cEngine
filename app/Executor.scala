@@ -580,32 +580,35 @@ object Executor {
                 state.setArray(values.toArray, AddressInfo(theArrayPtr.theArrayAddress, theArrayPtr.info.theType))
                 state.vars.addVariable(name, theArrayPtr)
               }
+            } else if (initializer != null) {
+              val numElements = if (dimensions.isEmpty) 0 else dimensions.reduce{_ * _}
+              val initialArray = new ListBuffer[Any]()
+              
+              val theArrayPtr: ArrayVariable = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)
+
+              val initVals = (0 until initializer.getInitializerClause.getChildren.size).map{x => state.stack.pop}.reverse
+              
+              initVals.foreach { newInit =>
+                if (newInit.isInstanceOf[StringLiteral]) {
+                  initialArray += state.createStringVariable(newInit.asInstanceOf[StringLiteral].str)
+                } else {
+                  initialArray += newInit
+                }
+              }
+              
+              val resolvedType = if (initialArray.head.isInstanceOf[Address]) {
+                TypeHelper.pointerType
+              } else {
+                theArrayPtr.info.theType
+              }
+              
+              state.setArray(initialArray.toArray, AddressInfo(theArrayPtr.theArrayAddress, resolvedType))
+              state.vars.addVariable(name, theArrayPtr)
             } else {
               val numElements = if (dimensions.isEmpty) 0 else dimensions.reduce{_ * _}
               val initialArray = new ListBuffer[Any]()
               
               val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)
-
-              if (!state.stack.isEmpty) {
-                var i = 0
-                
-                val initVals = (0 until numElements).map{x => state.stack.pop}.reverse
-                
-                initVals.foreach { newInit =>
-                  if (newInit.isInstanceOf[StringLiteral]) {
-                    initialArray += state.createStringVariable(newInit.asInstanceOf[StringLiteral].str)
-                  } else {
-                    initialArray += newInit
-                  }
-                }
-              }
-              
-              // TODO: Clean up this crap
-              if (!initialArray.isEmpty && initialArray.head.isInstanceOf[Address]) {
-                state.setArray(initialArray.toArray, AddressInfo(theArrayPtr.theArrayAddress, TypeHelper.pointerType))
-              } else {
-                state.setArray(initialArray.toArray, AddressInfo(theArrayPtr.theArrayAddress, theArrayPtr.info.theType))
-              }
               
               state.vars.addVariable(name, theArrayPtr)
             }
