@@ -605,11 +605,8 @@ object Executor {
               state.setArray(initialArray.toArray, AddressInfo(theArrayPtr.theArrayAddress, resolvedType))
               state.vars.addVariable(name, theArrayPtr)
             } else {
-              val numElements = if (dimensions.isEmpty) 0 else dimensions.reduce{_ * _}
-              val initialArray = new ListBuffer[Any]()
-              
-              val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)
-              
+              val initialArray = new ListBuffer[Any]()            
+              val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)             
               state.vars.addVariable(name, theArrayPtr)
             }
           case decl: CASTDeclarator =>
