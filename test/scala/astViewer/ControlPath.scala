@@ -35,6 +35,28 @@ class SwitchStatement extends StandardTest {
     checkResults(code)
   }
   
+  "A switch statement with a pointer to char" should "print the correct results" in {
+    val code = """
+      void main() {
+        char x = 'a';
+        char *ptr = &x;
+        switch(*ptr) {
+          case 'a':
+            printf("1\n");
+            break;
+          case 'b':
+            printf("3\n");
+            break;
+          default :
+            printf("2\n");
+            break;
+        }
+         
+      }"""
+
+    checkResults(code)
+  }
+  
   "A switch statement with fallthrough" should "print the correct results" in {
     val code = """
       void main() {

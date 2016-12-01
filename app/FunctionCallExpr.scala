@@ -13,6 +13,11 @@ import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
 import org.eclipse.cdt.internal.core.dom.parser.c.CStructure
 
 object FunctionCallExpr {
+  
+  var standardOutBuffer = ""
+  var lastChar: Byte = 0
+  val varArgs = new ListBuffer[Any]()
+  
   def parse(call: IASTFunctionCallExpression, direction: Direction, state: State): Seq[IASTNode] = {
     if (direction == Exiting) {
         val name = call.getFunctionNameExpression match {
@@ -116,6 +121,19 @@ object FunctionCallExpr {
         } else if (name == "__builtin_va_start") {
           Seq()
         } else if (name == "__builtin_va_end") {
+          Seq()
+        } else if (name == "putchar") {
+          val theChar = formattedOutputParams(0).asInstanceOf[Character]
+          
+          
+          if (theChar == 'n' && lastChar == '\\') {
+            state.stdout += standardOutBuffer
+            standardOutBuffer = ""
+          } else if (theChar != '\\') {
+            standardOutBuffer += theChar.toChar
+          }
+          lastChar = theChar
+          
           Seq()
         } 
         else {
