@@ -207,6 +207,25 @@ object TypeHelper {
     case qualType: IQualifierType => resolve(qualType.getType)
     case fcn: IFunctionType       => TypeHelper.pointerType
   }
+  
+  def resolve(op: Any, context: State): AnyVal = {
+      op match {
+        case lit @ Literal(_) => lit.cast.value
+        case prim @ ValueInfo(_, _) => prim.value
+        case VarRef(name)  =>      
+          val theVar = context.vars.resolveId(name)
+          theVar.value.value
+        case AddressInfo(addy, theType) =>
+          context.readVal(addy, TypeHelper.resolve(theType)).value
+        case int: Int => int
+        case float: Float => float
+        case double: Double => double
+        case short: Short => short
+        case char: Character => char
+        case boolean: Boolean => boolean
+        case long: Long => long
+      }
+    }
 
   def sizeof(theType: IType): Int = theType match {
     case ptr: IPointerType =>

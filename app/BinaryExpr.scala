@@ -375,27 +375,8 @@ object BinaryExpr {
   }
   
   def parse(binaryExpr: IASTBinaryExpression, state: State): Any = {
-   
-    def resolve(op: Any, context: State): AnyVal = {
-      op match {
-        case lit @ Literal(_) => lit.cast.value
-        case prim @ ValueInfo(_, _) => prim.value
-        case VarRef(name)  =>      
-          val theVar = context.vars.resolveId(name)
-          theVar.value.value
-        case AddressInfo(addy, theType) =>
-          context.readVal(addy, TypeHelper.resolve(theType)).value
-        case int: Int => int
-        case float: Float => float
-        case double: Double => double
-        case short: Short => short
-        case char: Character => char
-        case boolean: Boolean => boolean
-        case long: Long => long
-      }
-    }
-    
-    val op2 = resolve(state.stack.pop, state)
+
+    val op2 = TypeHelper.resolve(state.stack.pop, state)
     
     val rawOp1 = state.stack.pop
     
@@ -414,7 +395,7 @@ object BinaryExpr {
           result
         }
       case _ =>
-        val simple = resolve(rawOp1, state)
+        val simple = TypeHelper.resolve(rawOp1, state)
         performBinaryOperation(simple, op2, binaryExpr.getOperator)
     }
   }

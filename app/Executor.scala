@@ -362,16 +362,11 @@ object Executor {
       } else {
 
         val caseExpr = state.stack.pop.asInstanceOf[Literal].cast.value
-        val switchExpr = state.stack.pop
+        val switchExpr = state.stack.head
+        
+        val resolved = TypeHelper.resolve(switchExpr, state)
 
-        state.stack.push(switchExpr)
-
-        val resolved = switchExpr match {
-          case Variable(value, _) => value.value
-          case int: Int  => int
-        }
-
-        if (caseExpr.asInstanceOf[Int] == resolved.asInstanceOf[Int]) {
+        if (caseExpr == resolved) {
           processSwitch(caseStatement)
         } else {
           Seq()
