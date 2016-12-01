@@ -8,6 +8,18 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import org.eclipse.cdt.internal.core.dom.parser.c._
 
+object cEngine {
+  type JSONObject = Any
+  
+  implicit class CounterSC(val sc: StringContext) extends AnyVal {
+    // Define functions that we want to use with string interpolation syntax
+    def c(args: Any*)(implicit state: State): Unit = {
+      println(sc.parts.iterator.next.asInstanceOf[String])
+      Gcc.runCode(sc.parts.iterator.next.asInstanceOf[String], state)
+    }
+
+  }
+}
 
 class State {
   

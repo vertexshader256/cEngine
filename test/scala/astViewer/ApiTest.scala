@@ -2,14 +2,15 @@ package scala.astViewer
 
 import app.astViewer.Gcc
 import app.astViewer.State
+import app.astViewer.cEngine._
 
 class ApiTest extends StandardTest {
   "interp test one" should "print the correct results" in {
     
-    val state = new State
+    implicit val state = new State
     
-    Gcc.runCode("int i = 1432;", state)
-    Gcc.runCode("printf(\"%d\\n\", i);", state)
+    c"""int i = 1432;"""
+    c"""printf("%d\n", i);"""
 
     state.stdout.toSeq should equal (Seq("1432"))
   }
