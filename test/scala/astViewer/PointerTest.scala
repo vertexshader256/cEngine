@@ -1,21 +1,30 @@
 package scala.astViewer
 
 class StagingGround extends StandardTest {
-   
-   "arrays of strings" should "print the correct results" in {
+  "assign then increment" should "print the correct results" in {
     val code = """
+      
+      static int copy(char *buf, const char *fmt)
+      {
+        char *str = fmt;
+        printf("%c\n", *str);
+        fmt++;
+        //*str++ = *fmt;
+        printf("%c\n", *fmt);
+      }
+      
       void main() {
-        const char *alpha[2] = { "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
-        printf("%c\n", alpha[0][0]);
-        printf("%c\n", alpha[1][10]);
-        //printf("%d\n", strlen(alpha[0]));
+        char test[10*10];
+        char str[] = "H\n";
+        copy(test, str);
       }"""
 
     checkResults(code)
   }
-    
-  
 }
+
+
+
 
 class PointerTest extends StandardTest {
   
@@ -28,6 +37,18 @@ class PointerTest extends StandardTest {
         p1 = arr + 3;
         p2 = p1 - 2;
         printf("%d %d", *p1, *p2);
+      }"""
+
+    checkResults(code)
+  }
+  
+  "arrays of strings" should "print the correct results" in {
+    val code = """
+      void main() {
+        const char *alpha[2] = { "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
+        printf("%c\n", alpha[0][0]);
+        printf("%c\n", alpha[1][10]);
+        //printf("%d\n", strlen(alpha[0]));
       }"""
 
     checkResults(code)
