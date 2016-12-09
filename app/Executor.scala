@@ -192,7 +192,7 @@ object Executor {
         val caseExpr = state.stack.pop.asInstanceOf[Literal].cast.value
         val switchExpr = state.stack.head
         
-        val resolved = TypeHelper.resolve(switchExpr, state)
+        val resolved = TypeHelper.resolve(switchExpr)
 
         if (caseExpr == resolved) {
           processSwitch(caseStatement)
@@ -277,7 +277,7 @@ object Executor {
       } else {
         val shouldKeepLooping = if (forLoop.getConditionExpression != null) {
           
-          val result = TypeHelper.resolve(state, new CBasicType(IBasicType.Kind.eInt, 0), state.stack.pop).value
+          val result = TypeHelper.resolve(new CBasicType(IBasicType.Kind.eInt, 0), state.stack.pop).value
           
           result match {
             case bool: Boolean => bool
@@ -492,7 +492,7 @@ object Executor {
               case basic: IBasicType =>
                 val initVal = Option(decl.getInitializer).map(x => state.stack.pop).getOrElse(0)   
 
-                val resolved = TypeHelper.resolve(state, theType, initVal).value
+                val resolved = TypeHelper.resolve(theType, initVal).value
 
                 val newVar = new Variable(state, theType)
                 val casted = TypeHelper.cast(newVar.info.theType, resolved).value
@@ -556,7 +556,7 @@ object Executor {
             val name = param.getDeclarator.getName.getRawSignature
             val newVar = new Variable(state, paramInfo.getType)
             
-            val resolved = TypeHelper.resolve(state, paramInfo.getType, arg).value
+            val resolved = TypeHelper.resolve(paramInfo.getType, arg).value
             val casted = TypeHelper.cast(newVar.info.theType, resolved).value
             state.setValue(casted, newVar.info.address)          
         

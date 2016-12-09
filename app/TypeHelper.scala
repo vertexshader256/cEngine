@@ -181,10 +181,10 @@ object TypeHelper {
   }
   
   // resolves 'Any' to 'AnyVal'
-  def resolve(state: State, theType: IType, any: Any): ValueInfo = {
+  def resolve(theType: IType, any: Any)(implicit state: State): ValueInfo = {
     ValueInfo(any match {
-      case VarRef(name) =>
-        state.vars.resolveId(name).value.value
+      case Variable(value, _) =>
+        value.value
       case lit @ Literal(_) => lit.typeCast(TypeHelper.resolve(theType)).value
       case AddressInfo(addy, _) => addy.value
       case Address(addy) => addy
@@ -208,14 +208,13 @@ object TypeHelper {
     case fcn: IFunctionType       => TypeHelper.pointerType
   }
   
-  def resolve(op: Any, context: State): AnyVal = {
+  def resolve(op: Any)(implicit context: State): AnyVal = {
       op match {
         case lit @ Literal(_) => lit.cast.value
         case prim @ ValueInfo(_, _) => prim.value
         case Address(addr) => addr
-        case VarRef(name)  =>      
-          val theVar = context.vars.resolveId(name)
-          theVar.value.value
+        case Variable(value, _) =>
+          value.value
         case AddressInfo(addy, theType) =>
           context.readVal(addy, TypeHelper.resolve(theType)).value
         case int: Int => int

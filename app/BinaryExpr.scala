@@ -12,7 +12,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c.CStructure
 
 object BinaryExpr {
   
-  def parseAssign(node: IASTNode, op: Int, op1: Any, op2: Any, state: State): Any = {
+  def parseAssign(node: IASTNode, op: Int, op1: Any, op2: Any)(implicit state: State): Any = {
 
     val dst: AddressInfo = op1 match {
       case VarRef(name) =>
@@ -22,7 +22,7 @@ object BinaryExpr {
       case ValueInfo(value, info) => AddressInfo(Address(value.asInstanceOf[Byte].toInt), info)
     }
 
-    val resolvedop2 = TypeHelper.resolve(op2, state)
+    val resolvedop2 = TypeHelper.resolve(op2)
     
     val theVal = ValueInfo(state.readVal(dst.address, dst.theType).value, dst.theType)
     
@@ -361,9 +361,9 @@ object BinaryExpr {
     }
   }
   
-  def parse(binaryExpr: IASTBinaryExpression, state: State): Any = {
+  def parse(binaryExpr: IASTBinaryExpression)(implicit state: State): Any = {
 
-    val op2 = TypeHelper.resolve(state.stack.pop, state)
+    val op2 = TypeHelper.resolve(state.stack.pop)
     
     val rawOp1 = state.stack.pop
     
@@ -382,7 +382,7 @@ object BinaryExpr {
           result
         }
       case _ =>
-        val simple = TypeHelper.resolve(rawOp1, state)
+        val simple = TypeHelper.resolve(rawOp1)
         performBinaryOperation(simple, op2, binaryExpr.getOperator)
     }
   }

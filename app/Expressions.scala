@@ -361,9 +361,9 @@ object Expressions {
           val result = if (Utils.isAssignment(bin.getOperator)) {
               var op2: Any = context.stack.pop
               var op1: Any = context.stack.pop
-              BinaryExpr.parseAssign(bin, bin.getOperator, op1, op2, context)
+              BinaryExpr.parseAssign(bin, bin.getOperator, op1, op2)
           } else {    
-            BinaryExpr.parse(bin, context)
+            BinaryExpr.parse(bin)
           }
 
           context.stack.push(result)
