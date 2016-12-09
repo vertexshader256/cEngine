@@ -532,7 +532,7 @@ object Executor {
       case statement: IASTStatement =>
         Executor.parseStatement(statement, direction)
       case expression: IASTExpression =>
-        Expressions.parse(expression, direction, state)
+        Expressions.parse(expression, direction)
       case array: IASTArrayModifier =>
         if (direction == Exiting) {
           Seq()
@@ -595,12 +595,12 @@ object Executor {
           if (!state.vars.stack.isEmpty) {
             val retVal = state.vars.stack.head
             if (fcnDef.getDeclarator.getName.getRawSignature != "main") {
-              state.vars = state.executionContext.pop
+              state.vars = state.functionContext.pop
             }
             state.vars.stack.push(retVal)
           } else {
             if (fcnDef.getDeclarator.getName.getRawSignature != "main") {
-              state.vars = state.executionContext.pop
+              state.vars = state.functionContext.pop
             }
           }
           Seq()
@@ -654,8 +654,8 @@ class Executor() {
     current = tUnit
 
     engineState.functionMap.remove("main")
-    engineState.executionContext.push(new FunctionExecutionContext(Map(), null)) // load initial stack
-    engineState.vars = engineState.executionContext.head
+    engineState.functionContext.push(new FunctionExecutionContext(Map(), null)) // load initial stack
+    engineState.vars = engineState.functionContext.head
   
     engineState.isPreprocessing = true
     execute(engineState)
@@ -666,11 +666,11 @@ class Executor() {
   
     engineState.globals ++= engineState.vars.varMap
   
-    engineState.executionContext.pop
+    engineState.functionContext.pop
     if (reset) {
-      engineState.executionContext.push(new FunctionExecutionContext(engineState.globals, null)) // load initial stack
+      engineState.functionContext.push(new FunctionExecutionContext(engineState.globals, null)) // load initial stack
     }
-    engineState.vars = engineState.executionContext.head
+    engineState.vars = engineState.functionContext.head
     engineState.vars.pathStack.clear
     engineState.vars.pathStack.push(engineState.functionMap("main"))
     current = engineState.vars.pathStack.head

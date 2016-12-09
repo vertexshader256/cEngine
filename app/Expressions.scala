@@ -13,7 +13,7 @@ import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 
 object Expressions {
 
-  def parse(expr: IASTExpression, direction: Direction, stack: State)(implicit context: State): Seq[IASTNode] = expr match {
+  def parse(expr: IASTExpression, direction: Direction)(implicit context: State): Seq[IASTNode] = expr match {
     case exprList: IASTExpressionList =>
       if (direction == Entering) {
         exprList.getExpressions
@@ -138,7 +138,7 @@ object Expressions {
             typeItr = typeItr.asInstanceOf[IArrayType].getType
           }
           
-          val arrayAddress = stack.readPtrVal(arrayVarPtr.address)
+          val arrayAddress = context.readPtrVal(arrayVarPtr.address)
   
           val ancestors = Utils.getAncestors(subscript)
           
@@ -177,7 +177,7 @@ object Expressions {
           if (isParsingAssignmentDest) {
             context.stack.push(AddressInfo(elementAddress, aType))
           } else {
-            context.stack.push(stack.readVal(elementAddress, aType))
+            context.stack.push(context.readVal(elementAddress, aType))
           }
         }
 
@@ -190,11 +190,11 @@ object Expressions {
         variable match {
           case Variable(value, info) =>
             val theType = TypeHelper.resolve(info.theType)
-            val currentVal = stack.readVal(info.address, theType).value
+            val currentVal = context.readVal(info.address, theType).value
             (ValueInfo(currentVal, info.theType), info)
           case AddressInfo(addy, theType) => 
             val resolved = TypeHelper.resolve(theType)
-            val currentVal = stack.readVal(addy, resolved).value
+            val currentVal = context.readVal(addy, resolved).value
             (ValueInfo(currentVal, resolved), AddressInfo(addy, resolved))
         }
       }
@@ -237,27 +237,27 @@ object Expressions {
             
             // push then set
             context.stack.push(currentVal)
-            stack.setValue(newVal, info.address)   
+            context.setValue(newVal, info.address)   
           case `op_postFixDecr` =>          
             val (currentVal, info) = resolveVar(context.stack.pop)
             val newVal = BinaryExpr.evaluate(currentVal, 1, IASTBinaryExpression.op_minus)
             
             // push then set
             context.stack.push(currentVal)
-            stack.setValue(newVal, info.address)  
+            context.setValue(newVal, info.address)  
           case `op_prefixIncr` =>
             val (currentVal, info) = resolveVar(context.stack.pop)            
             val newVal = BinaryExpr.evaluate(currentVal, 1, IASTBinaryExpression.op_plus)
             
             // set then push
-            stack.setValue(newVal, info.address)  
+            context.setValue(newVal, info.address)  
             context.stack.push(newVal)
           case `op_prefixDecr` =>
             val (currentVal, info) = resolveVar(context.stack.pop)
             val newVal = BinaryExpr.evaluate(currentVal, 1, IASTBinaryExpression.op_minus)
             
             // set then push
-            stack.setValue(newVal, info.address)  
+            context.setValue(newVal, info.address)  
             context.stack.push(newVal)
           case `op_sizeof` =>
             context.stack.push(context.stack.pop match {
@@ -283,12 +283,12 @@ object Expressions {
               case ValueInfo(char: Character, _) =>
                 val target = Utils.getUnaryTarget(unary).foreach { name =>
                   val ptr = context.vars.resolveId(name.getRawSignature)
-                  context.stack.push(stack.readVal(Address(char), TypeHelper.resolve(ptr.theType)))
+                  context.stack.push(context.readVal(Address(char), TypeHelper.resolve(ptr.theType)))
                 }
               case ValueInfo(int: Int, _) =>
                 val target = Utils.getUnaryTarget(unary).foreach { name =>
                   val ptr = context.vars.resolveId(name.getRawSignature)
-                  context.stack.push(stack.readVal(Address(int), TypeHelper.resolve(ptr.theType)))
+                  context.stack.push(context.readVal(Address(int), TypeHelper.resolve(ptr.theType)))
                 }
               case Variable(value, info) =>       
                 val nestedType = info.theType match {
@@ -303,10 +303,10 @@ object Expressions {
                 
                 context.stack.push(
                   if (Utils.isOnLeftSideOfAssignment(unary) || isNested || specialCase) { 
-                    val deref = stack.readPtrVal(info.address)
+                    val deref = context.readPtrVal(info.address)
                     AddressInfo(Address(deref), nestedType)
                   } else {
-                    stack.readVal(Address(value.value.asInstanceOf[Int]), TypeHelper.resolve(info.theType))
+                    context.readVal(Address(value.value.asInstanceOf[Int]), TypeHelper.resolve(info.theType))
                   }
                 )
               case address @ AddressInfo(addr, theType) =>
@@ -314,12 +314,12 @@ object Expressions {
                   
                   case ptr: IPointerType =>
                     // nested pointers
-                    val deref = stack.readPtrVal(addr)
+                    val deref = context.readPtrVal(addr)
                     val refAddressInfo = AddressInfo(Address(deref), ptr.getType)
                     context.stack.push(refAddressInfo)
                   case basic: IBasicType =>
                     // actually dereference
-                    context.stack.push(stack.readVal(addr, basic))
+                    context.stack.push(context.readVal(addr, basic))
                }
            }
           case `op_bracketedPrimary` => // not sure what this is for but I need it for weird stuff like (k*)++

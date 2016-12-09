@@ -6,9 +6,10 @@ import org.eclipse.cdt.core.dom.ast._
 
 object TypeHelper {
   
+  // 32-bit pointers
   val pointerType = new CBasicType(IBasicType.Kind.eInt , 0)
   
-  // casts 'newVal' to 'theType'
+  // Kind of hacky; this will do whatever it needs to match gcc.  casts 'AnyVal' to 'ValueInfo'
   def cast(theType: IType, newVal: AnyVal): ValueInfo = {
     val casted: AnyVal = theType match {
       case typedef: CTypedef => cast(typedef.getType, newVal).value
@@ -92,7 +93,7 @@ object TypeHelper {
     ValueInfo(casted, theType)
   }
   
-  // casts 'newVal' to 'theType'
+  // kind of hacky here, but needed a way to be a bit more strict about casting in regards to memory space
   def downcast(theType: IType, newVal: AnyVal): ValueInfo = {
     val casted: AnyVal = theType match {
       case typedef: CTypedef => cast(typedef.getType, newVal).value
@@ -180,7 +181,7 @@ object TypeHelper {
     theType.isSigned || (!theType.isSigned && !theType.isUnsigned)
   }
   
-  // resolves 'Any' to 'AnyVal'
+  // resolves 'Any' to 'ValueInfo'
   def resolve(theType: IType, any: Any)(implicit state: State): ValueInfo = {
     ValueInfo(any match {
       case Variable(value, _) =>
@@ -198,6 +199,7 @@ object TypeHelper {
     }, TypeHelper.resolve(theType))
   }
 
+  // Some standard cases of needing to know what a type resolves to
   def resolve(theType: IType): IBasicType = theType match {
     case struct: CStructure       => TypeHelper.pointerType
     case basicType: IBasicType    => basicType

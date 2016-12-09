@@ -17,13 +17,15 @@ object cEngine {
       println(sc.parts.iterator.next.asInstanceOf[String])
       Gcc.runCode(sc.parts.iterator.next.asInstanceOf[String], state)
     }
-
   }
 }
 
 class State {
   
-  val executionContext = new Stack[FunctionExecutionContext]()
+  // turing tape 
+  private val tape = ByteBuffer.allocate(100000);
+  
+  val functionContext = new Stack[FunctionExecutionContext]()
   val globals = Map[String, RuntimeVariable]()
   var vars: FunctionExecutionContext = null
   val functionMap = scala.collection.mutable.Map[String, IASTNode]()
@@ -35,12 +37,10 @@ class State {
   var isContinuing = false
   var isPreprocessing = true
   
-  def stack = {
-    vars.stack
-  }
+  def stack = vars.stack
 
   def callFunction(call: IASTFunctionCallExpression, args: Seq[Any]) = {
-    executionContext.push(vars)
+    functionContext.push(vars)
 
     vars = new FunctionExecutionContext(globals, call.getExpressionType)
     vars.pathStack.push(call)
@@ -62,8 +62,8 @@ class State {
     }
   }
 
-  private val data = ByteBuffer.allocate(100000);
-  data.order(ByteOrder.LITTLE_ENDIAN)
+  
+  tape.order(ByteOrder.LITTLE_ENDIAN)
 
   var insertIndex = 0
 
@@ -117,24 +117,24 @@ class State {
         val isSigned = TypeHelper.isSigned(basic)
     
         if (basic.getKind == eInt && basic.isShort) {
-          data.getShort(address)
+          tape.getShort(address)
         }  else if (basic.getKind == eInt && basic.isLong) {
-          data.getLong(address)
+          tape.getLong(address)
         } else if (basic.getKind == eInt) {
-          data.getInt(address)
+          tape.getInt(address)
         } else if (basic.getKind == eBoolean) {
-          data.getInt(address)
+          tape.getInt(address)
         } else if (basic.getKind == eDouble) {
-          data.getDouble(address)
+          tape.getDouble(address)
         } else if (basic.getKind == eFloat) {
-          data.getFloat(address)
+          tape.getFloat(address)
         } else if (basic.getKind == eChar) {
-          data.get(address) // a C 'char' is a Java 'byte'
+          tape.get(address) // a C 'char' is a Java 'byte'
         } else {
           throw new Exception("Bad read val")
         }
-      case ptr: IPointerType => data.getInt(address)
-      case array: IArrayType => data.getInt(address)
+      case ptr: IPointerType => tape.getInt(address)
+      case array: IArrayType => tape.getInt(address)
       case qual: IQualifierType => readVal(addr, qual.getType).value
       case typedef: CTypedef => readVal(addr, typedef.getType).value
     }
@@ -143,7 +143,7 @@ class State {
   }
 
   def putPointer(addr: Address, newVal: AnyVal) = {
-    data.putInt(addr.value, newVal.asInstanceOf[Int])
+    tape.putInt(addr.value, newVal.asInstanceOf[Int])
   }
 
   def setArray(array: Array[_], info: AddressInfo): Unit = {
@@ -187,12 +187,12 @@ class State {
   
   // use Address type to prevent messing up argument order
   def setValue(newVal: AnyVal, address: Address): Unit = newVal match {
-    case char: Character    => data.put(address.value, char)
-    case long: Long => data.putLong(address.value, long)
-    case short: Short  => data.putShort(address.value, short) 
-    case int: Int => data.putInt(address.value, int) 
-    case Address(int) => data.putInt(address.value, int) 
-    case float: Float   => data.putFloat(address.value, float)
-    case double: Double  => data.putDouble(address.value, double)
+    case char: Character    => tape.put(address.value, char)
+    case long: Long => tape.putLong(address.value, long)
+    case short: Short  => tape.putShort(address.value, short) 
+    case int: Int => tape.putInt(address.value, int) 
+    case Address(int) => tape.putInt(address.value, int) 
+    case float: Float   => tape.putFloat(address.value, float)
+    case double: Double  => tape.putDouble(address.value, double)
   }
 }
