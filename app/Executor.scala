@@ -595,12 +595,12 @@ object Executor {
           if (!state.vars.stack.isEmpty) {
             val retVal = state.vars.stack.head
             if (fcnDef.getDeclarator.getName.getRawSignature != "main") {
-              state.vars = state.functionContext.pop
+              state.functionContext.pop
             }
             state.vars.stack.push(retVal)
           } else {
             if (fcnDef.getDeclarator.getName.getRawSignature != "main") {
-              state.vars = state.functionContext.pop
+              state.functionContext.pop
             }
           }
           Seq()
@@ -655,7 +655,6 @@ class Executor() {
 
     engineState.functionMap.remove("main")
     engineState.functionContext.push(new FunctionExecutionContext(Map(), null)) // load initial stack
-    engineState.vars = engineState.functionContext.head
   
     engineState.isPreprocessing = true
     execute(engineState)
@@ -670,7 +669,7 @@ class Executor() {
     if (reset) {
       engineState.functionContext.push(new FunctionExecutionContext(engineState.globals, null)) // load initial stack
     }
-    engineState.vars = engineState.functionContext.head
+
     engineState.vars.pathStack.clear
     engineState.vars.pathStack.push(engineState.functionMap("main"))
     current = engineState.vars.pathStack.head

@@ -27,7 +27,7 @@ class State {
   
   val functionContext = new Stack[FunctionExecutionContext]()
   val globals = Map[String, RuntimeVariable]()
-  var vars: FunctionExecutionContext = null
+  def vars = functionContext.head
   val functionMap = scala.collection.mutable.Map[String, IASTNode]()
   val stdout = new ListBuffer[String]()
 
@@ -40,9 +40,7 @@ class State {
   def stack = vars.stack
 
   def callFunction(call: IASTFunctionCallExpression, args: Seq[Any]) = {
-    functionContext.push(vars)
-
-    vars = new FunctionExecutionContext(globals, call.getExpressionType)
+    functionContext.push(new FunctionExecutionContext(globals, call.getExpressionType))
     vars.pathStack.push(call)
     
         // load up the stack with the parameters
