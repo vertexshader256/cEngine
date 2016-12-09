@@ -25,9 +25,9 @@ class State {
   // turing tape 
   private val tape = ByteBuffer.allocate(100000);
   
-  val functionContext = new Stack[FunctionExecutionContext]()
+  val functionContexts = new Stack[FunctionExecutionContext]()
   val globals = Map[String, RuntimeVariable]()
-  def vars = functionContext.head
+  def currentFunctionContext = functionContexts.head
   val functionMap = scala.collection.mutable.Map[String, IASTNode]()
   val stdout = new ListBuffer[String]()
 
@@ -37,14 +37,14 @@ class State {
   var isContinuing = false
   var isPreprocessing = true
   
-  def stack = vars.stack
+  def stack = currentFunctionContext.stack
 
   def callFunction(call: IASTFunctionCallExpression, args: Seq[Any]) = {
-    functionContext.push(new FunctionExecutionContext(globals, call.getExpressionType))
-    vars.pathStack.push(call)
+    functionContexts.push(new FunctionExecutionContext(globals, call.getExpressionType))
+    currentFunctionContext.pathStack.push(call)
     
         // load up the stack with the parameters
-    args.reverse.foreach { arg => vars.stack.push(arg)}
+    args.reverse.foreach { arg => currentFunctionContext.stack.push(arg)}
 
     val name = call.getFunctionNameExpression match {
       case x: IASTIdExpression => x.getName.getRawSignature
@@ -54,7 +54,7 @@ class State {
   }
 
   def clearVisited(parent: IASTNode) {
-    vars.visited -= parent
+    currentFunctionContext.visited -= parent
     parent.getChildren.foreach { node =>
       clearVisited(node)
     }

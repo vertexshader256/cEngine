@@ -18,7 +18,7 @@ object FunctionCallExpr {
   var lastChar: Byte = 0
   val varArgs = new ListBuffer[Any]()
   
-  def parse(call: IASTFunctionCallExpression, direction: Direction, state: State): Seq[IASTNode] = {
+  def parse(call: IASTFunctionCallExpression, direction: Direction)(implicit state: State): Seq[IASTNode] = {
     if (direction == Exiting) {
         val name = call.getFunctionNameExpression match {
           case x: IASTIdExpression => x.getName.getRawSignature
@@ -30,13 +30,12 @@ object FunctionCallExpr {
         val formattedOutputParams: Array[AnyVal] = argList.map { case (arg, value) => 
           
           value match {
-            case VarRef(name) => 
-              val theVar = state.vars.resolveId(name)
-              if (TypeHelper.isPointer(theVar.theType) && TypeHelper.getPointedType(theVar.theType).isInstanceOf[IBasicType] &&
-                  TypeHelper.getPointedType(theVar.theType).asInstanceOf[IBasicType].getKind == IBasicType.Kind.eChar) {
-                Address(state.readVal(theVar.address, theVar.theType).value.asInstanceOf[Int])
+            case Variable(_, info) => 
+              if (TypeHelper.isPointer(info.theType) && TypeHelper.getPointedType(info.theType).isInstanceOf[IBasicType] &&
+                  TypeHelper.getPointedType(info.theType).asInstanceOf[IBasicType].getKind == IBasicType.Kind.eChar) {
+                Address(state.readVal(info.address, info.theType).value.asInstanceOf[Int])
               } else {
-                state.readVal(theVar.address, theVar.theType).value
+                state.readVal(info.address, info.theType).value
               }
             case Address(address) =>
               address

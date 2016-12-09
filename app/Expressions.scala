@@ -73,7 +73,7 @@ object Expressions {
         } else {
           owner match {
             case VarRef(id) =>
-              val theVar = context.vars.resolveId(id)
+              val theVar = context.currentFunctionContext.resolveId(id)
               baseAddr = theVar.address
               theVar.theType.asInstanceOf[CStructure]
             case AddressInfo(addr, theType) => 
@@ -262,7 +262,7 @@ object Expressions {
           case `op_sizeof` =>
             context.stack.push(context.stack.pop match {
               case VarRef(name) =>
-                context.vars.resolveId(name).sizeof
+                context.currentFunctionContext.resolveId(name).sizeof
               case ValueInfo(_, theType) => TypeHelper.sizeof(theType)  
               case AddressInfo(_, theType) => TypeHelper.sizeof(theType)  
               case _: Character => 1
@@ -275,19 +275,19 @@ object Expressions {
           case `op_amper` =>
             context.stack.pop match {
               case VarRef(id) =>
-                val theVar = context.vars.resolveId(id)
+                val theVar = context.currentFunctionContext.resolveId(id)
                 context.stack.push(theVar.address)
             }
           case `op_star` =>
             context.stack.pop match {
               case ValueInfo(char: Character, _) =>
                 val target = Utils.getUnaryTarget(unary).foreach { name =>
-                  val ptr = context.vars.resolveId(name.getRawSignature)
+                  val ptr = context.currentFunctionContext.resolveId(name.getRawSignature)
                   context.stack.push(context.readVal(Address(char), TypeHelper.resolve(ptr.theType)))
                 }
               case ValueInfo(int: Int, _) =>
                 val target = Utils.getUnaryTarget(unary).foreach { name =>
-                  val ptr = context.vars.resolveId(name.getRawSignature)
+                  val ptr = context.currentFunctionContext.resolveId(name.getRawSignature)
                   context.stack.push(context.readVal(Address(int), TypeHelper.resolve(ptr.theType)))
                 }
               case Variable(value, info) =>       
@@ -354,10 +354,10 @@ object Expressions {
         Seq()
       }
     case call: IASTFunctionCallExpression =>
-      FunctionCallExpr.parse(call, direction, context)
+      FunctionCallExpr.parse(call, direction)
     case bin: IASTBinaryExpression =>
       if (direction == Exiting) {
-        if (context.vars.visited.contains(bin.getOperand2)) {
+        if (context.currentFunctionContext.visited.contains(bin.getOperand2)) {
           val result = if (Utils.isAssignment(bin.getOperator)) {
               var op2: Any = context.stack.pop
               var op1: Any = context.stack.pop

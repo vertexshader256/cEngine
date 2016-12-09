@@ -16,7 +16,7 @@ object BinaryExpr {
 
     val dst: AddressInfo = op1 match {
       case VarRef(name) =>
-        val variable = state.vars.resolveId(name)
+        val variable = state.currentFunctionContext.resolveId(name)
         variable.info
       case info @ AddressInfo(_, _) => info
       case ValueInfo(value, info) => AddressInfo(Address(value.asInstanceOf[Byte].toInt), info)
@@ -369,7 +369,7 @@ object BinaryExpr {
     
     rawOp1 match {
       case VarRef(name)  =>
-        val theVar = state.vars.resolveId(name)
+        val theVar = state.currentFunctionContext.resolveId(name)
         val result = performTypedBinaryOperation(theVar.value, op2, binaryExpr.getOperator).getOrElse{
           performBinaryOperation(theVar.value.value, op2, binaryExpr.getOperator)
         }
