@@ -189,13 +189,11 @@ object Expressions {
       def resolveVar(variable: Any): (ValueInfo, AddressInfo) = {
         variable match {
           case Variable(value, info) =>
-            val theType = TypeHelper.resolve(info.theType)
-            val currentVal = context.readVal(info.address, theType).value
+            val currentVal = context.readVal(info.address, info.theType).value
             (ValueInfo(currentVal, info.theType), info)
           case AddressInfo(addy, theType) => 
-            val resolved = TypeHelper.resolve(theType)
-            val currentVal = context.readVal(addy, resolved).value
-            (ValueInfo(currentVal, resolved), AddressInfo(addy, resolved))
+            val currentVal = context.readVal(addy, theType).value
+            (ValueInfo(currentVal, theType), AddressInfo(addy, theType))
         }
       }
 
