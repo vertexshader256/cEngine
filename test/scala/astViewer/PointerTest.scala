@@ -6,17 +6,24 @@ class StagingGround extends StandardTest {
       
       static int copy(char *buf, const char *fmt)
       {
-        char *str = fmt;
-        printf("%c\n", *str);
-        fmt++;
-        //*str++ = *fmt;
-        printf("%c\n", *fmt);
+        char *str;
+        for (str = buf; *fmt; fmt++)
+        {
+            *str = *fmt;
+            str++;
+            
+            ///*str++ doesnt work!
+        }
+        
+
+        //printf("%c\n", *fmt);
       }
       
       void main() {
-        char test[10*10];
-        char str[] = "H\n";
+        char test[10*10] = {0};
+        char str[] = "Hello!";
         copy(test, str);
+        printf("%s\n", test);
       }"""
 
     checkResults(code)
