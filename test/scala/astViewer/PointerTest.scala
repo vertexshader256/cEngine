@@ -9,9 +9,7 @@ class StagingGround extends StandardTest {
         char *str;
         for (str = buf; *fmt; fmt++)
         {
-            *str = *fmt;
-            str++;
-            
+            *str++ = *fmt;
             ///*str++ doesnt work!
         }
         

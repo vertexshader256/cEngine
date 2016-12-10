@@ -230,12 +230,17 @@ object Expressions {
                 })
             }
           case `op_postFixIncr` =>
-            val (currentVal, info) = resolveVar(context.stack.pop)
+            val vari = context.stack.pop
+            val (currentVal, info) = resolveVar(vari)
             val newVal = BinaryExpr.evaluate(currentVal, 1, IASTBinaryExpression.op_plus)
             
-            // push then set
-            context.stack.push(currentVal)
-            context.setValue(newVal, info.address)   
+            if (Utils.isOnLeftSideOfAssignment(unary) && unary.getParent.isInstanceOf[IASTUnaryExpression] && unary.getParent.asInstanceOf[IASTUnaryExpression].getOperator == op_star) {
+              context.stack.push(vari)
+            } else {
+              // push then set
+              context.stack.push(currentVal)
+              context.setValue(newVal, info.address) 
+            }
           case `op_postFixDecr` =>          
             val (currentVal, info) = resolveVar(context.stack.pop)
             val newVal = BinaryExpr.evaluate(currentVal, 1, IASTBinaryExpression.op_minus)
@@ -302,11 +307,19 @@ object Expressions {
                 context.stack.push(
                   if (Utils.isOnLeftSideOfAssignment(unary) || isNested || specialCase) { 
                     val deref = context.readPtrVal(info.address)
+                    
+                     if (Utils.isOnLeftSideOfAssignment(unary) && unary.getChildren.size == 1 && unary.getChildren.head.isInstanceOf[IASTUnaryExpression] && 
+                        unary.getChildren.head.asInstanceOf[IASTUnaryExpression].getOperator == op_postFixIncr) {
+                      context.setValue(value.value.asInstanceOf[Int] + 1, info.address) 
+                    }
+                    
                     AddressInfo(Address(deref), nestedType)
                   } else {
                     context.readVal(Address(value.value.asInstanceOf[Int]), TypeHelper.resolve(info.theType))
                   }
                 )
+                
+               
               case address @ AddressInfo(addr, theType) =>
                 theType match {
                   
