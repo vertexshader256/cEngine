@@ -21,8 +21,12 @@ object Variable {
   def unapply(any: Any)(implicit state: State): Option[(ValueInfo, AddressInfo)] = {
     if (any.isInstanceOf[VarRef]) {
       val ref = any.asInstanceOf[VarRef]
-      val vari = state.currentFunctionContext.resolveId(ref.name)
-      Some((vari.value, vari.info))
+      if (state.currentFunctionContext.containsId(ref.name)) {
+        val vari = state.currentFunctionContext.resolveId(ref.name)
+        Some((vari.value, vari.info))
+      } else {
+        None
+      }
     } else {
       None
     }
@@ -136,6 +140,7 @@ class FunctionExecutionContext(globals: Map[String, RuntimeVariable], val return
   val pathStack = new Stack[IASTNode]()
   val stack = new Stack[Any]()
 
+  def containsId(id: String) = varMap.contains(id)
   def resolveId(id: String) = varMap(id)
   def addVariable(id: String, theVar: RuntimeVariable) = varMap += (id -> theVar) 
 }
@@ -631,6 +636,7 @@ object Executor {
                 case `t_double` => new CBasicType(IBasicType.Kind.eDouble, 0)           
                 case `t_char`   => new CBasicType(IBasicType.Kind.eChar, 0)
                 case `t_void`   => new CBasicType(IBasicType.Kind.eVoid, 0)
+                case `t_typeof`   => new CBasicType(IBasicType.Kind.eVoid, 0) // FIX
               }
             case simple: CASTTypedefNameSpecifier =>
               null
