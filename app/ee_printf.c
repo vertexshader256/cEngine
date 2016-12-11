@@ -583,7 +583,7 @@ void uart_send_char(char c) {
   str[0] = c;
   str[1] = '\0';
   
-  putc(c);
+  putchar(c);
 }
 
 int ee_printf(const char *fmt, ...)
