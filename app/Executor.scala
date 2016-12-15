@@ -48,7 +48,10 @@ trait Referencable {
   val state: State
   def sizeof: Int
   def info: AddressInfo
+  def value: ValueInfo
+  
   def pointerValue: Int = {
+    state.readVal(info.address, TypeHelper.pointerType).value.asInstanceOf[Int]
   }
 }
 
