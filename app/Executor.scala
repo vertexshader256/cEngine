@@ -48,12 +48,14 @@ trait Referencable {
   def sizeof: Int
   def info: AddressInfo
   def value: ValueInfo
+  val node: IASTNode
 }
 
 trait RuntimeVariable extends Referencable {
   val state: State
   val theType: IType
   def address: Address
+  val node = null
 
   val size = TypeHelper.sizeof(theType)
 
@@ -594,7 +596,7 @@ object Executor {
         Executor.parseDeclarator(decl, direction)
       case fcnDef: IASTFunctionDefinition =>
         if (state.isPreprocessing) {
-          state.functionMap += (fcnDef.getDeclarator.getName.getRawSignature -> fcnDef)
+          state.addFunctionDef(fcnDef)
           Seq()
         } else if (direction == Exiting) {
           if (!state.currentFunctionContext.stack.isEmpty) {
@@ -667,7 +669,7 @@ class Executor() {
     tUnit = Utils.getTranslationUnit(code)
     current = tUnit
 
-    engineState.functionMap.remove("main")
+    engineState.removeFunctionDef("main")
     engineState.functionContexts.push(new FunctionExecutionContext(Map(), null, engineState)) // load initial stack
   
     engineState.isPreprocessing = true
@@ -685,7 +687,7 @@ class Executor() {
     }
 
     engineState.currentFunctionContext.pathStack.clear
-    engineState.currentFunctionContext.pathStack.push(engineState.functionMap("main"))
+    engineState.currentFunctionContext.pathStack.push(engineState.getFunction("main"))
     current = engineState.currentFunctionContext.pathStack.head
   }
 

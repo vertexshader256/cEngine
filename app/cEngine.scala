@@ -28,8 +28,30 @@ class State {
   val functionContexts = new Stack[FunctionExecutionContext]()
   val globals = Map[String, Referencable]()
   def currentFunctionContext = functionContexts.head
-  val functionMap = scala.collection.mutable.Map[String, IASTNode]()
+  private val functionMap = scala.collection.mutable.Map[String, Referencable]()
   val stdout = new ListBuffer[String]()
+  
+  def removeFunctionDef(name: String) = {
+    functionMap.remove("main") 
+  }
+  
+  def getFunction(name: String): IASTNode = functionMap(name).node
+  
+  def addFunctionDef(fcnDef: IASTFunctionDefinition) = {
+    val name = fcnDef.getDeclarator.getName.getRawSignature
+    
+    val newRef = new Referencable {
+      val state = State.this
+      def sizeof = 0
+      val fcnBinding = fcnDef.getDeclarator.getName.resolveBinding()
+      val theType = fcnBinding.asInstanceOf[CFunction].getType
+      def info = AddressInfo(Address(0), theType)
+      def value = ValueInfo(0, theType)
+      val node = fcnDef
+    }
+    
+    functionMap += name -> newRef
+  }
 
   // flags
   var isReturning = false
@@ -39,7 +61,7 @@ class State {
   
   def stack = currentFunctionContext.stack
 
-  def callFunction(call: IASTFunctionCallExpression, args: Seq[Any]) = {
+  def callFunction(call: IASTFunctionCallExpression, args: Seq[Any]): Seq[IASTNode] = {
     functionContexts.push(new FunctionExecutionContext(globals, call.getExpressionType, this))
     currentFunctionContext.pathStack.push(call)
     
@@ -50,7 +72,7 @@ class State {
       case x: IASTIdExpression => x.getName.getRawSignature
     }
 
-    Seq(functionMap(name))
+    Seq(functionMap(name).node)
   }
 
   def clearVisited(parent: IASTNode) {
