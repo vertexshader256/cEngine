@@ -408,6 +408,7 @@ object Executor {
                 val values = (0 until size).map{x => state.stack.pop match {
                   case lit: Literal => lit.cast
                   case int: Int => int
+                  case ValueInfo(value,_) => value
                 }}.reverse
   
                 val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], Array(size))

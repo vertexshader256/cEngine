@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets
 import org.anarres.cpp.InputLexerSource
 import java.io.ByteArrayInputStream
 import org.anarres.cpp.Token
+import better.files._
 
 sealed trait Direction
 object Entering extends Direction
@@ -80,7 +81,8 @@ object Utils {
 		pp.getSystemIncludePath.add("C:\\MinGW\\lib\\gcc\\mingw32\\4.9.3\\include");
 		pp.addMacro("__cdecl", "")
 		pp.getQuoteIncludePath.add("C:\\MinGW\\include");
-		pp.getQuoteIncludePath.add("C:\\MinGW\\lib\\gcc\\mingw32\\4.9.3\\include");
+		pp.getQuoteIncludePath.add("C:\\MinGW\\include");
+		pp.getQuoteIncludePath.add("C:\\Scala\\Git\\astViewer\\test\\scala\\c-algorithms-master\\test");
 //		pp.getFrameworksPath().add("/System/Library/Frameworks");
 //		pp.getFrameworksPath().add("/Library/Frameworks");
 //		pp.getFrameworksPath().add("/Local/Library/Frameworks");
@@ -120,6 +122,8 @@ object Utils {
 			}
 		
 		val preprocess = preprocessResults.toString
+		
+		better.files.File("what.txt").write(preprocess)
     
 
     val fileContent = FileContent.create("test", preprocess.toCharArray)

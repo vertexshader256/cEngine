@@ -12,9 +12,11 @@ class DataStructuresTest extends StandardTest {
 
     val dataCode = dataStructureFiles.reduce{_ + "\n" + _}
     
-    val allCode = dataCode + "\n" + File("test\\scala\\c-algorithms-master\\test\\test-hash-table.c").contentAsString +
+    val allCode =  File("test\\scala\\c-algorithms-master\\src\\arraylist.c").contentAsString +
+                          "\n" + File("test\\scala\\c-algorithms-master\\src\\compare-int.c").contentAsString +
                           "\n" + File("test\\scala\\c-algorithms-master\\test\\alloc-testing.c").contentAsString +
-                          "\n" + File("test\\scala\\c-algorithms-master\\test\\framework.c").contentAsString
+                          "\n" + File("test\\scala\\c-algorithms-master\\test\\framework.c").contentAsString +
+                          "\n" + File("test\\scala\\c-algorithms-master\\test\\test-arraylist.c").contentAsString
     
      File("what.txt").write(allCode)                     
                           
