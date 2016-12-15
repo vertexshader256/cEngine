@@ -40,7 +40,7 @@ class State {
   def stack = currentFunctionContext.stack
 
   def callFunction(call: IASTFunctionCallExpression, args: Seq[Any]) = {
-    functionContexts.push(new FunctionExecutionContext(globals, call.getExpressionType))
+    functionContexts.push(new FunctionExecutionContext(globals, call.getExpressionType, this))
     currentFunctionContext.pathStack.push(call)
     
         // load up the stack with the parameters

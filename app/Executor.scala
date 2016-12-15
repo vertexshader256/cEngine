@@ -92,9 +92,6 @@ protected class ArrayVariable(val state: State, val theType: IType, dim: Seq[Int
 
   val address: Address = allocateSpace(state, TypeHelper.pointerType, 1)
   
-  
-  
-  
   def allocateData(subType: IType, dimensions: Seq[Int]): Address = {
     // where we store the actual data
 
@@ -134,7 +131,7 @@ protected class Variable(val state: State, val theType: IType) extends RuntimeVa
   }
 }
 
-class FunctionExecutionContext(globals: Map[String, RuntimeVariable], val returnType: IType) {
+class FunctionExecutionContext(globals: Map[String, RuntimeVariable], val returnType: IType, state: State) {
   val visited = new ListBuffer[IASTNode]()
   val varMap = Map[String, RuntimeVariable]() ++ globals
   val pathStack = new Stack[IASTNode]()
@@ -555,8 +552,8 @@ object Executor {
         if (direction == Exiting && !state.isPreprocessing) {
           val paramInfo = param.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
           
-          if (!paramInfo.getType.isInstanceOf[IBasicType] || 
-              paramInfo.getType.asInstanceOf[IBasicType].getKind != eVoid) {
+          if (paramInfo != null && paramInfo.getType != null && (!paramInfo.getType.isInstanceOf[IBasicType] || 
+              paramInfo.getType.asInstanceOf[IBasicType].getKind != eVoid)) {
             val arg = state.stack.pop
   
             val name = param.getDeclarator.getName.getRawSignature
@@ -669,7 +666,7 @@ class Executor() {
     current = tUnit
 
     engineState.functionMap.remove("main")
-    engineState.functionContexts.push(new FunctionExecutionContext(Map(), null)) // load initial stack
+    engineState.functionContexts.push(new FunctionExecutionContext(Map(), null, engineState)) // load initial stack
   
     engineState.isPreprocessing = true
     execute(engineState)
@@ -682,7 +679,7 @@ class Executor() {
   
     engineState.functionContexts.pop
     if (reset) {
-      engineState.functionContexts.push(new FunctionExecutionContext(engineState.globals, null)) // load initial stack
+      engineState.functionContexts.push(new FunctionExecutionContext(engineState.globals, null, engineState)) // load initial stack
     }
 
     engineState.currentFunctionContext.pathStack.clear

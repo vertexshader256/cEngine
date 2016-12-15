@@ -17,9 +17,7 @@ class DataStructuresTest extends StandardTest {
                           "\n" + File("test\\scala\\c-algorithms-master\\test\\alloc-testing.c").contentAsString +
                           "\n" + File("test\\scala\\c-algorithms-master\\test\\framework.c").contentAsString +
                           "\n" + File("test\\scala\\c-algorithms-master\\test\\test-arraylist.c").contentAsString
-    
-     File("what.txt").write(allCode)                     
-                          
+                        
     checkResults(allCode)
   }
 }
