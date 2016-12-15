@@ -18,12 +18,11 @@ case class VarRef(name: String)
 
 object Variable {                              
   def apply(x: Int): Int = x * 2
-  def unapply(any: Any)(implicit state: State): Option[(ValueInfo, AddressInfo)] = {
+  def unapply(any: Any)(implicit state: State): Option[Referencable] = {
     if (any.isInstanceOf[VarRef]) {
       val ref = any.asInstanceOf[VarRef]
       if (state.currentFunctionContext.containsId(ref.name)) {
-        val vari = state.currentFunctionContext.resolveId(ref.name)
-        Some((vari.value, vari.info))
+        Some(state.currentFunctionContext.resolveId(ref.name))
       } else {
         None
       }
@@ -49,17 +48,13 @@ trait Referencable {
   def sizeof: Int
   def info: AddressInfo
   def value: ValueInfo
-  
-  def pointerValue: Int = {
-    state.readVal(info.address, TypeHelper.pointerType).value.asInstanceOf[Int]
-  }
 }
 
 trait RuntimeVariable extends Referencable {
   val state: State
   val theType: IType
   def address: Address
-  
+
   val size = TypeHelper.sizeof(theType)
 
   def sizeof: Int
@@ -260,7 +255,7 @@ object Executor {
         val result = state.stack.pop
 
         val value = result match {
-          case Variable(value, _) => value
+          case Variable(info) => info.value
           case lit @ Literal(_) =>
             lit.cast.value
           case x => x
@@ -326,7 +321,7 @@ object Executor {
             case lit @ Literal(_) => lit.cast.value
             case VarRef(id)       => 
               if (TypeHelper.isPointer(state.currentFunctionContext.returnType)) {
-                state.currentFunctionContext.resolveId(id).pointerValue
+                state.currentFunctionContext.resolveId(id).value.value
               } else {
                 TypeHelper.cast(state.currentFunctionContext.returnType, state.currentFunctionContext.resolveId(id).value.value)
               }
@@ -387,7 +382,7 @@ object Executor {
             val dimensions = arrayDecl.getArrayModifiers.filter{_.getConstantExpression != null}.map{dim => state.stack.pop match {
               // can we can assume dimensions are integers
               case lit: Literal => lit.cast.value.asInstanceOf[Int]
-              case Variable(value, _) => value.value.asInstanceOf[Int]
+              case Variable(info) => info.value.value.asInstanceOf[Int]
               case int: Int => int
             }}
             
@@ -463,9 +458,9 @@ object Executor {
                 val initVal = Option(decl.getInitializer).map(x => state.stack.pop).getOrElse(0)
                 
                 val newVar = initVal match {
-                  case Variable(value, info) => 
+                  case Variable(info) => 
                     val newVar = new Variable(state, theType)
-                    state.setValue(value.value, newVar.address)
+                    state.setValue(info.value.value, newVar.address)
                     newVar
                   case AddressInfo(address, addrType) => 
                     val newVar = new Variable(state, theType)

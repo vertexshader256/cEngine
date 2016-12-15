@@ -30,7 +30,8 @@ object FunctionCallExpr {
         val formattedOutputParams: Array[AnyVal] = argList.map { case (arg, value) => 
           
           value match {
-            case Variable(_, info) => 
+            case Variable(theInfo) => 
+              val info = theInfo.info
               if (TypeHelper.isPointer(info.theType) && TypeHelper.getPointedType(info.theType).isInstanceOf[IBasicType] &&
                   TypeHelper.getPointedType(info.theType).asInstanceOf[IBasicType].getKind == IBasicType.Kind.eChar) {
                 Address(state.readVal(info.address, info.theType).value.asInstanceOf[Int])

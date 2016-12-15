@@ -15,9 +15,7 @@ object BinaryExpr {
   def parseAssign(node: IASTNode, op: Int, op1: Any, op2: Any)(implicit state: State): Any = {
 
     val dst: AddressInfo = op1 match {
-      case VarRef(name) =>
-        val variable = state.currentFunctionContext.resolveId(name)
-        variable.info
+      case Variable(info) => info.info
       case info @ AddressInfo(_, _) => info
       case ValueInfo(value, info) => AddressInfo(Address(value.asInstanceOf[Byte].toInt), info)
     }
