@@ -8,6 +8,11 @@ import org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage
 import org.eclipse.cdt.core.parser.{DefaultLogService, FileContent, IncludeFileContentProvider, ScannerInfo}
 import scala.collection.mutable.ListBuffer
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
+import org.anarres.cpp.Preprocessor
+import java.nio.charset.StandardCharsets
+import org.anarres.cpp.InputLexerSource
+import java.io.ByteArrayInputStream
+import org.anarres.cpp.Token
 
 sealed trait Direction
 object Entering extends Direction
@@ -67,7 +72,55 @@ object Utils {
   }
 
   def getTranslationUnit(code: String): IASTTranslationUnit = {
-    val preprocess = Gcc.preprocess(code)
+    //val preprocess = Gcc.preprocess(code)
+    
+    val	pp = new Preprocessor();
+
+		pp.getSystemIncludePath.add("C:\\MinGW\\include");
+		pp.getSystemIncludePath.add("C:\\MinGW\\lib\\gcc\\mingw32\\4.9.3\\include");
+		pp.addMacro("__cdecl", "")
+		pp.getQuoteIncludePath.add("C:\\MinGW\\include");
+		pp.getQuoteIncludePath.add("C:\\MinGW\\lib\\gcc\\mingw32\\4.9.3\\include");
+//		pp.getFrameworksPath().add("/System/Library/Frameworks");
+//		pp.getFrameworksPath().add("/Library/Frameworks");
+//		pp.getFrameworksPath().add("/Local/Library/Frameworks");
+		
+		val stream = new ByteArrayInputStream(code.getBytes(StandardCharsets.UTF_8));
+		
+		pp.addInput(new InputLexerSource(stream));
+		
+		val preprocessResults = new StringBuilder
+		
+		var shouldBreak = false
+		var skipline = false
+		var startLine = 0
+		var currentLine = 0
+		
+		while (!shouldBreak) {
+		  try {
+				var	tok = pp.token();
+				currentLine = tok.getLine
+				
+				while (skipline && currentLine == startLine) {
+				  tok = pp.token();
+				  currentLine = tok.getLine
+				}
+				skipline = false
+				
+				if (tok == null)
+					shouldBreak = true
+				if (!shouldBreak && tok.getType() == Token.EOF)
+					shouldBreak = true
+					
+				if (!shouldBreak)
+				  preprocessResults ++= tok.getText()
+		  } catch {
+		    case e => skipline = true; startLine = currentLine + 1;
+		  }
+			}
+		
+		val preprocess = preprocessResults.toString
+    
 
     val fileContent = FileContent.create("test", preprocess.toCharArray)
     val symbolMap = new HashMap[String, String];

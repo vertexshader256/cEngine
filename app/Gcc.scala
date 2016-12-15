@@ -73,7 +73,7 @@ object Gcc {
     file.overwrite(code)
     
     val sourceFileTokens = Seq("-c", file.path.toString)
-    val includeTokens = Seq("-I", "C:\\Scala\\Git\\astViewer\\app")
+    val includeTokens = Seq("-I", "C:\\Scala\\Git\\astViewer\\app", "-I", "C:\\Scala\\Git\\astViewer\\test\\scala\\c-algorithms-master\\test", "-I", "C:\\Scala\\Git\\astViewer\\test\\scala\\c-algorithms-master\\src")
 
     val processTokens =
         Seq("gcc") ++ sourceFileTokens ++ includeTokens
