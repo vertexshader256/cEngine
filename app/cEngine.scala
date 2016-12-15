@@ -26,7 +26,7 @@ class State {
   private val tape = ByteBuffer.allocate(100000);
   
   val functionContexts = new Stack[FunctionExecutionContext]()
-  val globals = Map[String, RuntimeVariable]()
+  val globals = Map[String, Referencable]()
   def currentFunctionContext = functionContexts.head
   val functionMap = scala.collection.mutable.Map[String, IASTNode]()
   val stdout = new ListBuffer[String]()

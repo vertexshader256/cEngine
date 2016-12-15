@@ -379,8 +379,8 @@ object BinaryExpr {
         
         if (!result.isInstanceOf[Boolean] && TypeHelper.resolve(theVar.value.theType).isUnsigned) {
           TypeHelper.cast(TypeHelper.resolve(theVar.value.theType), result).value
-        } else if (!result.isInstanceOf[Boolean] && TypeHelper.isPointer(theVar.theType)) {
-          ValueInfo(Address(result.asInstanceOf[Int]), theVar.theType)
+        } else if (!result.isInstanceOf[Boolean] && TypeHelper.isPointer(theVar.info.theType)) {
+          ValueInfo(Address(result.asInstanceOf[Int]), theVar.info.theType)
         } else {
           result
         }

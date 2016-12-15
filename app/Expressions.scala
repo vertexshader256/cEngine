@@ -74,8 +74,8 @@ object Expressions {
           owner match {
             case VarRef(id) =>
               val theVar = context.currentFunctionContext.resolveId(id)
-              baseAddr = theVar.address
-              theVar.theType.asInstanceOf[CStructure]
+              baseAddr = theVar.info.address
+              theVar.info.theType.asInstanceOf[CStructure]
             case AddressInfo(addr, theType) => 
               baseAddr = addr
               theType match {
@@ -279,19 +279,19 @@ object Expressions {
             context.stack.pop match {
               case VarRef(id) =>
                 val theVar = context.currentFunctionContext.resolveId(id)
-                context.stack.push(theVar.address)
+                context.stack.push(theVar.info.address)
             }
           case `op_star` =>
             context.stack.pop match {
               case ValueInfo(char: Character, _) =>
                 val target = Utils.getUnaryTarget(unary).foreach { name =>
                   val ptr = context.currentFunctionContext.resolveId(name.getRawSignature)
-                  context.stack.push(context.readVal(Address(char), TypeHelper.resolve(ptr.theType)))
+                  context.stack.push(context.readVal(Address(char), TypeHelper.resolve(ptr.info.theType)))
                 }
               case ValueInfo(int: Int, _) =>
                 val target = Utils.getUnaryTarget(unary).foreach { name =>
                   val ptr = context.currentFunctionContext.resolveId(name.getRawSignature)
-                  context.stack.push(context.readVal(Address(int), TypeHelper.resolve(ptr.theType)))
+                  context.stack.push(context.readVal(Address(int), TypeHelper.resolve(ptr.info.theType)))
                 }
               case Variable(value, info) =>       
                 val nestedType = info.theType match {

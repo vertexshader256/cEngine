@@ -44,7 +44,15 @@ case class Address(value: Int) extends AnyVal {
 }
 case class AddressInfo(address: Address, theType: IType)
 
-trait RuntimeVariable {
+trait Referencable {
+  val state: State
+  def sizeof: Int
+  def info: AddressInfo
+  def pointerValue: Int = {
+  }
+}
+
+trait RuntimeVariable extends Referencable {
   val state: State
   val theType: IType
   def address: Address
@@ -56,10 +64,6 @@ trait RuntimeVariable {
   
   def value: ValueInfo = {
     ValueInfo(state.readVal(address, theType).value, theType)
-  }
-  
-  def pointerValue: Int = {
-    state.readVal(address, TypeHelper.pointerType).value.asInstanceOf[Int]
   }
 
   def allocateSpace(state: State, aType: IType, numElements: Int): Address = {
@@ -131,9 +135,9 @@ protected class Variable(val state: State, val theType: IType) extends RuntimeVa
   }
 }
 
-class FunctionExecutionContext(globals: Map[String, RuntimeVariable], val returnType: IType, state: State) {
+class FunctionExecutionContext(globals: Map[String, Referencable], val returnType: IType, state: State) {
   val visited = new ListBuffer[IASTNode]()
-  val varMap = Map[String, RuntimeVariable]() ++ globals
+  val varMap = Map[String, Referencable]() ++ globals
   val pathStack = new Stack[IASTNode]()
   val stack = new Stack[Any]()
 
