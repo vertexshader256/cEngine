@@ -22,24 +22,27 @@ object cEngine {
 
 class State {
   
+  case class FunctionInfo(fcnDef: IASTFunctionDefinition, fcnType: CFunction)
+  
   // turing tape 
   private val tape = ByteBuffer.allocate(100000);
   
   val functionContexts = new Stack[ExecutionContext]()
   val globals = Map[String, ResolvedVarRef]()
   def context = functionContexts.head
-  private val functionMap = scala.collection.mutable.Map[String, ResolvedVarRef]()
+  private val functionMap = scala.collection.mutable.Map[String, FunctionInfo]()
   val stdout = new ListBuffer[String]()
   
   def removeFunctionDef(name: String) = {
     functionMap.remove("main") 
   }
   
-  def getFunction(name: String): IASTNode = functionMap(name).payload.asInstanceOf[IASTFunctionDefinition]
+  def getFunction(name: String): IASTNode = functionMap(name).fcnDef
   
   def addFunctionDef(fcnDef: IASTFunctionDefinition) = {
-    val name = fcnDef.getDeclarator.getName.getRawSignature
-    functionMap += name -> new ResolvedVarRef(fcnDef)
+    val name = fcnDef.getDeclarator.getName
+    
+    functionMap += name.getRawSignature -> FunctionInfo(fcnDef, name.resolveBinding().asInstanceOf[CFunction])
   }
 
   // flags
