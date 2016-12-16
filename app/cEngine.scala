@@ -26,31 +26,20 @@ class State {
   private val tape = ByteBuffer.allocate(100000);
   
   val functionContexts = new Stack[FunctionExecutionContext]()
-  val globals = Map[String, Referencable]()
+  val globals = Map[String, ResolvedVarRef]()
   def currentFunctionContext = functionContexts.head
-  private val functionMap = scala.collection.mutable.Map[String, Referencable]()
+  private val functionMap = scala.collection.mutable.Map[String, ResolvedVarRef]()
   val stdout = new ListBuffer[String]()
   
   def removeFunctionDef(name: String) = {
     functionMap.remove("main") 
   }
   
-  def getFunction(name: String): IASTNode = functionMap(name).node
+  def getFunction(name: String): IASTNode = functionMap(name).payload.asInstanceOf[IASTFunctionDefinition]
   
   def addFunctionDef(fcnDef: IASTFunctionDefinition) = {
     val name = fcnDef.getDeclarator.getName.getRawSignature
-    
-    val newRef = new Referencable {
-      val state = State.this
-      def sizeof = 0
-      val fcnBinding = fcnDef.getDeclarator.getName.resolveBinding()
-      val theType = fcnBinding.asInstanceOf[CFunction].getType
-      def info = AddressInfo(Address(0), theType)
-      def value = ValueInfo(0, theType)
-      val node = fcnDef
-    }
-    
-    functionMap += name -> newRef
+    functionMap += name -> new ResolvedVarRef(fcnDef)
   }
 
   // flags
@@ -72,7 +61,7 @@ class State {
       case x: IASTIdExpression => x.getName.getRawSignature
     }
 
-    Seq(functionMap(name).node)
+    Seq(getFunction(name))
   }
 
   def clearVisited(parent: IASTNode) {

@@ -18,11 +18,16 @@ case class VarRef(name: String)
 
 object Variable {                              
   def apply(x: Int): Int = x * 2
-  def unapply(any: Any)(implicit state: State): Option[Referencable] = {
+  def unapply(any: Any)(implicit state: State): Option[RuntimeVariable] = {
     if (any.isInstanceOf[VarRef]) {
       val ref = any.asInstanceOf[VarRef]
       if (state.currentFunctionContext.containsId(ref.name)) {
-        Some(state.currentFunctionContext.resolveId(ref.name))
+        val resolved = state.currentFunctionContext.resolveId(ref.name)
+        if (resolved.payload.isInstanceOf[RuntimeVariable]) {
+          Some(resolved.payload.asInstanceOf[RuntimeVariable])
+        } else {
+          None
+        }
       } else {
         None
       }
@@ -43,15 +48,10 @@ case class Address(value: Int) extends AnyVal {
 }
 case class AddressInfo(address: Address, theType: IType)
 
-trait Referencable {
-  val state: State
-  def sizeof: Int
-  def info: AddressInfo
-  def value: ValueInfo
-  val node: IASTNode
-}
+// payload is either a RuntimeVariable or FunctionDef
+case class ResolvedVarRef(payload: Any)
 
-trait RuntimeVariable extends Referencable {
+trait RuntimeVariable {
   val state: State
   val theType: IType
   def address: Address
@@ -135,15 +135,15 @@ protected class Variable(val state: State, val theType: IType) extends RuntimeVa
   }
 }
 
-class FunctionExecutionContext(globals: Map[String, Referencable], val returnType: IType, state: State) {
+class FunctionExecutionContext(globals: Map[String, ResolvedVarRef], val returnType: IType, state: State) {
   val visited = new ListBuffer[IASTNode]()
-  val varMap = Map[String, Referencable]() ++ globals
+  val varMap = Map[String, ResolvedVarRef]() ++ globals
   val pathStack = new Stack[IASTNode]()
   val stack = new Stack[Any]()
 
   def containsId(id: String) = varMap.contains(id)
   def resolveId(id: String) = varMap(id)
-  def addVariable(id: String, theVar: RuntimeVariable) = varMap += (id -> theVar) 
+  def addVariable(id: String, theVar: RuntimeVariable) = varMap += (id -> ResolvedVarRef(theVar)) 
 }
 
 object Executor {
@@ -321,11 +321,11 @@ object Executor {
           state.stack.push(returnVal match {
             case lit @ Literal(_) if state.currentFunctionContext.returnType != null => lit.typeCast(TypeHelper.resolve(state.currentFunctionContext.returnType))
             case lit @ Literal(_) => lit.cast.value
-            case VarRef(id)       => 
+            case Variable(info)       => 
               if (TypeHelper.isPointer(state.currentFunctionContext.returnType)) {
-                state.currentFunctionContext.resolveId(id).value.value
+                info.value.value
               } else {
-                TypeHelper.cast(state.currentFunctionContext.returnType, state.currentFunctionContext.resolveId(id).value.value)
+                TypeHelper.cast(state.currentFunctionContext.returnType, info.value.value)
               }
             case ValueInfo(theVal, _) => theVal
             case int: Int         => int

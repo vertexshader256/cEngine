@@ -10,6 +10,7 @@ import java.math.BigInteger
 import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 import org.eclipse.cdt.internal.core.dom.parser.c._
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
+import Variable._
 
 object Expressions {
 
@@ -72,10 +73,9 @@ object Expressions {
           }
         } else {
           owner match {
-            case VarRef(id) =>
-              val theVar = context.currentFunctionContext.resolveId(id)
-              baseAddr = theVar.info.address
-              theVar.info.theType.asInstanceOf[CStructure]
+            case Variable(info) =>
+              baseAddr = info.address
+              info.theType.asInstanceOf[CStructure]
             case AddressInfo(addr, theType) => 
               baseAddr = addr
               theType match {
@@ -264,8 +264,8 @@ object Expressions {
             context.stack.push(newVal)
           case `op_sizeof` =>
             context.stack.push(context.stack.pop match {
-              case VarRef(name) =>
-                context.currentFunctionContext.resolveId(name).sizeof
+              case Variable(info) =>
+                info.sizeof
               case ValueInfo(_, theType) => TypeHelper.sizeof(theType)  
               case AddressInfo(_, theType) => TypeHelper.sizeof(theType)  
               case _: Character => 1
@@ -277,20 +277,19 @@ object Expressions {
             })
           case `op_amper` =>
             context.stack.pop match {
-              case VarRef(id) =>
-                val theVar = context.currentFunctionContext.resolveId(id)
-                context.stack.push(theVar.info.address)
+              case Variable(info) =>
+                context.stack.push(info.address)
             }
           case `op_star` =>
             context.stack.pop match {
               case ValueInfo(char: Character, _) =>
                 val target = Utils.getUnaryTarget(unary).foreach { name =>
-                  val ptr = context.currentFunctionContext.resolveId(name.getRawSignature)
+                  val ptr = context.currentFunctionContext.resolveId(name.getRawSignature).payload.asInstanceOf[RuntimeVariable]
                   context.stack.push(context.readVal(Address(char), TypeHelper.resolve(ptr.info.theType)))
                 }
               case ValueInfo(int: Int, _) =>
                 val target = Utils.getUnaryTarget(unary).foreach { name =>
-                  val ptr = context.currentFunctionContext.resolveId(name.getRawSignature)
+                  val ptr = context.currentFunctionContext.resolveId(name.getRawSignature).payload.asInstanceOf[RuntimeVariable]
                   context.stack.push(context.readVal(Address(int), TypeHelper.resolve(ptr.info.theType)))
                 }
               case Variable(info) =>       

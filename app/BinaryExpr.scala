@@ -369,16 +369,15 @@ object BinaryExpr {
     val rawOp1 = state.stack.pop
     
     rawOp1 match {
-      case VarRef(name)  =>
-        val theVar = state.currentFunctionContext.resolveId(name)
-        val result = performTypedBinaryOperation(theVar.value, op2, binaryExpr.getOperator).getOrElse{
-          performBinaryOperation(theVar.value.value, op2, binaryExpr.getOperator)
+      case Variable(info)  =>
+        val result = performTypedBinaryOperation(info.value, op2, binaryExpr.getOperator).getOrElse{
+          performBinaryOperation(info.value.value, op2, binaryExpr.getOperator)
         }
         
-        if (!result.isInstanceOf[Boolean] && TypeHelper.resolve(theVar.value.theType).isUnsigned) {
-          TypeHelper.cast(TypeHelper.resolve(theVar.value.theType), result).value
-        } else if (!result.isInstanceOf[Boolean] && TypeHelper.isPointer(theVar.info.theType)) {
-          ValueInfo(Address(result.asInstanceOf[Int]), theVar.info.theType)
+        if (!result.isInstanceOf[Boolean] && TypeHelper.resolve(info.value.theType).isUnsigned) {
+          TypeHelper.cast(TypeHelper.resolve(info.value.theType), result).value
+        } else if (!result.isInstanceOf[Boolean] && TypeHelper.isPointer(info.info.theType)) {
+          ValueInfo(Address(result.asInstanceOf[Int]), info.info.theType)
         } else {
           result
         }
