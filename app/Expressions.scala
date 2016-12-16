@@ -284,12 +284,12 @@ object Expressions {
             context.stack.pop match {
               case ValueInfo(char: Character, _) =>
                 val target = Utils.getUnaryTarget(unary).foreach { name =>
-                  val ptr = context.currentFunctionContext.resolveId(name.getRawSignature).payload.asInstanceOf[RuntimeVariable]
+                  val ptr = context.context.resolveId(name.getRawSignature).payload.asInstanceOf[RuntimeVariable]
                   context.stack.push(context.readVal(Address(char), TypeHelper.resolve(ptr.info.theType)))
                 }
               case ValueInfo(int: Int, _) =>
                 val target = Utils.getUnaryTarget(unary).foreach { name =>
-                  val ptr = context.currentFunctionContext.resolveId(name.getRawSignature).payload.asInstanceOf[RuntimeVariable]
+                  val ptr = context.context.resolveId(name.getRawSignature).payload.asInstanceOf[RuntimeVariable]
                   context.stack.push(context.readVal(Address(int), TypeHelper.resolve(ptr.info.theType)))
                 }
               case Variable(info) =>       
@@ -367,7 +367,7 @@ object Expressions {
       FunctionCallExpr.parse(call, direction)
     case bin: IASTBinaryExpression =>
       if (direction == Exiting) {
-        if (context.currentFunctionContext.visited.contains(bin.getOperand2)) {
+        if (context.context.visited.contains(bin.getOperand2)) {
           val result = if (Utils.isAssignment(bin.getOperator)) {
               var op2: Any = context.stack.pop
               var op1: Any = context.stack.pop

@@ -21,8 +21,8 @@ object Variable {
   def unapply(any: Any)(implicit state: State): Option[RuntimeVariable] = {
     if (any.isInstanceOf[VarRef]) {
       val ref = any.asInstanceOf[VarRef]
-      if (state.currentFunctionContext.containsId(ref.name)) {
-        val resolved = state.currentFunctionContext.resolveId(ref.name)
+      if (state.context.containsId(ref.name)) {
+        val resolved = state.context.resolveId(ref.name)
         if (resolved.payload.isInstanceOf[RuntimeVariable]) {
           Some(resolved.payload.asInstanceOf[RuntimeVariable])
         } else {
@@ -135,7 +135,7 @@ protected class Variable(val state: State, val theType: IType) extends RuntimeVa
   }
 }
 
-class FunctionExecutionContext(globals: Map[String, ResolvedVarRef], val returnType: IType, state: State) {
+class ExecutionContext(globals: Map[String, ResolvedVarRef], val returnType: IType, state: State) {
   val visited = new ListBuffer[IASTNode]()
   val varMap = Map[String, ResolvedVarRef]() ++ globals
   val pathStack = new Stack[IASTNode]()
@@ -319,13 +319,13 @@ object Executor {
         if (ret.getReturnValue != null) {
           val returnVal = state.stack.pop
           state.stack.push(returnVal match {
-            case lit @ Literal(_) if state.currentFunctionContext.returnType != null => lit.typeCast(TypeHelper.resolve(state.currentFunctionContext.returnType))
+            case lit @ Literal(_) if state.context.returnType != null => lit.typeCast(TypeHelper.resolve(state.context.returnType))
             case lit @ Literal(_) => lit.cast.value
             case Variable(info)       => 
-              if (TypeHelper.isPointer(state.currentFunctionContext.returnType)) {
+              if (TypeHelper.isPointer(state.context.returnType)) {
                 info.value.value
               } else {
-                TypeHelper.cast(state.currentFunctionContext.returnType, info.value.value)
+                TypeHelper.cast(state.context.returnType, info.value.value)
               }
             case ValueInfo(theVal, _) => theVal
             case int: Int         => int
@@ -401,7 +401,7 @@ object Executor {
                 val strAddr = state.createStringVariable(initString)
                 val theArrayPtr = new Variable(state, theType.asInstanceOf[IArrayType])
                 state.setValue(strAddr.value, theArrayPtr.address)
-                state.currentFunctionContext.addVariable(name, theArrayPtr)
+                state.context.addVariable(name, theArrayPtr)
               } else {
                 val list = initializer.getInitializerClause.asInstanceOf[IASTInitializerList]
                 val size = list.getSize
@@ -414,7 +414,7 @@ object Executor {
   
                 val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], Array(size))
                 state.setArray(values.toArray, AddressInfo(theArrayPtr.theArrayAddress, theArrayPtr.info.theType))
-                state.currentFunctionContext.addVariable(name, theArrayPtr)
+                state.context.addVariable(name, theArrayPtr)
               }
             } else if (initializer != null) {
               val numElements = if (dimensions.isEmpty) 0 else dimensions.reduce{_ * _}
@@ -439,18 +439,18 @@ object Executor {
               }
               
               state.setArray(initialArray.toArray, AddressInfo(theArrayPtr.theArrayAddress, resolvedType))
-              state.currentFunctionContext.addVariable(name, theArrayPtr)
+              state.context.addVariable(name, theArrayPtr)
             } else {
               val initialArray = new ListBuffer[Any]()            
               val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)             
-              state.currentFunctionContext.addVariable(name, theArrayPtr)
+              state.context.addVariable(name, theArrayPtr)
             }
           case decl: CASTDeclarator =>
 
             def createVariable(theType: IType, name: String): RuntimeVariable = theType match {
               case struct: CStructure =>
                 val newStruct = new Variable(state, theType)
-                state.currentFunctionContext.addVariable(name, newStruct)
+                state.context.addVariable(name, newStruct)
                 newStruct
               case typedef: CTypedef =>
                 createVariable(typedef.getType, name)
@@ -493,7 +493,7 @@ object Executor {
                     newVar
                 }
                 
-                state.currentFunctionContext.addVariable(name, newVar)
+                state.context.addVariable(name, newVar)
                 newVar               
                
               case basic: IBasicType =>
@@ -504,7 +504,7 @@ object Executor {
                 val newVar = new Variable(state, theType)
                 val casted = TypeHelper.cast(newVar.info.theType, resolved).value
                 state.setValue(casted, newVar.info.address)
-                state.currentFunctionContext.addVariable(name, newVar)
+                state.context.addVariable(name, newVar)
                 newVar
             }
 
@@ -567,7 +567,7 @@ object Executor {
             val casted = TypeHelper.cast(newVar.info.theType, resolved).value
             state.setValue(casted, newVar.info.address)          
         
-            state.currentFunctionContext.addVariable(name, newVar)
+            state.context.addVariable(name, newVar)
           }
           
           Seq()
@@ -599,8 +599,8 @@ object Executor {
           state.addFunctionDef(fcnDef)
           Seq()
         } else if (direction == Exiting) {
-          if (!state.currentFunctionContext.stack.isEmpty) {
-            val retVal = state.currentFunctionContext.stack.head
+          if (!state.context.stack.isEmpty) {
+            val retVal = state.context.stack.head
             if (fcnDef.getDeclarator.getName.getRawSignature != "main") {
               state.functionContexts.pop
               if (fcnDef.getDeclSpecifier.getRawSignature == "void") {
@@ -608,7 +608,7 @@ object Executor {
                 state.stack.clear
               }
             }
-            state.currentFunctionContext.stack.push(retVal)
+            state.context.stack.push(retVal)
           } else {
             if (fcnDef.getDeclarator.getName.getRawSignature != "main") {
               state.functionContexts.pop
@@ -670,7 +670,7 @@ class Executor() {
     current = tUnit
 
     engineState.removeFunctionDef("main")
-    engineState.functionContexts.push(new FunctionExecutionContext(Map(), null, engineState)) // load initial stack
+    engineState.functionContexts.push(new ExecutionContext(Map(), null, engineState)) // load initial stack
   
     engineState.isPreprocessing = true
     execute(engineState)
@@ -679,16 +679,16 @@ class Executor() {
   
     println("_----------------------------------------------_")
   
-    engineState.globals ++= engineState.currentFunctionContext.varMap
+    engineState.globals ++= engineState.context.varMap
   
     engineState.functionContexts.pop
     if (reset) {
-      engineState.functionContexts.push(new FunctionExecutionContext(engineState.globals, null, engineState)) // load initial stack
+      engineState.functionContexts.push(new ExecutionContext(engineState.globals, null, engineState)) // load initial stack
     }
 
-    engineState.currentFunctionContext.pathStack.clear
-    engineState.currentFunctionContext.pathStack.push(engineState.getFunction("main"))
-    current = engineState.currentFunctionContext.pathStack.head
+    engineState.context.pathStack.clear
+    engineState.context.pathStack.push(engineState.getFunction("main"))
+    current = engineState.context.pathStack.head
   }
 
   
@@ -699,7 +699,7 @@ class Executor() {
   
 
   def tick(engineState: State): Unit = {
-    direction = if (engineState.currentFunctionContext.visited.contains(current)) Exiting else Entering
+    direction = if (engineState.context.visited.contains(current)) Exiting else Entering
 
     //println(current.getClass.getSimpleName + ":" + direction)
     
@@ -707,9 +707,9 @@ class Executor() {
     
     if (engineState.isBreaking) {
       // unroll the path stack until we meet the first parent which is a loop
-      var reverse = engineState.currentFunctionContext.pathStack.pop
+      var reverse = engineState.context.pathStack.pop
       while (!reverse.isInstanceOf[IASTWhileStatement] && !reverse.isInstanceOf[IASTForStatement] && !reverse.isInstanceOf[IASTSwitchStatement]) {
-        reverse = engineState.currentFunctionContext.pathStack.pop
+        reverse = engineState.context.pathStack.pop
       }
 
       engineState.isBreaking = false
@@ -720,40 +720,40 @@ class Executor() {
       // unroll the path stack until we meet the first parent which is a loop
 
       var last: IASTNode = null
-      last = engineState.currentFunctionContext.pathStack.pop
+      last = engineState.context.pathStack.pop
       while (!last.isInstanceOf[IASTForStatement]) {
-        last = engineState.currentFunctionContext.pathStack.pop
+        last = engineState.context.pathStack.pop
       }
 
       val forLoop = last.asInstanceOf[IASTForStatement]
 
-      engineState.currentFunctionContext.pathStack.push(forLoop)
-      engineState.currentFunctionContext.pathStack.push(forLoop.getConditionExpression)
-      engineState.currentFunctionContext.pathStack.push(forLoop.getIterationExpression)
+      engineState.context.pathStack.push(forLoop)
+      engineState.context.pathStack.push(forLoop.getConditionExpression)
+      engineState.context.pathStack.push(forLoop.getIterationExpression)
 
       engineState.isContinuing = false
     }
     
     if (engineState.isReturning) {
       var last: IASTNode = null
-      while (engineState.currentFunctionContext.pathStack.size > 1 && !last.isInstanceOf[IASTFunctionDefinition]) {
-        last = engineState.currentFunctionContext.pathStack.pop
+      while (engineState.context.pathStack.size > 1 && !last.isInstanceOf[IASTFunctionDefinition]) {
+        last = engineState.context.pathStack.pop
       }
 
-      current = engineState.currentFunctionContext.pathStack.head
+      current = engineState.context.pathStack.head
       engineState.isReturning = false
     } else {
 
       if (direction == Exiting) {
-        engineState.currentFunctionContext.pathStack.pop
+        engineState.context.pathStack.pop
       } else {
-        engineState.currentFunctionContext.visited += current
+        engineState.context.visited += current
       }
   
-      paths.reverse.foreach { path => engineState.currentFunctionContext.pathStack.push(path) }
+      paths.reverse.foreach { path => engineState.context.pathStack.push(path) }
   
-      if (!engineState.currentFunctionContext.pathStack.isEmpty) {
-        current = engineState.currentFunctionContext.pathStack.head
+      if (!engineState.context.pathStack.isEmpty) {
+        current = engineState.context.pathStack.head
       } else {
         current = null
       }
