@@ -88,14 +88,12 @@ trait RuntimeVariable {
   }
 }
 
-protected class ArrayVariable(val state: State, val theType: IType, dim: Seq[Int]) extends RuntimeVariable {
+protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) extends Variable(state, theType) {
 
   val dimensions = dim.reverse
   
   val numElements = if (dimensions.isEmpty) 0 else dimensions.reduce{_ * _}
 
-  var address = Address(0)
-  
   private def allocate: Address = {
     // where we store the actual data
     
@@ -118,13 +116,7 @@ protected class ArrayVariable(val state: State, val theType: IType, dim: Seq[Int
     
     recurse(state.resolve(theType), dimensions)
   }
-  
-  def info = AddressInfo(address, theType)
-  
-  def value: ValueInfo = {
-    ValueInfo(state.readVal(address, theType).value, theType)
-  }
-  
+ 
   val theArrayAddress = if (!dimensions.isEmpty) {      
     allocate
   } else {
@@ -133,7 +125,7 @@ protected class ArrayVariable(val state: State, val theType: IType, dim: Seq[Int
 
   state.setValue(theArrayAddress.value, info.address)
 
-  def sizeof: Int = {
+  override def sizeof: Int = {
     TypeHelper.sizeof(theType) * numElements
   }
 }
