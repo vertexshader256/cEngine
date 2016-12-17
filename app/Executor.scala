@@ -51,7 +51,7 @@ trait RuntimeVariable {
   val state: State
   val theType: IType
   def address: Address
-  val node = null
+  var node: IASTNode = null
 
   val size = TypeHelper.sizeof(theType)
 
@@ -131,13 +131,13 @@ protected class Variable(val state: State, val theType: IType) extends RuntimeVa
   }
 }
 
-class ExecutionContext(parentVars: Map[String, Any], val returnType: IType, state: State) {
+class ExecutionContext(parentVars: Map[String, RuntimeVariable], val returnType: IType, state: State) {
   val visited = new ListBuffer[IASTNode]()
   val varMap = parentVars.clone()
   val pathStack = new Stack[IASTNode]()
   val stack = new Stack[Any]()
 
-  def containsId(id: String) = varMap.contains(id)
+  def containsId(id: String) = varMap.contains(id) || state.hasFunction(id)
   def resolveId(id: String): Any = varMap.get(id).getOrElse(state.getFunction(id))
   def addVariable(id: String, theVar: RuntimeVariable) = varMap += (id -> theVar) 
 }

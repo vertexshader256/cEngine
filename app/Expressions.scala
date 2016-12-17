@@ -279,6 +279,8 @@ object Expressions {
             context.stack.pop match {
               case Variable(info: RuntimeVariable) =>
                 context.stack.push(info.address)
+              case Variable(fcn: IASTFunctionDefinition) =>
+                context.stack.push(fcn)
             }
           case `op_star` =>
             context.stack.pop match {

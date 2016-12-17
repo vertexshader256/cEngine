@@ -36,6 +36,7 @@ class State {
     functionMap.remove("main") 
   }
   
+  def hasFunction(name: String): Boolean = functionMap.contains(name)
   def getFunction(name: String): IASTNode = functionMap(name).fcnDef
   
   def addFunctionDef(fcnDef: IASTFunctionDefinition) = {
@@ -58,11 +59,20 @@ class State {
         // load up the stack with the parameters
     args.reverse.foreach { arg => context.stack.push(arg)}
 
+    
+    
     val name = call.getFunctionNameExpression match {
       case x: IASTIdExpression => x.getName.getRawSignature
+      case x: IASTUnaryExpression => 
+        x.getOperand.asInstanceOf[IASTUnaryExpression].getOperand.getRawSignature
     }
 
-    Seq(getFunction(name))
+    if (functionContexts.head.varMap.contains(name)) {
+      val theVar = functionContexts.head.varMap(name)
+      Seq(theVar.node)
+    } else {
+       Seq(getFunction(name))
+    }
   }
 
   def clearVisited(parent: IASTNode) {
