@@ -28,7 +28,6 @@ class State {
   private val tape = ByteBuffer.allocate(100000);
   
   val functionContexts = new Stack[ExecutionContext]()
-  val globals = Map[String, ResolvedVarRef]()
   def context = functionContexts.head
   private val functionMap = scala.collection.mutable.Map[String, FunctionInfo]()
   val stdout = new ListBuffer[String]()
@@ -49,12 +48,11 @@ class State {
   var isReturning = false
   var isBreaking = false
   var isContinuing = false
-  var isPreprocessing = true
   
   def stack = context.stack
 
   def callFunction(call: IASTFunctionCallExpression, args: Seq[Any]): Seq[IASTNode] = {
-    functionContexts.push(new ExecutionContext(globals, call.getExpressionType, this))
+    functionContexts.push(new ExecutionContext(functionContexts.head.varMap, call.getExpressionType, this))
     context.pathStack.push(call)
     
         // load up the stack with the parameters

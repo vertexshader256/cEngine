@@ -577,12 +577,8 @@ object Executor {
           Seq()
         }
       case tUnit: IASTTranslationUnit =>
-        if (state.isPreprocessing) {
-          val (fcns, vars) = tUnit.getDeclarations.partition{_.isInstanceOf[IASTFunctionDefinition]}
-          fcns.foreach{fcnDef => state.addFunctionDef(fcnDef.asInstanceOf[IASTFunctionDefinition])}
-          vars
-        } else if (direction == Entering) {
-          tUnit.getDeclarations
+        if (direction == Entering) {
+          tUnit.getDeclarations.filterNot{_.isInstanceOf[IASTFunctionDefinition]}
         } else {
           Seq()
         }
@@ -666,29 +662,19 @@ object Executor {
 
 class Executor() {
   
-  var tUnit: IASTNode = null
+  var tUnit: IASTTranslationUnit = null
   
   def init(code: String, reset: Boolean, engineState: State) = {
     tUnit = Utils.getTranslationUnit(code)
     current = tUnit
 
-    engineState.removeFunctionDef("main")
     engineState.functionContexts.push(new ExecutionContext(Map(), null, engineState)) // load initial stack
   
-    engineState.isPreprocessing = true
-    execute(engineState)
-    engineState.isPreprocessing = false
-    engineState.stack.clear
-  
-    println("_----------------------------------------------_")
-  
-    engineState.globals ++= engineState.context.varMap
-  
-    engineState.functionContexts.pop
-    if (reset) {
-      engineState.functionContexts.push(new ExecutionContext(engineState.globals, null, engineState)) // load initial stack
-    }
+    val fcns = tUnit.getDeclarations.collect{case x:IASTFunctionDefinition => x}
+    fcns.foreach{fcnDef => engineState.addFunctionDef(fcnDef)}
 
+    execute(engineState)
+    
     engineState.context.pathStack.clear
     engineState.context.pathStack.push(engineState.getFunction("main"))
     current = engineState.context.pathStack.head
