@@ -50,7 +50,6 @@ case class AddressInfo(address: Address, theType: IType)
 trait RuntimeVariable {
   val state: State
   val theType: IType
-  //def address: Address
   var node: IASTNode = null
 
   val size = TypeHelper.sizeof(theType)
@@ -87,7 +86,7 @@ protected class ArrayVariable(val state: State, val theType: IType, dim: Seq[Int
   
   val numElements = if (dimensions.isEmpty) 0 else dimensions.reduce{_ * _}
 
-  val address: Address = allocateSpace(state, TypeHelper.pointerType, 1)
+  var address = Address(0)
   
   def setValues(values: List[ValueInfo]) = {
      var offset = 0
@@ -99,6 +98,8 @@ protected class ArrayVariable(val state: State, val theType: IType, dim: Seq[Int
   
   private def allocate: Address = {
     // where we store the actual data
+    
+    address = allocateSpace(state, TypeHelper.pointerType, 1)
     
     def recurse(subType: IType, dimensions: Seq[Int]): Address = {
 
@@ -537,7 +538,6 @@ object Executor {
               val values: Array[(ValueInfo, IType)] = fields.map{x => state.stack.pop.asInstanceOf[Literal].cast}.reverse zip fields.map(_.getType)
               val valueInfos = values.map{x => ValueInfo(x._1.value, x._2)}.toList
               newVar.asInstanceOf[ArrayVariable].setValues(valueInfos)
-             //fds
             }
         }
 
