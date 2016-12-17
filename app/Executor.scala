@@ -51,12 +51,20 @@ trait RuntimeVariable {
   val state: State
   val theType: IType
   var node: IASTNode = null
-
+  var address: Address
   val size = TypeHelper.sizeof(theType)
 
   def sizeof: Int
   def info: AddressInfo
   def value: ValueInfo
+  
+  def setValues(values: List[ValueInfo]) = {
+     var offset = 0
+      values.foreach { case ValueInfo(value, theType) =>
+        state.setValue(value, address + offset)
+        offset += TypeHelper.sizeof(theType)
+      }
+  }
 
   def allocateSpace(state: State, aType: IType, numElements: Int): Address = {
     if (TypeHelper.isPointer(aType)) {
@@ -87,14 +95,6 @@ protected class ArrayVariable(val state: State, val theType: IType, dim: Seq[Int
   val numElements = if (dimensions.isEmpty) 0 else dimensions.reduce{_ * _}
 
   var address = Address(0)
-  
-  def setValues(values: List[ValueInfo]) = {
-     var offset = 0
-      values.foreach { case ValueInfo(value, theType) =>
-        state.setValue(value, address + offset)
-        offset += TypeHelper.sizeof(theType)
-      }
-  }
   
   private def allocate: Address = {
     // where we store the actual data
@@ -140,7 +140,7 @@ protected class ArrayVariable(val state: State, val theType: IType, dim: Seq[Int
 
 protected class Variable(val state: State, val theType: IType) extends RuntimeVariable {
 
-  val address: Address = allocateSpace(state, theType, 1)
+  var address: Address = allocateSpace(state, theType, 1)
 
   def info = AddressInfo(address, theType)
   
@@ -537,7 +537,7 @@ object Executor {
               
               val values: Array[(ValueInfo, IType)] = fields.map{x => state.stack.pop.asInstanceOf[Literal].cast}.reverse zip fields.map(_.getType)
               val valueInfos = values.map{x => ValueInfo(x._1.value, x._2)}.toList
-              newVar.asInstanceOf[ArrayVariable].setValues(valueInfos)
+              newVar.setValues(valueInfos)
             }
         }
 
