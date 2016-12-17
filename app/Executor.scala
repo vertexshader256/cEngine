@@ -18,16 +18,12 @@ case class VarRef(name: String)
 
 object Variable {                              
   def apply(x: Int): Int = x * 2
-  def unapply(any: Any)(implicit state: State): Option[RuntimeVariable] = {
+  def unapply(any: Any)(implicit state: State): Option[Any] = {
     if (any.isInstanceOf[VarRef]) {
       val ref = any.asInstanceOf[VarRef]
       if (state.context.containsId(ref.name)) {
         val resolved = state.context.resolveId(ref.name)
-        if (resolved.payload.isInstanceOf[RuntimeVariable]) {
-          Some(resolved.payload.asInstanceOf[RuntimeVariable])
-        } else {
-          None
-        }
+        Some(resolved)
       } else {
         None
       }
@@ -49,7 +45,7 @@ case class Address(value: Int) extends AnyVal {
 case class AddressInfo(address: Address, theType: IType)
 
 // payload is either a RuntimeVariable or FunctionDef
-case class ResolvedVarRef(payload: Any)
+//case class ResolvedVarRef(payload: Any)
 
 trait RuntimeVariable {
   val state: State
@@ -135,15 +131,15 @@ protected class Variable(val state: State, val theType: IType) extends RuntimeVa
   }
 }
 
-class ExecutionContext(globals: Map[String, ResolvedVarRef], val returnType: IType, state: State) {
+class ExecutionContext(parentVars: Map[String, Any], val returnType: IType, state: State) {
   val visited = new ListBuffer[IASTNode]()
-  val varMap = Map[String, ResolvedVarRef]() ++ globals
+  val varMap = parentVars.clone()
   val pathStack = new Stack[IASTNode]()
   val stack = new Stack[Any]()
 
   def containsId(id: String) = varMap.contains(id)
-  def resolveId(id: String) = varMap(id)
-  def addVariable(id: String, theVar: RuntimeVariable) = varMap += (id -> ResolvedVarRef(theVar)) 
+  def resolveId(id: String): Any = varMap.get(id).getOrElse(state.getFunction(id))
+  def addVariable(id: String, theVar: RuntimeVariable) = varMap += (id -> theVar) 
 }
 
 object Executor {
@@ -257,7 +253,7 @@ object Executor {
         val result = state.stack.pop
 
         val value = result match {
-          case Variable(info) => info.value
+          case Variable(info: RuntimeVariable) => info.value
           case lit @ Literal(_) =>
             lit.cast.value
           case x => x
@@ -321,7 +317,7 @@ object Executor {
           state.stack.push(returnVal match {
             case lit @ Literal(_) if state.context.returnType != null => lit.typeCast(TypeHelper.resolve(state.context.returnType))
             case lit @ Literal(_) => lit.cast.value
-            case Variable(info)       => 
+            case Variable(info: RuntimeVariable)       => 
               if (TypeHelper.isPointer(state.context.returnType)) {
                 info.value.value
               } else {
@@ -384,7 +380,7 @@ object Executor {
             val dimensions = arrayDecl.getArrayModifiers.filter{_.getConstantExpression != null}.map{dim => state.stack.pop match {
               // can we can assume dimensions are integers
               case lit: Literal => lit.cast.value.asInstanceOf[Int]
-              case Variable(info) => info.value.value.asInstanceOf[Int]
+              case Variable(info: RuntimeVariable) => info.value.value.asInstanceOf[Int]
               case int: Int => int
             }}
             
@@ -460,7 +456,7 @@ object Executor {
                 val initVal = Option(decl.getInitializer).map(x => state.stack.pop).getOrElse(0)
                 
                 val newVar = initVal match {
-                  case Variable(info) => 
+                  case Variable(info: RuntimeVariable) => 
                     val newVar = new Variable(state, theType)
                     state.setValue(info.value.value, newVar.address)
                     newVar

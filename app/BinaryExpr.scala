@@ -15,7 +15,7 @@ object BinaryExpr {
   def parseAssign(node: IASTNode, op: Int, op1: Any, op2: Any)(implicit state: State): Any = {
 
     val dst: AddressInfo = op1 match {
-      case Variable(info) => info.info
+      case Variable(info: RuntimeVariable) => info.info
       case info @ AddressInfo(_, _) => info
       case ValueInfo(value, info) => AddressInfo(Address(value.asInstanceOf[Byte].toInt), info)
     }
@@ -369,7 +369,7 @@ object BinaryExpr {
     val rawOp1 = state.stack.pop
     
     rawOp1 match {
-      case Variable(info)  =>
+      case Variable(info: RuntimeVariable)  =>
         val result = performTypedBinaryOperation(info.value, op2, binaryExpr.getOperator).getOrElse{
           performBinaryOperation(info.value.value, op2, binaryExpr.getOperator)
         }
