@@ -668,24 +668,22 @@ class Executor() {
     tUnit = Utils.getTranslationUnit(code)
     current = tUnit
 
-    engineState.functionContexts.push(new ExecutionContext(Map(), null, engineState)) // load initial stack
+    if (reset) {
+      engineState.functionContexts.push(new ExecutionContext(Map(), null, engineState)) // load initial stack
+    }
   
     val fcns = tUnit.getDeclarations.collect{case x:IASTFunctionDefinition => x}
     fcns.foreach{fcnDef => engineState.addFunctionDef(fcnDef)}
 
     execute(engineState)
-    
+
     engineState.context.pathStack.clear
     engineState.context.pathStack.push(engineState.getFunction("main"))
     current = engineState.context.pathStack.head
   }
 
-  
-  
   var current: IASTNode = null
   var direction: Direction = Entering
-
-  
 
   def tick(engineState: State): Unit = {
     direction = if (engineState.context.visited.contains(current)) Exiting else Entering
