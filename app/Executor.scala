@@ -553,11 +553,13 @@ object Executor {
       case ptr: IASTPointer =>
         Seq()
       case param: IASTParameterDeclaration =>
-        if (direction == Exiting && !state.isPreprocessing) {
+        if (direction == Exiting) {
           val paramInfo = param.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
           
-          if (paramInfo != null && paramInfo.getType != null && (!paramInfo.getType.isInstanceOf[IBasicType] || 
+          val isInFunctionPrototype = Utils.getAncestors(param).exists{_.isInstanceOf[IASTSimpleDeclaration]}
+          if (paramInfo != null && paramInfo.getType != null && !isInFunctionPrototype && (!paramInfo.getType.isInstanceOf[IBasicType] || 
               paramInfo.getType.asInstanceOf[IBasicType].getKind != eVoid)) {
+
             val arg = state.stack.pop
   
             val name = param.getDeclarator.getName.getRawSignature
@@ -575,7 +577,11 @@ object Executor {
           Seq()
         }
       case tUnit: IASTTranslationUnit =>
-        if (direction == Entering) {
+        if (state.isPreprocessing) {
+          val (fcns, vars) = tUnit.getDeclarations.partition{_.isInstanceOf[IASTFunctionDefinition]}
+          fcns.foreach{fcnDef => state.addFunctionDef(fcnDef.asInstanceOf[IASTFunctionDefinition])}
+          vars
+        } else if (direction == Entering) {
           tUnit.getDeclarations
         } else {
           Seq()
@@ -595,10 +601,7 @@ object Executor {
       case decl: IASTDeclarator =>
         Executor.parseDeclarator(decl, direction)
       case fcnDef: IASTFunctionDefinition =>
-        if (state.isPreprocessing) {
-          state.addFunctionDef(fcnDef)
-          Seq()
-        } else if (direction == Exiting) {
+        if (direction == Exiting) {
           if (!state.context.stack.isEmpty) {
             val retVal = state.context.stack.head
             if (fcnDef.getDeclarator.getName.getRawSignature != "main") {
