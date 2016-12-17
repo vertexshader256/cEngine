@@ -92,8 +92,10 @@ protected class ArrayVariable(val state: State, val theType: IType, dim: Seq[Int
 
   val address: Address = allocateSpace(state, TypeHelper.pointerType, 1)
   
-  def allocateData(subType: IType, dimensions: Seq[Int]): Address = {
+  private def allocate: Address = {
     // where we store the actual data
+    
+    def recurse(subType: IType, dimensions: Seq[Int]): Address = {
 
       val addr = allocateSpace(state, TypeHelper.pointerType, dimensions.head)
       for (i <- (0 until dimensions.head)) {
@@ -101,16 +103,18 @@ protected class ArrayVariable(val state: State, val theType: IType, dim: Seq[Int
         val sub = state.resolve(subType)
 
         if (dimensions.size > 1) {
-          val subaddr = allocateData(sub, dimensions.tail)
+          val subaddr = recurse(sub, dimensions.tail)
           state.setValue(subaddr.value, addr + i * 4)
         }
       }
       addr
+    }
+    
+    recurse(state.resolve(theType), dimensions)
   }
   
-  val theArrayAddress = if (!dimensions.isEmpty) {    
-    val sub = state.resolve(theType)  
-    allocateData(sub, dimensions)
+  val theArrayAddress = if (!dimensions.isEmpty) {      
+    allocate
   } else {
     Address(0)
   }
@@ -406,6 +410,7 @@ object Executor {
                   case lit: Literal => lit.cast
                   case int: Int => int
                   case ValueInfo(value,_) => value
+                  case Variable(fcn: IASTFunctionDefinition) => fcn
                 }}.reverse
   
                 val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], Array(size))
