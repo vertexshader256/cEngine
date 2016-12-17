@@ -51,41 +51,11 @@ trait RuntimeVariable {
   val state: State
   val theType: IType
   var node: IASTNode = null
-  var address: Address
   val size = TypeHelper.sizeof(theType)
 
   def sizeof: Int
   def info: AddressInfo
   def value: ValueInfo
-  
-  def setValues(values: List[ValueInfo]) = {
-     var offset = 0
-      values.foreach { case ValueInfo(value, theType) =>
-        state.setValue(value, address + offset)
-        offset += TypeHelper.sizeof(theType)
-      }
-  }
-
-  def allocateSpace(state: State, aType: IType, numElements: Int): Address = {
-    if (TypeHelper.isPointer(aType)) {
-      state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType))
-    } else if (aType.isInstanceOf[CStructure]) {
-      val struct = aType.asInstanceOf[CStructure]
-      var result: Address = Address(-1)
-      struct.getFields.foreach { field =>
-        if (result == Address(-1)) {
-          result = allocateSpace(state, field.getType, numElements)
-        } else {
-          allocateSpace(state, field.getType, numElements)
-        }
-      }
-      result
-    } else if (aType.isInstanceOf[CTypedef]) {
-      allocateSpace(state, aType.asInstanceOf[CTypedef].getType, numElements)
-    } else {
-      state.allocateSpace(TypeHelper.sizeof(aType) * numElements)
-    }
-  }
 }
 
 protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) extends Variable(state, theType) {
@@ -135,6 +105,35 @@ protected class Variable(val state: State, val theType: IType) extends RuntimeVa
   var address: Address = allocateSpace(state, theType, 1)
 
   def info = AddressInfo(address, theType)
+  
+  def setValues(values: List[ValueInfo]) = {
+     var offset = 0
+      values.foreach { case ValueInfo(value, theType) =>
+        state.setValue(value, address + offset)
+        offset += TypeHelper.sizeof(theType)
+      }
+  }
+
+  def allocateSpace(state: State, aType: IType, numElements: Int): Address = {
+    if (TypeHelper.isPointer(aType)) {
+      state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType))
+    } else if (aType.isInstanceOf[CStructure]) {
+      val struct = aType.asInstanceOf[CStructure]
+      var result: Address = Address(-1)
+      struct.getFields.foreach { field =>
+        if (result == Address(-1)) {
+          result = allocateSpace(state, field.getType, numElements)
+        } else {
+          allocateSpace(state, field.getType, numElements)
+        }
+      }
+      result
+    } else if (aType.isInstanceOf[CTypedef]) {
+      allocateSpace(state, aType.asInstanceOf[CTypedef].getType, numElements)
+    } else {
+      state.allocateSpace(TypeHelper.sizeof(aType) * numElements)
+    }
+  }
   
   def value: ValueInfo = {
     ValueInfo(state.readVal(address, theType).value, theType)
@@ -458,7 +457,7 @@ object Executor {
             }
           case decl: CASTDeclarator =>
 
-            def createVariable(theType: IType, name: String): RuntimeVariable = theType match {
+            def createVariable(theType: IType, name: String): Variable = theType match {
               case struct: CStructure =>
                 val newStruct = new Variable(state, theType)
                 state.context.addVariable(name, newStruct)

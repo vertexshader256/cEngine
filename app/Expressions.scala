@@ -73,7 +73,7 @@ object Expressions {
           }
         } else {
           owner match {
-            case Variable(info: RuntimeVariable) =>
+            case Variable(info: Variable) =>
               baseAddr = info.address
               info.theType.asInstanceOf[CStructure]
             case AddressInfo(addr, theType) => 
@@ -277,7 +277,7 @@ object Expressions {
             })
           case `op_amper` =>
             context.stack.pop match {
-              case Variable(info: RuntimeVariable) =>
+              case Variable(info: Variable) =>
                 context.stack.push(info.address)
               case Variable(fcn: IASTFunctionDefinition) =>
                 context.stack.push(fcn)
