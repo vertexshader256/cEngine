@@ -50,17 +50,14 @@ case class AddressInfo(address: Address, theType: IType)
 trait RuntimeVariable {
   val state: State
   val theType: IType
-  def address: Address
+  //def address: Address
   var node: IASTNode = null
 
   val size = TypeHelper.sizeof(theType)
 
   def sizeof: Int
-  def info = AddressInfo(address, theType)
-  
-  def value: ValueInfo = {
-    ValueInfo(state.readVal(address, theType).value, theType)
-  }
+  def info: AddressInfo
+  def value: ValueInfo
 
   def allocateSpace(state: State, aType: IType, numElements: Int): Address = {
     if (TypeHelper.isPointer(aType)) {
@@ -92,6 +89,14 @@ protected class ArrayVariable(val state: State, val theType: IType, dim: Seq[Int
 
   val address: Address = allocateSpace(state, TypeHelper.pointerType, 1)
   
+  def setValues(values: List[ValueInfo]) = {
+     var offset = 0
+      values.foreach { case ValueInfo(value, theType) =>
+        state.setValue(value, address + offset)
+        offset += TypeHelper.sizeof(theType)
+      }
+  }
+  
   private def allocate: Address = {
     // where we store the actual data
     
@@ -113,6 +118,12 @@ protected class ArrayVariable(val state: State, val theType: IType, dim: Seq[Int
     recurse(state.resolve(theType), dimensions)
   }
   
+  def info = AddressInfo(address, theType)
+  
+  def value: ValueInfo = {
+    ValueInfo(state.readVal(address, theType).value, theType)
+  }
+  
   val theArrayAddress = if (!dimensions.isEmpty) {      
     allocate
   } else {
@@ -130,6 +141,12 @@ protected class Variable(val state: State, val theType: IType) extends RuntimeVa
 
   val address: Address = allocateSpace(state, theType, 1)
 
+  def info = AddressInfo(address, theType)
+  
+  def value: ValueInfo = {
+    ValueInfo(state.readVal(address, theType).value, theType)
+  }
+  
   def sizeof: Int = {
     TypeHelper.sizeof(theType)
   }
@@ -517,13 +534,10 @@ object Executor {
               val fields = theType.asInstanceOf[CStructure].getFields
               val size = fields.size
               
-              val values = fields.map{x => state.stack.pop.asInstanceOf[Literal].cast}.reverse zip fields
-
-              var offset = 0
-              values.foreach { case (value, field) =>
-                state.setValue(value.value, newVar.address + offset)
-                offset += TypeHelper.sizeof(field.getType)
-              }
+              val values: Array[(ValueInfo, IType)] = fields.map{x => state.stack.pop.asInstanceOf[Literal].cast}.reverse zip fields.map(_.getType)
+              val valueInfos = values.map{x => ValueInfo(x._1.value, x._2)}.toList
+              newVar.asInstanceOf[ArrayVariable].setValues(valueInfos)
+             //fds
             }
         }
 
