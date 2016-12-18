@@ -428,7 +428,11 @@ object Executor {
                 }}.reverse.toArray
   
                 val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], Array(size), values)
-                state.setArray(values.toArray, AddressInfo(theArrayPtr.theArrayAddress, theArrayPtr.info.theType))
+                
+                // for function pointers, dont set the array in the same way...
+                if (!values.head.isInstanceOf[IASTFunctionDefinition]) {
+                  state.setArray(values.toArray, AddressInfo(theArrayPtr.theArrayAddress, theArrayPtr.info.theType))
+                }
                 state.context.addVariable(name, theArrayPtr)
               }
             } else if (initializer != null) {
@@ -578,8 +582,11 @@ object Executor {
         if (direction == Exiting) {
           val paramInfo = param.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
           
+          // ignore main's params for now
+          val isInMain = param.getParent.isInstanceOf[IASTFunctionDeclarator] && 
+                            param.getParent.asInstanceOf[IASTFunctionDeclarator].getName.getRawSignature == "main"
           val isInFunctionPrototype = Utils.getAncestors(param).exists{_.isInstanceOf[IASTSimpleDeclaration]}
-          if (paramInfo != null && paramInfo.getType != null && !isInFunctionPrototype && (!paramInfo.getType.isInstanceOf[IBasicType] || 
+          if (!isInMain && paramInfo != null && paramInfo.getType != null && !isInFunctionPrototype && (!paramInfo.getType.isInstanceOf[IBasicType] || 
               paramInfo.getType.asInstanceOf[IBasicType].getKind != eVoid)) {
 
             val arg = state.stack.pop
