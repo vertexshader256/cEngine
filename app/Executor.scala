@@ -56,41 +56,39 @@ trait SymbolicReference[X] {
 protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) extends Variable(state, theType) {
 
   val dimensions = dim.reverse
-  
-  val numElements = if (dimensions.isEmpty) 0 else dimensions.reduce{_ * _}
 
   override def allocate: Address = {
     // where we store the actual data
     
-    address = allocateSpace(state, TypeHelper.pointerType, 1)
-    
-    def recurse(subType: IType, dimensions: Seq[Int]): Address = {
-
-      val addr = allocateSpace(state, TypeHelper.pointerType, dimensions.head)
-      for (i <- (0 until dimensions.head)) {
-        
-        val sub = state.resolve(subType)
-
-        if (dimensions.size > 1) {
-          val subaddr = recurse(sub, dimensions.tail)
-          state.setValue(subaddr.value, addr + i * 4)
+    if (!dimensions.isEmpty) {      
+      address = allocateSpace(state, TypeHelper.pointerType, 1)
+      
+      def recurse(subType: IType, dimensions: Seq[Int]): Address = {
+  
+        val addr = allocateSpace(state, TypeHelper.pointerType, dimensions.head)
+        for (i <- (0 until dimensions.head)) {
+          
+          val sub = state.resolve(subType)
+  
+          if (dimensions.size > 1) {
+            val subaddr = recurse(sub, dimensions.tail)
+            state.setValue(subaddr.value, addr + i * 4)
+          }
         }
+        addr
       }
-      addr
+      
+      recurse(state.resolve(theType), dimensions)
+    } else {
+      Address(0)
     }
-    
-    recurse(state.resolve(theType), dimensions)
   }
- 
-  val theArrayAddress = if (!dimensions.isEmpty) {      
-    allocate
-  } else {
-    Address(0)
-  }
-
+  
+  val theArrayAddress = allocate
   state.setValue(theArrayAddress.value, info.address)
 
   override def sizeof: Int = {
+    val numElements = if (dimensions.isEmpty) 0 else dimensions.reduce{_ * _}
     TypeHelper.sizeof(theType) * numElements
   }
 }
