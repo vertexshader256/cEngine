@@ -105,9 +105,15 @@ protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int], value
     }
   }
   
+  
+  
   val theArrayAddress = allocate
   state.setValue(theArrayAddress.value, info.address)
 
+  def setArray(array: Array[_]): Unit = {
+      state.setArray(array, AddressInfo(theArrayAddress, theType))
+  }
+  
   override def sizeof: Int = {
     val numElements = if (dim.isEmpty) 0 else dim.reduce{_ * _}
     TypeHelper.sizeof(theType) * numElements
@@ -431,15 +437,13 @@ object Executor {
                 
                 // for function pointers, dont set the array in the same way...
                 if (!values.head.isInstanceOf[IASTFunctionDefinition]) {
-                  state.setArray(values.toArray, AddressInfo(theArrayPtr.theArrayAddress, theArrayPtr.info.theType))
+                  theArrayPtr.setArray(values.toArray)
                 }
                 state.context.addVariable(name, theArrayPtr)
               }
             } else if (initializer != null) {
               val numElements = if (dimensions.isEmpty) 0 else dimensions.reduce{_ * _}
               val initialArray = new ListBuffer[Any]()
-              
-              
 
               val initVals: Array[Any] = (0 until initializer.getInitializerClause.getChildren.size).map{x => state.stack.pop}.reverse.toArray
               
