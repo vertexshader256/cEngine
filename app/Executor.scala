@@ -74,7 +74,7 @@ trait SymbolicReference[X] {
   def allocate: Address
 }
 
-protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) extends Variable[Address](state, theType, Address(0)) {
+protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int], values: Array[Any]) extends Variable[Array[Any]](state, theType, values) {
  
   override def allocate: Address = {
     // where we store the actual data
@@ -420,14 +420,14 @@ object Executor {
                 val list = initializer.getInitializerClause.asInstanceOf[IASTInitializerList]
                 val size = list.getSize
                 
-                val values = (0 until size).map{x => state.stack.pop match {
+                val values: Array[Any] = (0 until size).map{x => state.stack.pop match {
                   case lit: Literal => lit.cast
                   case int: Int => int
                   case ValueInfo(value,_) => value
                   case Variable(fcn: IASTFunctionDefinition) => fcn
-                }}.reverse
+                }}.reverse.toArray
   
-                val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], Array(size))
+                val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], Array(size), values)
                 state.setArray(values.toArray, AddressInfo(theArrayPtr.theArrayAddress, theArrayPtr.info.theType))
                 state.context.addVariable(name, theArrayPtr)
               }
@@ -435,9 +435,11 @@ object Executor {
               val numElements = if (dimensions.isEmpty) 0 else dimensions.reduce{_ * _}
               val initialArray = new ListBuffer[Any]()
               
-              val theArrayPtr: ArrayVariable = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)
+              
 
-              val initVals = (0 until initializer.getInitializerClause.getChildren.size).map{x => state.stack.pop}.reverse
+              val initVals: Array[Any] = (0 until initializer.getInitializerClause.getChildren.size).map{x => state.stack.pop}.reverse.toArray
+              
+              val theArrayPtr: ArrayVariable = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions, initVals)
               
               initVals.foreach { newInit =>
                 if (newInit.isInstanceOf[StringLiteral]) {
@@ -457,7 +459,7 @@ object Executor {
               state.context.addVariable(name, theArrayPtr)
             } else {
               val initialArray = new ListBuffer[Any]()            
-              val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)             
+              val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions, Array())             
               state.context.addVariable(name, theArrayPtr)
             }
           case decl: CASTDeclarator =>
