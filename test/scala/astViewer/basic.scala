@@ -100,6 +100,17 @@ class ComplexInitTest extends StandardTest {
 
 class BasicTest extends StandardTest {
 
+  "main with arguments" should "print the correct results" in {
+    val code = """
+      int main(int argc, char *argv[])
+      {
+      	printf("Hello world!\n");
+      	return 0;
+      }"""
+
+    checkResults(code)
+  }
+  
   "A simple integer uninitialized global reference" should "print the correct results" in {
     val code = """
       int x;
