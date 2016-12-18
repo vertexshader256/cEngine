@@ -44,18 +44,12 @@ case class Address(value: Int) extends AnyVal {
 }
 case class AddressInfo(address: Address, theType: IType)
 
-// payload is either a RuntimeVariable or FunctionDef
-//case class ResolvedVarRef(payload: Any)
+// A symbolic reference is a string that becomes something else, payload: X, after processing
+// For most variables, this is an address
 
-trait RuntimeVariable[X] {
-  val state: State
+trait SymbolicReference[X] {
   val theType: IType
   var payload: X
-  val size = TypeHelper.sizeof(theType)
-
-  def sizeof: Int
-  def info: AddressInfo
-  def value: ValueInfo
 }
 
 protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) extends Variable(state, theType) {
@@ -100,11 +94,13 @@ protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) exten
   }
 }
 
-protected class Variable(val state: State, val theType: IType) extends RuntimeVariable[Address] {
+protected class Variable(val state: State, val theType: IType) extends SymbolicReference[Address] {
 
   var address: Address = allocateSpace(state, theType, 1)
   var payload = address
   var node: IASTNode = null
+  
+  val size = TypeHelper.sizeof(theType)
 
   def info = AddressInfo(address, theType)
   
