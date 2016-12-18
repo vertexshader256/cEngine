@@ -55,10 +55,10 @@ trait SymbolicReference[X] {
 
 protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) extends Variable(state, theType) {
 
-  val dimensions = dim.reverse
-
   override def allocate: Address = {
     // where we store the actual data
+    
+    val dimensions = dim.reverse
     
     if (!dimensions.isEmpty) {      
       address = allocateSpace(state, TypeHelper.pointerType, 1)
@@ -88,7 +88,7 @@ protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) exten
   state.setValue(theArrayAddress.value, info.address)
 
   override def sizeof: Int = {
-    val numElements = if (dimensions.isEmpty) 0 else dimensions.reduce{_ * _}
+    val numElements = if (dim.isEmpty) 0 else dim.reduce{_ * _}
     TypeHelper.sizeof(theType) * numElements
   }
 }
