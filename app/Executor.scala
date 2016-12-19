@@ -33,7 +33,9 @@ object Variable {
   }
   
   def allocateSpace(state: State, aType: IType, numElements: Int): Address = {
-    if (TypeHelper.isPointer(aType)) {
+    if (aType.isInstanceOf[CFunctionType]) {
+      state.allocateSpace(4 * numElements)
+    } else if (TypeHelper.isPointer(aType)) {
       state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType))
     } else if (aType.isInstanceOf[CStructure]) {
       val struct = aType.asInstanceOf[CStructure]
@@ -611,7 +613,7 @@ object Executor {
         }
       case tUnit: IASTTranslationUnit =>
         if (direction == Entering) {
-          tUnit.getDeclarations.filterNot{_.isInstanceOf[IASTFunctionDefinition]}
+          tUnit.getChildren.filterNot{_.isInstanceOf[IASTFunctionDefinition]}
         } else {
           Seq()
         }
@@ -704,11 +706,11 @@ class Executor() {
     if (reset) {
       engineState.functionContexts.push(new ExecutionContext(Map(), null, engineState)) // load initial stack
     }
-  
-    val fcns = tUnit.getDeclarations.collect{case x:IASTFunctionDefinition => x}
-    fcns.foreach{fcnDef => engineState.addFunctionDef(fcnDef)}
 
     execute(engineState)
+    
+     val fcns = tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
+    fcns.foreach{fcnDef => engineState.addFunctionDef(fcnDef)}
 
     engineState.context.pathStack.clear
     engineState.context.pathStack.push(engineState.getFunction("main"))

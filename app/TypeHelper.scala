@@ -14,6 +14,7 @@ object TypeHelper {
     val casted: AnyVal = theType match {
       case typedef: CTypedef => cast(typedef.getType, newVal).value
       case qual: IQualifierType => cast(qual.getType, newVal).value
+      case fcn: IFunctionType => newVal.asInstanceOf[Int]
       case ptr: IPointerType => newVal.asInstanceOf[Int]
       case array: IArrayType => newVal.asInstanceOf[Int]
       case basic: IBasicType =>
@@ -228,6 +229,7 @@ object TypeHelper {
     }
 
   def sizeof(theType: IType): Int = theType match {
+    case fcn: IFunctionType => 4
     case ptr: IPointerType =>
       4
     case struct: CStructure =>
