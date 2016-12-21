@@ -20,9 +20,8 @@ object FunctionCallExpr {
   
   def parse(call: IASTFunctionCallExpression, direction: Direction)(implicit state: State): Seq[IASTNode] = {
     if (direction == Exiting) {
-        val name = call.getFunctionNameExpression match {
-          case x: IASTIdExpression => x.getName.getRawSignature
-          case _ => "Error"
+        val name = state.stack.pop match {
+          case VarRef(str) => str
         }
         
         val argList = call.getArguments.map { arg => (arg, state.stack.pop) }
@@ -143,7 +142,7 @@ object FunctionCallExpr {
         }
 
       } else {
-        call.getArguments.reverse
+        call.getArguments.reverse ++ Seq(call.getFunctionNameExpression)
       }
   }
 }

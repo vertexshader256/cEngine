@@ -294,33 +294,37 @@ object Expressions {
                   val ptr = context.context.resolveId(name.getRawSignature).asInstanceOf[Variable[_]]
                   context.stack.push(context.readVal(Address(int), TypeHelper.resolve(ptr.info.theType)))
                 }
-              case Variable(info: Variable[_]) =>       
+              case theVar @ Variable(info: Variable[_]) =>       
                 val nestedType = info.info.theType match {
                   case ptr: IPointerType => ptr.getType
                   case array: IArrayType => array.getType
                 }
                 
-                val isNested = nestedType.isInstanceOf[IPointerType]
+                if (!nestedType.isInstanceOf[IFunctionType]) {
                 
-                val specialCase = unary.getParent.isInstanceOf[IASTUnaryExpression] &&
-                      unary.getParent.asInstanceOf[IASTUnaryExpression].getOperator == op_bracketedPrimary // (k*)++
-                
-                context.stack.push(
-                  if (Utils.isOnLeftSideOfAssignment(unary) || isNested || specialCase) { 
-                    val deref = context.readPtrVal(info.info.address)
-                    
-                     if (Utils.isOnLeftSideOfAssignment(unary) && unary.getChildren.size == 1 && unary.getChildren.head.isInstanceOf[IASTUnaryExpression] && 
-                        unary.getChildren.head.asInstanceOf[IASTUnaryExpression].getOperator == op_postFixIncr) {
-                      context.setValue(info.value.value.asInstanceOf[Int] + 1, info.info.address) 
+                  val isNested = nestedType.isInstanceOf[IPointerType]
+                  
+                  val specialCase = unary.getParent.isInstanceOf[IASTUnaryExpression] &&
+                        unary.getParent.asInstanceOf[IASTUnaryExpression].getOperator == op_bracketedPrimary // (k*)++
+                  
+                  context.stack.push(
+                    if (Utils.isOnLeftSideOfAssignment(unary) || isNested || specialCase) { 
+                      val deref = context.readPtrVal(info.info.address)
+                      
+                       if (Utils.isOnLeftSideOfAssignment(unary) && unary.getChildren.size == 1 && unary.getChildren.head.isInstanceOf[IASTUnaryExpression] && 
+                          unary.getChildren.head.asInstanceOf[IASTUnaryExpression].getOperator == op_postFixIncr) {
+                        context.setValue(info.value.value.asInstanceOf[Int] + 1, info.info.address) 
+                      }
+                      
+                      AddressInfo(Address(deref), nestedType)
+                    } else {
+                      context.readVal(Address(info.value.value.asInstanceOf[Int]), TypeHelper.resolve(info.info.theType))
                     }
-                    
-                    AddressInfo(Address(deref), nestedType)
-                  } else {
-                    context.readVal(Address(info.value.value.asInstanceOf[Int]), TypeHelper.resolve(info.info.theType))
-                  }
-                )
-                
-               
+                  )
+                } else {
+                  // function pointers can ignore the star
+                  context.stack.push(theVar)
+                }
               case address @ AddressInfo(addr, theType) =>
                 theType match {
                   
