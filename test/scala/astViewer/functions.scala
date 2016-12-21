@@ -27,6 +27,39 @@ class FunctionPointerTest extends StandardTest {
     
     checkResults(code)
   }
+  
+  "array of function pointers" should "print the correct results" in {
+    val code = """
+      typedef void (*fp)(int); //Declares a type of a void function that accepts an int
+
+      void test(int i)
+      {
+          printf("%d", i);
+      }
+      
+      void test2(int i)
+      {
+          printf("%d", i*i);
+      }
+      
+      int main(int argc, _TCHAR* argv[])
+      {
+          fp function_array[2];
+      
+          function_array[0] = test;
+          function_array[1] = test2;
+      
+          function_array[0](10);
+          function_array[1](7)
+      
+      }
+      
+    """
+    
+    checkResults(code)
+  }
+  
+  
 }
 
 class VarArgFunction extends StandardTest {
