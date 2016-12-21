@@ -70,13 +70,12 @@ case class AddressInfo(address: Address, theType: IType)
 // A symbolic reference is a string that becomes something else, payload: X, after processing
 // For most variables, this is an address
 
-trait SymbolicReference[X] {
+trait SymbolicReference {
   val theType: IType
-  var payload: X
   def allocate: Address
 }
 
-protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int], values: Array[Any]) extends Variable[Array[Any]](state, theType, values) {
+protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) extends Variable(state, theType) {
  
   override def allocate: Address = {
     // where we store the actual data
@@ -122,14 +121,14 @@ protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int], value
   }
 }
 
-protected class Variable[X](val state: State, val theType: IType, var payload: X) extends SymbolicReference[X] {
+protected class Variable(val state: State, val theType: IType) extends SymbolicReference {
 
   var address = Address(0)
   var node: IASTNode = null
  // val payload = payload
   
   def allocate: Address = {
-    address = payload.asInstanceOf[Address]
+    address = Variable.allocateSpace(state, theType, 1)
     address
   }
   
@@ -156,7 +155,7 @@ protected class Variable[X](val state: State, val theType: IType, var payload: X
   }
 }
 
-class ExecutionContext(parentVars: Map[String, Variable[_]], val returnType: IType, state: State) {
+class ExecutionContext(parentVars: Map[String, Variable], val returnType: IType, state: State) {
   val visited = new ListBuffer[IASTNode]()
   val varMap = parentVars.clone()
   val pathStack = new Stack[IASTNode]()
@@ -164,7 +163,7 @@ class ExecutionContext(parentVars: Map[String, Variable[_]], val returnType: ITy
 
   def containsId(id: String) = varMap.contains(id) || state.hasFunction(id)
   def resolveId(id: String): Any = varMap.get(id).getOrElse(state.getFunction(id))
-  def addVariable(id: String, theVar: Variable[_]) = varMap += (id -> theVar) 
+  def addVariable(id: String, theVar: Variable) = varMap += (id -> theVar) 
 }
 
 object Executor {
@@ -278,7 +277,7 @@ object Executor {
         val result = state.stack.pop
 
         val value = result match {
-          case Variable(info: Variable[_]) => info.value
+          case Variable(info: Variable) => info.value
           case lit @ Literal(_) =>
             lit.cast.value
           case x => x
@@ -342,7 +341,7 @@ object Executor {
           state.stack.push(returnVal match {
             case lit @ Literal(_) if state.context.returnType != null => lit.typeCast(TypeHelper.resolve(state.context.returnType))
             case lit @ Literal(_) => lit.cast.value
-            case Variable(info: Variable[_])       => 
+            case Variable(info: Variable)       => 
               if (TypeHelper.isPointer(state.context.returnType)) {
                 info.value.value
               } else {
@@ -405,7 +404,7 @@ object Executor {
             val dimensions = arrayDecl.getArrayModifiers.filter{_.getConstantExpression != null}.map{dim => state.stack.pop match {
               // can we can assume dimensions are integers
               case lit: Literal => lit.cast.value.asInstanceOf[Int]
-              case Variable(info: Variable[_]) => info.value.value.asInstanceOf[Int]
+              case Variable(info: Variable) => info.value.value.asInstanceOf[Int]
               case int: Int => int
             }}
             
@@ -420,7 +419,7 @@ object Executor {
                 // char str[] = "Hello!\n";
                 val initString = state.stack.pop.asInstanceOf[StringLiteral].str                
                 val strAddr = state.createStringVariable(initString)
-                val theArrayPtr = new Variable(state, theType.asInstanceOf[IArrayType], Variable.allocateSpace(state, theType.asInstanceOf[IArrayType], 1))
+                val theArrayPtr = new Variable(state, theType.asInstanceOf[IArrayType])
                 theArrayPtr.allocate
                 state.setValue(strAddr.value, theArrayPtr.address)
                 state.context.addVariable(name, theArrayPtr)
@@ -435,7 +434,7 @@ object Executor {
                   case Variable(fcn: IASTFunctionDefinition) => fcn
                 }}.reverse.toArray
   
-                val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], Array(size), values)
+                val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], Array(size))
                 
                 // for function pointers, dont set the array in the same way...
                 if (!values.head.isInstanceOf[IASTFunctionDefinition]) {
@@ -449,7 +448,7 @@ object Executor {
 
               val initVals: Array[Any] = (0 until initializer.getInitializerClause.getChildren.size).map{x => state.stack.pop}.reverse.toArray
               
-              val theArrayPtr: ArrayVariable = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions, initVals)
+              val theArrayPtr: ArrayVariable = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)
               
               initVals.foreach { newInit =>
                 if (newInit.isInstanceOf[StringLiteral]) {
@@ -469,14 +468,14 @@ object Executor {
               state.context.addVariable(name, theArrayPtr)
             } else {
               val initialArray = new ListBuffer[Any]()            
-              val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions, Array())             
+              val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)             
               state.context.addVariable(name, theArrayPtr)
             }
           case decl: CASTDeclarator =>
 
-            def createVariable(theType: IType, name: String): Variable[_] = theType match {
+            def createVariable(theType: IType, name: String): Variable = theType match {
               case struct: CStructure =>
-                val newStruct = new Variable(state, theType, Variable.allocateSpace(state, theType, 1))
+                val newStruct = new Variable(state, theType)
                 newStruct.allocate
                 state.context.addVariable(name, newStruct)
                 newStruct
@@ -488,13 +487,13 @@ object Executor {
                 val initVal = Option(decl.getInitializer).map(x => state.stack.pop).getOrElse(0)
                 
                 val newVar = initVal match {
-                  case Variable(info: Variable[_]) => 
-                    val newVar = new Variable(state, theType, Variable.allocateSpace(state, theType, 1))
+                  case Variable(info: Variable) => 
+                    val newVar = new Variable(state, theType)
                     newVar.allocate
                     state.setValue(info.value.value, newVar.address)
                     newVar
                   case AddressInfo(address, addrType) => 
-                    val newVar = new Variable(state, theType, Variable.allocateSpace(state, theType, 1))
+                    val newVar = new Variable(state, theType)
                     newVar.allocate
                     if (TypeHelper.isPointer(addrType)) {
                       state.setValue(state.readVal(address, TypeHelper.pointerType).value, newVar.address)
@@ -503,27 +502,27 @@ object Executor {
                     }
                     newVar
                   case int: Int => 
-                    val newVar = new Variable(state, theType, Variable.allocateSpace(state, theType, 1))
+                    val newVar = new Variable(state, theType)
                     newVar.allocate
                     state.setValue(int, newVar.address)
                     newVar
                   case prim @ ValueInfo(_, newType) => 
-                    val newVar = new Variable(state, theType, Variable.allocateSpace(state, theType, 1))
+                    val newVar = new Variable(state, theType)
                     newVar.allocate
                     state.setValue(prim.value, newVar.address)
                     newVar
                   case StringLiteral(str) =>
-                    val newVar = new Variable(state, theType, Variable.allocateSpace(state, theType, 1))
+                    val newVar = new Variable(state, theType)
                     newVar.allocate
                     val strAddr = state.createStringVariable(str)
                     state.setValue(strAddr.value, newVar.address)
                     newVar
                   case lit @ Literal(_) => 
-                    val newVar = new Variable(state, theType, Variable.allocateSpace(state, theType, 1)) // TODO: Not setting value? Whats going on here?
+                    val newVar = new Variable(state, theType) // TODO: Not setting value? Whats going on here?
                     newVar.allocate
                     newVar
                   case Address(int) => 
-                    val newVar = new Variable(state, theType, Variable.allocateSpace(state, theType, 1)) // TODO: Not setting value? Whats going on here?
+                    val newVar = new Variable(state, theType) // TODO: Not setting value? Whats going on here?
                     newVar.allocate
                     newVar
                 }
@@ -536,7 +535,7 @@ object Executor {
 
                 val resolved = TypeHelper.resolve(theType, initVal).value
 
-                val newVar = new Variable(state, theType, Variable.allocateSpace(state, theType, 1))
+                val newVar = new Variable(state, theType)
                 newVar.allocate
                 val casted = TypeHelper.cast(newVar.info.theType, resolved).value
                 state.setValue(casted, newVar.info.address)
@@ -598,7 +597,7 @@ object Executor {
             val arg = state.stack.pop
   
             val name = param.getDeclarator.getName.getRawSignature
-            val newVar = new Variable(state, paramInfo.getType, Variable.allocateSpace(state, paramInfo.getType, 1))
+            val newVar = new Variable(state, paramInfo.getType)
             newVar.allocate
             val resolved = TypeHelper.resolve(paramInfo.getType, arg).value
             val casted = TypeHelper.cast(newVar.info.theType, resolved).value

@@ -185,7 +185,7 @@ object TypeHelper {
   // resolves 'Any' to 'ValueInfo'
   def resolve(theType: IType, any: Any)(implicit state: State): ValueInfo = {
     ValueInfo(any match {
-      case Variable(info: Variable[_]) => info.value.value
+      case Variable(info: Variable) => info.value.value
       case lit @ Literal(_) => lit.typeCast(TypeHelper.resolve(theType)).value
       case AddressInfo(addy, _) => addy.value
       case Address(addy) => addy
@@ -215,7 +215,7 @@ object TypeHelper {
         case lit @ Literal(_) => lit.cast.value
         case prim @ ValueInfo(_, _) => prim.value
         case Address(addr) => addr
-        case Variable(info: Variable[_]) => info.value.value
+        case Variable(info: Variable) => info.value.value
         case AddressInfo(addy, theType) =>
           context.readVal(addy, TypeHelper.resolve(theType)).value
         case int: Int => int
