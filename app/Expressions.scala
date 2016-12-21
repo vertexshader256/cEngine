@@ -152,6 +152,8 @@ object Expressions {
 
           var aType = context.resolve(arrayVarPtr.theType)
           
+          val isFunctionPointerCall = TypeHelper.getBaseType(arrayVarPtr.theType).isInstanceOf[IFunctionType]
+          
           indexes.foreach{ arrayIndex =>
             aType match {
               case array: IArrayType =>
@@ -160,8 +162,13 @@ object Expressions {
                 aType = array.getType
               case ptr: IPointerType =>
                 val step = 4
-                offset = context.readPtrVal(Address(offset + arrayIndex * step))
-                aType = ptr.getType
+                if (TypeHelper.getBaseType(ptr.getType).isInstanceOf[IFunctionType]) {
+                  // function pointer stuff
+                  offset = offset + arrayIndex * step
+                } else {
+                  offset = context.readPtrVal(Address(offset + arrayIndex * step))
+                  aType = ptr.getType
+                }
               case basic: IBasicType =>
                 val step = TypeHelper.sizeof(basic)
                 offset += arrayIndex * step
@@ -174,7 +181,7 @@ object Expressions {
 
           val elementAddress = Address(offset)
           
-          if (isParsingAssignmentDest) {
+          if (isParsingAssignmentDest || isFunctionPointerCall) {
             context.stack.push(AddressInfo(elementAddress, aType))
           } else {
             context.stack.push(context.readVal(elementAddress, aType))
@@ -301,7 +308,7 @@ object Expressions {
                 }
                 
                 if (!nestedType.isInstanceOf[IFunctionType]) {
-                
+                  
                   val isNested = nestedType.isInstanceOf[IPointerType]
                   
                   val specialCase = unary.getParent.isInstanceOf[IASTUnaryExpression] &&

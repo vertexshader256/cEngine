@@ -20,35 +20,29 @@ object BinaryExpr {
       case ValueInfo(value, info) => AddressInfo(Address(value.asInstanceOf[Byte].toInt), info)
     }
 
-    if (!op2.isInstanceOf[IASTFunctionDefinition]) {
-      val resolvedop2 = TypeHelper.resolve(op2)
-      
-      val theVal = ValueInfo(state.readVal(dst.address, dst.theType).value, dst.theType)
-      
-      val result = op match {
-        case `op_plusAssign` =>
-          performBinaryOperation(theVal.value, resolvedop2, op_plus)
-        case `op_minusAssign` =>
-          performBinaryOperation(theVal.value, resolvedop2, op_minus)
-        case `op_multiplyAssign` =>
-          performBinaryOperation(theVal.value, resolvedop2, op_multiply)
-        case `op_binaryXorAssign` =>
-          performBinaryOperation(theVal.value, resolvedop2, op_binaryXor)
-        case `op_shiftRightAssign` =>
-          performBinaryOperation(theVal.value, resolvedop2, op_shiftRight)
-        case `op_assign` =>
-          resolvedop2
-      }  
-      
-      val casted = TypeHelper.downcast(dst.theType, result).value
-      state.setValue(casted, dst.address)
-      
-      resolvedop2
-    } else {
-      op1 match {
-        case Variable(theVar: Variable) => theVar.node = op2.asInstanceOf[IASTFunctionDefinition]
-      }
-    }
+    val resolvedop2 = TypeHelper.resolve(op2)
+    
+    val theVal = ValueInfo(state.readVal(dst.address, dst.theType).value, dst.theType)
+    
+    val result = op match {
+      case `op_plusAssign` =>
+        performBinaryOperation(theVal.value, resolvedop2, op_plus)
+      case `op_minusAssign` =>
+        performBinaryOperation(theVal.value, resolvedop2, op_minus)
+      case `op_multiplyAssign` =>
+        performBinaryOperation(theVal.value, resolvedop2, op_multiply)
+      case `op_binaryXorAssign` =>
+        performBinaryOperation(theVal.value, resolvedop2, op_binaryXor)
+      case `op_shiftRightAssign` =>
+        performBinaryOperation(theVal.value, resolvedop2, op_shiftRight)
+      case `op_assign` =>
+        resolvedop2
+    }  
+    
+    val casted = TypeHelper.downcast(dst.theType, result).value
+    state.setValue(casted, dst.address)
+
+    resolvedop2
   }
   
   def performTypedBinaryOperation(left: ValueInfo, right: AnyVal, operator: Int): Option[AnyVal] = {

@@ -122,10 +122,7 @@ protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) exten
 }
 
 protected class Variable(val state: State, val theType: IType) extends SymbolicReference {
-
   var address = Address(0)
-  var node: IASTNode = null
- // val payload = payload
   
   def allocate: Address = {
     address = Variable.allocateSpace(state, theType, 1)
@@ -161,8 +158,8 @@ class ExecutionContext(parentVars: Map[String, Variable], val returnType: IType,
   val pathStack = new Stack[IASTNode]()
   val stack = new Stack[Any]()
 
-  def containsId(id: String) = varMap.contains(id) || state.hasFunction(id)
-  def resolveId(id: String): Any = varMap.get(id).getOrElse(state.getFunction(id))
+  def containsId(id: String) = varMap.contains(id) || state.functionPointers.contains(id)
+  def resolveId(id: String): Variable = varMap.get(id).getOrElse(state.functionPointers(id))
   def addVariable(id: String, theVar: Variable) = varMap += (id -> theVar) 
 }
 
@@ -507,6 +504,7 @@ object Executor {
                     state.setValue(int, newVar.address)
                     newVar
                   case prim @ ValueInfo(_, newType) => 
+                    
                     val newVar = new Variable(state, theType)
                     newVar.allocate
                     state.setValue(prim.value, newVar.address)
@@ -522,8 +520,9 @@ object Executor {
                     newVar.allocate
                     newVar
                   case Address(int) => 
-                    val newVar = new Variable(state, theType) // TODO: Not setting value? Whats going on here?
+                    val newVar = new Variable(state, theType)
                     newVar.allocate
+                    state.setValue(int, newVar.address)
                     newVar
                 }
                 

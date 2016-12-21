@@ -22,8 +22,9 @@ object FunctionCallExpr {
     if (direction == Exiting) {
         val name = state.stack.pop match {
           case VarRef(str) => str
+          case AddressInfo(addr, theType) => state.getFunctionByIndex(state.readPtrVal(addr)).getDeclarator.getName.getRawSignature
         }
-        
+
         val argList = call.getArguments.map { arg => (arg, state.stack.pop) }
         
         val formattedOutputParams: Array[AnyVal] = argList.map { case (arg, value) => 
@@ -138,7 +139,7 @@ object FunctionCallExpr {
           Seq()
         } 
         else {
-          state.callFunction(call, formattedOutputParams)
+          Seq(state.callFunction(name, call, formattedOutputParams))
         }
 
       } else {

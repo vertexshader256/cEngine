@@ -199,6 +199,16 @@ object TypeHelper {
     }, TypeHelper.resolve(theType))
   }
 
+  def getBaseType(theType: IType): IType = theType match {
+    case struct: CStructure       => struct
+    case basicType: IBasicType    => basicType
+    case typedef: ITypedef        => getBaseType(typedef.getType)
+    case ptrType: IPointerType    => getBaseType(ptrType.getType)
+    case arrayType: IArrayType    => getBaseType(arrayType.getType)
+    case qualType: IQualifierType => getBaseType(qualType.getType)
+    case fcn: IFunctionType       => fcn
+  }
+  
   // Some standard cases of needing to know what a type resolves to
   def resolve(theType: IType): IBasicType = theType match {
     case struct: CStructure       => TypeHelper.pointerType

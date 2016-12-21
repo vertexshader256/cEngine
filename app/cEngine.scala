@@ -22,7 +22,7 @@ object cEngine {
 
 class State {
   
-  case class FunctionInfo(fcnDef: IASTFunctionDefinition, fcnType: CFunction)
+  case class FunctionInfo(fcnDef: IASTFunctionDefinition, index: Int)
   
   // turing tape 
   private val tape = ByteBuffer.allocate(100000);
@@ -30,19 +30,30 @@ class State {
   val functionContexts = new Stack[ExecutionContext]()
   def context = functionContexts.head
   private val functionMap = scala.collection.mutable.Map[String, FunctionInfo]()
+  val functionPointers = scala.collection.mutable.Map[String, Variable]()
   val stdout = new ListBuffer[String]()
+  var functionCount = 0
   
   def removeFunctionDef(name: String) = {
     functionMap.remove("main") 
   }
   
   def hasFunction(name: String): Boolean = functionMap.contains(name)
-  def getFunction(name: String): IASTNode = functionMap(name).fcnDef
+  def getFunction(name: String): IASTFunctionDefinition = functionMap(name).fcnDef
+  def getFunctionByIndex(index: Int): IASTFunctionDefinition = functionMap.values.find(_.index == index).get.fcnDef
   
   def addFunctionDef(fcnDef: IASTFunctionDefinition) = {
     val name = fcnDef.getDeclarator.getName
+    functionMap += name.getRawSignature -> FunctionInfo(fcnDef, functionCount)
     
-    functionMap += name.getRawSignature -> FunctionInfo(fcnDef, name.resolveBinding().asInstanceOf[CFunction])
+    val fcnType = fcnDef.getDeclarator.getName.resolveBinding().asInstanceOf[IFunction].getType
+    
+    val newVar = new Variable(State.this, fcnType)
+    newVar.allocate
+    setValue(functionCount, newVar.address)
+    
+    functionPointers += name.getRawSignature -> newVar
+    functionCount += 1
   }
 
   // flags
@@ -52,26 +63,21 @@ class State {
   
   def stack = context.stack
 
-  def callFunction(call: IASTFunctionCallExpression, args: Seq[Any]): Seq[IASTNode] = {
+  def callFunction(name: String, call: IASTFunctionCallExpression, args: Seq[Any]): IASTNode = {
+        
     functionContexts.push(new ExecutionContext(functionContexts.head.varMap, call.getExpressionType, this))
     context.pathStack.push(call)
     
         // load up the stack with the parameters
     args.reverse.foreach { arg => context.stack.push(arg)}
 
-    
-    
-    val name = call.getFunctionNameExpression match {
-      case x: IASTIdExpression => x.getName.getRawSignature
-      case x: IASTUnaryExpression => 
-        x.getOperand.asInstanceOf[IASTUnaryExpression].getOperand.getRawSignature
-    }
-
-    if (functionContexts.head.varMap.contains(name)) {
-      val theVar = functionContexts.head.varMap(name)
-      Seq(theVar.node)
-    } else {
-       Seq(getFunction(name))
+//    blah match {
+//      case AddressInfo(addr, theType) => getFunctionByIndex(readPtrVal(addr))
+     if (functionContexts.head.varMap.contains(name)) {
+        val theVar = functionContexts.head.varMap(name)
+        getFunctionByIndex(theVar.value.value.asInstanceOf[Int])
+     } else {
+        getFunction(name)
     }
   }
 
@@ -155,6 +161,7 @@ class State {
         }
       case ptr: IPointerType => tape.getInt(address)
       case array: IArrayType => tape.getInt(address)
+      case fcn: IFunctionType => tape.getInt(address)
       case qual: IQualifierType => readVal(addr, qual.getType).value
       case typedef: CTypedef => readVal(addr, typedef.getType).value
     }
