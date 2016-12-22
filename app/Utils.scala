@@ -73,19 +73,15 @@ object Utils {
   }
 
   def getTranslationUnit(code: String): IASTTranslationUnit = {
-    //val preprocess = Gcc.preprocess(code)
-    
+
     val	pp = new Preprocessor();
 
 		pp.getSystemIncludePath.add("C:\\MinGW\\include");
 		pp.getSystemIncludePath.add("C:\\MinGW\\lib\\gcc\\mingw32\\4.9.3\\include");
 		pp.addMacro("__cdecl", "")
 		pp.getQuoteIncludePath.add("C:\\MinGW\\include");
-		pp.getQuoteIncludePath.add("C:\\MinGW\\include");
+		pp.getQuoteIncludePath.add("C:\\Scala\\Git\\astViewer\\test\\scala\\c-algorithms-master\\src");
 		pp.getQuoteIncludePath.add("C:\\Scala\\Git\\astViewer\\test\\scala\\c-algorithms-master\\test");
-//		pp.getFrameworksPath().add("/System/Library/Frameworks");
-//		pp.getFrameworksPath().add("/Library/Frameworks");
-//		pp.getFrameworksPath().add("/Local/Library/Frameworks");
 		
 		val stream = new ByteArrayInputStream(code.getBytes(StandardCharsets.UTF_8));
 		
@@ -111,20 +107,21 @@ object Utils {
 				
 				if (tok == null)
 					shouldBreak = true
-				if (!shouldBreak && tok.getType() == Token.EOF)
+					
+				if (!shouldBreak && tok.getType == Token.EOF)
 					shouldBreak = true
 					
-				if (!shouldBreak)
+				if (!shouldBreak) {
 				  preprocessResults ++= tok.getText()
+				}
 		  } catch {
 		    case e => skipline = true; startLine = currentLine + 1;
 		  }
 			}
 		
-		val preprocess = preprocessResults.toString
-		
+		val preprocess = preprocessResults.toString.replaceAll("(?m)(^ *| +(?= |$))", "").replaceAll("(?m)^$([\r\n]+?)(^$[\r\n]+?^)+", "$1")
+
 		better.files.File("what.txt").write(preprocess)
-    
 
     val fileContent = FileContent.create("test", preprocess.toCharArray)
     val symbolMap = new HashMap[String, String];

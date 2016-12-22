@@ -675,8 +675,13 @@ object Executor {
                 case `t_void`   => new CBasicType(IBasicType.Kind.eVoid, 0)
                 case `t_typeof`   => new CBasicType(IBasicType.Kind.eVoid, 0) // FIX
               }
-            case simple: CASTTypedefNameSpecifier =>
-              null
+            case typespec: CASTTypedefNameSpecifier =>
+              val name: IASTName = typespec.getName
+              val typedef = state.tUnit.getDefinitionsInAST(name.getBinding).head.resolveBinding() match {
+                case x: CTypedef => x.getType
+                case null => typespec.getName.resolveBinding().asInstanceOf[CTypedef].getType
+              }
+              typedef
             case elab: CASTElaboratedTypeSpecifier =>
               elab.getName.resolveBinding().asInstanceOf[CStructure]
           }
@@ -692,22 +697,24 @@ class Executor() {
   
   var tUnit: IASTTranslationUnit = null
   
-  def init(code: String, reset: Boolean, engineState: State) = {
+  def init(code: String, reset: Boolean): State = {
     tUnit = Utils.getTranslationUnit(code)
+    val state = new State(tUnit)
     current = tUnit
 
     if (reset) {
-      engineState.functionContexts.push(new ExecutionContext(Map(), null, engineState)) // load initial stack
+      state.functionContexts.push(new ExecutionContext(Map(), null, state)) // load initial stack
     }
 
-    execute(engineState)
+    val fcns = tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
+    fcns.foreach{fcnDef => state.addFunctionDef(fcnDef)}
     
-     val fcns = tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
-    fcns.foreach{fcnDef => engineState.addFunctionDef(fcnDef)}
+    execute(state)
 
-    engineState.context.pathStack.clear
-    engineState.context.pathStack.push(engineState.getFunction("main"))
-    current = engineState.context.pathStack.head
+    state.context.pathStack.clear
+    state.context.pathStack.push(state.getFunction("main"))
+    current = state.context.pathStack.head
+    state
   }
 
   var current: IASTNode = null

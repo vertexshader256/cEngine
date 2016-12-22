@@ -15,12 +15,12 @@ object cEngine {
     // Define functions that we want to use with string interpolation syntax
     def c(args: Any*)(implicit state: State): Unit = {
       println(sc.parts.iterator.next.asInstanceOf[String])
-      Gcc.runCode(sc.parts.iterator.next.asInstanceOf[String], state)
+      Gcc.runCode(sc.parts.iterator.next.asInstanceOf[String])
     }
   }
 }
 
-class State {
+class State(val tUnit: IASTTranslationUnit) {
   
   case class FunctionInfo(fcnDef: IASTFunctionDefinition, index: Int)
   
@@ -71,13 +71,13 @@ class State {
         // load up the stack with the parameters
     args.reverse.foreach { arg => context.stack.push(arg)}
 
-//    blah match {
-//      case AddressInfo(addr, theType) => getFunctionByIndex(readPtrVal(addr))
-     if (functionContexts.head.varMap.contains(name)) {
-        val theVar = functionContexts.head.varMap(name)
-        getFunctionByIndex(theVar.value.value.asInstanceOf[Int])
-     } else {
-        getFunction(name)
+    if (functionContexts.head.varMap.contains(name)) {
+       val theVar = functionContexts.head.varMap(name)
+       getFunctionByIndex(theVar.value.value.asInstanceOf[Int])
+    } else if (hasFunction(name)) {
+      getFunction(name)
+    } else {
+      null
     }
   }
 

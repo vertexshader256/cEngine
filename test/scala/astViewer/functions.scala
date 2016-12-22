@@ -34,24 +34,36 @@ class FunctionPointerTest extends StandardTest {
 
       void test(int i)
       {
-          printf("%d", i);
+          printf("%d\n", i);
       }
       
       void test2(int i)
       {
-          printf("%d", i*i);
+          printf("%d\n", i*i);
       }
       
-      int main(int argc, _TCHAR* argv[])
+      fp initArray2[] = {test, test2};
+      
+      int main(int argc, void* argv[])
       {
           fp function_array[2];
+          fp initArray[2] = {test, test2};
       
           function_array[0] = test;
           function_array[1] = test2;
       
           function_array[0](10);
-          function_array[1](7)
-      
+          function_array[1](7);
+          
+          function_array[0] = test2;
+          
+          function_array[0](10);
+          
+          initArray[0](5);
+          initArray[1](11);
+          
+          initArray2[0](15);
+          initArray2[1](13);
       }
       
     """

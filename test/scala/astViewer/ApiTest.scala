@@ -7,7 +7,7 @@ import app.astViewer.cEngine._
 class ApiTest extends StandardTest {
   "interp test one" should "print the correct results" in {
     
-    implicit val state = new State
+    implicit val state = new State(null)
     
     c"""int i = 1432;"""
     c"""printf("%d\n", i);"""

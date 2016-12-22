@@ -12,14 +12,14 @@ object Gcc {
   val executor = new Executor()
   var isFirst = true
   
-  def runCode(code: String, state: State) = {
+  def runCode(code: String) = {
     
       val exeCode = s"""
         void main() {
            $code
         }
         """
-      executor.init(exeCode, isFirst, state)
+      val state = executor.init(exeCode, isFirst)
       isFirst = false
       executor.execute(state)
     }
