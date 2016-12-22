@@ -432,24 +432,22 @@ object Executor {
                 }}.reverse.toArray
   
                 val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], Array(size))
-                
-                // for function pointers, dont set the array in the same way...
-                if (!values.head.isInstanceOf[IASTFunctionDefinition]) {
-                  theArrayPtr.setArray(values.toArray)
-                }
+
+                theArrayPtr.setArray(values.toArray)
                 state.context.addVariable(name, theArrayPtr)
               }
             } else if (initializer != null) {
-              val numElements = if (dimensions.isEmpty) 0 else dimensions.reduce{_ * _}
-              val initialArray = new ListBuffer[Any]()
-
               val initVals: Array[Any] = (0 until initializer.getInitializerClause.getChildren.size).map{x => state.stack.pop}.reverse.toArray
               
-              val theArrayPtr: ArrayVariable = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)
+              val theArrayVar: ArrayVariable = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)
               
-              initialArray ++= initVals.map { newInit =>
+              var resolvedType = theArrayVar.info.theType
+              
+              val initialArray = initVals.map { newInit =>
                 if (newInit.isInstanceOf[StringLiteral]) {
-                  state.createStringVariable(newInit.asInstanceOf[StringLiteral].str)
+                  val result = state.createStringVariable(newInit.asInstanceOf[StringLiteral].str)
+                  resolvedType = TypeHelper.pointerType
+                  result
                 } else {
                   (newInit match {
                     case Variable(x: Variable) => x.value
@@ -457,19 +455,13 @@ object Executor {
                   })
                 }
               }
-              
-              val resolvedType = if (initialArray.head.isInstanceOf[Address]) {
-                TypeHelper.pointerType
-              } else {
-                theArrayPtr.info.theType
-              }
-              
-              state.setArray(initialArray.toArray, AddressInfo(theArrayPtr.theArrayAddress, resolvedType))
-              state.context.addVariable(name, theArrayPtr)
+
+              state.setArray(initialArray.toArray, AddressInfo(theArrayVar.theArrayAddress, resolvedType))
+              state.context.addVariable(name, theArrayVar)
             } else {
               val initialArray = new ListBuffer[Any]()            
-              val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)             
-              state.context.addVariable(name, theArrayPtr)
+              val theArrayVar = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)             
+              state.context.addVariable(name, theArrayVar)
             }
           case decl: CASTDeclarator =>
 
