@@ -428,6 +428,7 @@ object Executor {
                   case lit: Literal => lit.cast
                   case int: Int => int
                   case ValueInfo(value,_) => value
+                  case Variable(theVar: Variable) => theVar.value
                 }}.reverse.toArray
   
                 val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], Array(size))
@@ -446,13 +447,12 @@ object Executor {
               
               val theArrayPtr: ArrayVariable = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)
               
-              initVals.foreach { newInit =>
+              initialArray ++= initVals.map { newInit =>
                 if (newInit.isInstanceOf[StringLiteral]) {
-                  initialArray += state.createStringVariable(newInit.asInstanceOf[StringLiteral].str)
+                  state.createStringVariable(newInit.asInstanceOf[StringLiteral].str)
                 } else {
-                  initialArray += (newInit match {
-                    case Variable(x: Variable) => 
-                      TypeHelper.resolve(newInit)
+                  (newInit match {
+                    case Variable(x: Variable) => x.value
                     case x => x
                   })
                 }
