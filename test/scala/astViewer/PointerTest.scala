@@ -49,15 +49,20 @@ class PointerTest extends StandardTest {
   
   "pointer equality" should "print the correct results" in {
     val code = """
+      
+      int *testFcn() {
+        return 0;
+      }
 
       void main() {
         int x = 10;
         int x2 = 12;
         int *ptr[10];
         ptr[0] = &x;
-        ptr[1] = &x2;
+        ptr[1] = 0;
 
         printf("%d\n", ptr[0] == &x);
+        printf("%d\n", testFcn() == 0);
       }"""
 
     checkResults(code)

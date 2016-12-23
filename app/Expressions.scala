@@ -45,6 +45,7 @@ object Expressions {
           case Variable(info: Variable) => AddressInfo(Address(info.value.value.asInstanceOf[Int]), theType)
           case lit @ Literal(str) => TypeHelper.cast(TypeHelper.resolve(theType), lit.cast.value)
           case int: Int => TypeHelper.cast(TypeHelper.resolve(theType), int)
+          case long: Long => TypeHelper.cast(TypeHelper.resolve(theType), long)
         })
 
         Seq()
@@ -118,7 +119,10 @@ object Expressions {
           while (itr.isInstanceOf[IASTArraySubscriptExpression]) {
             val result: Int = (context.stack.pop match {
               case Variable(info: Variable) =>
-                info.value.value.asInstanceOf[Int]
+                info.value.value match {
+                  case int: Int => int
+                  case long: Long => long.toInt
+                }
               case lit @ Literal(_) => lit.cast.value.asInstanceOf[Int]
               case int: Int => int
               case double: Double => double.toInt

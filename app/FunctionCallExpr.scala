@@ -112,7 +112,10 @@ object FunctionCallExpr {
          // state.clearMemory(addr, numBlocks * blockSize)
           Seq()
         } else if (name == "malloc") {
-          state.stack.push(state.allocateSpace(formattedOutputParams.head.asInstanceOf[Int]))
+          formattedOutputParams.head match {
+            case long: Long => state.stack.push(state.allocateSpace(long.toInt))
+            case int: Int => state.stack.push(state.allocateSpace(int))
+          }
           Seq()
         } else if (name == "realloc") {
           state.stack.push(state.allocateSpace(formattedOutputParams.head.asInstanceOf[Int]))
