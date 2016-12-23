@@ -104,9 +104,11 @@ class State(val tUnit: IASTTranslationUnit) {
   }
   
   def move(dst: Address, src: Address, numBytes: Int) = {
-    val array = Array.fill(numBytes)(0.toByte)
-    val bytes = tape.get(array, src.value, numBytes)
-    tape.put(array, dst.value, numBytes)
+    if (numBytes != 0) {
+      val array = Array.fill(numBytes)(0.toByte)
+      val bytes = tape.get(array, src.value, numBytes)
+      tape.put(array, dst.value, numBytes)
+    }
   }
   
   def readPtrVal(address: Address) = {

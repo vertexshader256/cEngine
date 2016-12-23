@@ -114,7 +114,7 @@ object FunctionCallExpr {
         } else if (name == "malloc") {
           state.stack.push(state.allocateSpace(formattedOutputParams.head.asInstanceOf[Int]))
           Seq()
-        } else if (name == "rcalloc") {
+        } else if (name == "realloc") {
           state.stack.push(state.allocateSpace(formattedOutputParams.head.asInstanceOf[Int]))
           Seq()
         } else if (name == "memmove") {
@@ -122,9 +122,6 @@ object FunctionCallExpr {
           val src = formattedOutputParams(1).asInstanceOf[Address]
           val numBytes = formattedOutputParams(2).asInstanceOf[Int]
           
-          println(dst)
-          println(src)
-          println(numBytes)
           state.move(dst, src, numBytes)
           Seq()
         } else if (name == "free") {

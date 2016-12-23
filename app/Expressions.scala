@@ -38,9 +38,10 @@ object Expressions {
         Seq(cast.getOperand, cast.getTypeId)
       } else {
         val theType = context.stack.pop.asInstanceOf[IType]
-        
-        context.stack.push(context.stack.pop match {
-          case addy @ Address(_) => AddressInfo(addy, theType)
+        val operand = context.stack.pop
+
+        context.stack.push(operand match {
+          case addy @ Address(_) => ValueInfo(addy, theType);
           case Variable(info: Variable) => AddressInfo(Address(info.value.value.asInstanceOf[Int]), theType)
           case lit @ Literal(str) => TypeHelper.cast(TypeHelper.resolve(theType), lit.cast.value)
           case int: Int => TypeHelper.cast(TypeHelper.resolve(theType), int)
@@ -292,16 +293,12 @@ object Expressions {
             }
           case `op_star` =>
             context.stack.pop match {
-              case ValueInfo(char: Character, _) =>
-                val target = Utils.getUnaryTarget(unary).foreach { name =>
-                  val ptr = context.context.resolveId(name.getRawSignature).asInstanceOf[Variable]
-                  context.stack.push(context.readVal(Address(char), TypeHelper.resolve(ptr.info.theType)))
-                }
-              case ValueInfo(int: Int, _) =>
-                val target = Utils.getUnaryTarget(unary).foreach { name =>
-                  val ptr = context.context.resolveId(name.getRawSignature).asInstanceOf[Variable]
-                  context.stack.push(context.readVal(Address(int), TypeHelper.resolve(ptr.info.theType)))
-                }
+              case ValueInfo(char: Character, theType) =>
+                context.stack.push(context.readVal(Address(char), TypeHelper.resolve(theType)))
+              case ValueInfo(int: Int, theType) =>
+                context.stack.push(context.readVal(Address(int), TypeHelper.resolve(theType)))
+              case ValueInfo(Address(int), theType) =>
+                context.stack.push(context.readVal(Address(int), theType))
               case theVar @ Variable(info: Variable) =>       
                 val nestedType = info.info.theType match {
                   case ptr: IPointerType => ptr.getType
