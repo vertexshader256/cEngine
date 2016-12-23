@@ -47,6 +47,26 @@ class PointerTest extends StandardTest {
     checkResults(code)
   }
   
+  "pointer equality" should "print the correct results" in {
+    val code = """
+
+      void main() {
+        int x = 10;
+        int x2 = 12;
+        int *ptr[10];
+        ptr[0] = &x;
+        ptr[1] = &x2;
+        
+        int z = &x;
+        
+        printf("%d %d\n", ptr[0], z);
+    
+        printf("%d\n", ptr[0] == &x);
+      }"""
+
+    checkResults(code)
+  }
+  
   "arrays of strings" should "print the correct results" in {
     val code = """
       void main() {
