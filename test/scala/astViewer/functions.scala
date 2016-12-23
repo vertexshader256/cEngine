@@ -28,6 +28,29 @@ class FunctionPointerTest extends StandardTest {
     checkResults(code)
   }
   
+  "a function pointer within a struct test" should "print the correct results" in {
+    val code = """
+      #include <stdio.h>
+      
+      typedef struct blah {
+        void (*foo)(int);
+      } blah;
+      
+      int main()
+      {
+          blah x;
+          x.foo = malloc;
+
+          x.foo( 2 );
+      
+          return 0;
+      }
+      
+    """
+    
+    checkResults(code)
+  }
+  
   "array of function pointers" should "print the correct results" in {
     val code = """
       typedef void (*fp)(int); //Declares a type of a void function that accepts an int

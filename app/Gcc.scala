@@ -66,8 +66,7 @@ object Gcc {
     
     val sourceFileTokens = files.flatMap{file => Seq("-c", file.path.toString)}
     val includeTokens = Seq("-I", "C:\\Scala\\Git\\astViewer\\app", 
-                            "-I", "C:\\Scala\\Git\\astViewer\\test\\scala\\c-algorithms-master\\test",
-                            "-I", "C:\\Scala\\Git\\astViewer\\test\\scala\\c-algorithms-master\\src")
+                            "-I", "C:\\Scala\\Git\\astViewer\\test\\scala\\libds-master")
 
     val processTokens =
         Seq("gcc") ++ sourceFileTokens ++ includeTokens ++ Seq("-D", "ALLOC_TESTING")

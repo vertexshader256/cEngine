@@ -84,8 +84,7 @@ object Utils {
   		pp.getSystemIncludePath.add("C:\\MinGW\\lib\\gcc\\mingw32\\4.9.3\\include")
   		pp.addMacro("__cdecl", "")
   		pp.getQuoteIncludePath.add("C:\\MinGW\\include")
-  		pp.getQuoteIncludePath.add("C:\\Scala\\Git\\AstViewer\\test\\scala\\c-algorithms-master\\src")
-  		pp.getQuoteIncludePath.add("C:\\Scala\\Git\\AstViewer\\test\\scala\\c-algorithms-master\\test")
+  		pp.getQuoteIncludePath.add("C:\\Scala\\Git\\AstViewer\\test\\scala\\libds-master")
   		//pp.addMacro("ALLOC_TESTING");
 		
   		val stream = new ByteArrayInputStream(code.getBytes(StandardCharsets.UTF_8))
