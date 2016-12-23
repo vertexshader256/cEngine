@@ -56,11 +56,7 @@ class PointerTest extends StandardTest {
         int *ptr[10];
         ptr[0] = &x;
         ptr[1] = &x2;
-        
-        int z = &x;
-        
-        printf("%d %d\n", ptr[0], z);
-    
+
         printf("%d\n", ptr[0] == &x);
       }"""
 

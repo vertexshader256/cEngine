@@ -163,10 +163,14 @@ object Expressions {
                 aType = array.getType
               case ptr: IPointerType =>
                 val step = 4
-                if (TypeHelper.getBaseType(ptr.getType).isInstanceOf[IFunctionType]) {
+                if (isFunctionPointerCall) {
                   // function pointer stuff
                   offset = offset + arrayIndex * step
+                } else if (TypeHelper.resolve(aType).getKind != IBasicType.Kind.eChar) {
+                  offset = offset + arrayIndex * step
+                  aType = ptr.getType
                 } else {
+                  // special case for strings
                   offset = context.readPtrVal(Address(offset + arrayIndex * step))
                   aType = ptr.getType
                 }
