@@ -26,7 +26,7 @@ object FunctionCallExpr {
         }
 
         val argList = call.getArguments.map { arg => (arg, state.stack.pop) }
-        
+
         val formattedOutputParams: Array[AnyVal] = argList.map { case (arg, value) => 
           
           value match {
@@ -38,8 +38,7 @@ object FunctionCallExpr {
               } else {
                 state.readVal(info.address, info.theType).value
               }
-            case Address(address) =>
-              address
+            case addr @ Address(address) => addr
             case ValueInfo(theVal, _) =>             
               theVal
             case AddressInfo(address, theType) => 
@@ -115,6 +114,19 @@ object FunctionCallExpr {
         } else if (name == "malloc") {
           state.stack.push(state.allocateSpace(formattedOutputParams.head.asInstanceOf[Int]))
           Seq()
+        } else if (name == "rcalloc") {
+          state.stack.push(state.allocateSpace(formattedOutputParams.head.asInstanceOf[Int]))
+          Seq()
+        } else if (name == "memmove") {
+          val dst = formattedOutputParams(0).asInstanceOf[Address]
+          val src = formattedOutputParams(1).asInstanceOf[Address]
+          val numBytes = formattedOutputParams(2).asInstanceOf[Int]
+          
+          println(dst)
+          println(src)
+          println(numBytes)
+          state.move(dst, src, numBytes)
+          Seq()
         } else if (name == "free") {
           // TODO
           Seq()
@@ -123,6 +135,10 @@ object FunctionCallExpr {
           //varArgs += state.stack.pop
           Seq()
         } else if (name == "__builtin_va_end") {
+          Seq()
+        } else if (name == "_assert") {
+          val addy = formattedOutputParams(0).asInstanceOf[Address]
+          println(state.readString(addy) + " FAILED")
           Seq()
         } else if (name == "putchar") {
           val theChar = formattedOutputParams(0).asInstanceOf[Character]

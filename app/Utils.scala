@@ -72,52 +72,55 @@ object Utils {
     Seq(node) ++ node.getChildren.flatMap{x => getDescendants(x)}
   }
 
-  def getTranslationUnit(code: String): IASTTranslationUnit = {
+  def getTranslationUnit(codes: Seq[String]): IASTTranslationUnit = {
 
-    val	pp = new Preprocessor();
-
-		pp.getSystemIncludePath.add("C:\\MinGW\\include");
-		pp.getSystemIncludePath.add("C:\\MinGW\\lib\\gcc\\mingw32\\4.9.3\\include");
-		pp.addMacro("__cdecl", "")
-		pp.getQuoteIncludePath.add("C:\\MinGW\\include");
-		pp.getQuoteIncludePath.add("C:\\Scala\\Git\\astViewer\\test\\scala\\c-algorithms-master\\src");
-		pp.getQuoteIncludePath.add("C:\\Scala\\Git\\astViewer\\test\\scala\\c-algorithms-master\\test");
-		
-		val stream = new ByteArrayInputStream(code.getBytes(StandardCharsets.UTF_8));
-		
-		pp.addInput(new InputLexerSource(stream));
-		
 		val preprocessResults = new StringBuilder
 		
-		var shouldBreak = false
-		var skipline = false
-		var startLine = 0
-		var currentLine = 0
+		codes.map{code =>
+		  
+		  val	pp = new Preprocessor();
+
+  		pp.getSystemIncludePath.add("C:\\MinGW\\include")
+  		pp.getSystemIncludePath.add("C:\\MinGW\\lib\\gcc\\mingw32\\4.9.3\\include")
+  		pp.addMacro("__cdecl", "")
+  		pp.getQuoteIncludePath.add("C:\\MinGW\\include")
+  		pp.getQuoteIncludePath.add("C:\\Scala\\Git\\AstViewer\\test\\scala\\c-algorithms-master\\src")
+  		pp.getQuoteIncludePath.add("C:\\Scala\\Git\\AstViewer\\test\\scala\\c-algorithms-master\\test")
 		
-		while (!shouldBreak) {
-		  try {
-				var	tok = pp.token();
-				currentLine = tok.getLine
-				
-				while (skipline && currentLine == startLine) {
-				  tok = pp.token();
-				  currentLine = tok.getLine
-				}
-				skipline = false
-				
-				if (tok == null)
-					shouldBreak = true
-					
-				if (!shouldBreak && tok.getType == Token.EOF)
-					shouldBreak = true
-					
-				if (!shouldBreak) {
-				  preprocessResults ++= tok.getText()
-				}
-		  } catch {
-		    case e => skipline = true; startLine = currentLine + 1;
-		  }
-			}
+  		val stream = new ByteArrayInputStream(code.getBytes(StandardCharsets.UTF_8))
+  		
+  		pp.addInput(new InputLexerSource(stream))
+  		
+  		var shouldBreak = false
+  		var skipline = false
+  		var startLine = 0
+  		var currentLine = 0
+  		
+  		while (!shouldBreak) {
+  		  try {
+  				var	tok = pp.token
+  				currentLine = tok.getLine
+  				
+  				while (skipline && currentLine == startLine) {
+  				  tok = pp.token
+  				  currentLine = tok.getLine
+  				}
+  				skipline = false
+  				
+  				if (tok == null)
+  					shouldBreak = true
+  					
+  				if (!shouldBreak && tok.getType == Token.EOF)
+  					shouldBreak = true
+  					
+  				if (!shouldBreak) {
+  				  preprocessResults ++= tok.getText
+  				}
+  		  } catch {
+  		    case e => skipline = true; startLine = currentLine + 1
+  		  }
+  			}
+		}
 		
 		val preprocess = preprocessResults.toString.replaceAll("(?m)(^ *| +(?= |$))", "").replaceAll("(?m)^$([\r\n]+?)(^$[\r\n]+?^)+", "$1")
 
@@ -126,7 +129,7 @@ object Utils {
     val fileContent = FileContent.create("test", preprocess.toCharArray)
     val symbolMap = new HashMap[String, String];
 
-    val systemIncludes = List(new File(raw"C:\Scala\Git\astViewer\app"), new File(raw"C:\MinGW\include"), new File(raw"C:\MinGW\include\GL"), new File(raw"C:\MinGW\lib\gcc\mingw32\4.6.2\include"))
+    val systemIncludes = List(new File(raw"C:\Scala\AstViewer\app"), new File(raw"C:\MinGW\include"), new File(raw"C:\MinGW\include\GL"), new File(raw"C:\MinGW\lib\gcc\mingw32\4.9.3\include"))
 
     val info = new ScannerInfo(symbolMap, systemIncludes.toArray.map(_.getAbsolutePath))
     val log = new DefaultLogService()

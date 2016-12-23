@@ -266,9 +266,14 @@ object BinaryExpr {
           case (x: Character, y: Int) => x == y
           case (x: Int, y: Int) => x == y
           case (x: Character, y: Character) => x == y
+          case (x: Short, y: Short) => x == y
+          case (x: Long, y: Int) => x == y
+          case (x: Int, y: Long) => x == y
+          case (x: Int, y: Character) => x == y
           case (x: Double, y: Int) => x == y
           case (x: Int, y: Double) => x == y
           case (x: Double, y: Double) => x == y
+          case (x: Long, y: Long) => x == y
         }
       case `op_notequals` =>
         !performBinaryOperation(left, right, op_equals).asInstanceOf[Boolean]

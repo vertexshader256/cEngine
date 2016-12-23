@@ -19,7 +19,7 @@ object Gcc {
            $code
         }
         """
-      val state = executor.init(exeCode, isFirst)
+      val state = executor.init(Seq(exeCode), isFirst)
       isFirst = false
       executor.execute(state)
     }
@@ -28,32 +28,7 @@ object Gcc {
   var count = 0
   var count2 = 0
   
-  def preprocess(code: String): String = {
-    
-    var myCount = 0;
-    
-    synchronized {
-      myCount = count2
-      count2 += 1
-    }
-    
-    val file = File("tempPreproc" + myCount + ".c")
-
-    file.overwrite(code)
-    
-    val preprocessTokens = Seq("gcc") ++ Seq("-E", file.path.toString, "-I", "C:\\Scala\\Git\\astViewer\\app")
-    val runLogger = new RunLogger
-    
-    val builder = Process(preprocessTokens, File("").toJava)
-    val compile = builder.run(runLogger.process)
-    compile.exitValue()
-    
-    file.delete(true)
-    
-    runLogger.stdout.reduce{_ + "\n" + _}
-  }
-  
-  def compileAndGetOutput(code: String): Seq[String] = {
+  def compileAndGetOutput(codes: Seq[String]): Seq[String] = {
     
     val logger = new SyntaxLogger
     val linkerLogger = new LinkerLogger
@@ -61,22 +36,41 @@ object Gcc {
     
     var myCount = 0;
     
+    val fileNames = codes.map{ code =>
+    
+      synchronized {
+        myCount = count
+        count += 1
+      }
+      
+      ("temp" + myCount, code)
+    }
+
     synchronized {
       myCount = count
       count += 1
     }
     
-    val file = File("temp" + myCount + ".c")
-    val objectFile = File("temp" + myCount + ".o")
-    val exeFile = File("temp" + myCount + ".exe")
-
-    file.overwrite(code)
+    val files = fileNames.map{ case (fileName, code) =>
+      val file = File(fileName + ".c")
+      file.overwrite(code)
+      file
+    }
     
-    val sourceFileTokens = Seq("-c", file.path.toString)
-    val includeTokens = Seq("-I", "C:\\Scala\\Git\\astViewer\\app", "-I", "C:\\Scala\\Git\\astViewer\\test\\scala\\c-algorithms-master\\test", "-I", "C:\\Scala\\Git\\astViewer\\test\\scala\\c-algorithms-master\\src")
+    val objectFiles = fileNames.map{ case (fileName, code) =>
+      val file = File(fileName + ".o")
+      file
+    } 
+    
+    val exeFile = File("temp" + myCount + ".exe")
+    
+    val sourceFileTokens = files.flatMap{file => Seq("-c", file.path.toString)}
+    val includeTokens = Seq("-I", "C:\\Scala\\Git\\astViewer\\app", 
+                            "-I", "C:\\Scala\\Git\\astViewer\\test\\scala\\c-algorithms-master\\test",
+                            "-I", "C:\\Scala\\Git\\astViewer\\test\\scala\\c-algorithms-master\\src")
 
     val processTokens =
-        Seq("gcc") ++ sourceFileTokens ++ includeTokens
+        Seq("gcc") ++ sourceFileTokens ++ includeTokens ++ Seq("-D", "ALLOC_TESTING")
   
     val builder = Process(processTokens, File("").toJava)
     val compile = builder.run(logger.process)
@@ -85,7 +79,7 @@ object Gcc {
     val numErrors = logger.errors.filter(_.errorType == "error").length
 
     val result = if (numErrors == 0) {    
-      val linkTokens = Seq("gcc") ++ Seq("-o", exeFile.path.toString, objectFile.path.toString)
+      val linkTokens = Seq("gcc") ++ Seq("-o", exeFile.path.toString) ++ objectFiles.map(_.path.toString)
       
       val linker = Process(linkTokens, File("").toJava)
       val link = linker.run(linkerLogger.process)
@@ -107,8 +101,8 @@ object Gcc {
       logger.errors.filter(_.errorType == "error").map(_.error)
     }
     
-    file.delete(true)
-    objectFile.delete(true)
+    files.foreach{file => file.delete(true)}
+    objectFiles.foreach{file => file.delete(true)}
     exeFile.delete(true)
     
     result

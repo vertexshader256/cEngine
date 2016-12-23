@@ -33,6 +33,7 @@ class State(val tUnit: IASTTranslationUnit) {
   val functionPointers = scala.collection.mutable.Map[String, Variable]()
   val stdout = new ListBuffer[String]()
   var functionCount = 0
+  def stack = context.stack
   
   def removeFunctionDef(name: String) = {
     functionMap.remove("main") 
@@ -60,8 +61,6 @@ class State(val tUnit: IASTTranslationUnit) {
   var isReturning = false
   var isBreaking = false
   var isContinuing = false
-  
-  def stack = context.stack
 
   def callFunction(name: String, call: IASTFunctionCallExpression, args: Seq[Any]): IASTNode = {
         
@@ -77,6 +76,7 @@ class State(val tUnit: IASTTranslationUnit) {
     } else if (hasFunction(name)) {
       getFunction(name)
     } else {
+      println("ERROR CALLING: " + name)
       null
     }
   }
@@ -101,6 +101,12 @@ class State(val tUnit: IASTTranslationUnit) {
     } else {
       Address(0)
     }
+  }
+  
+  def move(dst: Address, src: Address, numBytes: Int) = {
+    val array = Array.fill(numBytes)(0.toByte)
+    val bytes = tape.get(array, src.value, numBytes)
+    tape.put(array, dst.value, numBytes)
   }
   
   def readPtrVal(address: Address) = {
@@ -156,8 +162,10 @@ class State(val tUnit: IASTTranslationUnit) {
           tape.getFloat(address)
         } else if (basic.getKind == eChar) {
           tape.get(address) // a C 'char' is a Java 'byte'
+        } else if (basic.getKind == eVoid) {
+          tape.getInt(address)
         } else {
-          throw new Exception("Bad read val")
+          throw new Exception("Bad read val: " + basic.getKind)
         }
       case ptr: IPointerType => tape.getInt(address)
       case array: IArrayType => tape.getInt(address)

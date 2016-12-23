@@ -61,7 +61,7 @@ object Expressions {
           owner match {
             case Variable(info: Variable) => 
               baseAddr = Address(info.value.value.asInstanceOf[Int])
-              info.info.theType.asInstanceOf[IPointerType].getType.asInstanceOf[CStructure]
+              TypeHelper.getBaseType(info.info.theType).asInstanceOf[CStructure]
             case AddressInfo(addr, theType) => 
               baseAddr = addr
               theType match {
@@ -286,6 +286,7 @@ object Expressions {
             context.stack.pop match {
               case Variable(info: Variable) =>
                 context.stack.push(info.address)
+              case ValueInfo(value, info) if info.toString == "void" => context.stack.push(Address(value.asInstanceOf[Int]))
               case Variable(fcn: IASTFunctionDefinition) =>
                 context.stack.push(fcn)
             }

@@ -627,7 +627,7 @@ object Executor {
       case fcnDef: IASTFunctionDefinition =>
         if (direction == Exiting) {
           if (!state.context.stack.isEmpty) {
-            val retVal = state.context.stack.head
+            val retVal = state.context.stack.pop
             if (fcnDef.getDeclarator.getName.getRawSignature != "main") {
               state.functionContexts.pop
               if (fcnDef.getDeclSpecifier.getRawSignature == "void") {
@@ -677,11 +677,16 @@ object Executor {
               }
             case typespec: CASTTypedefNameSpecifier =>
               val name: IASTName = typespec.getName
-              val typedef = state.tUnit.getDefinitionsInAST(name.getBinding).head.resolveBinding() match {
-                case x: CTypedef => x.getType
-                case null => typespec.getName.resolveBinding().asInstanceOf[CTypedef].getType
+              val defs = state.tUnit.getDefinitionsInAST(name.getBinding)
+              if (!defs.isEmpty) {
+                val typedef = defs.head.resolveBinding() match {
+                  case x: CTypedef => x.getType
+                  case null => typespec.getName.resolveBinding().asInstanceOf[CTypedef].getType
+                }
+                typedef
+              } else {
+                null
               }
-              typedef
             case elab: CASTElaboratedTypeSpecifier =>
               elab.getName.resolveBinding().asInstanceOf[CStructure]
           }
@@ -697,8 +702,8 @@ class Executor() {
   
   var tUnit: IASTTranslationUnit = null
   
-  def init(code: String, reset: Boolean): State = {
-    tUnit = Utils.getTranslationUnit(code)
+  def init(codes: Seq[String], reset: Boolean): State = {
+    tUnit = Utils.getTranslationUnit(codes)
     val state = new State(tUnit)
     current = tUnit
 
