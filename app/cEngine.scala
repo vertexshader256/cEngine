@@ -22,30 +22,26 @@ object cEngine {
 
 class State(val tUnit: IASTTranslationUnit) {
   
-  case class FunctionInfo(fcnDef: IASTFunctionDefinition, index: Int)
+  case class FunctionInfo(name: String, fcnDef: IASTFunctionDefinition, index: Int)
   
   // turing tape 
   private val tape = ByteBuffer.allocate(100000);
   
   val functionContexts = new Stack[ExecutionContext]()
   def context = functionContexts.head
-  private val functionMap = scala.collection.mutable.Map[String, FunctionInfo]()
+  private val functionMap = scala.collection.mutable.ListBuffer[FunctionInfo]()
   val functionPointers = scala.collection.mutable.Map[String, Variable]()
   val stdout = new ListBuffer[String]()
   var functionCount = 0
   def stack = context.stack
   
-  def removeFunctionDef(name: String) = {
-    functionMap.remove("main") 
-  }
-  
-  def hasFunction(name: String): Boolean = functionMap.contains(name)
-  def getFunction(name: String): IASTFunctionDefinition = functionMap(name).fcnDef
-  def getFunctionByIndex(index: Int): IASTFunctionDefinition = functionMap.values.find(_.index == index).get.fcnDef
+  def hasFunction(name: String): Boolean = functionMap.exists{fcn => fcn.name == name}
+  def getFunction(name: String): IASTFunctionDefinition = functionMap.find{fcn => fcn.name == name}.get.fcnDef
+  def getFunctionByIndex(index: Int): IASTFunctionDefinition = functionMap.find{fcn => fcn.index == index}.get.fcnDef
   
   def addFunctionDef(fcnDef: IASTFunctionDefinition) = {
     val name = fcnDef.getDeclarator.getName
-    functionMap += name.getRawSignature -> FunctionInfo(fcnDef, functionCount)
+    functionMap += FunctionInfo(name.getRawSignature, fcnDef, functionCount)
     
     val fcnType = fcnDef.getDeclarator.getName.resolveBinding().asInstanceOf[IFunction].getType
     
