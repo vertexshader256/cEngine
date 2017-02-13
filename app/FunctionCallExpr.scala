@@ -21,7 +21,7 @@ object FunctionCallExpr {
     if (direction == Exiting) {
         val name = state.stack.pop match {
           case VarRef(str) => str
-          case AddressInfo(addr, theType) => state.getFunctionByIndex(state.readPtrVal(addr)).getDeclarator.getName.getRawSignature
+          case AddressInfo(addr, theType) => state.getFunctionByIndex(state.readPtrVal(addr)).name
         }
 
         val argList = call.getArguments.map { arg => (arg, state.stack.pop) }

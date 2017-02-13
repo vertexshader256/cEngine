@@ -20,10 +20,10 @@ object cEngine {
   }
 }
 
+case class FunctionInfo(name: String, fcnDef: IASTFunctionDefinition, index: Int)
+
 class State(val tUnit: IASTTranslationUnit) {
-  
-  case class FunctionInfo(name: String, fcnDef: IASTFunctionDefinition, index: Int)
-  
+
   // turing tape 
   private val tape = ByteBuffer.allocate(100000);
   
@@ -36,8 +36,8 @@ class State(val tUnit: IASTTranslationUnit) {
   def stack = context.stack
   
   def hasFunction(name: String): Boolean = functionMap.exists{fcn => fcn.name == name}
-  def getFunction(name: String): IASTFunctionDefinition = functionMap.find{fcn => fcn.name == name}.get.fcnDef
-  def getFunctionByIndex(index: Int): IASTFunctionDefinition = functionMap.find{fcn => fcn.index == index}.get.fcnDef
+  def getFunction(name: String): FunctionInfo = functionMap.find{fcn => fcn.name == name}.get
+  def getFunctionByIndex(index: Int): FunctionInfo = functionMap.find{fcn => fcn.index == index}.get
   
   def addFunctionDef(fcnDef: IASTFunctionDefinition) = {
     val name = fcnDef.getDeclarator.getName
@@ -68,9 +68,9 @@ class State(val tUnit: IASTTranslationUnit) {
 
     if (functionContexts.head.varMap.contains(name)) {
        val theVar = functionContexts.head.varMap(name)
-       getFunctionByIndex(theVar.value.value.asInstanceOf[Int])
+       getFunctionByIndex(theVar.value.value.asInstanceOf[Int]).fcnDef
     } else if (hasFunction(name)) {
-      getFunction(name)
+      getFunction(name).fcnDef
     } else {
       println("ERROR CALLING: " + name)
       null

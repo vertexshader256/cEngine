@@ -717,7 +717,7 @@ class Executor() {
     execute(state)
 
     state.context.pathStack.clear
-    state.context.pathStack.push(state.getFunction("main"))
+    state.context.pathStack.push(state.getFunction("main").fcnDef)
     current = state.context.pathStack.head
     state
   }
