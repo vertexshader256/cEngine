@@ -60,7 +60,7 @@ object FunctionCallExpr {
           fcn.run(formattedOutputParams, state)
           Seq()
         }.getOrElse{
-          Seq(state.callFunction(name, call, formattedOutputParams))
+          Seq(state.callFunction(name, call, formattedOutputParams, state))
         }
 
       } else {

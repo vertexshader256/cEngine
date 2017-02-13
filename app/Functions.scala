@@ -6,8 +6,8 @@ import java.util.Locale;
 import scala.collection.mutable.HashMap
 import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
 
-abstract case class Function(name: String) {
-  def run(formattedOutputParams: Array[AnyVal], state: State)
+abstract case class Function(name: String, index: Int) {
+  def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode
 }
 
 object Functions {
@@ -16,67 +16,76 @@ object Functions {
   var lastChar: Byte = 0
   
   val functionMap = List[Function](
-      new Function("rand") {
-        def run(formattedOutputParams: Array[AnyVal], state: State) {
+      new Function("rand", 0) {
+        def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           state.stack.push(Math.abs(scala.util.Random.nextInt))
+          null
         }
       },
-      new Function("isalpha") {
-        def run(formattedOutputParams: Array[AnyVal], state: State) {
+      new Function("isalpha", 0) {
+        def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val theChar = formattedOutputParams.head.asInstanceOf[Character].toChar
           state.stack.push(if (theChar.isLetter) 1 else 0) 
+          null
         }
       },
-      new Function("tolower") {
-        def run(formattedOutputParams: Array[AnyVal], state: State) {
+      new Function("tolower", 0) {
+        def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val theChar = formattedOutputParams.head.asInstanceOf[Character].toChar
-          state.stack.push(theChar.toLower.toByte) 
+          state.stack.push(theChar.toLower.toByte)
+          null
         }
       },
-      new Function("isupper") {
-        def run(formattedOutputParams: Array[AnyVal], state: State) {
+      new Function("isupper", 0) {
+        def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val theChar = formattedOutputParams.head.asInstanceOf[Character].toChar
-          state.stack.push(if (theChar.isUpper) 1 else 0) 
+          state.stack.push(if (theChar.isUpper) 1 else 0)
+          null
         }
       },
-      new Function("calloc") {
-        def run(formattedOutputParams: Array[AnyVal], state: State) {
+      new Function("calloc", 0) {
+        def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val numBlocks = formattedOutputParams(0).asInstanceOf[Int]
           val blockSize = formattedOutputParams(1).asInstanceOf[Int]
           val addr = state.allocateSpace(numBlocks * blockSize)
           state.stack.push(addr)
+          null
         }
       },
-      new Function("malloc") {
-        def run(formattedOutputParams: Array[AnyVal], state: State) {
+      new Function("malloc", 0) {
+        def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           formattedOutputParams.head match {
             case long: Long => state.stack.push(state.allocateSpace(long.toInt))
             case int: Int => state.stack.push(state.allocateSpace(int))
           }
+          null
         }
       },
-      new Function("realloc") {
-        def run(formattedOutputParams: Array[AnyVal], state: State) {
+      new Function("realloc", 0) {
+        def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           state.stack.push(state.allocateSpace(formattedOutputParams.head.asInstanceOf[Int]))
+          null
         }
       },
-      new Function("memmove") {
-        def run(formattedOutputParams: Array[AnyVal], state: State) {
+      new Function("memmove", 0) {
+        def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val dst = formattedOutputParams(0).asInstanceOf[Address]
           val src = formattedOutputParams(1).asInstanceOf[Address]
           val numBytes = formattedOutputParams(2).asInstanceOf[Int]
           
           state.move(dst, src, numBytes)
+          null
         }
       },
-      new Function("_assert") {
-        def run(formattedOutputParams: Array[AnyVal], state: State) {
+      new Function("_assert", 0) {
+        def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val addy = formattedOutputParams(0).asInstanceOf[Address]
           println(state.readString(addy) + " FAILED")
+          null
         }
       },
-      new Function("putchar") {
-        def run(formattedOutputParams: Array[AnyVal], state: State) {
+      new Function("putchar", 0) {
+        def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val theChar = formattedOutputParams(0).asInstanceOf[Character]
           if (theChar == 'n' && lastChar == '\\') {
             state.stdout += standardOutBuffer
@@ -85,10 +94,11 @@ object Functions {
             standardOutBuffer += theChar.toChar
           }
           lastChar = theChar
+          null
         }
       },
-      new Function("printf") {
-        def run(formattedOutputParams: Array[AnyVal], state: State) {
+      new Function("printf", 0) {
+        def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val resolved = formattedOutputParams.map{x => 
             x match {
               case strLit: StringLiteral => strLit.str
@@ -101,10 +111,11 @@ object Functions {
           }
           
           Functions.printf(state, resolved.map(_.asInstanceOf[Object]))
+          null
         }
       },
-      new Function("strlen") {
-        def run(formattedOutputParams: Array[AnyVal], state: State) {
+      new Function("strlen", 0) {
+        def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val straddy = formattedOutputParams.head match {
             //case AddressInfo(addr, _) => addr.value
             case Address(addr) => addr
@@ -118,19 +129,23 @@ object Functions {
               i += 1
             }
           } while (current != 0)
-          state.stack.push(i) 
+          state.stack.push(i)
+          null
         }
       },
-      new Function("free") {
-        def run(formattedOutputParams: Array[AnyVal], state: State) {
+      new Function("free", 0) {
+        def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
+          null
         }
       },
-      new Function("__builtin_va_start") {
-        def run(formattedOutputParams: Array[AnyVal], state: State) {
+      new Function("__builtin_va_start", 0) {
+        def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
+          null
         }
       },
-      new Function("__builtin_va_end") {
-        def run(formattedOutputParams: Array[AnyVal], state: State) {
+      new Function("__builtin_va_end", 0) {
+        def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
+          null
         }
       }  
   )

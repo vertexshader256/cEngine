@@ -20,7 +20,9 @@ object cEngine {
   }
 }
 
-case class FunctionInfo(name: String, fcnDef: IASTFunctionDefinition, index: Int)
+//abstract case class FunctionInfo(name: String, index: Int) {
+//  def run: IASTNode
+//}
 
 class State(val tUnit: IASTTranslationUnit) {
 
@@ -29,19 +31,21 @@ class State(val tUnit: IASTTranslationUnit) {
   
   val functionContexts = new Stack[ExecutionContext]()
   def context = functionContexts.head
-  private val functionMap = scala.collection.mutable.ListBuffer[FunctionInfo]()
+  private val functionMap = scala.collection.mutable.ListBuffer[Function]()
   val functionPointers = scala.collection.mutable.Map[String, Variable]()
   val stdout = new ListBuffer[String]()
   var functionCount = 0
   def stack = context.stack
   
   def hasFunction(name: String): Boolean = functionMap.exists{fcn => fcn.name == name}
-  def getFunction(name: String): FunctionInfo = functionMap.find{fcn => fcn.name == name}.get
-  def getFunctionByIndex(index: Int): FunctionInfo = functionMap.find{fcn => fcn.index == index}.get
+  def getFunction(name: String): Function = functionMap.find{fcn => fcn.name == name}.get
+  def getFunctionByIndex(index: Int): Function = functionMap.find{fcn => fcn.index == index}.get
   
   def addFunctionDef(fcnDef: IASTFunctionDefinition) = {
     val name = fcnDef.getDeclarator.getName
-    functionMap += FunctionInfo(name.getRawSignature, fcnDef, functionCount)
+    functionMap += new Function(name.getRawSignature, functionCount) {
+      def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = fcnDef
+    }
     
     val fcnType = fcnDef.getDeclarator.getName.resolveBinding().asInstanceOf[IFunction].getType
     
@@ -58,7 +62,7 @@ class State(val tUnit: IASTTranslationUnit) {
   var isBreaking = false
   var isContinuing = false
 
-  def callFunction(name: String, call: IASTFunctionCallExpression, args: Seq[Any]): IASTNode = {
+  def callFunction(name: String, call: IASTFunctionCallExpression, args: Seq[AnyVal], state: State): IASTNode = {
         
     functionContexts.push(new ExecutionContext(functionContexts.head.varMap, call.getExpressionType, this))
     context.pathStack.push(call)
@@ -68,9 +72,9 @@ class State(val tUnit: IASTTranslationUnit) {
 
     if (functionContexts.head.varMap.contains(name)) {
        val theVar = functionContexts.head.varMap(name)
-       getFunctionByIndex(theVar.value.value.asInstanceOf[Int]).fcnDef
+       getFunctionByIndex(theVar.value.value.asInstanceOf[Int]).run(args.toArray, state)
     } else if (hasFunction(name)) {
-      getFunction(name).fcnDef
+      getFunction(name).run(args.toArray, state)
     } else {
       println("ERROR CALLING: " + name)
       null
