@@ -17,7 +17,6 @@ case class ValueInfo(value: AnyVal, theType: IType)
 case class VarRef(name: String)
 
 object Variable {                              
-  def apply(x: Int): Int = x * 2
   def unapply(any: Any)(implicit state: State): Option[Any] = {
     if (any.isInstanceOf[VarRef]) {
       val ref = any.asInstanceOf[VarRef]

@@ -28,20 +28,21 @@ class FunctionPointerTest extends StandardTest {
     checkResults(code)
   }
   
-  "a function pointer within a struct test" should "print the correct results" in {
+  "an inner-struct function pointer to scala function" should "print the correct results" in {
     val code = """
       #include <stdio.h>
+      #include <string.h>
       
       typedef struct blah {
-        void (*foo)(int);
+        int (*foo)(int);
       } blah;
       
       int main()
       {
           blah x;
-          x.foo = malloc;
+          x.foo = &strlen;
 
-          x.foo( 2 );
+          printf("%d\n", x.foo("this is just a test"));
       
           return 0;
       }

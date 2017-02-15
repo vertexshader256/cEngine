@@ -129,7 +129,7 @@ object Utils {
     val fileContent = FileContent.create("test", preprocess.toCharArray)
     val symbolMap = new HashMap[String, String];
 
-    val systemIncludes = List(new File(raw"C:\Scala\AstViewer\app"), new File(raw"C:\MinGW\include"), new File(raw"C:\MinGW\include\GL"), new File(raw"C:\MinGW\lib\gcc\mingw32\4.9.3\include"))
+    val systemIncludes = List(new File(raw"C:\Scala\Git\AstViewer\app"), new File(raw"C:\MinGW\include"), new File(raw"C:\MinGW\include\GL"), new File(raw"C:\MinGW\lib\gcc\mingw32\4.9.3\include"))
 
     val info = new ScannerInfo(symbolMap, systemIncludes.toArray.map(_.getAbsolutePath))
     val log = new DefaultLogService()

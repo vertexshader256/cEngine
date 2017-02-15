@@ -56,12 +56,7 @@ object FunctionCallExpr {
           }
         }
 
-        functionMap.find(_.name == name).map{ fcn =>
-          fcn.run(formattedOutputParams, state)
-          Seq()
-        }.getOrElse{
-          Seq(state.callFunction(name, call, formattedOutputParams, state))
-        }
+        state.callTheFunction(name, call, formattedOutputParams)
 
       } else {
         call.getArguments.reverse ++ Seq(call.getFunctionNameExpression)

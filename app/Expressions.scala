@@ -294,7 +294,10 @@ object Expressions {
           case `op_amper` =>
             context.stack.pop match {
               case Variable(info: Variable) =>
-                context.stack.push(info.address)
+                info.theType match {
+                  case fcn: CFunctionType => context.stack.push(context.readPtrVal(info.address))
+                  case _ => context.stack.push(info.address)
+                } 
               case ValueInfo(value, info) if info.toString == "void" => context.stack.push(Address(value.asInstanceOf[Int]))
               case Variable(fcn: IASTFunctionDefinition) =>
                 context.stack.push(fcn)

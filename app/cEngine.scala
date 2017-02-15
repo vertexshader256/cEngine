@@ -28,22 +28,46 @@ class State(val tUnit: IASTTranslationUnit) {
 
   // turing tape 
   private val tape = ByteBuffer.allocate(100000);
+  tape.order(ByteOrder.LITTLE_ENDIAN)
+
+  var insertIndex = 0
   
   val functionContexts = new Stack[ExecutionContext]()
   def context = functionContexts.head
-  private val functionMap = scala.collection.mutable.ListBuffer[Function]()
+  val functionList = new ListBuffer[Function]()
   val functionPointers = scala.collection.mutable.Map[String, Variable]()
   val stdout = new ListBuffer[String]()
   var functionCount = 0
   def stack = context.stack
   
-  def hasFunction(name: String): Boolean = functionMap.exists{fcn => fcn.name == name}
-  def getFunction(name: String): Function = functionMap.find{fcn => fcn.name == name}.get
-  def getFunctionByIndex(index: Int): Function = functionMap.find{fcn => fcn.index == index}.get
+  def hasFunction(name: String): Boolean = functionList.exists{fcn => fcn.name == name}
+  def getFunction(name: String): Function = functionList.find{fcn => fcn.name == name}.get
+  def getFunctionByIndex(index: Int): Function = functionList.find{fcn => fcn.index == index}.get
+  
+  Functions.scalaFunctions.foreach{fcn =>
+    addScalaFunctionDef(fcn)
+  }
+  
+  def addScalaFunctionDef(fcn: Function) = {
+
+    functionList += new Function(fcn.name, functionCount, false) {
+      def run(args: Array[AnyVal], state: State): IASTNode = fcn.run(args, state)
+    }
+    
+    val fcnType = new CFunctionType(new CBasicType(IBasicType.Kind.eVoid, 0), null)
+    
+    val newVar = new Variable(State.this, fcnType)
+    newVar.allocate
+    setValue(functionCount, newVar.address)
+    
+    functionPointers += fcn.name -> newVar
+    functionCount += 1
+  }
   
   def addFunctionDef(fcnDef: IASTFunctionDefinition) = {
     val name = fcnDef.getDeclarator.getName
-    functionMap += new Function(name.getRawSignature, functionCount) {
+    
+    functionList += new Function(name.getRawSignature, functionCount, true) {
       def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = fcnDef
     }
     
@@ -62,23 +86,41 @@ class State(val tUnit: IASTTranslationUnit) {
   var isBreaking = false
   var isContinuing = false
 
-  def callFunction(name: String, call: IASTFunctionCallExpression, args: Seq[AnyVal], state: State): IASTNode = {
+  def callTheFunction(name: String, call: IASTFunctionCallExpression, args: Array[AnyVal]): Seq[IASTNode] = {
+    functionList.find(_.name == name).map{ fcn =>
+      if (!fcn.isNative) {
+        fcn.run(args, this)
+        Seq()
+      } else {
+        Seq(callFunction(name, call, args))
+      }
+    }.getOrElse{
+      // function pointer case
+      Seq(callFunctionPointer(name, call, args))
+    }
+  }
+  
+  def callFunction(name: String, call: IASTFunctionCallExpression, args: Seq[AnyVal]): IASTNode = {
         
     functionContexts.push(new ExecutionContext(functionContexts.head.varMap, call.getExpressionType, this))
     context.pathStack.push(call)
-    
-        // load up the stack with the parameters
+
+        // load up the stack with the arguments
     args.reverse.foreach { arg => context.stack.push(arg)}
 
-    if (functionContexts.head.varMap.contains(name)) {
-       val theVar = functionContexts.head.varMap(name)
-       getFunctionByIndex(theVar.value.value.asInstanceOf[Int]).run(args.toArray, state)
-    } else if (hasFunction(name)) {
-      getFunction(name).run(args.toArray, state)
-    } else {
-      println("ERROR CALLING: " + name)
-      null
-    }
+    getFunction(name).run(args.toArray, this)
+  }
+  
+  def callFunctionPointer(name: String, call: IASTFunctionCallExpression, args: Seq[AnyVal]): IASTNode = {
+        
+    functionContexts.push(new ExecutionContext(functionContexts.head.varMap, call.getExpressionType, this))
+    context.pathStack.push(call)
+
+        // load up the stack with the arguments
+    args.reverse.foreach { arg => context.stack.push(arg)}
+
+    val theVar = functionContexts.head.varMap(name)
+    getFunctionByIndex(theVar.value.value.asInstanceOf[Int]).run(args.toArray, this)
   }
 
   def clearVisited(parent: IASTNode) {
@@ -87,11 +129,6 @@ class State(val tUnit: IASTTranslationUnit) {
       clearVisited(node)
     }
   }
-
-  
-  tape.order(ByteOrder.LITTLE_ENDIAN)
-
-  var insertIndex = 0
 
   def allocateSpace(numBytes: Int): Address = {
     if (numBytes > 0) {
