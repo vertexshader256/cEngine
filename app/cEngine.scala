@@ -49,10 +49,10 @@ class State(val tUnit: IASTTranslationUnit) {
   }
   
   def addScalaFunctionDef(fcn: Function) = {
+    
+    fcn.index = functionCount
 
-    functionList += new Function(fcn.name, functionCount, false) {
-      def run(args: Array[AnyVal], state: State): IASTNode = fcn.run(args, state)
-    }
+    functionList += fcn
     
     val fcnType = new CFunctionType(new CBasicType(IBasicType.Kind.eVoid, 0), null)
     
@@ -67,11 +67,13 @@ class State(val tUnit: IASTTranslationUnit) {
   def addFunctionDef(fcnDef: IASTFunctionDefinition) = {
     val name = fcnDef.getDeclarator.getName
     
-    functionList += new Function(name.getRawSignature, functionCount, true) {
+    val fcnType = fcnDef.getDeclarator.getName.resolveBinding().asInstanceOf[IFunction].getType
+    
+    functionList += new Function(name.getRawSignature, true) {
+      index = functionCount
+      def parameters = fcnType.getParameterTypes.toList
       def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = fcnDef
     }
-    
-    val fcnType = fcnDef.getDeclarator.getName.resolveBinding().asInstanceOf[IFunction].getType
     
     val newVar = new Variable(State.this, fcnType)
     newVar.allocate
@@ -86,41 +88,39 @@ class State(val tUnit: IASTTranslationUnit) {
   var isBreaking = false
   var isContinuing = false
 
-  def callTheFunction(name: String, call: IASTFunctionCallExpression, args: Array[AnyVal]): Seq[IASTNode] = {
+  def callTheFunction(name: String, call: IASTFunctionCallExpression, argumentStartingAddress: Address, numArgs: Int): Seq[IASTNode] = {
+
     functionList.find(_.name == name).map{ fcn =>
       if (!fcn.isNative) {
-        fcn.run(args, this)
+        // this is a function simulated in scala
+        fcn.run(argumentStartingAddress, numArgs, this)
         Seq()
       } else {
-        Seq(callFunction(name, call, args))
+        Seq(callFunction(name, call, argumentStartingAddress, numArgs))
       }
     }.getOrElse{
       // function pointer case
-      Seq(callFunctionPointer(name, call, args))
+      Seq(callFunctionPointer(name, call, argumentStartingAddress, numArgs))
     }
   }
   
-  def callFunction(name: String, call: IASTFunctionCallExpression, args: Seq[AnyVal]): IASTNode = {
+  def callFunction(name: String, call: IASTFunctionCallExpression, argumentStartingAddress: Address, numArgs: Int): IASTNode = {
         
     functionContexts.push(new ExecutionContext(functionContexts.head.varMap, call.getExpressionType, this))
     context.pathStack.push(call)
+    
+    context.stack.push(argumentStartingAddress)
 
-        // load up the stack with the arguments
-    args.reverse.foreach { arg => context.stack.push(arg)}
-
-    getFunction(name).run(args.toArray, this)
+    getFunction(name).run(argumentStartingAddress, numArgs, this)
   }
   
-  def callFunctionPointer(name: String, call: IASTFunctionCallExpression, args: Seq[AnyVal]): IASTNode = {
+  def callFunctionPointer(name: String, call: IASTFunctionCallExpression, argumentStartingAddress: Address, numArgs: Int): IASTNode = {
         
     functionContexts.push(new ExecutionContext(functionContexts.head.varMap, call.getExpressionType, this))
     context.pathStack.push(call)
 
-        // load up the stack with the arguments
-    args.reverse.foreach { arg => context.stack.push(arg)}
-
     val theVar = functionContexts.head.varMap(name)
-    getFunctionByIndex(theVar.value.value.asInstanceOf[Int]).run(args.toArray, this)
+    getFunctionByIndex(theVar.value.value.asInstanceOf[Int]).run(argumentStartingAddress, numArgs, this)
   }
 
   def clearVisited(parent: IASTNode) {

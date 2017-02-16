@@ -65,8 +65,8 @@ object Gcc {
     val exeFile = File("temp" + myCount + ".exe")
     
     val sourceFileTokens = files.flatMap{file => Seq("-c", file.path.toString)}
-    val includeTokens = Seq("-I", "C:\\Scala\\Git\\astViewer\\app", 
-                            "-I", "C:\\Scala\\Git\\astViewer\\test\\scala\\libds-master")
+    val includeTokens = Seq("-I", "C:\\Scala\\AstViewer\\app", 
+                            "-I", "C:\\Scala\\AstViewer\\test\\scala\\libds-master")
 
     val processTokens =
         Seq("gcc") ++ sourceFileTokens ++ includeTokens ++ Seq("-D", "ALLOC_TESTING")

@@ -72,6 +72,12 @@ object Utils {
     Seq(node) ++ node.getChildren.flatMap{x => getDescendants(x)}
   }
 
+  val mainPath = raw"C:\Scala\Git\AstViewer\app"
+  val mainAdditionalPath = raw"C:\Scala\Git\AstViewer\test\scala\libds-master"
+  val minGWIncludes = raw"C:\MinGW\include"
+  val minGWAdditionalIncludes = raw"C:\MinGW\lib\gcc\mingw32\4.9.3\include"
+  val minGWMoreIncludes = raw"C:\MinGW\include\GL"
+  
   def getTranslationUnit(codes: Seq[String]): IASTTranslationUnit = {
 
 		val preprocessResults = new StringBuilder
@@ -80,11 +86,11 @@ object Utils {
 		  
 		  val	pp = new Preprocessor();
 
-  		pp.getSystemIncludePath.add("C:\\MinGW\\include")
-  		pp.getSystemIncludePath.add("C:\\MinGW\\lib\\gcc\\mingw32\\4.9.3\\include")
+  		pp.getSystemIncludePath.add(minGWIncludes)
+  		pp.getSystemIncludePath.add(minGWAdditionalIncludes)
   		pp.addMacro("__cdecl", "")
-  		pp.getQuoteIncludePath.add("C:\\MinGW\\include")
-  		pp.getQuoteIncludePath.add("C:\\Scala\\Git\\AstViewer\\test\\scala\\libds-master")
+  		pp.getQuoteIncludePath.add(minGWIncludes)
+  		pp.getQuoteIncludePath.add(mainAdditionalPath)
   		//pp.addMacro("ALLOC_TESTING");
 		
   		val stream = new ByteArrayInputStream(code.getBytes(StandardCharsets.UTF_8))
@@ -129,7 +135,7 @@ object Utils {
     val fileContent = FileContent.create("test", preprocess.toCharArray)
     val symbolMap = new HashMap[String, String];
 
-    val systemIncludes = List(new File(raw"C:\Scala\Git\AstViewer\app"), new File(raw"C:\MinGW\include"), new File(raw"C:\MinGW\include\GL"), new File(raw"C:\MinGW\lib\gcc\mingw32\4.9.3\include"))
+    val systemIncludes = List(new File(mainPath), new File(minGWIncludes), new File(minGWMoreIncludes), new File(minGWAdditionalIncludes))
 
     val info = new ScannerInfo(symbolMap, systemIncludes.toArray.map(_.getAbsolutePath))
     val log = new DefaultLogService()

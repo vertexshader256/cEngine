@@ -5,43 +5,72 @@ import java.util.Formatter
 import java.util.Locale;
 import scala.collection.mutable.HashMap
 import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
+import scala.collection.mutable.ListBuffer
 
 // 'isNative' implies the function is in C, not Scala
-abstract case class Function(name: String, index: Int, isNative: Boolean) {
-  def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode
+abstract case class Function(name: String, isNative: Boolean) {
+  
+  var index = -1
+  
+  def parameters: List[IType]
+  def run(argumentAddress: Address, numArgs: Int, state: State): IASTNode = {
+    var startingAddress = argumentAddress
+    val args = new ListBuffer[AnyVal]()
+    if (name != "printf") {
+      val argumentsFromMemory = parameters.foreach { argType =>
+        val newArg = state.readVal(startingAddress, argType).value
+        args += FunctionCallExpr.formatArgument(newArg)(state)
+        startingAddress = startingAddress + TypeHelper.sizeof(argType)
+      }
+    } else {
+      // for printf, a scala-based var-arg function, pop off the stack
+      for (i <- (0 until numArgs)) {
+        args += FunctionCallExpr.formatArgument(state.stack.pop)(state)
+      }
+    }
+    run(args.toArray.reverse, state)
+  }
+  
+  protected def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode
 }
 
 object Functions {
   
   val scalaFunctions = List[Function](
-      new Function("rand", Int.MaxValue, false) {
+      new Function("rand", false) {
+        def parameters = List()
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           state.stack.push(Math.abs(scala.util.Random.nextInt))
           null
         }
       },
-      new Function("isalpha", Int.MaxValue, false) {
+      new Function("isalpha", false) {
+        def parameters = List(new CBasicType(IBasicType.Kind.eChar, 1))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val theChar = formattedOutputParams.head.asInstanceOf[Character].toChar
           state.stack.push(if (theChar.isLetter) 1 else 0) 
           null
         }
       },
-      new Function("tolower", Int.MaxValue, false) {
+      new Function("tolower", false) {
+        def parameters = List(new CBasicType(IBasicType.Kind.eChar, 1))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val theChar = formattedOutputParams.head.asInstanceOf[Character].toChar
           state.stack.push(theChar.toLower.toByte)
           null
         }
       },
-      new Function("isupper", Int.MaxValue, false) {
+      new Function("isupper", false) {
+        def parameters = List(new CBasicType(IBasicType.Kind.eChar, 1))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val theChar = formattedOutputParams.head.asInstanceOf[Character].toChar
           state.stack.push(if (theChar.isUpper) 1 else 0)
           null
         }
       },
-      new Function("calloc", Int.MaxValue, false) {
+      new Function("calloc", false) {
+        def parameters = List(new CBasicType(IBasicType.Kind.eInt, 4),
+                              new CBasicType(IBasicType.Kind.eInt, 4))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val numBlocks = formattedOutputParams(0).asInstanceOf[Int]
           val blockSize = formattedOutputParams(1).asInstanceOf[Int]
@@ -50,7 +79,8 @@ object Functions {
           null
         }
       },
-      new Function("malloc", Int.MaxValue, false) {
+      new Function("malloc", false) {
+        def parameters = List(new CBasicType(IBasicType.Kind.eInt, 4))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           formattedOutputParams.head match {
             case long: Long => state.stack.push(state.allocateSpace(long.toInt))
@@ -59,13 +89,15 @@ object Functions {
           null
         }
       },
-      new Function("realloc", Int.MaxValue, false) {
+      new Function("realloc", false) {
+        def parameters = List(new CBasicType(IBasicType.Kind.eInt, 4))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           state.stack.push(state.allocateSpace(formattedOutputParams.head.asInstanceOf[Int]))
           null
         }
       },
-      new Function("memmove", Int.MaxValue, false) {
+      new Function("memmove", false) {
+        def parameters = List(new CBasicType(IBasicType.Kind.eInt, 4), new CBasicType(IBasicType.Kind.eInt, 4), new CBasicType(IBasicType.Kind.eInt, 4))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val dst = formattedOutputParams(0).asInstanceOf[Address]
           val src = formattedOutputParams(1).asInstanceOf[Address]
@@ -75,14 +107,16 @@ object Functions {
           null
         }
       },
-      new Function("_assert", Int.MaxValue, false) {
+      new Function("_assert", false) {
+        def parameters = List(new CBasicType(IBasicType.Kind.eInt, 4))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val addy = formattedOutputParams(0).asInstanceOf[Address]
           println(state.readString(addy) + " FAILED")
           null
         }
       },
-      new Function("putchar", Int.MaxValue, false) {
+      new Function("putchar", false) {
+        def parameters = List(new CBasicType(IBasicType.Kind.eChar, 1))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val theChar = formattedOutputParams(0).asInstanceOf[Character]
           if (theChar == 'n' && Functions.lastChar == '\\') {
@@ -95,7 +129,8 @@ object Functions {
           null
         }
       },
-      new Function("printf", Int.MaxValue, false) {
+      new Function("printf", false) {
+        def parameters = List(new CBasicType(IBasicType.Kind.eInt, 4))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val resolved = formattedOutputParams.map{x => 
             x match {
@@ -112,7 +147,8 @@ object Functions {
           null
         }
       },
-      new Function("strlen", Int.MaxValue, false) {
+      new Function("strlen", false) {
+        def parameters = List(new CBasicType(IBasicType.Kind.eInt, 4))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val straddy = formattedOutputParams.head match {
             //case AddressInfo(addr, _) => addr.value
@@ -131,17 +167,20 @@ object Functions {
           null
         }
       },
-      new Function("free", Int.MaxValue, false) {
+      new Function("free", false) {
+        def parameters = List(new CBasicType(IBasicType.Kind.eInt, 4))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           null
         }
       },
-      new Function("__builtin_va_start", Int.MaxValue, false) {
+      new Function("__builtin_va_start", false) {
+        def parameters = List(new CBasicType(IBasicType.Kind.eInt, 4))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           null
         }
       },
-      new Function("__builtin_va_end", Int.MaxValue, false) {
+      new Function("__builtin_va_end", false) {
+        def parameters = List(new CBasicType(IBasicType.Kind.eInt, 4))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           null
         }

@@ -576,33 +576,6 @@ object Executor {
         }
       case ptr: IASTPointer =>
         Seq()
-      case param: IASTParameterDeclaration =>
-        if (direction == Exiting) {
-          val paramInfo = param.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
-          
-          // ignore main's params for now
-          val isInMain = param.getParent.isInstanceOf[IASTFunctionDeclarator] && 
-                            param.getParent.asInstanceOf[IASTFunctionDeclarator].getName.getRawSignature == "main"
-          val isInFunctionPrototype = Utils.getAncestors(param).exists{_.isInstanceOf[IASTSimpleDeclaration]}
-          if (!isInMain && paramInfo != null && paramInfo.getType != null && !isInFunctionPrototype && (!paramInfo.getType.isInstanceOf[IBasicType] || 
-              paramInfo.getType.asInstanceOf[IBasicType].getKind != eVoid)) {
-
-            val arg = state.stack.pop
-  
-            val name = param.getDeclarator.getName.getRawSignature
-            val newVar = new Variable(state, paramInfo.getType)
-            newVar.allocate
-            val resolved = TypeHelper.resolve(paramInfo.getType, arg).value
-            val casted = TypeHelper.cast(newVar.info.theType, resolved).value
-            state.setValue(casted, newVar.info.address)          
-        
-            state.context.addVariable(name, newVar)
-          }
-          
-          Seq()
-        } else {
-          Seq()
-        }
       case tUnit: IASTTranslationUnit =>
         if (direction == Entering) {
           tUnit.getChildren.filterNot{_.isInstanceOf[IASTFunctionDefinition]}
@@ -617,7 +590,45 @@ object Executor {
         }
       case fcnDec: IASTFunctionDeclarator =>
         if (direction == Entering) {
-          fcnDec.getChildren.filter(x => !x.isInstanceOf[IASTName]).map { x => x }
+          
+          var isFirst = true
+          var argAddress = Address(0)
+          
+          fcnDec.getChildren.collect{case x: IASTParameterDeclaration => x}.foreach{ param =>
+            val paramInfo = param.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
+          
+            // ignore main's params for now
+            val isInMain = param.getParent.isInstanceOf[IASTFunctionDeclarator] && 
+                              param.getParent.asInstanceOf[IASTFunctionDeclarator].getName.getRawSignature == "main"
+            val isInFunctionPrototype = Utils.getAncestors(param).exists{_.isInstanceOf[IASTSimpleDeclaration]}
+            if (!isInMain && paramInfo != null && paramInfo.getType != null && !isInFunctionPrototype && (!paramInfo.getType.isInstanceOf[IBasicType] || 
+                paramInfo.getType.asInstanceOf[IBasicType].getKind != eVoid)) {
+              
+              val fcnName = fcnDec.getName.getRawSignature
+              val function = state.getFunction(fcnName)
+              
+              if (isFirst) {
+                val startingAddress = state.stack.pop.asInstanceOf[Address]
+                argAddress = startingAddress
+                isFirst = false
+              }
+  
+              val arg = state.readVal(argAddress, paramInfo.getType)
+              
+              argAddress += TypeHelper.sizeof(paramInfo.getType)
+    
+              val name = param.getDeclarator.getName.getRawSignature
+              val newVar = new Variable(state, paramInfo.getType)
+              newVar.allocate
+              val resolved = TypeHelper.resolve(paramInfo.getType, arg).value
+              val casted = TypeHelper.cast(newVar.info.theType, resolved).value
+              state.setValue(casted, newVar.info.address)          
+          
+              state.context.addVariable(name, newVar)
+            }
+          }
+          
+          Seq()
         } else {
           Seq()
         }
@@ -716,7 +727,7 @@ class Executor() {
     execute(state)
 
     state.context.pathStack.clear
-    state.context.pathStack.push(state.getFunction("main").run(Array(), state))
+    state.context.pathStack.push(state.getFunction("main").run(Address(0), 0, state))
     current = state.context.pathStack.head
     state
   }
