@@ -118,6 +118,8 @@ class State(val tUnit: IASTTranslationUnit) {
         
     functionContexts.push(new ExecutionContext(functionContexts.head.varMap, call.getExpressionType, this))
     context.pathStack.push(call)
+    
+    context.stack.push(argumentStartingAddress)
 
     val theVar = functionContexts.head.varMap(name)
     getFunctionByIndex(theVar.value.value.asInstanceOf[Int]).run(argumentStartingAddress, numArgs, this)

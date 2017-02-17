@@ -591,27 +591,29 @@ object Executor {
       case fcnDec: IASTFunctionDeclarator =>
         if (direction == Entering) {
           
-          var isFirst = true
           var argAddress = Address(0)
           
-          fcnDec.getChildren.collect{case x: IASTParameterDeclaration => x}.foreach{ param =>
-            val paramInfo = param.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
+          val params = fcnDec.getChildren.collect{case x: IASTParameterDeclaration => x}
+          val others = fcnDec.getChildren.filter{x => !x.isInstanceOf[IASTParameterDeclaration] && !x.isInstanceOf[IASTName]}
           
-            // ignore main's params for now
-            val isInMain = param.getParent.isInstanceOf[IASTFunctionDeclarator] && 
-                              param.getParent.asInstanceOf[IASTFunctionDeclarator].getName.getRawSignature == "main"
-            val isInFunctionPrototype = Utils.getAncestors(param).exists{_.isInstanceOf[IASTSimpleDeclaration]}
+          val isInFunctionPrototype = Utils.getAncestors(fcnDec).exists{_.isInstanceOf[IASTSimpleDeclaration]}
+          
+          // ignore main's params for now
+          val isInMain = fcnDec.getName.getRawSignature == "main"
+          
+          if (!isInMain && !params.isEmpty && !isInFunctionPrototype) {
+            val startingAddress = state.stack.pop.asInstanceOf[Address]
+            argAddress = startingAddress
+          }
+
+          params.foreach{ param =>
+            val paramInfo = param.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
+            
             if (!isInMain && paramInfo != null && paramInfo.getType != null && !isInFunctionPrototype && (!paramInfo.getType.isInstanceOf[IBasicType] || 
                 paramInfo.getType.asInstanceOf[IBasicType].getKind != eVoid)) {
               
               val fcnName = fcnDec.getName.getRawSignature
               val function = state.getFunction(fcnName)
-              
-              if (isFirst) {
-                val startingAddress = state.stack.pop.asInstanceOf[Address]
-                argAddress = startingAddress
-                isFirst = false
-              }
   
               val arg = state.readVal(argAddress, paramInfo.getType)
               
@@ -628,7 +630,7 @@ object Executor {
             }
           }
           
-          Seq()
+          others
         } else {
           Seq()
         }
