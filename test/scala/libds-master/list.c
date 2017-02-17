@@ -110,17 +110,21 @@ void* list_poll(list_p list){
 	
 	if(first == NULL)
 		return NULL;
-	
+
+	printf("THE3: %d\n", first->data);
+
 	if (list->first == list->last) {
 		list->first = NULL;
-		list->last = NULL;
+		//list->last = NULL;
 	} else {
 		list->first = first->next;
 		first->next->prev = NULL;
 	}
 
+	printf("THE4: %d\n", first->data);
+
 	void* data = first->data;
-	free(first);
+	//free(first);
 	list->length--;
 	return data;
 }
@@ -128,7 +132,8 @@ void* list_poll(list_p list){
 void list_remove(list_p list, char end){
 	void * data;
 	if(end == FRONT)
-		data = list_poll(list);
+		//data = list_poll(list);
+		list_poll(list);
 	else if (end == BACK)
 		data = list_pop(list);
 	else return;

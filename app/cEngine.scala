@@ -142,11 +142,11 @@ class State(val tUnit: IASTTranslationUnit) {
     }
   }
   
-  def move(dst: Address, src: Address, numBytes: Int) = {
+  def copy(dst: Address, src: Address, numBytes: Int) = {
     if (numBytes != 0) {
-      val array = Array.fill(numBytes)(0.toByte)
-      val bytes = tape.get(array, src.value, numBytes)
-      tape.put(array, dst.value, numBytes)
+      for (i <- (0 until numBytes)) {
+         tape.put(dst.value + i, tape.get(src.value + i))
+      }   
     }
   }
   

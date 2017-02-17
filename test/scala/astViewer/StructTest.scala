@@ -45,6 +45,45 @@ class StructTest extends StandardTest {
     checkResults(code)
   }
   
+  "function which takes struct pointer" should "print the correct results" in {
+    val code = """
+      
+      struct Test {
+        int y;
+        int x;
+        struct Test *next;
+      };
+      
+      typedef struct TypedefType {
+        int y;
+        int x;
+        struct Test *next;
+      } TypedefType;
+      
+      void modify(struct Test *test) {
+         test->x = 15;
+         test->y = test->x + 55;
+      }
+      
+      void modify2(TypedefType *test) {
+         test->next->x = 15;
+         test->next->y = test->x + 55;
+      }
+      
+      void main() {
+        struct Test x = {343, 543, 0};
+        TypedefType y = {1, 40, &x};
+        printf("%d %d\n", x.y, x.y);
+        printf("%d %d\n", y.y, y.y);
+        modify(&x);
+        modify2(&y);
+        printf("%d %d\n", x.y, x.y);
+        printf("%d %d\n", y.next->y, y.next->y);
+      }"""
+
+    checkResults(code)
+  }
+  
   "binary expressions on field value" should "print the correct results" in {
     val code = """
       

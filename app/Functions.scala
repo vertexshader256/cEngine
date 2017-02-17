@@ -103,7 +103,18 @@ object Functions {
           val src = formattedOutputParams(1).asInstanceOf[Address]
           val numBytes = formattedOutputParams(2).asInstanceOf[Int]
           
-          state.move(dst, src, numBytes)
+          state.copy(dst, src, numBytes)
+          null
+        }
+      },
+      new Function("memcpy", false) {
+        def parameters = List(new CBasicType(IBasicType.Kind.eInt, 4), new CBasicType(IBasicType.Kind.eInt, 4), new CBasicType(IBasicType.Kind.eInt, 4))
+        def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
+          val numBytes = formattedOutputParams(0).asInstanceOf[Int]
+          val src = formattedOutputParams(1).asInstanceOf[Int]
+          val dst = formattedOutputParams(2).asInstanceOf[Int]
+          
+          state.copy(Address(dst), Address(src), numBytes)
           null
         }
       },

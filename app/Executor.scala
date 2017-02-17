@@ -544,7 +544,11 @@ object Executor {
               val fields = theType.asInstanceOf[CStructure].getFields
               val size = fields.size
               
-              val values: Array[(ValueInfo, IType)] = fields.map{x => state.stack.pop.asInstanceOf[Literal].cast}.reverse zip fields.map(_.getType)
+              val values: Array[(ValueInfo, IType)] = fields.map{x => state.stack.pop match {
+                case lit: Literal => lit.cast
+                case Address(value) => ValueInfo(value, new CBasicType(IBasicType.Kind.eInt, 4))
+              }}.reverse zip fields.map(_.getType)
+              
               val valueInfos = values.map{x => ValueInfo(x._1.value, x._2)}.toList
               newVar.setValues(valueInfos)
             }

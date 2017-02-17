@@ -59,19 +59,24 @@ object Expressions {
         
         val owner = context.stack.pop
         
+        def resolve(theType: IType, addr: Address): CStructure = theType match {
+          case typedef: CTypedef => 
+            resolve(typedef.getType, addr)
+          case struct: CStructure => struct
+          case ptr: IPointerType => 
+            baseAddr = Address(context.readPtrVal(addr))
+            resolve(ptr.getType, baseAddr)
+        }
+        
         val structType = if (fieldRef.isPointerDereference) {
+
           owner match {
             case Variable(info: Variable) => 
-              baseAddr = Address(info.value.value.asInstanceOf[Int])
-              TypeHelper.getBaseType(info.info.theType).asInstanceOf[CStructure]
+              //baseAddr = info.address//Address(info.value.value.asInstanceOf[Int])
+              resolve(info.theType, info.address).asInstanceOf[CStructure]
             case AddressInfo(addr, theType) => 
-              baseAddr = addr
-              theType match {
-                case struct: CStructure => struct
-                case ptr: IPointerType => 
-                  baseAddr = Address(context.readPtrVal(addr))
-                  ptr.getType.asInstanceOf[CStructure]
-              }
+              baseAddr = addr            
+              resolve(theType, addr)
           }
         } else {
           owner match {
@@ -392,6 +397,7 @@ object Expressions {
         if (context.context.visited.contains(bin.getOperand2)) {
           val result = if (Utils.isAssignment(bin.getOperator)) {
               var op2: Any = context.stack.pop
+              println(op2)
               var op1: Any = context.stack.pop
               BinaryExpr.parseAssign(bin, bin.getOperator, op1, op2)
           } else {    
