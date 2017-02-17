@@ -61,7 +61,7 @@ object FunctionCallExpr {
         }
 
         val argStack = new Stack[IType]()
-        fcnDef.parameters.foreach{ arg =>
+        fcnDef.parameters.reverse.foreach{ arg =>
           argStack.push(arg)
         }
         
