@@ -343,6 +343,7 @@ object Executor {
               } else {
                 TypeHelper.cast(state.context.returnType, info.value.value)
               }
+            case AddressInfo(addr, theType) => state.readVal(addr, theType).value
             case ValueInfo(theVal, _) => theVal
             case int: Int         => int
             case doub: Double     => doub

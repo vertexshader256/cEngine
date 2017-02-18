@@ -218,19 +218,23 @@ object Expressions {
         }
       }
 
+      def not(theVal: Any): AnyVal = theVal match {
+        case Variable(info: Variable) =>
+          info.value.value match {
+            case int: Int => if (int == 0) 1 else 0
+          }
+        case AddressInfo(addr, theType) => not(context.readVal(addr, theType).value)
+        case ValueInfo(theVal, _) => not(theVal)
+        case int: Int               => if (int == 0) 1 else 0
+        case bool: Boolean => !bool
+        case char: Character => if (char == 0) 1 else 0
+      }
+      
       if (direction == Entering) {
         Seq(unary.getOperand)
       } else {
         unary.getOperator match {
-          case `op_not` => context.stack.push(context.stack.pop match {
-            case Variable(info: Variable) =>
-              info.value.value match {
-                case int: Int => if (int == 0) 1 else 0
-              }
-            case int: Int               => if (int == 0) 1 else 0
-            case ValueInfo(int: Int, _) => if (int == 0) 1 else 0
-            case bool: Boolean => !bool
-          })
+          case `op_not` => context.stack.push(not(context.stack.pop))
           case `op_minus` =>
             val resolveLit = context.stack.pop match {
               case lit @ Literal(_) => lit.cast
@@ -397,7 +401,6 @@ object Expressions {
         if (context.context.visited.contains(bin.getOperand2)) {
           val result = if (Utils.isAssignment(bin.getOperator)) {
               var op2: Any = context.stack.pop
-              println(op2)
               var op1: Any = context.stack.pop
               BinaryExpr.parseAssign(bin, bin.getOperator, op1, op2)
           } else {    
