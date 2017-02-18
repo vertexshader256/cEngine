@@ -220,6 +220,14 @@ object TypeHelper {
     case fcn: IFunctionType       => TypeHelper.pointerType
   }
   
+  def resolveBoolean(theVal: Any)(implicit context: State): Boolean = theVal match {
+      case x: Boolean => x
+      case int: Int => int > 0
+      case char: Character => char > 0
+      case ValueInfo(value, theType) => resolveBoolean(value)
+      case AddressInfo(addr, theType) => resolveBoolean(context.readVal(addr, theType).value)
+  }
+  
   def resolve(op: Any)(implicit context: State): AnyVal = {
       op match {
         case lit @ Literal(_) => lit.cast.value

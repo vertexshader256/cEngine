@@ -223,13 +223,11 @@ object Executor {
         }
       }
     case doWhileLoop: IASTDoStatement =>
+
       if (direction == Entering) {
         Seq(doWhileLoop.getBody, doWhileLoop.getCondition)
       } else {
-        val shouldLoop = state.stack.pop match {
-          case x: Boolean => x
-          case int: Int => int > 0
-        }
+        val shouldLoop = TypeHelper.resolveBoolean(state.stack.pop)
 
         if (shouldLoop) {
           state.clearVisited(doWhileLoop.getBody)
@@ -250,12 +248,7 @@ object Executor {
           case x                => x
         }
 
-        val shouldLoop = cast match {
-          case ValueInfo(x: Int,_)     => x > 0
-          case ValueInfo(x: Character,_)     => x > 0
-          case x: Int     => x > 0
-          case x: Boolean => x
-        }
+        val shouldLoop = TypeHelper.resolveBoolean(cast)
 
         if (shouldLoop) {
           state.clearVisited(whileLoop.getBody)
@@ -279,12 +272,8 @@ object Executor {
           case x => x
         }
 
-        val conditionResult = value match {
-          case x: Int     => x > 0
-          case ValueInfo(x: Int, _)     => x > 0
-          case ValueInfo(x: Character, _)     => x > 0
-          case x: Boolean => x
-        }
+        val conditionResult = TypeHelper.resolveBoolean(value)
+        
         if (conditionResult) {
           Seq(ifStatement.getThenClause)
         } else if (ifStatement.getElseClause != null) {
@@ -301,11 +290,7 @@ object Executor {
           
           val result = TypeHelper.resolve(new CBasicType(IBasicType.Kind.eInt, 0), state.stack.pop).value
           
-          result match {
-            case bool: Boolean => bool
-            case int: Int => int > 0
-            case char: Character => char > 0
-          }
+          TypeHelper.resolveBoolean(result)
         } else {
           true
         }

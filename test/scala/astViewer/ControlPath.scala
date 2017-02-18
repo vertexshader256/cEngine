@@ -180,6 +180,22 @@ class WhileStatement extends StandardTest {
     checkResults(code)
   }
   
+  "A simple while statement reading from struct" should "print the correct results" in {
+    val code = """
+      
+      struct Test {
+        int value;
+      };
+      
+      void main() {
+        struct Test x = {10};
+        while (x.value) {
+          x.value--;
+      }"""
+
+    checkResults(code)
+  }
+  
   "robust while loop test" should "print the correct results" in {
       val code = """
        void main() {
