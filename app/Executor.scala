@@ -646,19 +646,11 @@ object Executor {
             val retVal = state.context.stack.pop
             if (fcnDef.getDeclarator.getName.getRawSignature != "main") {
               state.functionContexts.pop
-              if (fcnDef.getDeclSpecifier.getRawSignature == "void") {
-                // if theres no return value, we can clear the stack
-                state.stack.clear
-              }
             }
             state.context.stack.push(retVal)
           } else {
             if (fcnDef.getDeclarator.getName.getRawSignature != "main") {
               state.functionContexts.pop
-              if (fcnDef.getDeclSpecifier.getRawSignature == "void") {
-                // if theres no return value, we can clear the stack
-                state.stack.clear
-              }
             }
           }
           Seq()
