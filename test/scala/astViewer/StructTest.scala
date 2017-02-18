@@ -45,6 +45,37 @@ class StructTest extends StandardTest {
     checkResults(code)
   }
   
+  "structure pointer typedef" should "print the correct results" in {
+    val code = """
+      
+      typedef struct linked_node* lnode_p;
+      
+      struct list{
+      	lnode_p first;
+      };
+      
+      struct linked_node{
+      	void* data;
+      };
+      
+      typedef struct list * list_p;
+
+      void main() {
+        struct list x = {4};
+        struct linked_node test = {14};
+        x.first = &test;
+
+        lnode_p y = x.first;
+        void *before = y->data;
+        x.first = 0;
+        void *after = y->data;
+        printf("%d\n", before != after);
+        
+      }"""
+
+    checkResults(code)
+  }
+  
   "function which takes struct pointer" should "print the correct results" in {
     val code = """
       

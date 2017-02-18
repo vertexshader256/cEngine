@@ -266,12 +266,21 @@ object TypeHelper {
       }
   }
   
-  def isPointer(theType: IType) = theType.isInstanceOf[IArrayType] || theType.isInstanceOf[IPointerType]
-  
+  def isPointer(theType: IType): Boolean = theType match {
+    case array: IArrayType => true
+    case ptr: IPointerType => true
+    case typedef: ITypedef => isPointer(typedef.getType)
+    case qual: IQualifierType => isPointer(qual.getType)
+    case struct: CStructure => false
+    case basic: IBasicType => false
+  }
+
   def getPointedType(theType: IType): IType = {
     theType match {
       case ptr: IPointerType => ptr.getType
       case array: IArrayType => array.getType
+      case typedef: ITypedef => getPointedType(typedef.getType)
+      case qual: IQualifierType => getPointedType(qual.getType)
     }
   }
 }
