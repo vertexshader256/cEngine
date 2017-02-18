@@ -73,6 +73,12 @@ object FunctionCallExpr {
           
           val result = formatArgument(value)
           
+          val casted = if (paramType != null) {
+            TypeHelper.cast(paramType, result).value
+          } else {
+            result
+          }
+          
           if (paramType != null) {
             val argumentSpace = Variable.allocateSpace(state, paramType, 1)
             
@@ -80,7 +86,7 @@ object FunctionCallExpr {
               startingAddress = argumentSpace
             }
             
-            state.setValue(result, argumentSpace)
+            state.setValue(casted, argumentSpace)
           }
           
           // hacky: special case for var-args in scala function

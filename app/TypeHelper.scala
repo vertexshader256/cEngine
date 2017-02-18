@@ -15,7 +15,10 @@ object TypeHelper {
       case typedef: CTypedef => cast(typedef.getType, newVal).value
       case qual: IQualifierType => cast(qual.getType, newVal).value
       case fcn: IFunctionType => newVal.asInstanceOf[Int]
-      case ptr: IPointerType => newVal.asInstanceOf[Int]
+      case ptr: IPointerType => newVal match {
+        case Address(addy) => addy
+        case int: Int => int
+      }
       case array: IArrayType => newVal.asInstanceOf[Int]
       case basic: IBasicType =>
        basic.getKind match {
@@ -57,6 +60,7 @@ object TypeHelper {
               case boolean: Boolean => if (boolean) 1 else 0
               case long: Long => long.toInt
               case int: Int => int
+              case Address(addy) => addy
               case short: Short => short.toInt
               case char: Character => char.toInt
               case double: Double => double.toInt

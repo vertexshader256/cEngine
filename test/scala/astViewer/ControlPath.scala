@@ -191,6 +191,8 @@ class WhileStatement extends StandardTest {
         struct Test x = {10};
         while (x.value) {
           x.value--;
+          printf("%d\n", x.value);
+        }
       }"""
 
     checkResults(code)
