@@ -273,6 +273,7 @@ object TypeHelper {
     case qual: IQualifierType => isPointer(qual.getType)
     case struct: CStructure => false
     case basic: IBasicType => false
+    case null => false
   }
 
   def getPointedType(theType: IType): IType = {
