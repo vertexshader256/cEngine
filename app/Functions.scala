@@ -64,6 +64,14 @@ object Functions {
           null
         }
       },
+      new Function("toupper", false) {
+        def parameters = List(new CBasicType(IBasicType.Kind.eChar, 1))
+        def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
+          val theChar = formattedOutputParams.head.asInstanceOf[Character].toChar
+          state.stack.push(theChar.toUpper.toByte)
+          null
+        }
+      },
       new Function("isupper", false) {
         def parameters = List(new CBasicType(IBasicType.Kind.eChar, 1))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {

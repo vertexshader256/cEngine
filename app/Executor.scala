@@ -530,13 +530,26 @@ object Executor {
               val fields = theType.asInstanceOf[CStructure].getFields
               val size = fields.size
               
-              val values: Array[(ValueInfo, IType)] = fields.map{x => state.stack.pop match {
-                case lit: Literal => lit.cast
-                case Address(value) => ValueInfo(value, new CBasicType(IBasicType.Kind.eInt, 4))
-              }}.reverse zip fields.map(_.getType)
+              val clause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
+              println(clause.getClass.getSimpleName)
               
-              val valueInfos = values.map{x => ValueInfo(x._1.value, x._2)}.toList
-              newVar.setValues(valueInfos)
+              clause match {
+                case list: IASTInitializerList =>
+                  
+                  val values: Array[(ValueInfo, IType)] = if (list.getClauses.size == 1 && list.getClauses.head.getRawSignature == "0") {
+                    fields.map{ field =>
+                      ValueInfo(0, field.getType)
+                    }.reverse zip fields.map(_.getType)
+                  } else {
+                    list.getClauses.map{x => state.stack.pop match {
+                      case lit: Literal => lit.cast
+                      case Address(value) => ValueInfo(value, new CBasicType(IBasicType.Kind.eInt, 4))
+                    }}.reverse zip fields.map(_.getType)
+                  }
+                  
+                  val valueInfos = values.map{x => ValueInfo(x._1.value, x._2)}.toList
+                  newVar.setValues(valueInfos)
+              }
             }
         }
 
@@ -579,7 +592,6 @@ object Executor {
           Seq()
         }
       case fcnDec: IASTFunctionDeclarator =>
-        
         val isInFunctionPrototype = Utils.getAncestors(fcnDec).exists{_.isInstanceOf[IASTSimpleDeclaration]}
           
         // ignore main's params for now
