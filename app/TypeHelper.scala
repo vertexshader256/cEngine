@@ -9,6 +9,9 @@ object TypeHelper {
   // 32-bit pointers
   val pointerType = new CBasicType(IBasicType.Kind.eInt , 0)
   
+  // 8 bytes
+  val qword = new CBasicType(IBasicType.Kind.eInt , IBasicType.IS_LONG_LONG)
+  
   // Kind of hacky; this will do whatever it needs to match gcc.  casts 'AnyVal' to 'ValueInfo'
   def cast(theType: IType, newVal: AnyVal): ValueInfo = {
     val casted: AnyVal = theType match {

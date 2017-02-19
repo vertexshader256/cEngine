@@ -64,30 +64,32 @@ object FunctionCallExpr {
         fcnDef.parameters.reverse.foreach{ arg =>
           argStack.push(arg)
         }
-        
-        val argList = call.getArguments.map { arg => (if (!argStack.isEmpty) argStack.pop else null, state.stack.pop) }.toArray
-
+    
         var startingAddress: Address = Address(-1)
 
-        argList.foreach { case (paramType, value) => 
+        call.getArguments.foreach { arg => 
           
+          val value = state.stack.pop
           val result = formatArgument(value)
           
-          val casted = if (paramType != null) {
-            TypeHelper.cast(paramType, result).value
+          val (paramType, argVal) = if (!argStack.isEmpty) {  
+            val theType = argStack.pop
+            (theType, TypeHelper.cast(theType, result).value)
+          } else if (value.isInstanceOf[Literal]) {
+            val theType = value.asInstanceOf[Literal].cast.theType
+            (theType, result)
           } else {
-            result
+            // 8 bytes should be enough in generic case
+            (TypeHelper.qword, result)
           }
           
-          if (paramType != null) {
-            val argumentSpace = Variable.allocateSpace(state, paramType, 1)
-            
-            if (startingAddress == Address(-1)) {
-              startingAddress = argumentSpace
-            }
-            
-            state.setValue(casted, argumentSpace)
+          val argumentSpace = Variable.allocateSpace(state, paramType, 1)
+          
+          if (startingAddress == Address(-1)) {
+            startingAddress = argumentSpace
           }
+          
+          state.setValue(argVal, argumentSpace)
           
           // hacky: special case for var-args in scala function
           if (name == "printf") {

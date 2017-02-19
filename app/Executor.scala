@@ -602,9 +602,11 @@ object Executor {
 
           fcnCall.getArguments.foreach{ param =>
             
-            val paramDecl = paramDecls.pop
             
-            if (!isInFunctionPrototype && paramDecl != null) {
+            
+            if (!isInFunctionPrototype && !paramDecls.isEmpty) {
+              
+              val paramDecl = paramDecls.pop
               
               val paramInfo = paramDecl.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
               
@@ -622,17 +624,17 @@ object Executor {
               state.setValue(casted, newVar.info.address)          
           
               state.context.addVariable(name, newVar)
-            } else if  (paramDecl == null) {
-              val inferredType = Literal(param.getRawSignature).cast.theType
+            } else if  (paramDecls.isEmpty) {
+              val lit = Literal(param.getRawSignature).cast
+              val inferredType = lit.theType
               val space = state.allocateSpace(TypeHelper.sizeof(inferredType))
-              val arg = state.readVal(argAddress, inferredType)
+              val arg = state.readVal(argAddress, inferredType).value
               argAddress += TypeHelper.sizeof(inferredType)
-              val resolved = TypeHelper.resolve(inferredType, arg).value
-              val casted = TypeHelper.cast(inferredType, resolved).value
+              val casted = TypeHelper.cast(inferredType, arg).value
               state.setValue(casted, space)     
             }
           }
-          }
+        }
           
           others
         } else {

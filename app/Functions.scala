@@ -30,7 +30,7 @@ abstract case class Function(name: String, isNative: Boolean) {
       }
     }
     
-    run(args.toArray.reverse, state)
+    run(args.toArray, state)
   }
   
   protected def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode
