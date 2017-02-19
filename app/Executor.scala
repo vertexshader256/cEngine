@@ -579,20 +579,22 @@ object Executor {
           Seq()
         }
       case fcnDec: IASTFunctionDeclarator =>
-        if (direction == Entering) {
+        
+        val isInFunctionPrototype = Utils.getAncestors(fcnDec).exists{_.isInstanceOf[IASTSimpleDeclaration]}
+          
+        // ignore main's params for now
+        val isInMain = fcnDec.getName.getRawSignature == "main"
+        
+        val params = fcnDec.getChildren.collect{case x: IASTParameterDeclaration => x}
+        
+        if (!params.isEmpty && direction == Entering && !isInMain) {
           
           var argAddress = Address(0)
-          var fcnCall: IASTFunctionCallExpression = null
+          var fcnCall: IASTFunctionCallExpression = null   
           
-          val params = fcnDec.getChildren.collect{case x: IASTParameterDeclaration => x}
           val others = fcnDec.getChildren.filter{x => !x.isInstanceOf[IASTParameterDeclaration] && !x.isInstanceOf[IASTName]}
           
-          val isInFunctionPrototype = Utils.getAncestors(fcnDec).exists{_.isInstanceOf[IASTSimpleDeclaration]}
-          
-          // ignore main's params for now
-          val isInMain = fcnDec.getName.getRawSignature == "main"
-          
-          if (!isInMain && !params.isEmpty && !isInFunctionPrototype) {
+          if (!isInFunctionPrototype) {
             argAddress = state.stack.pop.asInstanceOf[Address]
             fcnCall = state.stack.pop.asInstanceOf[IASTFunctionCallExpression]
           }
@@ -600,8 +602,7 @@ object Executor {
           params.foreach{ param =>
             val paramInfo = param.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
             
-            if (!isInMain && paramInfo != null && paramInfo.getType != null && !isInFunctionPrototype && (!paramInfo.getType.isInstanceOf[IBasicType] || 
-                paramInfo.getType.asInstanceOf[IBasicType].getKind != eVoid)) {
+            if (!isInFunctionPrototype) {
               
               val fcnName = fcnDec.getName.getRawSignature
               val function = state.getFunction(fcnName)
