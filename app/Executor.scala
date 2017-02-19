@@ -636,6 +636,14 @@ object Executor {
               state.setValue(casted, newVar.info.address)          
           
               state.context.addVariable(name, newVar)
+            } else if (state.context.containsId(param.getRawSignature)) {
+              val theVar = state.context.resolveId(param.getRawSignature)
+              val sizeof = TypeHelper.sizeof(theVar.theType)
+              val space = state.allocateSpace(sizeof)
+              val arg = state.readVal(argAddress, theVar.theType).value
+              argAddress += sizeof
+              val casted = TypeHelper.cast(theVar.theType, arg).value
+              state.setValue(casted, space) 
             } else if  (paramDecls.isEmpty) {
               val lit = Literal(param.getRawSignature).cast
               val inferredType = lit.theType
