@@ -233,6 +233,8 @@ object TypeHelper {
       case char: Character => char > 0
       case ValueInfo(value, theType) => resolveBoolean(value)
       case AddressInfo(addr, theType) => resolveBoolean(context.readVal(addr, theType).value)
+      case x: Literal => resolveBoolean(x.cast.value)
+      case Variable(info: Variable) => resolveBoolean(info.value.value)
   }
   
   def resolve(op: Any)(implicit context: State): AnyVal = {
