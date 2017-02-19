@@ -6,10 +6,19 @@ import app.astViewer.cEngine._
 import better.files._
 
 class DataStructuresTest extends StandardTest {
-  "interp test one" should "print the correct results" in {
+  "list test" should "print the correct results" in {
 
     val allCode =  Seq(File("test\\scala\\libds-master\\list.c").contentAsString,
                        File("test\\scala\\libds-master\\listtest.c").contentAsString)
+                          
+                        
+    checkResults(allCode)
+  }
+  
+  "vector test" should "print the correct results" in {
+
+    val allCode =  Seq(File("test\\scala\\libds-master\\vector.c").contentAsString,
+                       File("test\\scala\\libds-master\\vectortest.c").contentAsString)
                           
                         
     checkResults(allCode)

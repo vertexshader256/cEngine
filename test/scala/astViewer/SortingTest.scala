@@ -14,17 +14,17 @@ package scala.astViewer
         /* sort unsigned ints */
         static void rad_sort_u(uint *from, uint *to, uint bit)
         {
-        printf("%d\n", *from);
+
         	if (!bit || to < from + 1) return;
          
         	uint *ll = from, *rr = to - 1, tmp;
-        	//while (1) {
-        		/* find left most with bit, and right most without bit, swap */
-        	//	while (ll < rr && !(*ll & bit)) ll++;
-        	//	while (ll < rr &&  (*rr & bit)) rr--;
-        	//	if (ll >= rr) break;
-        	//	swap(*ll, *rr);
-        	//}
+//        	while (1) {
+//        		/* find left most with bit, and right most without bit, swap */
+//        		while (ll < rr && !(*ll & bit)) ll++;
+//        		while (ll < rr &&  (*rr & bit)) rr--;
+//        		if (ll >= rr) break;
+//        		swap(*ll, *rr);
+//        	}
         	
         	
          

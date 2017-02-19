@@ -33,6 +33,8 @@ object BinaryExpr {
         performBinaryOperation(theVal.value, resolvedop2, op_multiply)
       case `op_binaryXorAssign` =>
         performBinaryOperation(theVal.value, resolvedop2, op_binaryXor)
+      case `op_binaryOrAssign` =>
+        performBinaryOperation(theVal.value, resolvedop2, op_binaryOr)
       case `op_shiftRightAssign` =>
         performBinaryOperation(theVal.value, resolvedop2, op_shiftRight)
       case `op_assign` =>
@@ -41,7 +43,7 @@ object BinaryExpr {
     
     val casted = TypeHelper.downcast(dst.theType, result).value
     state.setValue(casted, dst.address)
-
+    
     resolvedop2
   }
   
@@ -324,7 +326,10 @@ object BinaryExpr {
         }  
       case `op_modulo` =>
         (op1, op2) match {
+          case (x: Long, y: Long) => x % y
           case (x: Int, y: Int) => x % y
+          case (x: Int, y: Long) => x % y
+          case (x: Long, y: Int) => x % y
           case (x: Double, y: Int) => x % y
           case (x: Int, y: Double) => x % y
           case (x: Double, y: Double) => x % y

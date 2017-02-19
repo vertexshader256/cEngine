@@ -25,7 +25,7 @@ object Expressions {
        if (direction == Entering) {
         Seq(ternary.getLogicalConditionExpression)
       } else {
-        val result = context.stack.pop.asInstanceOf[Boolean]
+        val result = TypeHelper.resolveBoolean(context.stack.pop)
 
         if (result) {
           Seq(ternary.getPositiveResultExpression)
@@ -42,7 +42,7 @@ object Expressions {
 
         context.stack.push(operand match {
           case addy @ Address(_) => ValueInfo(addy, theType);
-          case Variable(info: Variable) => AddressInfo(Address(info.value.value.asInstanceOf[Int]), theType)
+          case Variable(info: Variable) => AddressInfo(info.address, theType)
           case lit @ Literal(str) => TypeHelper.cast(TypeHelper.resolve(theType), lit.cast.value)
           case int: Int => TypeHelper.cast(TypeHelper.resolve(theType), int)
           case long: Long => TypeHelper.cast(TypeHelper.resolve(theType), long)
@@ -130,6 +130,7 @@ object Expressions {
                 }
               case lit @ Literal(_) => lit.cast.value.asInstanceOf[Int]
               case int: Int => int
+              case long: Long => long.toInt
               case double: Double => double.toInt
               case ValueInfo(x, _) => x.asInstanceOf[Int]
             })

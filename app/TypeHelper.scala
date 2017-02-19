@@ -130,6 +130,7 @@ object TypeHelper {
             newVal match {
               case int: Int => int.toLong
               case long: Long => long
+              case double: Double => double.toLong
             } 
          case `eInt` if basic.isShort & basic.isUnsigned =>
             newVal match {

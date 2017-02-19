@@ -35,9 +35,7 @@ class printfCustom extends StandardTest {
       void main() {
         int x = 101;
         ee_printf("Hello World!\n");
-       // ee_printf("%s %s\n", "Hello", "World!");
         ee_printf("%d\n", 10);
-        //ee_printf("%d\n", x);
       }"""
 
     checkResults(File("app\\ee_printf.c").contentAsString + "\n" + code)

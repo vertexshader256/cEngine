@@ -688,15 +688,35 @@ object Executor {
           val result = typeId.getDeclSpecifier match {
             case simple: IASTSimpleDeclSpecifier =>
               import org.eclipse.cdt.core.dom.ast.IASTSimpleDeclSpecifier._
+
+              var config = 0
               
-              simple.getType match {
-                case `t_int`    => new CBasicType(IBasicType.Kind.eInt, 0)
-                case `t_float`  => new CBasicType(IBasicType.Kind.eFloat, 0)
-                case `t_double` => new CBasicType(IBasicType.Kind.eDouble, 0)           
-                case `t_char`   => new CBasicType(IBasicType.Kind.eChar, 0)
-                case `t_void`   => new CBasicType(IBasicType.Kind.eVoid, 0)
-                case `t_typeof`   => new CBasicType(IBasicType.Kind.eVoid, 0) // FIX
+              if (simple.isLong) {
+                config |= IBasicType.IS_LONG
               }
+              
+              if (simple.isUnsigned) {
+                config |= IBasicType.IS_UNSIGNED
+              } else {
+                config |= IBasicType.IS_SIGNED
+              }
+              
+              var result: IType = simple.getType match {
+                case `t_unspecified` => new CBasicType(IBasicType.Kind.eInt, config)
+                case `t_int`    => new CBasicType(IBasicType.Kind.eInt, config)
+                case `t_float`  => new CBasicType(IBasicType.Kind.eFloat, config)
+                case `t_double` => new CBasicType(IBasicType.Kind.eDouble, config)           
+                case `t_char`   => new CBasicType(IBasicType.Kind.eChar, config)
+                case `t_void`   => new CBasicType(IBasicType.Kind.eVoid, config)
+                case `t_typeof`   => new CBasicType(IBasicType.Kind.eVoid, config) // FIX
+              }
+              
+              for (ptr <- typeId.getAbstractDeclarator.getPointerOperators) {
+                result = new CPointerType(result, 0)
+              }
+              
+              result
+              
             case typespec: CASTTypedefNameSpecifier =>
               val name: IASTName = typespec.getName
               val defs = state.tUnit.getDefinitionsInAST(name.getBinding)
