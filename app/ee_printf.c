@@ -440,17 +440,31 @@ static int ee_vsprintf(char *buf, const char *fmt, va_list args)
                   
     // Process flags
     flags = 0;
-repeat:
-    fmt++; // This also skips first '%'
-    switch (*fmt)
-    {
-      case '-': flags |= LEFT; goto repeat;
-      case '+': flags |= PLUS; goto repeat;
-      case ' ': flags |= SPACE; goto repeat;
-      case '#': flags |= HEX_PREP; goto repeat;
-      case '0': flags |= ZEROPAD; goto repeat;
+//repeat:
+//    fmt++; // This also skips first '%'
+//    switch (*fmt)
+//    {
+//      case '-': flags |= LEFT; goto repeat;
+//      case '+': flags |= PLUS; goto repeat;
+//      case ' ': flags |= SPACE; goto repeat;
+//      case '#': flags |= HEX_PREP; goto repeat;
+//      case '0': flags |= ZEROPAD; goto repeat;
+//    }
+
+    int repeat = 1;
+    while(repeat) {
+        fmt++; // This also skips first '%'
+        switch (*fmt)
+        {
+          case '-': flags |= LEFT;
+          case '+': flags |= PLUS;
+          case ' ': flags |= SPACE;
+          case '#': flags |= HEX_PREP;
+          case '0': flags |= ZEROPAD;
+          default: repeat = 0;
+        }
     }
-          
+
     // Get field width
     field_width = -1;
     if (is_digit(*fmt))

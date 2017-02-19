@@ -42,9 +42,14 @@ object Utils {
       op == op_assign ||
       op == op_plusAssign ||
       op == op_minusAssign ||
-      op == op_binaryXorAssign ||
       op == op_multiplyAssign ||
       op == op_divideAssign ||
+      op == op_moduloAssign ||
+      op == op_binaryXorAssign ||
+      op == op_binaryAndAssign ||
+      op == op_binaryOrAssign ||
+      op == op_multiplyAssign ||
+      op == op_shiftLeftAssign ||
       op == op_shiftRightAssign
     }
 
