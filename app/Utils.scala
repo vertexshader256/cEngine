@@ -82,7 +82,22 @@ object Utils {
 
 		val preprocessResults = new StringBuilder
 		
-		codes.map{code =>
+		codes.map{theCode =>
+		  
+		  var lines = theCode.split("\\r?\\n").toList
+		  
+		  // solution to deal with var args
+		  val linesWithInclude = lines.zipWithIndex.filter{case (line, index) => line.contains("#include")}
+		  val lastInclude = linesWithInclude.reverse.headOption.map{case (line, index) => index + 1}.getOrElse(-1)
+		  if (lastInclude != -1) {
+		    lines = lines.take(lastInclude) ++ 
+		       List("#define va_arg(x,y) va_arg(x, \"y\")\n") ++ 
+		       List("#define va_start(x,y) va_start(&x, &y)\n") ++ 
+		       List("#define va_end(x) va_end(x)\n") ++ 
+		       lines.drop(lastInclude)
+		  }
+		  
+		  val code = lines.reduce{_ + "\n" + _}
 		  
 		  val	pp = new Preprocessor();
 
