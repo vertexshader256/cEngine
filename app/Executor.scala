@@ -584,10 +584,11 @@ object Executor {
           
         // ignore main's params for now
         val isInMain = fcnDec.getName.getRawSignature == "main"
+        val fcnName = fcnDec.getName.getRawSignature
         
-        val params = fcnDec.getChildren.collect{case x: IASTParameterDeclaration => x}
+        val paramDecls = new Stack[IASTParameterDeclaration]() ++ fcnDec.getChildren.collect{case x: IASTParameterDeclaration => x}
         
-        if (!params.isEmpty && direction == Entering && !isInMain) {
+        if (!paramDecls.isEmpty && direction == Entering && !isInMain) {
           
           var argAddress = Address(0)
           var fcnCall: IASTFunctionCallExpression = null   
@@ -597,21 +598,23 @@ object Executor {
           if (!isInFunctionPrototype) {
             argAddress = state.stack.pop.asInstanceOf[Address]
             fcnCall = state.stack.pop.asInstanceOf[IASTFunctionCallExpression]
-          }
+          
 
-          params.foreach{ param =>
-            val paramInfo = param.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
+          fcnCall.getArguments.foreach{ param =>
             
-            if (!isInFunctionPrototype) {
+            val paramDecl = paramDecls.pop
+            
+            if (!isInFunctionPrototype && paramDecl != null) {
               
-              val fcnName = fcnDec.getName.getRawSignature
+              val paramInfo = paramDecl.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
+              
               val function = state.getFunction(fcnName)
   
               val arg = state.readVal(argAddress, paramInfo.getType)
               
               argAddress += TypeHelper.sizeof(paramInfo.getType)
     
-              val name = param.getDeclarator.getName.getRawSignature
+              val name = paramDecl.getDeclarator.getName.getRawSignature
               val newVar = new Variable(state, paramInfo.getType)
               newVar.allocate
               val resolved = TypeHelper.resolve(paramInfo.getType, arg).value
@@ -619,7 +622,16 @@ object Executor {
               state.setValue(casted, newVar.info.address)          
           
               state.context.addVariable(name, newVar)
+            } else if  (paramDecl == null) {
+              val inferredType = Literal(param.getRawSignature).cast.theType
+              val space = state.allocateSpace(TypeHelper.sizeof(inferredType))
+              val arg = state.readVal(argAddress, inferredType)
+              argAddress += TypeHelper.sizeof(inferredType)
+              val resolved = TypeHelper.resolve(inferredType, arg).value
+              val casted = TypeHelper.cast(inferredType, resolved).value
+              state.setValue(casted, space)     
             }
+          }
           }
           
           others
