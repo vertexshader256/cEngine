@@ -148,17 +148,20 @@ class StructTest extends StandardTest {
     checkResults(code)
   }
   
-  "binary expressions on field value" should "print the correct results" in {
+  "indexing with a variable" should "print the correct results" in {
     val code = """
       
       struct Test {
-        int y;
-        int z;
+        int* data;
+        int length;
       };
       
       void main() {
-        struct Test a = {1,2};
-        printf("%d\n", a.y == 1);
+        struct Test a = {0};
+        a.data = malloc(10);
+        a.data[2] = 10;
+        a.length = 2;
+        printf("%d\n", a.data[a.length]);
       }"""
 
     checkResults(code)

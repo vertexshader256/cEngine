@@ -15,12 +15,12 @@ class DataStructuresTest extends StandardTest {
     checkResults(allCode)
   }
   
-  "vector test" should "print the correct results" in {
-
-    val allCode =  Seq(File("test\\scala\\libds-master\\vector.c").contentAsString,
-                       File("test\\scala\\libds-master\\vectortest.c").contentAsString)
-                          
-                        
-    checkResults(allCode)
-  }
+//  "vector test" should "print the correct results" in {
+//
+//    val allCode =  Seq(File("test\\scala\\libds-master\\vector.c").contentAsString,
+//                       File("test\\scala\\libds-master\\vectest.c").contentAsString)
+//                          
+//                        
+//    checkResults(allCode)
+//  }
 }

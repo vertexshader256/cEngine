@@ -40,6 +40,7 @@ object TypeHelper {
             newVal match {
               case int: Int => int.toLong & 0x00000000ffffffffL
               case long: Long => long & 0x00000000ffffffffL
+              case double: Double => double.toLong
             } 
          case `eInt` if basic.isLong =>
             newVal match {

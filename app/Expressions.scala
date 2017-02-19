@@ -43,6 +43,7 @@ object Expressions {
         context.stack.push(operand match {
           case addy @ Address(_) => ValueInfo(addy, theType);
           case Variable(info: Variable) => AddressInfo(info.address, theType)
+          case AddressInfo(addr, info) => AddressInfo(addr, theType)
           case lit @ Literal(str) => TypeHelper.cast(TypeHelper.resolve(theType), lit.cast.value)
           case int: Int => TypeHelper.cast(TypeHelper.resolve(theType), int)
           case long: Long => TypeHelper.cast(TypeHelper.resolve(theType), long)
@@ -133,6 +134,9 @@ object Expressions {
               case long: Long => long.toInt
               case double: Double => double.toInt
               case ValueInfo(x, _) => x.asInstanceOf[Int]
+              case AddressInfo(addr, theType) => 
+                val theVal = context.readVal(addr, theType)
+                TypeHelper.cast(new CBasicType(IBasicType.Kind.eInt, 0), theVal.value).value.asInstanceOf[Int]
             })
             
             indexes += result
