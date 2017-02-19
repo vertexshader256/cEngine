@@ -103,19 +103,22 @@ class VarArgFunction extends StandardTest {
     val code = """
       #include <stdio.h>
       #include <stdarg.h>
-      
+
       double average(int num,...) {
-      
-         va_list valist;
          double sum = 0.0;
+         va_list valist;
          int i;
       
          /* initialize valist for num number of arguments */
          va_start(valist, num);
+         
+         printf("%d\n", num);
       
          /* access all the arguments assigned to valist */
          for (i = 0; i < num; i++) {
-            sum += va_arg(valist, int);
+            int j = va_arg(valist, int);
+            printf("%d\n", j);
+            sum += j;
          }
       	
          /* clean memory reserved for valist */

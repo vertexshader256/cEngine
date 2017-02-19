@@ -94,10 +94,11 @@ object Functions {
       new Function("malloc", false) {
         def parameters = List(new CBasicType(IBasicType.Kind.eInt, 4))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
-          formattedOutputParams.head match {
-            case long: Long => state.stack.push(state.allocateSpace(long.toInt))
-            case int: Int => state.stack.push(state.allocateSpace(int))
+          val returnVal = formattedOutputParams.head match {
+            case long: Long => state.allocateSpace(long.toInt)
+            case int: Int => state.allocateSpace(int)
           }
+          state.stack.push(returnVal)
           null
         }
       },
@@ -122,9 +123,9 @@ object Functions {
       new Function("memcpy", false) {
         def parameters = List(new CBasicType(IBasicType.Kind.eInt, 4), new CBasicType(IBasicType.Kind.eInt, 4), new CBasicType(IBasicType.Kind.eInt, 4))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
-          val numBytes = formattedOutputParams(0).asInstanceOf[Int]
+          val dst = formattedOutputParams(0).asInstanceOf[Int]
           val src = formattedOutputParams(1).asInstanceOf[Int]
-          val dst = formattedOutputParams(2).asInstanceOf[Int]
+          val numBytes = formattedOutputParams(2).asInstanceOf[Int]
           
           state.copy(Address(dst), Address(src), numBytes)
           null
