@@ -36,6 +36,8 @@ abstract case class Function(name: String, isNative: Boolean) {
 
 object Functions {
   
+  var varArgStartingAddr = 0
+  
   val scalaFunctions = List[Function](
       new Function("rand", false) {
         def parameters = List()
@@ -184,13 +186,30 @@ object Functions {
           null
         }
       },
-      new Function("__builtin_va_start", false) {
-        def parameters = List(new CBasicType(IBasicType.Kind.eInt, 4))
+      new Function("va_arg", false) {
+        def parameters = List(new CBasicType(IBasicType.Kind.eInt, 0),
+            new CBasicType(IBasicType.Kind.eInt, 4))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
+          val argType = formattedOutputParams(0).asInstanceOf[Int]
+          val list = formattedOutputParams(1).asInstanceOf[Int]
+          val result = state.readVal(Address(varArgStartingAddr), TypeHelper.pointerType).value
+          state.stack.push(result)
+          varArgStartingAddr += 4
           null
         }
       },
-      new Function("__builtin_va_end", false) {
+      new Function("va_start", false) {
+        def parameters = List(new CBasicType(IBasicType.Kind.eInt, 0),
+            new CBasicType(IBasicType.Kind.eInt, 0))
+        def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
+          val lastNamedArgAddr = formattedOutputParams(1).asInstanceOf[Int]
+          val listAddr = formattedOutputParams(0).asInstanceOf[Int]
+          println("STARTING ADDR: " + lastNamedArgAddr)
+          varArgStartingAddr = lastNamedArgAddr + 4
+          null
+        }
+      },
+      new Function("va_end", false) {
         def parameters = List(new CBasicType(IBasicType.Kind.eInt, 4))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           null
