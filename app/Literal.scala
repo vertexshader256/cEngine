@@ -39,7 +39,7 @@ case class Literal(litStr: String) {
         ValueInfo(lit.toCharArray.apply(1).toByte, new CBasicType(IBasicType.Kind.eChar, 0))
       }
     } else if (isIntNumber(lit)) {
-      ValueInfo(lit.toInt, new CBasicType(IBasicType.Kind.eFloat, 0))
+      ValueInfo(lit.toInt, new CBasicType(IBasicType.Kind.eInt, 0))
     } else if (isLongNumber(lit)) {
       ValueInfo(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
     } else if (lit.contains('F') || lit.contains('f')) {
