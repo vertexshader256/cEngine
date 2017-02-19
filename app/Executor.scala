@@ -582,6 +582,7 @@ object Executor {
         if (direction == Entering) {
           
           var argAddress = Address(0)
+          var fcnCall: IASTFunctionCallExpression = null
           
           val params = fcnDec.getChildren.collect{case x: IASTParameterDeclaration => x}
           val others = fcnDec.getChildren.filter{x => !x.isInstanceOf[IASTParameterDeclaration] && !x.isInstanceOf[IASTName]}
@@ -592,8 +593,8 @@ object Executor {
           val isInMain = fcnDec.getName.getRawSignature == "main"
           
           if (!isInMain && !params.isEmpty && !isInFunctionPrototype) {
-            val startingAddress = state.stack.pop.asInstanceOf[Address]
-            argAddress = startingAddress
+            argAddress = state.stack.pop.asInstanceOf[Address]
+            fcnCall = state.stack.pop.asInstanceOf[IASTFunctionCallExpression]
           }
 
           params.foreach{ param =>
@@ -711,7 +712,7 @@ class Executor() {
     execute(state)
 
     state.context.pathStack.clear
-    state.context.pathStack.push(state.getFunction("main").run(Address(0), 0, state))
+    state.context.pathStack.push(state.getFunction("main").run(Address(0), null, state))
     current = state.context.pathStack.head
     state
   }

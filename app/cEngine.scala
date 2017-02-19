@@ -88,41 +88,43 @@ class State(val tUnit: IASTTranslationUnit) {
   var isBreaking = false
   var isContinuing = false
 
-  def callTheFunction(name: String, call: IASTFunctionCallExpression, argumentStartingAddress: Address, numArgs: Int): Seq[IASTNode] = {
+  def callTheFunction(name: String, call: IASTFunctionCallExpression, argumentStartingAddress: Address): Seq[IASTNode] = {
 
     functionList.find(_.name == name).map{ fcn =>
       if (!fcn.isNative) {
         // this is a function simulated in scala
-        fcn.run(argumentStartingAddress, numArgs, this)
+        fcn.run(argumentStartingAddress, call, this)
         Seq()
       } else {
-        Seq(callFunction(name, call, argumentStartingAddress, numArgs))
+        Seq(callFunction(name, call, argumentStartingAddress))
       }
     }.getOrElse{
       // function pointer case
-      Seq(callFunctionPointer(name, call, argumentStartingAddress, numArgs))
+      Seq(callFunctionPointer(name, call, argumentStartingAddress))
     }
   }
   
-  def callFunction(name: String, call: IASTFunctionCallExpression, argumentStartingAddress: Address, numArgs: Int): IASTNode = {
+  def callFunction(name: String, call: IASTFunctionCallExpression, argumentStartingAddress: Address): IASTNode = {
         
     functionContexts.push(new ExecutionContext(functionContexts.head.varMap, call.getExpressionType, this))
     context.pathStack.push(call)
     
+    context.stack.push(call)
     context.stack.push(argumentStartingAddress)
 
-    getFunction(name).run(argumentStartingAddress, numArgs, this)
+    getFunction(name).run(argumentStartingAddress, call, this)
   }
   
-  def callFunctionPointer(name: String, call: IASTFunctionCallExpression, argumentStartingAddress: Address, numArgs: Int): IASTNode = {
+  def callFunctionPointer(name: String, call: IASTFunctionCallExpression, argumentStartingAddress: Address): IASTNode = {
         
     functionContexts.push(new ExecutionContext(functionContexts.head.varMap, call.getExpressionType, this))
     context.pathStack.push(call)
     
+    context.stack.push(call)
     context.stack.push(argumentStartingAddress)
 
     val theVar = functionContexts.head.varMap(name)
-    getFunctionByIndex(theVar.value.value.asInstanceOf[Int]).run(argumentStartingAddress, numArgs, this)
+    getFunctionByIndex(theVar.value.value.asInstanceOf[Int]).run(argumentStartingAddress, call, this)
   }
 
   def clearVisited(parent: IASTNode) {

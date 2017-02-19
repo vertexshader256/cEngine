@@ -96,7 +96,7 @@ object FunctionCallExpr {
           
         }
 
-        state.callTheFunction(name, call, startingAddress, call.getArguments.size)
+        state.callTheFunction(name, call, startingAddress)
 
       } else {
         call.getArguments.reverse ++ Seq(call.getFunctionNameExpression)

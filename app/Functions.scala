@@ -13,21 +13,23 @@ abstract case class Function(name: String, isNative: Boolean) {
   var index = -1
   
   def parameters: List[IType]
-  def run(argumentAddress: Address, numArgs: Int, state: State): IASTNode = {
+  def run(argumentAddress: Address, call: IASTFunctionCallExpression, state: State): IASTNode = {
     var startingAddress = argumentAddress
     val args = new ListBuffer[AnyVal]()
     if (name != "printf") {
       val argumentsFromMemory = parameters.foreach { argType =>
         val newArg = state.readVal(startingAddress, argType).value
         args += FunctionCallExpr.formatArgument(newArg)(state)
-        startingAddress = startingAddress + TypeHelper.sizeof(argType)
+        startingAddress += TypeHelper.sizeof(argType)
       }
     } else {
+      val numArgs = call.getArguments.size
       // for printf, a scala-based var-arg function, pop off the stack
       for (i <- (0 until numArgs)) {
         args += FunctionCallExpr.formatArgument(state.stack.pop)(state)
       }
     }
+    
     run(args.toArray.reverse, state)
   }
   
