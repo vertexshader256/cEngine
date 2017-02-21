@@ -239,6 +239,7 @@ object Expressions {
         Seq(unary.getOperand)
       } else {
         unary.getOperator match {
+          case `op_tilde` => context.stack.push(~context.stack.pop.asInstanceOf[Int])
           case `op_not` => context.stack.push(not(context.stack.pop))
           case `op_minus` =>
             val resolveLit = context.stack.pop match {
@@ -307,6 +308,7 @@ object Expressions {
             })
           case `op_amper` =>
             context.stack.pop match {
+              case AddressInfo(addr, info) => context.stack.push(addr)
               case Variable(info: Variable) =>
                 info.theType match {
                   case fcn: CFunctionType => context.stack.push(context.readPtrVal(info.address))
@@ -322,8 +324,9 @@ object Expressions {
                 context.stack.push(context.readVal(Address(char), TypeHelper.resolve(theType)))
               case ValueInfo(int: Int, theType) =>
                 context.stack.push(context.readVal(Address(int), TypeHelper.resolve(theType)))
-              case ValueInfo(Address(int), theType) =>
-                context.stack.push(context.readVal(Address(int), theType))
+              case ValueInfo(addr @ Address(_), theType) =>
+                val theVal = context.readVal(addr, TypeHelper.resolve(theType))
+                context.stack.push(theVal)
               case theVar @ Variable(info: Variable) =>       
                 val nestedType = info.info.theType match {
                   case ptr: IPointerType => ptr.getType

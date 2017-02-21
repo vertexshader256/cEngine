@@ -9,7 +9,6 @@ import java.io.InputStream
 
 object Gcc {
   
-  val executor = new Executor()
   var isFirst = true
   
   def runCode(code: String) = {
@@ -18,10 +17,10 @@ object Gcc {
         void main() {
            $code
         }
-        """
-      val state = executor.init(Seq(exeCode), isFirst)
+      """
+      val state = Executor.init(Seq(exeCode), isFirst)
       isFirst = false
-      executor.execute(state)
+      Executor.run(state)
     }
   
   

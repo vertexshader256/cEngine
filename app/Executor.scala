@@ -57,8 +57,6 @@ object Variable {
 
 case class StringLiteral(str: String) extends AnyVal
 
-
-
 case class Address(value: Int) extends AnyVal {
   def +(x: Int) = {
     Address(value + x)
@@ -105,12 +103,10 @@ protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) exten
     }
   }
   
-  
-  
   val theArrayAddress = allocate
   state.setValue(theArrayAddress.value, info.address)
 
-  def setArray(array: Array[_]): Unit = {
+  def setArray(array: Array[_])(implicit state: State): Unit = {
       state.setArray(array, AddressInfo(theArrayAddress, theType))
   }
   
@@ -611,11 +607,7 @@ object Executor {
             argAddress = state.stack.pop.asInstanceOf[Address]
             fcnCall = state.stack.pop.asInstanceOf[IASTFunctionCallExpression]
           
-
           fcnCall.getArguments.foreach{ param =>
-            
-            
-            
             if (!isInFunctionPrototype && !paramDecls.isEmpty) {
               
               val paramDecl = paramDecls.pop
@@ -645,9 +637,9 @@ object Executor {
               val casted = TypeHelper.cast(theVar.theType, arg).value
               state.setValue(casted, space) 
             } else if  (paramDecls.isEmpty) {
-              val lit = Literal(param.getRawSignature).cast
+              val lit = Literal(param.getRawSignature).cast              
               val inferredType = lit.theType
-              val space = state.allocateSpace(TypeHelper.sizeof(inferredType))
+              val space = state.allocateSpace(4)
               val arg = state.readVal(argAddress, inferredType).value
               argAddress += TypeHelper.sizeof(inferredType)
               val casted = TypeHelper.cast(inferredType, arg).value
@@ -746,9 +738,6 @@ object Executor {
         Seq()
     }
   }
-}
-
-class Executor() {
   
   var tUnit: IASTTranslationUnit = null
   
@@ -764,7 +753,7 @@ class Executor() {
     val fcns = tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
     fcns.foreach{fcnDef => state.addFunctionDef(fcnDef)}
     
-    execute(state)
+    run(state)
 
     state.context.pathStack.clear
     state.context.pathStack.push(state.getFunction("main").run(Address(0), null, state))
@@ -784,8 +773,13 @@ class Executor() {
     
     if (engineState.isBreaking) {
       // unroll the path stack until we meet the first parent which is a loop
-      var reverse = engineState.context.pathStack.pop
-      while (!reverse.isInstanceOf[IASTWhileStatement] && !reverse.isInstanceOf[IASTForStatement] && !reverse.isInstanceOf[IASTSwitchStatement]) {
+      
+      val breakStatement = engineState.context.pathStack.pop.asInstanceOf[CASTBreakStatement]
+      var reverse: IASTNode = breakStatement
+      while ((!reverse.isInstanceOf[IASTWhileStatement] &&
+          !reverse.isInstanceOf[IASTDoStatement] &&
+          !reverse.isInstanceOf[IASTForStatement] &&
+          !reverse.isInstanceOf[IASTSwitchStatement]) || !Utils.getAncestors(breakStatement).contains(reverse)) {
         reverse = engineState.context.pathStack.pop
       }
 
@@ -796,9 +790,11 @@ class Executor() {
     if (engineState.isContinuing) {
       // unroll the path stack until we meet the first parent which is a loop
 
-      var last: IASTNode = null
-      last = engineState.context.pathStack.pop
-      while (!last.isInstanceOf[IASTForStatement]) {
+      val continueStatement = engineState.context.pathStack.pop.asInstanceOf[CASTContinueStatement]
+      var last: IASTNode = continueStatement
+
+      // find the first for loop that is a direct ancestor
+      while (!last.isInstanceOf[IASTForStatement] || !Utils.getAncestors(continueStatement).contains(last)) {
         last = engineState.context.pathStack.pop
       }
 
@@ -837,7 +833,7 @@ class Executor() {
     }
   }
 
-  def execute(engineState: State) = {
+  def run(engineState: State) = {
     while (current != null) {
       tick(engineState)
     }

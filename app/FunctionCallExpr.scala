@@ -12,6 +12,7 @@ import Functions._
 import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
 import org.eclipse.cdt.internal.core.dom.parser.c.CStructure
 import scala.collection.immutable.HashMap
+import org.eclipse.cdt.internal.core.dom.parser.c.CPointerType
 
 object FunctionCallExpr {
   
@@ -66,11 +67,11 @@ object FunctionCallExpr {
         }
     
         var startingAddress: Address = Address(-1)
+        
+        // do this up here so string allocation doesnt clobber arg stack
+        val results = call.getArguments.map{call => val x = state.stack.pop; (x, formatArgument(x))}
 
-        call.getArguments.foreach { arg => 
-          
-          val value = state.stack.pop
-          val result = formatArgument(value)
+        results.foreach { case (value, result) => 
           
           val (paramType, argVal) = if (!argStack.isEmpty) {  
             val theType = argStack.pop
@@ -78,12 +79,17 @@ object FunctionCallExpr {
           } else if (value.isInstanceOf[Literal]) {
             val theType = value.asInstanceOf[Literal].cast.theType
             (theType, result)
-          } else {
+          } else if (value.isInstanceOf[StringLiteral]) {
+            (new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0), result)
+          } 
+          
+          else {
             // 8 bytes should be enough in generic case
             (TypeHelper.qword, result)
           }
           
-          val argumentSpace = Variable.allocateSpace(state, paramType, 1)
+                    
+          val argumentSpace = state.allocateSpace(TypeHelper.sizeof(paramType))
           
           if (startingAddress == Address(-1)) {
             startingAddress = argumentSpace
@@ -93,7 +99,11 @@ object FunctionCallExpr {
           
           // hacky: special case for var-args in scala function
           if (name == "printf") {
-            state.stack.push(result)
+//            if (value.isInstanceOf[StringLiteral]) {
+//              state.stack.push(value.asInstanceOf[StringLiteral])
+//            } else {
+              state.stack.push(result)
+           // }
           }
           
         }

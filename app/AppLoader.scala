@@ -135,9 +135,6 @@ import play.api.libs.ws.ahc._
   
 class AppLoader extends ApplicationLoader {
 
- 
-
-  var executor: Executor = null
   var state: State = null
   
  class AkkaWebSockets(implicit system: ActorSystem, mat: Materializer) extends Controller {
@@ -150,12 +147,12 @@ class AppLoader extends ApplicationLoader {
       def receive = {
         case msg: String =>
           if (msg == "Step") {
-            executor.tick(state)
-            out ! ("Step Response:" + executor.current.hashCode)
+            Executor.tick(state)
+            out ! ("Step Response:" + Executor.current.hashCode)
           } else if (msg.startsWith("Get Node Class Name:")) {
             val id = msg.split(":").last.trim.toInt
             
-            val node = Utils.getDescendants(executor.tUnit).find{x => x.hashCode == id}.get
+            val node = Utils.getDescendants(Executor.tUnit).find{x => x.hashCode == id}.get
             
             out ! ("Current Node Class:" + node.getClass.getSimpleName)
           } else {
@@ -226,10 +223,9 @@ class AppLoader extends ApplicationLoader {
       case GET(p"/getAst" ? q"code=$code" ? q"height=${int(height)}" ? q"width=${int(width)}") => Action.async {
         println("GETTING AST")
         Future {
-          executor = new Executor()
-          val state = executor.init(Seq(code), true)
+          val state = Executor.init(Seq(code), true)
 
-          Ok(AstUtils.getAllChildren(executor.tUnit))
+          Ok(AstUtils.getAllChildren(Executor.tUnit))
         }
       }
 

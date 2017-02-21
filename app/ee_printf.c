@@ -465,6 +465,8 @@ static int ee_vsprintf(char *buf, const char *fmt, va_list args)
         }
     }
 
+
+
     // Get field width
     field_width = -1;
     if (is_digit(*fmt))
@@ -509,9 +511,18 @@ static int ee_vsprintf(char *buf, const char *fmt, va_list args)
     switch (*fmt)
     {
       case 'c':
-        if (!(flags & LEFT)) while (--field_width > 0) *str++ = ' ';
-        *str++ = (unsigned char) va_arg(args, int);
-        while (--field_width > 0) *str++ = ' ';
+        if (!(flags & LEFT)) {
+        	while (--field_width > 0) {
+
+        		*str++ = ' ';
+        	}
+        }
+        unsigned char theChar = (unsigned char) va_arg(args, int);
+
+        *str++ = theChar;
+        while (--field_width > 0) {
+        	*str++ = ' ';
+        }
         continue;
 
       case 's':
@@ -564,6 +575,7 @@ static int ee_vsprintf(char *buf, const char *fmt, va_list args)
 #ifdef HAS_FLOAT
 
       case 'f':
+    	  printf("HERE\n");
         str = flt(str, va_arg(args, double), field_width, precision, *fmt, flags | SIGN);
         continue;
 
@@ -593,10 +605,6 @@ static int ee_vsprintf(char *buf, const char *fmt, va_list args)
 }
 
 void uart_send_char(char c) {
-  char str[2];
-  str[0] = c;
-  str[1] = '\0';
-  
   putchar(c);
 }
 

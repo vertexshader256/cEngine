@@ -27,9 +27,8 @@ package object astViewer {
     
       val cEngineOutputFuture = Future[ListBuffer[String]] {
         val start = System.nanoTime
-        val executor = new Executor()
-        val state = executor.init(codeInFiles, true)
-        executor.execute(state)
+        val state = Executor.init(codeInFiles, true)
+        Executor.run(state)
         totalTime += (System.nanoTime - start)/1000000000.0
         state.stdout
       }

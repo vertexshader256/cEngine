@@ -33,6 +33,8 @@ object BinaryExpr {
         performBinaryOperation(theVal.value, resolvedop2, op_multiply)
       case `op_binaryXorAssign` =>
         performBinaryOperation(theVal.value, resolvedop2, op_binaryXor)
+      case `op_binaryAndAssign` =>
+        performBinaryOperation(theVal.value, resolvedop2, op_binaryAnd)
       case `op_binaryOrAssign` =>
         performBinaryOperation(theVal.value, resolvedop2, op_binaryOr)
       case `op_shiftRightAssign` =>
@@ -364,6 +366,7 @@ object BinaryExpr {
         (op1, op2) match {
           case (x: Boolean, y: Boolean) => x && y
           case (x: Boolean, y: Int) => x && (y > 0)
+          case (x: Boolean, y: Long) => x && (y > 0)
           case (x: Boolean, y: Character) => x && (y > 0)
           case (x: Int, y: Boolean) => (x > 0) && y
           case (x: Character, y: Boolean) => (x > 0) && y
@@ -390,7 +393,7 @@ object BinaryExpr {
     val op2 = TypeHelper.resolve(state.stack.pop)
     
     val rawOp1 = state.stack.pop
-    
+
     rawOp1 match {
       case Variable(info: Variable)  =>
         val result = performTypedBinaryOperation(info.value, op2, binaryExpr.getOperator).getOrElse{

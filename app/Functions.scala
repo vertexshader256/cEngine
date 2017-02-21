@@ -6,6 +6,7 @@ import java.util.Locale;
 import scala.collection.mutable.HashMap
 import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
 import scala.collection.mutable.ListBuffer
+import org.eclipse.cdt.internal.core.dom.parser.c.CPointerType
 
 // 'isNative' implies the function is in C, not Scala
 abstract case class Function(name: String, isNative: Boolean) {
@@ -139,17 +140,28 @@ object Functions {
           null
         }
       },
+      new Function("modf", false) {
+        def parameters = List(new CBasicType(IBasicType.Kind.eDouble, 4), new CPointerType(new CBasicType(IBasicType.Kind.eDouble, 0), 0))
+        def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
+          val fraction = formattedOutputParams(0).asInstanceOf[Double]
+          val intPart = formattedOutputParams(1).asInstanceOf[Int]
+          
+          state.setValue(fraction.toInt, Address(intPart))
+          
+          state.stack.push(fraction % 1.0)
+          null
+        }
+      },
       new Function("putchar", false) {
         def parameters = List(new CBasicType(IBasicType.Kind.eChar, 1))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val theChar = formattedOutputParams(0).asInstanceOf[Character]
-          if (theChar == 'n' && Functions.lastChar == '\\') {
+          if (theChar == 10) {
             state.stdout += Functions.standardOutBuffer
             Functions.standardOutBuffer = ""
-          } else if (theChar != '\\') {
+          } else {
             Functions.standardOutBuffer += theChar.toChar
           }
-          Functions.lastChar = theChar
           null
         }
       },
@@ -215,7 +227,6 @@ object Functions {
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val lastNamedArgAddr = formattedOutputParams(1).asInstanceOf[Int]
           val listAddr = formattedOutputParams(0).asInstanceOf[Int]
-          println("STARTING ADDR: " + lastNamedArgAddr)
           varArgStartingAddr = lastNamedArgAddr + 4
           null
         }
@@ -229,21 +240,23 @@ object Functions {
   )
   
   var standardOutBuffer = ""
-  var lastChar: Byte = 0
-  
-  def printf(context: State, args: Seq[Object]) = {
-    val formatString = args.head.asInstanceOf[String].replaceAll("^\"|\"$", "").replaceAll("%ld", "%d").replaceAll("%l", "%d")
- 
+
+  def printf(context: State, theArgs: Seq[Object]) = {
+    val args = theArgs.reverse
+    val formatString = args.head.asInstanceOf[String].replaceAll("^\"|\"$", "").replaceAll("%ld", "%d").replaceAll("%l", "%d").replaceAll(10.asInstanceOf[Char].toString, System.lineSeparator())
+
     val buffer = new StringBuffer();
     val formatter = new Formatter(buffer, Locale.US);
     
     val resolvedStrings = args.tail.map{ _ match {
-      case str: String => str.split("""\"""").mkString
+      case str: String => 
+        val resolved = str.replaceAll(10.asInstanceOf[Char].toString, System.lineSeparator())
+        resolved.split(System.lineSeparator()).mkString
       case x => x 
     }}.toArray
     
     formatter.format(formatString, resolvedStrings: _*)
-    
-    context.stdout ++= buffer.toString.split("""\\n""")
+
+    context.stdout ++= buffer.toString.split(System.lineSeparator())
   }
 }

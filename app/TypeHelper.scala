@@ -107,7 +107,11 @@ object TypeHelper {
     val casted: AnyVal = theType match {
       case typedef: CTypedef => cast(typedef.getType, newVal).value
       case qual: IQualifierType => cast(qual.getType, newVal).value
-      case ptr: IPointerType => if (newVal.isInstanceOf[Address]) newVal.asInstanceOf[Address] else newVal.asInstanceOf[Int]
+      case ptr: IPointerType => newVal match {
+        case addy @ Address(_) => addy
+        case int: Int => int
+        case byte: Byte => byte.toInt
+      }
       case array: IArrayType => if (newVal.isInstanceOf[Address]) newVal.asInstanceOf[Address] else newVal.asInstanceOf[Int]
       case basic: IBasicType =>
        basic.getKind match {

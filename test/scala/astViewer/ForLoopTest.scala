@@ -1,5 +1,34 @@
 package scala.astViewer
 
+class ForLooptestStaging extends StandardTest {
+  "A for loop with a continue and a loop in the second case" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 0;
+        int i = 0;
+        for (i = 0; i < 10; i = i + 1) {
+          switch(i) {
+            case 1:
+              continue;
+              printf("1\n");
+            case 2:
+              for (x = 0; x < 3; x++) {
+                printf("%d\n", x);
+              }
+              break;
+            default :
+              printf("2\n");
+              break;
+          }
+        }
+        
+        printf("%d\n", x);
+      }"""
+
+    checkResults(code)
+  }
+}
+
 class ForLooptest extends StandardTest {
   "A simple for loop" should "print the correct results" in {
     val code = """
@@ -101,17 +130,22 @@ class ForLooptest extends StandardTest {
     checkResults(code)
   }
   
-  "A for loop with a continue" should "print the correct results" in {
+  "two loops with a continue" should "print the correct results" in {
     val code = """
       void main() {
         int x = 0;
         int i = 0;
-        for (i = 0; i < 10; i = i + 1) {
-          if (i == 3 || i == 5 || i == 7) {
-            continue;
+        int z = 0;
+        for(z = 0; z < 3; z++) {
+          printf("%d\n", z);
+          for (i = 0; i < 10; i = i + 1) {
+
+            if (i == 3 || i == 5 || i == 7) {
+              continue;
+            }
+            printf("looping\n");
+            x = x + 1;
           }
-          printf("looping\n");
-          x = x + 1;
         }
         
         printf("%d\n", x);

@@ -89,7 +89,7 @@ object Utils {
 		
 		codes.map{theCode =>
 		  
-		  var lines = theCode.split("\\r?\\n").toList
+		  var lines = List("#define HAS_FLOAT\n") ++ theCode.split("\\r?\\n").toList
 		  
 		  // solution to deal with var args
 		  val linesWithInclude = lines.zipWithIndex.filter{case (line, index) => line.contains("#include")}
@@ -103,7 +103,7 @@ object Utils {
 		  }
 		  
 		  val code = lines.reduce{_ + "\n" + _}
-		  
+
 		  val	pp = new Preprocessor();
 
   		pp.getSystemIncludePath.add(minGWIncludes)

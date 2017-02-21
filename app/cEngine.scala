@@ -14,7 +14,6 @@ object cEngine {
   implicit class CounterSC(val sc: StringContext) extends AnyVal {
     // Define functions that we want to use with string interpolation syntax
     def c(args: Any*)(implicit state: State): Unit = {
-      println(sc.parts.iterator.next.asInstanceOf[String])
       Gcc.runCode(sc.parts.iterator.next.asInstanceOf[String])
     }
   }
@@ -156,9 +155,10 @@ class State(val tUnit: IASTTranslationUnit) {
     readVal(address, TypeHelper.pointerType).value.asInstanceOf[Int]
   }
   
-  def createStringVariable(str: String): Address = {
+  def createStringVariable(str: String)(implicit state: State): Address = {
     val theStr = Utils.stripQuotes(str)
-    val withNull = theStr.toCharArray() :+ 0.toChar // terminating null char
+    val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
+    val withNull = translateLineFeed.toCharArray() :+ 0.toChar // terminating null char
     val strAddr = allocateSpace(withNull.size)
     
     setArray(withNull, AddressInfo(strAddr, new CBasicType(IBasicType.Kind.eChar, 0)))
@@ -224,7 +224,7 @@ class State(val tUnit: IASTTranslationUnit) {
     tape.putInt(addr.value, newVal.asInstanceOf[Int])
   }
 
-  def setArray(array: Array[_], info: AddressInfo): Unit = {
+  def setArray(array: Array[_], info: AddressInfo)(implicit state: State): Unit = {
       var i = 0
       val resolved = TypeHelper.resolve(info.theType)
       array.foreach { element =>

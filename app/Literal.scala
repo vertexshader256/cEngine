@@ -7,6 +7,7 @@ import scala.util.control.Exception.allCatch
 import java.math.BigInteger
 import scala.collection.mutable.Map
 import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
+import org.eclipse.cdt.internal.core.dom.parser.c.CPointerType
 
 case class Literal(litStr: String) {
   def cast: ValueInfo = {
@@ -31,7 +32,7 @@ case class Literal(litStr: String) {
     }
 
     if (lit.head == '\"' && lit.last == '\"') {
-      ValueInfo(StringLiteral(lit), new CBasicType(IBasicType.Kind.eChar, 0))
+      ValueInfo(StringLiteral(lit), new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0))
     } else if (lit.head == '\'' && lit.last == '\'' && (lit.size == 3 || lit == "'\\0'")) {
       if (lit == "'\\0'") {
         ValueInfo(0, new CBasicType(IBasicType.Kind.eFloat, 0))
