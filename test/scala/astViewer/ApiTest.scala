@@ -11,7 +11,12 @@ class ApiTest extends StandardTest {
     
     c"""int i = 1432;"""
     c"""printf("%d\n", i);"""
+    c"""
+      float x = 2.5f;
+      printf("what: %.1f\n", x);
+      
+      """
 
-    state.stdout.toSeq should equal (Seq("1432"))
+    state.stdout.toSeq should equal (Seq("1432", "what: 2.5"))
   }
 }
