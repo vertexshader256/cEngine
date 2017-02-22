@@ -14,7 +14,7 @@ object cEngine {
   implicit class CounterSC(val sc: StringContext) extends AnyVal {
     // Define functions that we want to use with string interpolation syntax
     def c(args: Any*)(implicit state: State): Unit = {
-      Gcc.runCode(sc.parts.iterator.next.asInstanceOf[String])
+      Gcc.runCode(sc.parts.iterator.next.asInstanceOf[String], state)
     }
   }
 }
@@ -23,7 +23,7 @@ object cEngine {
 //  def run: IASTNode
 //}
 
-class State(val tUnit: IASTTranslationUnit) {
+class State {
 
   // turing tape 
   private val tape = ByteBuffer.allocate(100000);

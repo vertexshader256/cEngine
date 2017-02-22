@@ -719,7 +719,7 @@ object Executor {
               
             case typespec: CASTTypedefNameSpecifier =>
               val name: IASTName = typespec.getName
-              val defs = state.tUnit.getDefinitionsInAST(name.getBinding)
+              val defs = Executor.tUnit.getDefinitionsInAST(name.getBinding)
               if (!defs.isEmpty) {
                 val typedef = defs.head.resolveBinding() match {
                   case x: CTypedef => x.getType
@@ -741,9 +741,8 @@ object Executor {
   
   var tUnit: IASTTranslationUnit = null
   
-  def init(codes: Seq[String], reset: Boolean): State = {
+  def init(codes: Seq[String], reset: Boolean, state: State) = {
     tUnit = Utils.getTranslationUnit(codes)
-    val state = new State(tUnit)
     current = tUnit
 
     if (reset) {
@@ -758,7 +757,6 @@ object Executor {
     state.context.pathStack.clear
     state.context.pathStack.push(state.getFunction("main").run(Address(0), null, state))
     current = state.context.pathStack.head
-    state
   }
 
   var current: IASTNode = null

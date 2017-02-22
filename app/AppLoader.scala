@@ -223,7 +223,8 @@ class AppLoader extends ApplicationLoader {
       case GET(p"/getAst" ? q"code=$code" ? q"height=${int(height)}" ? q"width=${int(width)}") => Action.async {
         println("GETTING AST")
         Future {
-          val state = Executor.init(Seq(code), true)
+          val state = new State
+          Executor.init(Seq(code), true, state)
 
           Ok(AstUtils.getAllChildren(Executor.tUnit))
         }
