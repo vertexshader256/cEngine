@@ -14,7 +14,7 @@ int main(int argc, char** argv){
 	x = 0;
 	list_add(list, &x, sizeof(int));
 	list_remove(list, FRONT);
-//
+
 //	list_add(list, &x, sizeof(int));
 //	list_remove(list, BACK);
 //
@@ -22,7 +22,7 @@ int main(int argc, char** argv){
 //		list_add(list, (void*)&x, sizeof(int));
 //		list_add(list2, (void*)&x, sizeof(int));
 //	}
-//
+
 //	list_iter_p iter = list_iterator(list, FRONT);
 //
 //	while(list_next(iter)!=NULL){

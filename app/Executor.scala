@@ -750,12 +750,13 @@ object Executor {
     }
 
     val fcns = tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
-    fcns.foreach{fcnDef => state.addFunctionDef(fcnDef)}
+    val (mainFcn, others) = fcns.partition{fcnDef => fcnDef.getDeclarator.getName.getRawSignature == "main"}
+    others.foreach{fcnDef => state.addFunctionDef(fcnDef)}
     
     run(state)
 
     state.context.pathStack.clear
-    state.context.pathStack.push(state.getFunction("main").run(Address(0), null, state))
+    state.context.pathStack.push(mainFcn.head)
     current = state.context.pathStack.head
   }
 

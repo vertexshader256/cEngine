@@ -67,7 +67,7 @@ class State {
     val name = fcnDef.getDeclarator.getName
     
     val fcnType = fcnDef.getDeclarator.getName.resolveBinding().asInstanceOf[IFunction].getType
-    
+
     functionList += new Function(name.getRawSignature, true) {
       index = functionCount
       def parameters = fcnType.getParameterTypes.toList

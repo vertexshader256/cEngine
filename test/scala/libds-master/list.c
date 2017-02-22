@@ -26,10 +26,13 @@ list_iter_p list_iterator(list_p list, char init){
 }
 
 void list_add(list_p list, void* data, int size){
+
 	lnode_p node = (lnode_p)malloc(sizeof(struct linked_node));
 	node->data = malloc(size);
 	memcpy(node->data, data, size);
-	
+
+
+
 	if(list->first==NULL){
 		node->prev = NULL;
 		node->next = NULL;
@@ -108,13 +111,17 @@ void* list_pop(list_p list){
 void* list_poll(list_p list){
 	lnode_p first = list->first;
 	
-	if(first == NULL)
-		return NULL;
 
+	if(first == NULL) {
+		return NULL;
+	}
+	
 	if (list->first == list->last) {
 		list->first = NULL;
 		list->last = NULL;
+
 	} else {
+
 		list->first = first->next;
 		first->next->prev = NULL;
 	}
@@ -127,9 +134,9 @@ void* list_poll(list_p list){
 
 void list_remove(list_p list, char end){
 	void * data;
-	if(end == FRONT)
-		list_poll(list);
-	else if (end == BACK)
+	if(end == FRONT) {
+		data = list_poll(list);
+	} else if (end == BACK)
 		data = list_pop(list);
 	else return;
 	list->destructor(data);
