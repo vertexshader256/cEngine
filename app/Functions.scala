@@ -127,8 +127,9 @@ object Functions {
           val dst = formattedOutputParams(0).asInstanceOf[Int]
           val src = formattedOutputParams(1).asInstanceOf[Int]
           val numBytes = formattedOutputParams(2).asInstanceOf[Int]
-          
+
           state.copy(Address(dst), Address(src), numBytes)
+          
           null
         }
       },
@@ -136,7 +137,7 @@ object Functions {
         def parameters = List(new CBasicType(IBasicType.Kind.eInt, 4))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val addy = formattedOutputParams(0).asInstanceOf[Address]
-          println(state.readString(addy) + " FAILED")
+          println(Utils.readString(addy)(state) + " FAILED")
           null
         }
       },
@@ -173,7 +174,7 @@ object Functions {
               case strLit: StringLiteral => strLit.str
               case addy @ Address(addr) => {
                   // its a string!
-                state.readString(addy)
+                Utils.readString(addy)(state)
               }
               case x => x
             }

@@ -135,8 +135,7 @@ object Expressions {
               case double: Double => double.toInt
               case ValueInfo(x, _) => x.asInstanceOf[Int]
               case AddressInfo(addr, theType) => 
-                val theVal = context.readVal(addr, theType)
-                TypeHelper.cast(new CBasicType(IBasicType.Kind.eInt, 0), theVal.value).value.asInstanceOf[Int]
+                context.readVal(addr, theType).value.asInstanceOf[Int]
             })
             
             indexes += result

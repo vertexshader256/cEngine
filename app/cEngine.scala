@@ -164,21 +164,6 @@ class State {
     setArray(withNull, AddressInfo(strAddr, new CBasicType(IBasicType.Kind.eChar, 0)))
     strAddr
   }
-  
-  def readString(address: Address): String = {
-     var current: Char = 0
-      var stringBuilder = new ListBuffer[Char]()
-      var i = 0
-      do {
-        current = readVal(address + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[Byte].toChar
-        if (current != 0) {
-          stringBuilder += current
-          i += 1
-        }
-      } while (current != 0)
-        
-      new String(stringBuilder.map(_.toByte).toArray, "UTF-8")
-  }
 
   def readVal(addr: Address, theType: IType): ValueInfo = {
 

@@ -14,6 +14,7 @@ import org.anarres.cpp.InputLexerSource
 import java.io.ByteArrayInputStream
 import org.anarres.cpp.Token
 import better.files._
+import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
 
 sealed trait Direction
 object Entering extends Direction
@@ -36,6 +37,21 @@ object Utils {
       current = current.getParent
     }
     results
+  }
+  
+  def readString(address: Address)(implicit state: State): String = {
+     var current: Char = 0
+      var stringBuilder = new ListBuffer[Char]()
+      var i = 0
+      do {
+        current = state.readVal(address + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[Byte].toChar
+        if (current != 0) {
+          stringBuilder += current
+          i += 1
+        }
+      } while (current != 0)
+        
+      new String(stringBuilder.map(_.toByte).toArray, "UTF-8")
   }
   
   def isAssignment(op: Int) = {
