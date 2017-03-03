@@ -197,19 +197,18 @@ object TypeHelper {
   
   // resolves 'Any' to 'ValueInfo'
   def resolve(theType: IType, any: Any)(implicit state: State): ValueInfo = {
-    ValueInfo(any match {
-      case Variable(info: Variable) => info.value.value
-      case lit @ Literal(_) => lit.typeCast(TypeHelper.resolve(theType)).value
-      case AddressInfo(addy, _) => addy.value
-      case Address(addy) => addy
-      case ValueInfo(theVal, _) => theVal
-      case int: Int => int
-      case float: Float => float
-      case double: Double => double
-      case long: Long => long
-      case boolean: Boolean => boolean
-      case byte: Byte => byte
-    }, TypeHelper.resolve(theType))
+    any match {
+      case Variable(info: Variable) => info.value
+      case lit @ Literal(_) => lit.typeCast(TypeHelper.resolve(theType))
+      case Address(addy) => ValueInfo(addy, TypeHelper.pointerType)
+      case value @ ValueInfo(theVal, _) => value
+      case int: Int => ValueInfo(int, null)
+      case float: Float => ValueInfo(float, null)
+      case double: Double => ValueInfo(double, null)
+      case long: Long => ValueInfo(long, null)
+      case boolean: Boolean => ValueInfo(boolean, null)
+      case byte: Byte => ValueInfo(byte, null)
+    }
   }
 
   def getBaseType(theType: IType): IType = theType match {
