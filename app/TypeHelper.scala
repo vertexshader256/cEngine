@@ -196,11 +196,13 @@ object TypeHelper {
   }
   
   // resolves 'Any' to 'ValueInfo'
-  def resolve(theType: IType, any: Any)(implicit state: State): ValueInfo = {
+  def resolve(any: Any)(implicit state: State): ValueInfo = {
     any match {
       case Variable(info: Variable) => info.value
-      case lit @ Literal(_) => lit.typeCast(TypeHelper.resolve(theType))
+      case lit @ Literal(_) => lit.cast
       case Address(addy) => ValueInfo(addy, TypeHelper.pointerType)
+      case AddressInfo(addy, theType) =>
+          state.readVal(addy, TypeHelper.resolve(theType))
       case value @ ValueInfo(theVal, _) => value
       case int: Int => ValueInfo(int, null)
       case float: Float => ValueInfo(float, null)
@@ -241,24 +243,6 @@ object TypeHelper {
       case x: Literal => resolveBoolean(x.cast.value)
       case Variable(info: Variable) => resolveBoolean(info.value.value)
   }
-  
-  def resolve(op: Any)(implicit context: State): AnyVal = {
-      op match {
-        case lit @ Literal(_) => lit.cast.value
-        case prim @ ValueInfo(_, _) => prim.value
-        case Address(addr) => addr
-        case Variable(info: Variable) => info.value.value
-        case AddressInfo(addy, theType) =>
-          context.readVal(addy, TypeHelper.resolve(theType)).value
-        case int: Int => int
-        case float: Float => float
-        case double: Double => double
-        case short: Short => short
-        case char: Character => char
-        case boolean: Boolean => boolean
-        case long: Long => long
-      }
-    }
 
   def sizeof(theType: IType): Int = theType match {
     case fcn: IFunctionType => 4
