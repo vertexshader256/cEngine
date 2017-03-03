@@ -160,16 +160,14 @@ object Expressions {
           
           var arrayTypes = new ListBuffer[IType]();
           
-          var tempType = context.resolve(arrayVarPtr.theType)
+          var tempType = arrayVarPtr.theType
           
           while (!tempType.isInstanceOf[IBasicType]) {
-            if (!tempType.isInstanceOf[IQualifierType]) {
-              arrayTypes += tempType
-            }
             tempType = context.resolve(tempType)
+            arrayTypes += tempType
           }
           
-          arrayTypes += tempType
+          //arrayTypes += tempType
           
           val isFunctionPointerCall = TypeHelper.getBaseType(arrayVarPtr.theType).isInstanceOf[IFunctionType]
           
@@ -200,9 +198,9 @@ object Expressions {
           val elementAddress = Address(offset)
           
           if (isParsingAssignmentDest || isFunctionPointerCall) {
-            context.stack.push(AddressInfo(elementAddress, TypeHelper.resolve(arrayTypes.last)))
+            context.stack.push(AddressInfo(elementAddress, indexTypes.last._2))
           } else {
-            context.stack.push(context.readVal(elementAddress, TypeHelper.resolve(arrayTypes.last)))
+            context.stack.push(context.readVal(elementAddress, indexTypes.last._2))
           }
         }
 
