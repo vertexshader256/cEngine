@@ -166,31 +166,24 @@ object Expressions {
             tempType = context.resolve(tempType)
             arrayTypes += tempType
           }
-          
-          //arrayTypes += tempType
-          
+
           val isFunctionPointerCall = TypeHelper.getBaseType(arrayVarPtr.theType).isInstanceOf[IFunctionType]
           
           val indexTypes = indexes zip arrayTypes
 
           indexTypes.foreach{ case(arrayIndex, aType) =>
+            
+            val step = TypeHelper.sizeof(aType)
             aType match {
               case array: IArrayType =>
-                val step = 4
                 offset = context.readPtrVal(Address(offset + arrayIndex * step))
               case ptr: IPointerType =>
-                val step = 4
-                if (isFunctionPointerCall) {
-                  // function pointer stuff
-                  offset += arrayIndex * step
-                } else if (TypeHelper.resolve(aType).getKind != IBasicType.Kind.eChar) {
-                  offset += arrayIndex * step
-                } else {
-                  // special case for strings
+                if (TypeHelper.resolve(aType).getKind == IBasicType.Kind.eChar) {
                   offset = context.readPtrVal(Address(offset + arrayIndex * step))
+                } else {
+                  offset += arrayIndex * step
                 }
-              case basic: IBasicType =>
-                val step = TypeHelper.sizeof(basic)
+              case basic: IBasicType =>  
                 offset += arrayIndex * step
             }
           }
