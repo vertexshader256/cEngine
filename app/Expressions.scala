@@ -172,19 +172,12 @@ object Expressions {
           val indexTypes = indexes zip arrayTypes
 
           indexTypes.foreach{ case(arrayIndex, aType) =>
-            
             val step = TypeHelper.sizeof(aType)
-            aType match {
-              case array: IArrayType =>
-                offset = context.readPtrVal(Address(offset + arrayIndex * step))
-              case ptr: IPointerType =>
-                if (TypeHelper.resolve(aType).getKind == IBasicType.Kind.eChar) {
-                  offset = context.readPtrVal(Address(offset + arrayIndex * step))
-                } else {
-                  offset += arrayIndex * step
-                }
-              case basic: IBasicType =>  
-                offset += arrayIndex * step
+            if (aType.isInstanceOf[IArrayType] || TypeHelper.resolve(aType).getKind == IBasicType.Kind.eChar && !aType.isInstanceOf[IBasicType]) {
+              // special case for strings
+              offset = context.readPtrVal(Address(offset + arrayIndex * step))
+            } else {
+              offset += arrayIndex * step
             }
           }
 
