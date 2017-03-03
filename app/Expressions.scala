@@ -157,17 +157,29 @@ object Expressions {
           }.getOrElse(false)
           
           var offset = arrayAddress
-
-          var aType = context.resolve(arrayVarPtr.theType)
+          
+          var arrayTypes = new ListBuffer[IType]();
+          
+          var tempType = context.resolve(arrayVarPtr.theType)
+          
+          while (!tempType.isInstanceOf[IBasicType]) {
+            if (!tempType.isInstanceOf[IQualifierType]) {
+              arrayTypes += tempType
+            }
+            tempType = context.resolve(tempType)
+          }
+          
+          arrayTypes += tempType
           
           val isFunctionPointerCall = TypeHelper.getBaseType(arrayVarPtr.theType).isInstanceOf[IFunctionType]
           
-          indexes.foreach{ arrayIndex =>
+          val indexTypes = indexes zip arrayTypes
+
+          indexTypes.foreach{ case(arrayIndex, aType) =>
             aType match {
               case array: IArrayType =>
                 val step = 4
                 offset = context.readPtrVal(Address(offset + arrayIndex * step))
-                aType = array.getType
               case ptr: IPointerType =>
                 val step = 4
                 if (isFunctionPointerCall) {
@@ -175,28 +187,22 @@ object Expressions {
                   offset += arrayIndex * step
                 } else if (TypeHelper.resolve(aType).getKind != IBasicType.Kind.eChar) {
                   offset += arrayIndex * step
-                  aType = ptr.getType
                 } else {
                   // special case for strings
                   offset = context.readPtrVal(Address(offset + arrayIndex * step))
-                  aType = ptr.getType
                 }
               case basic: IBasicType =>
                 val step = TypeHelper.sizeof(basic)
                 offset += arrayIndex * step
-            }
-          
-            if (aType.isInstanceOf[IQualifierType]) {
-              aType = aType.asInstanceOf[IQualifierType].getType
             }
           }
 
           val elementAddress = Address(offset)
           
           if (isParsingAssignmentDest || isFunctionPointerCall) {
-            context.stack.push(AddressInfo(elementAddress, aType))
+            context.stack.push(AddressInfo(elementAddress, TypeHelper.resolve(arrayTypes.last)))
           } else {
-            context.stack.push(context.readVal(elementAddress, aType))
+            context.stack.push(context.readVal(elementAddress, TypeHelper.resolve(arrayTypes.last)))
           }
         }
 
