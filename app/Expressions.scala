@@ -142,16 +142,6 @@ object Expressions {
             itr = itr.getParent
           }
           
-          val dimensions = new ListBuffer[Int]()
-          var typeItr: IType = arrayVarPtr.theType
-          while (typeItr.isInstanceOf[IArrayType]) {
-            if (typeItr.asInstanceOf[IArrayType].hasSize &&
-                typeItr.asInstanceOf[IArrayType].getSize.numericalValue != null) {
-              dimensions += typeItr.asInstanceOf[IArrayType].getSize.numericalValue.toInt
-            }
-            typeItr = typeItr.asInstanceOf[IArrayType].getType
-          }
-          
           val arrayAddress = context.readPtrVal(arrayVarPtr.address)
   
           val ancestors = Utils.getAncestors(subscript)
@@ -178,9 +168,9 @@ object Expressions {
                 val step = 4
                 if (isFunctionPointerCall) {
                   // function pointer stuff
-                  offset = offset + arrayIndex * step
+                  offset += arrayIndex * step
                 } else if (TypeHelper.resolve(aType).getKind != IBasicType.Kind.eChar) {
-                  offset = offset + arrayIndex * step
+                  offset += arrayIndex * step
                   aType = ptr.getType
                 } else {
                   // special case for strings
