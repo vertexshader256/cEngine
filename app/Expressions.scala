@@ -135,7 +135,11 @@ object Expressions {
               case double: Double => double.toInt
               case ValueInfo(x, _) => x.asInstanceOf[Int]
               case AddressInfo(addr, theType) => 
-                context.readVal(addr, theType).value.asInstanceOf[Int]
+                context.readVal(addr, theType).value match {
+                  case int: Int => int
+                  case char: Character => char.toInt
+                  case long: Long => long.toInt
+                }
             })
             
             indexes += result
