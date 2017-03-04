@@ -260,15 +260,15 @@ object TypeHelper {
       sizeof(qual.getType)
     case basic: IBasicType =>
       basic.getKind match {
-        case `eInt` if basic.isLong => 8
-        case `eInt`                 => 4
-        case `eFloat`               => 4
-        case `eChar16`              => 2
-        case `eDouble`              => 8
-        case `eChar`                => 1
-        case `eChar32`              => 4
-        case `eVoid`                => 4
-        case `eBoolean`             => 4
+        case `eInt` if basic.isLongLong => 8
+        case `eInt`                     => 4
+        case `eFloat`                   => 4
+        case `eChar16`                  => 2
+        case `eDouble`                  => 8
+        case `eChar`                    => 1
+        case `eChar32`                  => 4
+        case `eVoid`                    => 4
+        case `eBoolean`                 => 4
       }
   }
   
