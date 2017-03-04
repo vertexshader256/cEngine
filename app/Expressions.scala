@@ -183,11 +183,7 @@ object Expressions {
 
           val elementAddress = Address(offset)
           
-          if (isParsingAssignmentDest || isFunctionPointerCall) {
-            context.stack.push(AddressInfo(elementAddress, indexTypes.last._2))
-          } else {
-            context.stack.push(context.readVal(elementAddress, indexTypes.last._2))
-          }
+          context.stack.push(AddressInfo(elementAddress, indexTypes.last._2))
         }
 
         Seq()
