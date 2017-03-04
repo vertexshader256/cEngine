@@ -38,7 +38,7 @@ object Variable {
     if (aType.isInstanceOf[CFunctionType]) {
       state.allocateSpace(4 * numElements)
     } else if (TypeHelper.isPointer(aType)) {
-      state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType))
+      state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * numElements)
     } else if (aType.isInstanceOf[CStructure]) {
       val struct = aType.asInstanceOf[CStructure]
       var result: Address = Address(-1)
@@ -52,6 +52,8 @@ object Variable {
       result
     } else if (aType.isInstanceOf[CTypedef]) {
       allocateSpace(state, aType.asInstanceOf[CTypedef].getType, numElements)
+    } else if (aType.isInstanceOf[IQualifierType]) {
+      allocateSpace(state, aType.asInstanceOf[IQualifierType].getType, numElements)
     } else {
       state.allocateSpace(TypeHelper.sizeof(aType) * numElements)
     }
@@ -86,14 +88,12 @@ protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) exten
       address = Variable.allocateSpace(state, TypeHelper.pointerType, 1)
       
       def recurse(subType: IType, dimensions: Seq[Int]): Address = {
-  
-        val addr = Variable.allocateSpace(state, TypeHelper.pointerType, dimensions.head)
+
+        val addr = Variable.allocateSpace(state, subType, dimensions.head)
         for (i <- (0 until dimensions.head)) {
-          
-          val sub = state.resolve(subType)
-  
+
           if (dimensions.size > 1) {
-            val subaddr = recurse(sub, dimensions.tail)
+            val subaddr = recurse(subType, dimensions.tail)
             state.setValue(subaddr.value, addr + i * 4)
           }
         }
