@@ -18,13 +18,6 @@ object FunctionCallExpr {
   
   val varArgs = new ListBuffer[Any]()
   
-  def formatArgument(arg: Any)(implicit state: State): AnyVal = {
-    arg match {  
-      case addr @ Address(address) => addr
-      case x => TypeHelper.resolve(x).value
-    }
-  }
-  
   def allocateString(arg: Any)(implicit state: State): AnyVal = {
     arg match {
         case Variable(theInfo: Variable) => 

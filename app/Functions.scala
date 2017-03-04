@@ -20,14 +20,18 @@ abstract case class Function(name: String, isNative: Boolean) {
     if (name != "printf") {
       val argumentsFromMemory = parameters.foreach { argType =>
         val newArg = state.readVal(startingAddress, argType).value
-        args += FunctionCallExpr.formatArgument(newArg)(state)
+        args += TypeHelper.resolve(newArg)(state).value
         startingAddress += TypeHelper.sizeof(argType)
       }
     } else {
       val numArgs = call.getArguments.size
       // for printf, a scala-based var-arg function, pop off the stack
       for (i <- (0 until numArgs)) {
-        args += FunctionCallExpr.formatArgument(state.stack.pop)(state)
+        val arg = state.stack.pop
+        args += (arg match {
+          case addr @ Address(_) => addr
+          case x => TypeHelper.resolve(x)(state).value
+        })
       }
     }
     
