@@ -205,6 +205,7 @@ object TypeHelper {
           state.readVal(addy, TypeHelper.resolve(theType))
       case value @ ValueInfo(theVal, _) => value
       case int: Int => ValueInfo(int, null)
+      case short: Short => ValueInfo(short, null)
       case float: Float => ValueInfo(float, null)
       case double: Double => ValueInfo(double, null)
       case long: Long => ValueInfo(long, null)
