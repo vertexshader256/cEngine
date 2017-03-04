@@ -149,13 +149,7 @@ object Expressions {
           val arrayAddress = context.readPtrVal(arrayVarPtr.address)
   
           val ancestors = Utils.getAncestors(subscript)
-          
-          // We have to treat the destination op differently in an assignment
-          val isParsingAssignmentDest = ancestors.find{ _.isInstanceOf[IASTBinaryExpression]}.map { binary =>
-            val bin = binary.asInstanceOf[IASTBinaryExpression]
-            Utils.isAssignment(bin.getOperator)
-          }.getOrElse(false)
-          
+
           var offset = arrayAddress
           
           var arrayTypes = new ListBuffer[IType]();
@@ -167,8 +161,6 @@ object Expressions {
             arrayTypes += tempType
           }
 
-          val isFunctionPointerCall = TypeHelper.getBaseType(arrayVarPtr.theType).isInstanceOf[IFunctionType]
-          
           val indexTypes = indexes zip arrayTypes
 
           indexTypes.foreach{ case(arrayIndex, aType) =>
