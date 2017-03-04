@@ -174,7 +174,7 @@ object Expressions {
           }
 
           val elementAddress = Address(offset)
-          
+
           context.stack.push(AddressInfo(elementAddress, indexTypes.last._2))
         }
 

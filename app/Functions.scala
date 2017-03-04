@@ -176,7 +176,13 @@ object Functions {
                   // its a string!
                 Utils.readString(addy)(state)
               }
-              case x => x
+              case int: Int => int
+              case long: Long => long
+              case short: Short => short
+              case byte: Byte => byte
+              case double: Double => double
+              case float: Float => float
+              case char: Character => char
             }
           }
           
