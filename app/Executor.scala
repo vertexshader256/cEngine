@@ -12,6 +12,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c._
 import java.math.BigInteger
 import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 import scala.collection.mutable.Map
+import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 
 case class ValueInfo(value: AnyVal, theType: IType)
 case class VarRef(name: String)
@@ -26,6 +27,8 @@ object Variable {
       } else {
         None
       }
+    } else if (any.isInstanceOf[Variable]) {
+      Some(any)
     } else {
       None
     }
@@ -508,13 +511,12 @@ object Executor {
               case basic: IBasicType =>
                 val initVal = Option(decl.getInitializer).map(x => state.stack.pop).getOrElse(0)   
 
-                val resolved = TypeHelper.resolve(initVal).value
-
                 val newVar = new Variable(state, theType)
                 newVar.allocate
-                val casted = TypeHelper.cast(newVar.info.theType, resolved).value
-                state.setValue(casted, newVar.info.address)
                 state.context.addVariable(name, newVar)
+
+                BinaryExpr.parseAssign(op_assign, newVar, initVal)
+
                 newVar
             }
 

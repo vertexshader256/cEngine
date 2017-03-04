@@ -12,7 +12,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c.CStructure
 
 object BinaryExpr {
   
-  def parseAssign(node: IASTNode, op: Int, op1: Any, op2: Any)(implicit state: State): Any = {
+  def parseAssign(op: Int, op1: Any, op2: Any)(implicit state: State): Any = {
 
     val dst: AddressInfo = op1 match {
       case Variable(info: Variable) => info.info
