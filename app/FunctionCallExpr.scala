@@ -18,7 +18,41 @@ object FunctionCallExpr {
   
   val varArgs = new ListBuffer[Any]()
   
+  // resolves 'Any' to 'ValueInfo'
+//  def resolve(any: Any)(implicit state: State): ValueInfo = {
+//    any match {
+//      case Variable(info: Variable) => info.value
+//      case lit @ Literal(_) => lit.cast
+//      case Address(addy) => ValueInfo(addy, TypeHelper.pointerType)
+//      case AddressInfo(addy, theType) =>
+//          state.readVal(addy, TypeHelper.resolve(theType))
+//      case value @ ValueInfo(theVal, _) => value
+//      case int: Int => ValueInfo(int, null)
+//      case float: Float => ValueInfo(float, null)
+//      case double: Double => ValueInfo(double, null)
+//      case long: Long => ValueInfo(long, null)
+//      case boolean: Boolean => ValueInfo(boolean, null)
+//      case byte: Byte => ValueInfo(byte, null)
+//    }
+//  }
+  
   def formatArgument(arg: Any)(implicit state: State): AnyVal = {
+    arg match {  
+        case addr @ Address(address) => addr
+        case AddressInfo(address, theType) => 
+          state.readVal(address, TypeHelper.resolve(theType)).value
+        
+        case int: Int => int
+        case float: Float => float
+        case short: Short => short
+        case long: Long => long
+        case doub: Double => doub
+        case char: Character => char
+        case lit @ Literal(_) => lit.cast.value
+      }
+  }
+  
+  def allocateString(arg: Any)(implicit state: State): AnyVal = {
     arg match {
         case Variable(theInfo: Variable) => 
           val info = theInfo.info
@@ -28,22 +62,13 @@ object FunctionCallExpr {
           } else {
             state.readVal(info.address, info.theType).value
           }
-        case addr @ Address(address) => addr
         case ValueInfo(theVal, _) =>             
           theVal
-        case AddressInfo(address, theType) => 
-          state.readVal(address, TypeHelper.resolve(theType)).value
-        case bool: Boolean => if (bool) 1 else 0
-        case int: Int => int
-        case float: Float => float
-        case short: Short => short
-        case long: Long => long
-        case doub: Double => doub
-        case char: Character => char
-        case lit @ Literal(_) => lit.cast.value
         case StringLiteral(str) => 
           val strAddr = state.createStringVariable(str)
           strAddr
+          
+        case x => TypeHelper.resolve(x).value
       }
   }
   
@@ -69,7 +94,11 @@ object FunctionCallExpr {
         var startingAddress: Address = Address(-1)
         
         // do this up here so string allocation doesnt clobber arg stack
-        val results = call.getArguments.map{call => val x = state.stack.pop; (x, formatArgument(x))}
+        val results = call.getArguments.map{call => 
+          val x = state.stack.pop
+          val string = allocateString(x)
+          (x, string)
+        }
 
         results.foreach { case (value, result) => 
           

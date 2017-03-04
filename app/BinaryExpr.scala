@@ -369,12 +369,23 @@ object BinaryExpr {
           case (x: Boolean, y: Long) => x && (y > 0)
           case (x: Boolean, y: Character) => x && (y > 0)
           case (x: Int, y: Boolean) => (x > 0) && y
+          case (x: Int, y: Int) => (x > 0) && (y > 0)
+          case (x: Long, y: Long) => (x > 0) && (y > 0)
+          case (x: Short, y: Short) => (x > 0) && (y > 0)
+          case (x: Character, y: Character) => (x > 0) && (y > 0)
+          case (x: Int, y: Long) => (x > 0) && (y > 0)
+          case (x: Long, y: Int) => (x > 0) && (y > 0)
+          case (x: Int, y: Short) => (x > 0) && (y > 0)
+          case (x: Short, y: Int) => (x > 0) && (y > 0)
+          case (x: Int, y: Character) => (x > 0) && (y > 0)
+          case (x: Character, y: Int) => (x > 0) && (y > 0)
           case (x: Character, y: Boolean) => (x > 0) && y
         }
       case `op_logicalOr` =>
         (op1, op2) match {
           case (x: Boolean, y: Boolean) => x || y
           case (x: Int, y: Boolean) => (x > 0) || y
+          case (x: Int, y: Int) => (x > 0) || (y > 0)
         }
       case _ => throw new Exception("unhandled binary operator: " + operator); 0
     }

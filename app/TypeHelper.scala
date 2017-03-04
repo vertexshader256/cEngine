@@ -208,7 +208,7 @@ object TypeHelper {
       case float: Float => ValueInfo(float, null)
       case double: Double => ValueInfo(double, null)
       case long: Long => ValueInfo(long, null)
-      case boolean: Boolean => ValueInfo(boolean, null)
+      case bool: Boolean => ValueInfo(if (bool) 1 else 0, null)
       case byte: Byte => ValueInfo(byte, null)
     }
   }
