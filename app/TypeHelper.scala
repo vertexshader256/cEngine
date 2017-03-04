@@ -191,6 +191,29 @@ object TypeHelper {
     ValueInfo(casted, theType)
   }
   
+  def getType(value: AnyVal): IBasicType = {
+    var config = 0
+              
+    if (value.isInstanceOf[Long]) {
+      config |= IBasicType.IS_LONG
+    }
+    
+    if (value.isInstanceOf[Short]) {
+      config |= IBasicType.IS_SHORT
+    }
+    
+    value match {
+      case Address(_)    => pointerType
+      case int: Int      => new CBasicType(IBasicType.Kind.eInt, config)
+      case long: Long    => new CBasicType(IBasicType.Kind.eInt, config)
+      case float: Float  => new CBasicType(IBasicType.Kind.eFloat, config)
+      case doub: Double  => new CBasicType(IBasicType.Kind.eDouble, config)           
+      case char: Char    => new CBasicType(IBasicType.Kind.eChar, config)
+      case short: Short  => new CBasicType(IBasicType.Kind.eInt, config)
+      case char: Character => new CBasicType(IBasicType.Kind.eChar, config)
+    }
+  }
+  
   def isSigned(theType: IBasicType) = {
     theType.isSigned || (!theType.isSigned && !theType.isUnsigned)
   }

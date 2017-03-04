@@ -641,9 +641,10 @@ object Executor {
             } else if  (paramDecls.isEmpty) {
               val lit = Literal(param.getRawSignature).cast              
               val inferredType = lit.theType
+              val sizeof = TypeHelper.sizeof(inferredType)
               val space = state.allocateSpace(4)
               val arg = state.readVal(argAddress, inferredType).value
-              argAddress += TypeHelper.sizeof(inferredType)
+              argAddress += sizeof
               val casted = TypeHelper.cast(inferredType, arg).value
               state.setValue(casted, space)     
             }
