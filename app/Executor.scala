@@ -449,40 +449,16 @@ object Executor {
             }
           case decl: CASTDeclarator =>
 
-            def createVariable(theType: IType, name: String): Variable = theType match {
-              case struct: CStructure =>
-                val newStruct = new Variable(state, theType)
-                newStruct.allocate
-                state.context.addVariable(name, newStruct)
-                newStruct
-              case typedef: CTypedef =>
-                createVariable(typedef.getType, name)
-              case qual: CQualifierType =>
-                createVariable(qual.getType, name)
-              case ptr: IPointerType =>
-                val initVal = Option(decl.getInitializer).map(x => state.stack.pop).getOrElse(0)
-                
-                val newVar = new Variable(state, theType)
-                newVar.allocate
-                
-                BinaryExpr.parseAssign(op_assign, newVar, initVal)
+            val stripped = TypeHelper.stripSyntheticTypeInfo(theType)
+            
+            val newVar = new Variable(state, theType)
+            newVar.allocate
+            state.context.addVariable(name, newVar)
 
-                state.context.addVariable(name, newVar)
-                newVar               
-               
-              case basic: IBasicType =>
-                val initVal = Option(decl.getInitializer).map(x => state.stack.pop).getOrElse(0)   
-
-                val newVar = new Variable(state, theType)
-                newVar.allocate
-                state.context.addVariable(name, newVar)
-
-                BinaryExpr.parseAssign(op_assign, newVar, initVal)
-
-                newVar
+            if (!stripped.isInstanceOf[CStructure]) {
+              val initVal = Option(decl.getInitializer).map(x => state.stack.pop).getOrElse(0)  
+              BinaryExpr.parseAssign(op_assign, newVar, initVal)
             }
-
-            val newVar = createVariable(theType, name)
             
             if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
                  && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {

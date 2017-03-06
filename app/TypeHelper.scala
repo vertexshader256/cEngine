@@ -258,6 +258,16 @@ object TypeHelper {
     case fcn: IFunctionType       => TypeHelper.pointerType
   }
   
+  def stripSyntheticTypeInfo(theType: IType): IType = theType match {
+    case struct: CStructure       => struct
+    case basicType: IBasicType    => basicType
+    case typedef: ITypedef        => resolve(typedef.getType)
+    case ptrType: IPointerType    => ptrType
+    case arrayType: IArrayType    => arrayType
+    case qualType: IQualifierType => resolve(qualType.getType)
+    case fcn: IFunctionType       => fcn
+  }
+  
   def resolveBoolean(theVal: Any)(implicit context: State): Boolean = theVal match {
       case x: Boolean => x
       case int: Int => int > 0
