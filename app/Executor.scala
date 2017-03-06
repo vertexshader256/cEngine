@@ -462,49 +462,11 @@ object Executor {
               case ptr: IPointerType =>
                 val initVal = Option(decl.getInitializer).map(x => state.stack.pop).getOrElse(0)
                 
-                val newVar = initVal match {
-                  case Variable(info: Variable) => 
-                    val newVar = new Variable(state, theType)
-                    newVar.allocate
-                    state.setValue(info.value.value, newVar.address)
-                    newVar
-                  case AddressInfo(address, addrType) => 
-                    val newVar = new Variable(state, theType)
-                    newVar.allocate
-                    if (TypeHelper.isPointer(addrType)) {
-                      state.setValue(state.readVal(address, TypeHelper.pointerType).value, newVar.address)
-                    } else {
-                      state.setValue(address.value, newVar.address)
-                    }
-                    newVar
-                  case int: Int => 
-                    val newVar = new Variable(state, theType)
-                    newVar.allocate
-                    state.setValue(int, newVar.address)
-                    newVar
-                  case prim @ ValueInfo(_, newType) => 
-                    
-                    val newVar = new Variable(state, theType)
-                    newVar.allocate
-                    state.setValue(prim.value, newVar.address)
-                    newVar
-                  case StringLiteral(str) =>
-                    val newVar = new Variable(state, theType)
-                    newVar.allocate
-                    val strAddr = state.createStringVariable(str)
-                    state.setValue(strAddr.value, newVar.address)
-                    newVar
-                  case lit @ Literal(_) => 
-                    val newVar = new Variable(state, theType) // TODO: Not setting value? Whats going on here?
-                    newVar.allocate
-                    newVar
-                  case Address(int) => 
-                    val newVar = new Variable(state, theType)
-                    newVar.allocate
-                    state.setValue(int, newVar.address)
-                    newVar
-                }
+                val newVar = new Variable(state, theType)
+                newVar.allocate
                 
+                BinaryExpr.parseAssign(op_assign, newVar, initVal)
+
                 state.context.addVariable(name, newVar)
                 newVar               
                
@@ -721,17 +683,7 @@ object Executor {
               result
               
             case typespec: CASTTypedefNameSpecifier =>
-              val name: IASTName = typespec.getName
-              val defs = Executor.tUnit.getDefinitionsInAST(name.getBinding)
-              if (!defs.isEmpty) {
-                val typedef = defs.head.resolveBinding() match {
-                  case x: CTypedef => x.getType
-                  case null => typespec.getName.resolveBinding().asInstanceOf[CTypedef].getType
-                }
-                typedef
-              } else {
-                null
-              }
+              typespec.findBindings(typespec.getName, false).head
             case elab: CASTElaboratedTypeSpecifier =>
               elab.getName.resolveBinding().asInstanceOf[CStructure]
           }
