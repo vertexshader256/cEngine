@@ -87,43 +87,43 @@ class State {
   var isBreaking = false
   var isContinuing = false
 
-  def callTheFunction(name: String, call: IASTFunctionCallExpression, argumentStartingAddress: Address): Seq[IASTNode] = {
+  def callTheFunction(name: String, call: IASTFunctionCallExpression, argumentStartingAddress: Address, args: Array[AnyVal]): Seq[IASTNode] = {
 
     functionList.find(_.name == name).map{ fcn =>
       if (!fcn.isNative) {
         // this is a function simulated in scala
-        fcn.run(argumentStartingAddress, call, this)
+        fcn.run(argumentStartingAddress, call, this, args)
         Seq()
       } else {
-        Seq(callFunction(name, call, argumentStartingAddress))
+        Seq(callFunction(name, call, argumentStartingAddress, args))
       }
     }.getOrElse{
       // function pointer case
-      Seq(callFunctionPointer(name, call, argumentStartingAddress))
+      Seq(callFunctionPointer(name, call, argumentStartingAddress, args))
     }
   }
   
-  def callFunction(name: String, call: IASTFunctionCallExpression, argumentStartingAddress: Address): IASTNode = {
+  def callFunction(name: String, call: IASTFunctionCallExpression, argumentStartingAddress: Address, args: Array[AnyVal]): IASTNode = {
         
     functionContexts.push(new ExecutionContext(functionContexts.head.varMap, call.getExpressionType, this))
     context.pathStack.push(call)
     
-    context.stack.push(call)
-    context.stack.push(argumentStartingAddress)
+    args.foreach{ arg => context.stack.push(arg)}
+    context.stack.push(args.size)
 
-    getFunction(name).run(argumentStartingAddress, call, this)
+    getFunction(name).run(argumentStartingAddress, call, this, args)
   }
   
-  def callFunctionPointer(name: String, call: IASTFunctionCallExpression, argumentStartingAddress: Address): IASTNode = {
+  def callFunctionPointer(name: String, call: IASTFunctionCallExpression, argumentStartingAddress: Address, args: Array[AnyVal]): IASTNode = {
         
     functionContexts.push(new ExecutionContext(functionContexts.head.varMap, call.getExpressionType, this))
     context.pathStack.push(call)
     
-    context.stack.push(call)
-    context.stack.push(argumentStartingAddress)
+    args.foreach{ arg => context.stack.push(arg)}
+    context.stack.push(args.size)
 
     val theVar = functionContexts.head.varMap(name)
-    getFunctionByIndex(theVar.value.value.asInstanceOf[Int]).run(argumentStartingAddress, call, this)
+    getFunctionByIndex(theVar.value.value.asInstanceOf[Int]).run(argumentStartingAddress, call, this, args)
   }
 
   def clearVisited(parent: IASTNode) {

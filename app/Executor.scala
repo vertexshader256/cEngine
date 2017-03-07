@@ -538,56 +538,40 @@ object Executor {
         
         if (!paramDecls.isEmpty && direction == Entering && !isInMain) {
           
-          var argAddress = Address(0)
-          var fcnCall: IASTFunctionCallExpression = null   
-          
+          var numArgs = 0
+
           val others = fcnDec.getChildren.filter{x => !x.isInstanceOf[IASTParameterDeclaration] && !x.isInstanceOf[IASTName]}
           
           if (!isInFunctionPrototype) {
-            argAddress = state.stack.pop.asInstanceOf[Address]
-            fcnCall = state.stack.pop.asInstanceOf[IASTFunctionCallExpression]
+            numArgs = state.stack.pop.asInstanceOf[Integer]
+            val args = (0 until numArgs).map{arg => state.stack.pop.asInstanceOf[AnyVal]}.reverse
           
-          fcnCall.getArguments.foreach{ param =>
-            if (!isInFunctionPrototype && !paramDecls.isEmpty) {
-              
-              val paramDecl = paramDecls.pop
-              
-              val paramInfo = paramDecl.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
-              
-              val function = state.getFunction(fcnName)
+            args.foreach{ arg =>
+              if (!isInFunctionPrototype && !paramDecls.isEmpty) {
+                
+                println("PASSING: " + arg)
+                
+                val paramDecl = paramDecls.pop
+                
+                val paramInfo = paramDecl.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
   
-              val arg = state.readVal(argAddress, paramInfo.getType)
-              
-              argAddress += TypeHelper.sizeof(paramInfo.getType)
-    
-              val name = paramDecl.getDeclarator.getName.getRawSignature
-              val newVar = new Variable(state, paramInfo.getType)
-              newVar.allocate
-              val resolved = TypeHelper.resolve(arg).value
-              val casted = TypeHelper.cast(newVar.info.theType, resolved).value
-              state.setValue(casted, newVar.info.address)          
-          
-              state.context.addVariable(name, newVar)
-            } else if (state.context.containsId(param.getRawSignature)) {
-              val theVar = state.context.resolveId(param.getRawSignature)
-              val sizeof = TypeHelper.sizeof(theVar.theType)
-              val space = state.allocateSpace(sizeof)
-              val arg = state.readVal(argAddress, theVar.theType).value
-              argAddress += sizeof
-              val casted = TypeHelper.cast(theVar.theType, arg).value
-              state.setValue(casted, space) 
-            } else if  (paramDecls.isEmpty) {
-              val lit = Literal(param.getRawSignature).cast              
-              val inferredType = lit.theType
-              val sizeof = TypeHelper.sizeof(inferredType)
-              val space = state.allocateSpace(4)
-              val arg = state.readVal(argAddress, inferredType).value
-              argAddress += sizeof
-              val casted = TypeHelper.cast(inferredType, arg).value
-              state.setValue(casted, space)     
+                val name = paramDecl.getDeclarator.getName.getRawSignature
+                val newVar = new Variable(state, paramInfo.getType)
+                newVar.allocate
+                println("STARTING VAR ADDR: " + newVar.info.address)
+                val casted = TypeHelper.cast(newVar.info.theType, arg).value
+                state.setValue(casted, newVar.info.address)          
+            
+                state.context.addVariable(name, newVar)
+              } else {
+                val theType = TypeHelper.getType(arg)
+                val sizeof = TypeHelper.sizeof(theType)
+                println("SIZE OF: " + sizeof + " for " + arg)
+                val space = state.allocateSpace(sizeof)
+                state.setValue(arg, space) 
+              }
             }
           }
-        }
           
           others
         } else {

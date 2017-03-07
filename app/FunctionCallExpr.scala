@@ -49,7 +49,7 @@ object FunctionCallExpr {
     
         var startingAddress: Address = Address(-1)
         
-        if (name == "printf") {
+        val results = if (name == "printf") {
           
           // do this up here so string allocation doesnt clobber arg stack
           val results = call.getArguments.map{call => 
@@ -68,6 +68,7 @@ object FunctionCallExpr {
           }
           
           results.foreach{ result =>  state.stack.push(result)}
+          results
         } else {
           
           // do this up here so string allocation doesnt clobber arg stack
@@ -93,9 +94,10 @@ object FunctionCallExpr {
             
             state.setValue(argVal, argumentSpace)            
           }
+          results
         }
 
-        state.callTheFunction(name, call, startingAddress)
+        state.callTheFunction(name, call, startingAddress, results)
 
       } else {
         call.getArguments.reverse ++ Seq(call.getFunctionNameExpression)

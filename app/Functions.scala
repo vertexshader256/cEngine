@@ -14,28 +14,8 @@ abstract case class Function(name: String, isNative: Boolean) {
   var index = -1
   
   def parameters: List[IType]
-  def run(argumentAddress: Address, call: IASTFunctionCallExpression, state: State): IASTNode = {
-    var startingAddress = argumentAddress
-    val args = new ListBuffer[AnyVal]()
-    if (name != "printf") {
-      val argumentsFromMemory = parameters.foreach { argType =>
-        val newArg = state.readVal(startingAddress, argType).value
-        args += TypeHelper.resolve(newArg)(state).value
-        startingAddress += TypeHelper.sizeof(argType)
-      }
-    } else {
-      val numArgs = call.getArguments.size
-      // for printf, a scala-based var-arg function, pop off the stack
-      for (i <- (0 until numArgs)) {
-        val arg = state.stack.pop
-        args += (arg match {
-          case addr @ Address(_) => addr
-          case x => TypeHelper.resolve(x)(state).value
-        })
-      }
-    }
-    
-    run(args.toArray, state)
+  def run(argumentAddress: Address, call: IASTFunctionCallExpression, state: State, args: Array[AnyVal]): IASTNode = {
+    run(args.reverse, state)
   }
   
   protected def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode
@@ -224,8 +204,6 @@ object Functions {
         def parameters = List(new CBasicType(IBasicType.Kind.eInt, 0),
             new CBasicType(IBasicType.Kind.eInt, 4))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
-          val argType = formattedOutputParams(0).asInstanceOf[Int]
-          val list = formattedOutputParams(1).asInstanceOf[Int]
           val result = state.readVal(Address(varArgStartingAddr), TypeHelper.pointerType).value
           state.stack.push(result)
           varArgStartingAddr += 4
@@ -236,8 +214,10 @@ object Functions {
         def parameters = List(new CBasicType(IBasicType.Kind.eInt, 0),
             new CBasicType(IBasicType.Kind.eInt, 0))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
-          val lastNamedArgAddr = formattedOutputParams(1).asInstanceOf[Int]
-          val listAddr = formattedOutputParams(0).asInstanceOf[Int]
+          val lastNamedArgAddr = formattedOutputParams(0).asInstanceOf[Int]
+          println("STARTING ADDR: " + lastNamedArgAddr)
+          val listAddr = formattedOutputParams(1).asInstanceOf[Int]
+          println("LIST ADDR: " + listAddr)
           varArgStartingAddr = lastNamedArgAddr + 4
           null
         }
