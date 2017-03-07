@@ -133,6 +133,7 @@ class VarArgFunction extends StandardTest {
          printf("%f\n", average(4, 2,3,4,5));
          printf("%f\n", average(3, 5,10,15));
          printf("%f\n", average(2, x, y));
+         printf("%f\n", average(2, x + y, y - x));
       }"""
 
     checkResults(code)

@@ -95,15 +95,17 @@ class State {
         fcn.run(args.reverse, this)
         Seq()
       } else {
-        Seq(callFunction(name, call, args))
+        Seq(callFunction(fcn, call, args))
       }
     }.getOrElse{
       // function pointer case
-      Seq(callFunctionPointer(name, call, args))
+      val fcnPointer = functionContexts.head.varMap(name)
+      val fcn = getFunctionByIndex(fcnPointer.value.value.asInstanceOf[Int])
+      Seq(callFunction(fcn, call, args))
     }
   }
   
-  def callFunction(name: String, call: IASTFunctionCallExpression, args: Array[AnyVal]): IASTNode = {
+  def callFunction(function: Function, call: IASTFunctionCallExpression, args: Array[AnyVal]): IASTNode = {
         
     functionContexts.push(new ExecutionContext(functionContexts.head.varMap, call.getExpressionType, this))
     context.pathStack.push(call)
@@ -111,19 +113,7 @@ class State {
     args.foreach{ arg => context.stack.push(arg)}
     context.stack.push(args.size)
 
-    getFunction(name).run(args.reverse, this)
-  }
-  
-  def callFunctionPointer(name: String, call: IASTFunctionCallExpression, args: Array[AnyVal]): IASTNode = {
-        
-    functionContexts.push(new ExecutionContext(functionContexts.head.varMap, call.getExpressionType, this))
-    context.pathStack.push(call)
-    
-    args.foreach{ arg => context.stack.push(arg)}
-    context.stack.push(args.size)
-
-    val theVar = functionContexts.head.varMap(name)
-    getFunctionByIndex(theVar.value.value.asInstanceOf[Int]).run(args.reverse, this)
+    function.run(args.reverse, this)
   }
 
   def clearVisited(parent: IASTNode) {
