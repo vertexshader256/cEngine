@@ -35,21 +35,8 @@ object FunctionCallExpr {
           case AddressInfo(addr, theType) => state.getFunctionByIndex(state.readPtrVal(addr)).name
         }
 
-        val fcnDef = if (state.hasFunction(name)) {
-          state.getFunction(name)
-        } else {
-          val theVar = state.functionContexts.head.varMap(name)
-          state.getFunctionByIndex(theVar.value.value.asInstanceOf[Int])
-        }
-
-        val argStack = new Stack[IType]()
-        fcnDef.parameters.reverse.foreach{ arg =>
-          argStack.push(arg)
-        }
-    
-        var startingAddress: Address = Address(-1)
-        
-        val results = if (name == "printf") {
+        val results = 
+          if (name == "printf") {
           
           // do this up here so string allocation doesnt clobber arg stack
           val results = call.getArguments.map{call => 
@@ -78,19 +65,7 @@ object FunctionCallExpr {
             allocateString(x)
           }
           
-          println("ARGS: " + name + " : " + rawResults.toList)
-          
-          val newResults = results.map { result => 
-            
-            if (!argStack.isEmpty) {  
-              val theType = argStack.pop
-              TypeHelper.cast(theType, result).value
-            } else {
-              result
-            } 
-            
-          }
-          newResults
+          results
         }
 
         state.callTheFunction(name, call, results)
