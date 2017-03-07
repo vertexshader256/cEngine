@@ -40,6 +40,11 @@ class State {
   var functionCount = 0
   def stack = context.stack
   
+  def popFunctionContext = {
+    stackInsertIndex = functionContexts.head.startingStackAddr
+    functionContexts.pop
+  }
+  
   def hasFunction(name: String): Boolean = functionList.exists{fcn => fcn.name == name}
   def getFunction(name: String): Function = functionList.find{fcn => fcn.name == name}.get
   def getFunctionByIndex(index: Int): Function = functionList.find{fcn => fcn.index == index}.get
@@ -108,7 +113,7 @@ class State {
   
   def callFunction(function: Function, call: IASTFunctionCallExpression, args: Array[AnyVal]): IASTNode = {
         
-    functionContexts.push(new ExecutionContext(functionContexts.head.varMap, call.getExpressionType, this))
+    functionContexts.push(new ExecutionContext(functionContexts.head.varMap, call.getExpressionType, stackInsertIndex, this))
     context.pathStack.push(call)
     
     args.foreach{ arg => context.stack.push(arg)}

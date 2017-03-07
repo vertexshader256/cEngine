@@ -150,7 +150,7 @@ protected class Variable(val state: State, val theType: IType) extends SymbolicR
   }
 }
 
-class ExecutionContext(parentVars: Map[String, Variable], val returnType: IType, state: State) {
+class ExecutionContext(parentVars: Map[String, Variable], val returnType: IType, val startingStackAddr: Int, state: State) {
   val visited = new ListBuffer[IASTNode]()
   val varMap = parentVars.clone()
   val pathStack = new Stack[IASTNode]()
@@ -580,12 +580,12 @@ object Executor {
           if (!state.context.stack.isEmpty) {
             val retVal = state.context.stack.pop
             if (fcnDef.getDeclarator.getName.getRawSignature != "main") {
-              state.functionContexts.pop
+              state.popFunctionContext
             }
             state.context.stack.push(retVal)
           } else {
             if (fcnDef.getDeclarator.getName.getRawSignature != "main") {
-              state.functionContexts.pop
+              state.popFunctionContext
             }
           }
           Seq()
@@ -657,7 +657,7 @@ object Executor {
     current = tUnit
 
     if (reset) {
-      state.functionContexts.push(new ExecutionContext(Map(), null, state)) // load initial stack
+      state.functionContexts.push(new ExecutionContext(Map(), null, 0, state)) // load initial stack
     }
 
     val fcns = tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
