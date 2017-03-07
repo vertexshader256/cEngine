@@ -29,7 +29,8 @@ class State {
   private val tape = ByteBuffer.allocate(100000);
   tape.order(ByteOrder.LITTLE_ENDIAN)
 
-  var insertIndex = 0
+  var stackInsertIndex = 0
+  var heapInsertIndex = 50000
   
   val functionContexts = new Stack[ExecutionContext]()
   def context = functionContexts.head
@@ -125,8 +126,18 @@ class State {
 
   def allocateSpace(numBytes: Int): Address = {
     if (numBytes > 0) {
-      val result = insertIndex
-      insertIndex += numBytes
+      val result = stackInsertIndex
+      stackInsertIndex += numBytes
+      Address(result)
+    } else {
+      Address(0)
+    }
+  }
+  
+  def allocateHeapSpace(numBytes: Int): Address = {
+    if (numBytes > 0) {
+      val result = heapInsertIndex
+      heapInsertIndex += numBytes
       Address(result)
     } else {
       Address(0)

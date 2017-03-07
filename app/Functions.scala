@@ -59,7 +59,7 @@ object Functions {
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val numBlocks = formattedOutputParams(0).asInstanceOf[Int]
           val blockSize = formattedOutputParams(1).asInstanceOf[Int]
-          val addr = state.allocateSpace(numBlocks * blockSize)
+          val addr = state.allocateHeapSpace(numBlocks * blockSize)
           state.stack.push(addr)
           null
         }
@@ -67,8 +67,8 @@ object Functions {
       new Function("malloc", false) {
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val returnVal = formattedOutputParams.head match {
-            case long: Long => state.allocateSpace(long.toInt)
-            case int: Int => state.allocateSpace(int)
+            case long: Long => state.allocateHeapSpace(long.toInt)
+            case int: Int => state.allocateHeapSpace(int)
           }
           state.stack.push(returnVal)
           null
@@ -76,7 +76,7 @@ object Functions {
       },
       new Function("realloc", false) {
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
-          state.stack.push(state.allocateSpace(formattedOutputParams.head.asInstanceOf[Int]))
+          state.stack.push(state.allocateHeapSpace(formattedOutputParams.head.asInstanceOf[Int]))
           null
         }
       },
