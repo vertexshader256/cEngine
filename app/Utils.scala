@@ -112,7 +112,7 @@ object Utils {
 		  val lastInclude = linesWithInclude.reverse.headOption.map{case (line, index) => index + 1}.getOrElse(-1)
 		  if (lastInclude != -1) {
 		    lines = lines.take(lastInclude) ++ 
-		       List("#define va_arg(x,y) va_arg(x, \"y\")\n") ++ 
+		       List("#define va_arg(x,y) va_arg(x, #y)\n") ++ 
 		       List("#define va_start(x,y) va_start(&x, &y)\n") ++ 
 		       List("#define va_end(x) va_end(x)\n") ++ 
 		       lines.drop(lastInclude)

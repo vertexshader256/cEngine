@@ -14,7 +14,7 @@ abstract case class Function(name: String, isNative: Boolean) {
   var index = -1
   
   def parameters: List[IType]
-  def run(argumentAddress: Address, call: IASTFunctionCallExpression, state: State, args: Array[AnyVal]): IASTNode = {
+  def run(call: IASTFunctionCallExpression, state: State, args: Array[AnyVal]): IASTNode = {
     run(args.reverse, state)
   }
   
@@ -204,9 +204,19 @@ object Functions {
         def parameters = List(new CBasicType(IBasicType.Kind.eInt, 0),
             new CBasicType(IBasicType.Kind.eInt, 4))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
+          val argTypeStr = formattedOutputParams(0).asInstanceOf[Int]
+          
+          val str = Utils.readString(Address(argTypeStr))(state)
+          
           val result = state.readVal(Address(varArgStartingAddr), TypeHelper.pointerType).value
           state.stack.push(result)
-          varArgStartingAddr += 4
+          
+          varArgStartingAddr += (str match {
+            case "int" => 4
+            case "char" => 1
+            case _ => 4
+          })
+
           null
         }
       },
@@ -215,9 +225,7 @@ object Functions {
             new CBasicType(IBasicType.Kind.eInt, 0))
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           val lastNamedArgAddr = formattedOutputParams(0).asInstanceOf[Int]
-          println("STARTING ADDR: " + lastNamedArgAddr)
           val listAddr = formattedOutputParams(1).asInstanceOf[Int]
-          println("LIST ADDR: " + listAddr)
           varArgStartingAddr = lastNamedArgAddr + 4
           null
         }

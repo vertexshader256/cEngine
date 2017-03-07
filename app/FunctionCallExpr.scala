@@ -71,33 +71,29 @@ object FunctionCallExpr {
           results
         } else {
           
+          val rawResults = call.getArguments.map{x => state.stack.pop}
+          
           // do this up here so string allocation doesnt clobber arg stack
-          val results = call.getArguments.map{call => 
-            val x = state.stack.pop
+          val results = rawResults.map{x => 
             allocateString(x)
           }
           
-          results.foreach { result => 
+          println("ARGS: " + name + " : " + rawResults.toList)
+          
+          val newResults = results.map { result => 
             
-            val (paramType, argVal) = if (!argStack.isEmpty) {  
+            if (!argStack.isEmpty) {  
               val theType = argStack.pop
-              (theType, TypeHelper.cast(theType, result).value)
+              TypeHelper.cast(theType, result).value
             } else {
-              (TypeHelper.getType(result), result)
+              result
             } 
-                      
-            val argumentSpace = state.allocateSpace(TypeHelper.sizeof(paramType))
             
-            if (startingAddress == Address(-1)) {
-              startingAddress = argumentSpace
-            }
-            
-            state.setValue(argVal, argumentSpace)            
           }
-          results
+          newResults
         }
 
-        state.callTheFunction(name, call, startingAddress, results)
+        state.callTheFunction(name, call, results)
 
       } else {
         call.getArguments.reverse ++ Seq(call.getFunctionNameExpression)

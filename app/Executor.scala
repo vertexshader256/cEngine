@@ -548,9 +548,7 @@ object Executor {
           
             args.foreach{ arg =>
               if (!isInFunctionPrototype && !paramDecls.isEmpty) {
-                
-                println("PASSING: " + arg)
-                
+
                 val paramDecl = paramDecls.pop
                 
                 val paramInfo = paramDecl.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
@@ -558,7 +556,6 @@ object Executor {
                 val name = paramDecl.getDeclarator.getName.getRawSignature
                 val newVar = new Variable(state, paramInfo.getType)
                 newVar.allocate
-                println("STARTING VAR ADDR: " + newVar.info.address)
                 val casted = TypeHelper.cast(newVar.info.theType, arg).value
                 state.setValue(casted, newVar.info.address)          
             
@@ -566,8 +563,7 @@ object Executor {
               } else {
                 val theType = TypeHelper.getType(arg)
                 val sizeof = TypeHelper.sizeof(theType)
-                println("SIZE OF: " + sizeof + " for " + arg)
-                val space = state.allocateSpace(sizeof)
+                val space = state.allocateSpace(Math.max(sizeof, 4))
                 state.setValue(arg, space) 
               }
             }
