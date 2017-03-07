@@ -92,7 +92,7 @@ class State {
     functionList.find(_.name == name).map{ fcn =>
       if (!fcn.isNative) {
         // this is a function simulated in scala
-        fcn.run(this, args)
+        fcn.run(args.reverse, this)
         Seq()
       } else {
         Seq(callFunction(name, call, args))
@@ -111,7 +111,7 @@ class State {
     args.foreach{ arg => context.stack.push(arg)}
     context.stack.push(args.size)
 
-    getFunction(name).run(this, args)
+    getFunction(name).run(args.reverse, this)
   }
   
   def callFunctionPointer(name: String, call: IASTFunctionCallExpression, args: Array[AnyVal]): IASTNode = {
@@ -123,7 +123,7 @@ class State {
     context.stack.push(args.size)
 
     val theVar = functionContexts.head.varMap(name)
-    getFunctionByIndex(theVar.value.value.asInstanceOf[Int]).run(this, args)
+    getFunctionByIndex(theVar.value.value.asInstanceOf[Int]).run(args.reverse, this)
   }
 
   def clearVisited(parent: IASTNode) {

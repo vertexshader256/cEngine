@@ -13,11 +13,7 @@ abstract case class Function(name: String, isNative: Boolean) {
   
   var index = -1
   
-  def run(state: State, args: Array[AnyVal]): IASTNode = {
-    run(args.reverse, state)
-  }
-  
-  protected def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode
+  def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode
 }
 
 object Functions {
