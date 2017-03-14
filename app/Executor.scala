@@ -399,7 +399,7 @@ object Executor {
               if (TypeHelper.resolve(theType).getKind == eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
                 // char str[] = "Hello!\n";
                 val initString = state.stack.pop.asInstanceOf[StringLiteral].str                
-                val strAddr = state.createStringVariable(initString)
+                val strAddr = state.createStringVariable(initString, false)
                 val theArrayPtr = new Variable(state, theType.asInstanceOf[IArrayType])
                 theArrayPtr.allocate
                 state.setValue(strAddr.value, theArrayPtr.address)
@@ -429,7 +429,7 @@ object Executor {
               
               val initialArray = initVals.map { newInit =>
                 if (newInit.isInstanceOf[StringLiteral]) {
-                  val result = state.createStringVariable(newInit.asInstanceOf[StringLiteral].str)
+                  val result = state.createStringVariable(newInit.asInstanceOf[StringLiteral].str, false)
                   resolvedType = TypeHelper.pointerType
                   result
                 } else {

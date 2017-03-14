@@ -184,14 +184,18 @@ object Functions {
           
           val str = Utils.readString(argTypeStr)(state)
           
-          val result = state.readVal(Address(varArgStartingAddr), TypeHelper.pointerType).value
+          val (offset, theType) = (str match {
+            case "int" => (4, TypeHelper.pointerType)
+            case "double" => (8, new CBasicType(IBasicType.Kind.eDouble, 0))
+            case "char" => (1, TypeHelper.pointerType)
+            case _ => (4, TypeHelper.pointerType)
+          })
+          
+          val result = state.readVal(Address(varArgStartingAddr), theType).value
+          println("RESULT: " + result)
           state.stack.push(result)
           
-          varArgStartingAddr += (str match {
-            case "int" => 4
-            case "char" => 1
-            case _ => 4
-          })
+          varArgStartingAddr += offset
 
           null
         }
@@ -208,8 +212,36 @@ object Functions {
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
           null
         }
-      }  
+      },
+      //fcvtbuf(double arg, int ndigits, int *decpt, int *sign, char *buf)
+      new Function("fcvtbuf", false) {
+        def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
+          val arg = formattedOutputParams(4).asInstanceOf[Double]
+          val precision = formattedOutputParams(3).asInstanceOf[Int]
+          val decpt = formattedOutputParams(2).asInstanceOf[Int]
+          
+          state.setValue(1, Address(decpt))
+          
+          val buffer = new StringBuffer();
+          val formatter = new Formatter(buffer, Locale.US);
+          
+          val formatString = "%." + precision + "f"
+          
+          val args = Array[Object](arg.asInstanceOf[Object])
+          
+          formatter.format(formatString, args: _*)
+          
+          val result = buffer.toString.split(System.lineSeparator()).mkString
+
+          val newStr = Utils.allocateString(StringLiteral("\"" + result.replaceAll("\\.", "") + "\""), false)(state)
+          state.stack.push(newStr)
+          null
+        }
+      }
   )
+  
+  
+  
   
   var standardOutBuffer = ""
 

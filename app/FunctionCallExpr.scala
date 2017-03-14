@@ -18,14 +18,7 @@ object FunctionCallExpr {
   
   val varArgs = new ListBuffer[Any]()
   
-  def allocateString(arg: Any)(implicit state: State): AnyVal = {
-    arg match {
-        case StringLiteral(str) => 
-          val strAddr = state.createStringVariable(str)
-          strAddr   
-        case x => TypeHelper.resolve(x).value
-      }
-  }
+  
 
   
   def parse(call: IASTFunctionCallExpression, direction: Direction)(implicit state: State): Seq[IASTNode] = {
@@ -49,7 +42,7 @@ object FunctionCallExpr {
                 } else {
                   state.readVal(info.address, info.theType).value
                 }
-              case x => allocateString(x)
+              case x => Utils.allocateString(x, false)
             }
             
           }
@@ -62,7 +55,7 @@ object FunctionCallExpr {
           
           // do this up here so string allocation doesnt clobber arg stack
           val results = rawResults.map{x => 
-            allocateString(x)
+            Utils.allocateString(x, false)
           }
           
           results

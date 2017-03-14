@@ -29,6 +29,15 @@ object Utils {
     str.tail.reverse.tail.reverse
   }
   
+  def allocateString(arg: Any, isHeap: Boolean)(implicit state: State): AnyVal = {
+    arg match {
+        case StringLiteral(str) => 
+          val strAddr = state.createStringVariable(str, isHeap)
+          strAddr   
+        case x => TypeHelper.resolve(x).value
+      }
+  }
+  
   def getAncestors(node: IASTNode): Seq[IASTNode] = {
     var current = node.getParent
     val results = new ListBuffer[IASTNode]()
@@ -103,9 +112,16 @@ object Utils {
 
 		val preprocessResults = new StringBuilder
 		
-		codes.map{theCode =>
+		val newCodes = List(better.files.File("app\\ee_printf.c").contentAsString) ++ codes
+		
+		newCodes.map{theCode =>
 		  
-		  var lines = List("#define HAS_FLOAT\n") ++ theCode.split("\\r?\\n").toList
+		  var lines = if (theCode != newCodes.head) {
+		    //List("#define printf ee_printf \n") ++ theCode.split("\\r?\\n").toList
+		    theCode.split("\\r?\\n").toList
+		  } else {
+		    List("#define HAS_FLOAT\n") ++ theCode.split("\\r?\\n").toList
+		  }
 		  
 		  // solution to deal with var args
 		  val linesWithInclude = lines.zipWithIndex.filter{case (line, index) => line.contains("#include")}

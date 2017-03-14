@@ -22,9 +22,11 @@ object BinaryExpr {
     
     val resolvedop2 = op2 match {
       case StringLiteral(str) =>
-          state.createStringVariable(str)
+          state.createStringVariable(str, false)
       case x => TypeHelper.resolve(x).value
     }
+    
+    
     
     val theVal = ValueInfo(state.readVal(dst.address, dst.theType).value, dst.theType)
     
