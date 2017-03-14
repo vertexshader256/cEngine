@@ -45,3 +45,14 @@ class printfCustom extends StandardTest {
     checkResults(File("app\\ee_printf.c").contentAsString + "\n" + code)
   }
 }
+
+class printfCustom2 extends StandardTest {
+  "hello world with custom print function" should "print the correct results" in {
+    val code = """
+      void main() {
+        ee_printf("%d\n", -10);
+      }"""
+
+    checkResults(File("app\\ee_printf.c").contentAsString + "\n" + code)
+  }
+}
