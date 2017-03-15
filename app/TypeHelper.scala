@@ -22,7 +22,7 @@ object TypeHelper {
         case Address(addy) => addy
         case int: Int => int
       }
-      case array: IArrayType => newVal.asInstanceOf[Int]
+      case array: IArrayType => if (newVal.isInstanceOf[Address]) newVal.asInstanceOf[Address] else newVal.asInstanceOf[Int]
       case basic: IBasicType =>
        basic.getKind match {
           case `eChar` if basic.isUnsigned    => 
@@ -46,6 +46,7 @@ object TypeHelper {
             newVal match {
               case int: Int => int.toLong
               case long: Long => long
+              case double: Double => double.toLong
             } 
          case `eInt` if basic.isShort & basic.isUnsigned =>
             newVal match {
@@ -107,86 +108,22 @@ object TypeHelper {
     val casted: AnyVal = theType match {
       case typedef: CTypedef => cast(typedef.getType, newVal).value
       case qual: IQualifierType => cast(qual.getType, newVal).value
-      case ptr: IPointerType => newVal match {
-        case addy @ Address(_) => addy
-        case int: Int => int
-        case byte: Byte => byte.toInt
-      }
-      case array: IArrayType => if (newVal.isInstanceOf[Address]) newVal.asInstanceOf[Address] else newVal.asInstanceOf[Int]
+      case ptr: IPointerType => cast(ptr, newVal).value
+      case array: IArrayType => cast(array, newVal).value
       case basic: IBasicType =>
        basic.getKind match {
           case `eChar` if basic.isUnsigned    => 
             newVal match {
               case int: Int => (int & 0xFFFFFFFF).toChar.toByte
               case char: Character => char & 0xFF
-            } 
-          case `eChar`    => 
-            newVal match {
-              case int: Int => int.toChar.toByte
-              case char: Character => char
-              case char: Char => char.toByte
-            } 
-         case `eInt` if basic.isLong && basic.isUnsigned =>
-            newVal match {
-              case int: Int => int.toLong & 0x00000000ffffffffL
-              case long: Long => long & 0x00000000ffffffffL
-            } 
-         case `eInt` if basic.isLong =>
-            newVal match {
-              case int: Int => int.toLong
-              case long: Long => long
-              case double: Double => double.toLong
-            } 
-         case `eInt` if basic.isShort & basic.isUnsigned =>
-            newVal match {
-              case int: Int => int.toShort & 0xFFFF
-              case short: Short => short & 0xFFFF
-              case long: Long => long.toShort & 0xFFFF
             }  
-         case `eInt` if basic.isShort =>
-            newVal match {
-              case int: Int => int.toShort
-              case short: Short => short
-              case long: Long => long.toShort
-            }  
-         case `eInt`     => 
-            newVal match {
-              case boolean: Boolean => if (boolean) 1 else 0
-              case long: Long => long.toInt
-              case int: Int => int
-              case short: Short => short.toInt
-              case char: Character => char.toInt
-              case double: Double => double.toInt
-              case float: Float => float.toInt
-            }  
-         case `eFloat`   =>
-            newVal match {
-              case int: Int => int.toFloat
-              case double: Double => double.toFloat
-              case float: Float => float
-            }  
-         case `eDouble`  =>
-            newVal match {
-              case int: Int => int.toDouble
-              case double: Double => double
-              case float: Float => float.toDouble
-            } 
-          case `eBoolean` =>
-            // booleans are integers in C
-            val result: Int = newVal match {
-              case bool: Boolean => 1
-              case int: Int => if (int > 0) 1 else 0
-            } 
-            result
-          case `eVoid` =>
-            newVal match {
-              case int: Int => int
-              case double: Double => double
-              case float: Float => float
-              case char: Character => char
-            } 
+         case _ =>
+            cast(basic, newVal).value
         }
+       case _ =>
+            cast(theType, newVal).value
       }
+    
     
     ValueInfo(casted, theType)
   }
