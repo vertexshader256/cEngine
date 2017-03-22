@@ -649,18 +649,16 @@ object Executor {
         Seq()
     }
   }
-  
-  var tUnit: IASTTranslationUnit = null
-  
+
   def init(codes: Seq[String], reset: Boolean, state: State) = {
-    tUnit = Utils.getTranslationUnit(codes)
-    current = tUnit
+    state.tUnit = Utils.getTranslationUnit(codes)
+    state.current = state.tUnit
 
     if (reset) {
       state.functionContexts.push(new ExecutionContext(Map(), null, 0, state)) // load initial stack
     }
 
-    val fcns = tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
+    val fcns = state.tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
     val (mainFcn, others) = fcns.partition{fcnDef => fcnDef.getDeclarator.getName.getRawSignature == "main"}
     others.foreach{fcnDef => state.addFunctionDef(fcnDef)}
     
@@ -668,84 +666,81 @@ object Executor {
 
     state.context.pathStack.clear
     state.context.pathStack.push(mainFcn.head)
-    current = state.context.pathStack.head
+    state.current = state.context.pathStack.head
   }
 
-  var current: IASTNode = null
-  var direction: Direction = Entering
-
-  def tick(engineState: State): Unit = {
-    direction = if (engineState.context.visited.contains(current)) Exiting else Entering
+  def tick(state: State): Unit = {
+    state.direction = if (state.context.visited.contains(state.current)) Exiting else Entering
 
     //println(current.getClass.getSimpleName + ":" + direction)
     
-    var paths: Seq[IASTNode] = Executor.step(current, direction)(engineState)
+    val paths: Seq[IASTNode] = Executor.step(state.current, state.direction)(state)
     
-    if (engineState.isBreaking) {
+    if (state.isBreaking) {
       // unroll the path stack until we meet the first parent which is a loop
       
-      val breakStatement = engineState.context.pathStack.pop.asInstanceOf[CASTBreakStatement]
+      val breakStatement = state.context.pathStack.pop.asInstanceOf[CASTBreakStatement]
       var reverse: IASTNode = breakStatement
       while ((!reverse.isInstanceOf[IASTWhileStatement] &&
           !reverse.isInstanceOf[IASTDoStatement] &&
           !reverse.isInstanceOf[IASTForStatement] &&
           !reverse.isInstanceOf[IASTSwitchStatement]) || !Utils.getAncestors(breakStatement).contains(reverse)) {
-        reverse = engineState.context.pathStack.pop
+        reverse = state.context.pathStack.pop
       }
 
-      engineState.isBreaking = false
+      state.isBreaking = false
     }
 
 
-    if (engineState.isContinuing) {
+    if (state.isContinuing) {
       // unroll the path stack until we meet the first parent which is a loop
 
-      val continueStatement = engineState.context.pathStack.pop.asInstanceOf[CASTContinueStatement]
+      val continueStatement = state.context.pathStack.pop.asInstanceOf[CASTContinueStatement]
       var last: IASTNode = continueStatement
 
       // find the first for loop that is a direct ancestor
       while (!last.isInstanceOf[IASTForStatement] || !Utils.getAncestors(continueStatement).contains(last)) {
-        last = engineState.context.pathStack.pop
+        last = state.context.pathStack.pop
       }
 
       val forLoop = last.asInstanceOf[IASTForStatement]
 
-      engineState.context.pathStack.push(forLoop)
-      engineState.context.pathStack.push(forLoop.getConditionExpression)
-      engineState.context.pathStack.push(forLoop.getIterationExpression)
+      state.context.pathStack.push(forLoop)
+      state.context.pathStack.push(forLoop.getConditionExpression)
+      state.context.pathStack.push(forLoop.getIterationExpression)
 
-      engineState.isContinuing = false
+      state.isContinuing = false
     }
     
-    if (engineState.isReturning) {
+    if (state.isReturning) {
       var last: IASTNode = null
-      while (engineState.context.pathStack.size > 1 && !last.isInstanceOf[IASTFunctionDefinition]) {
-        last = engineState.context.pathStack.pop
+      while (state.context.pathStack.size > 1 && !last.isInstanceOf[IASTFunctionDefinition]) {
+        last = state.context.pathStack.pop
       }
 
-      current = engineState.context.pathStack.head
-      engineState.isReturning = false
+      state.current = state.context.pathStack.head
+      state.isReturning = false
     } else {
 
-      if (direction == Exiting) {
-        engineState.context.pathStack.pop
+      if (state.direction == Exiting) {
+        state.context.pathStack.pop
       } else {
-        engineState.context.visited += current
+        state.context.visited += state.current
       }
   
-      paths.reverse.foreach { path => engineState.context.pathStack.push(path) }
+      paths.reverse.foreach { path => state.context.pathStack.push(path) }
   
-      if (!engineState.context.pathStack.isEmpty) {
-        current = engineState.context.pathStack.head
+      if (!state.context.pathStack.isEmpty) {
+        state.current = state.context.pathStack.head
       } else {
-        current = null
+        state.current = null
       }
     }
   }
 
-  def run(engineState: State) = {
-    while (current != null) {
-      tick(engineState)
+  def run(state: State) = {
+    while (state.current != null) {
+      tick(state)
     }
   }
 }

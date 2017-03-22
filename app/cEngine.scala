@@ -25,6 +25,10 @@ object cEngine {
 
 class State {
 
+  var tUnit: IASTTranslationUnit = null
+  var current: IASTNode = null
+  var direction: Direction = Entering
+
   // turing tape 
   private val tape = ByteBuffer.allocate(100000);
   tape.order(ByteOrder.LITTLE_ENDIAN)

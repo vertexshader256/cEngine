@@ -148,11 +148,11 @@ class AppLoader extends ApplicationLoader {
         case msg: String =>
           if (msg == "Step") {
             Executor.tick(state)
-            out ! ("Step Response:" + Executor.current.hashCode)
+            out ! ("Step Response:" + state.current.hashCode)
           } else if (msg.startsWith("Get Node Class Name:")) {
             val id = msg.split(":").last.trim.toInt
             
-            val node = Utils.getDescendants(Executor.tUnit).find{x => x.hashCode == id}.get
+            val node = Utils.getDescendants(state.tUnit).find{x => x.hashCode == id}.get
             
             out ! ("Current Node Class:" + node.getClass.getSimpleName)
           } else {
@@ -226,7 +226,7 @@ class AppLoader extends ApplicationLoader {
           val state = new State
           Executor.init(Seq(code), true, state)
 
-          Ok(AstUtils.getAllChildren(Executor.tUnit))
+          Ok(AstUtils.getAllChildren(state.tUnit))
         }
       }
 
