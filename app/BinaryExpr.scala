@@ -378,21 +378,20 @@ object BinaryExpr {
   def evaluate(left: ValueInfo, right: AnyVal, operator: Int): AnyVal = {
 
     val op1 = left.value
-    val op2 = right
 
-    operator match {
-      case `op_plus` =>
-        (op1, op2) match {
-          case (x: Int, y: Int) if (TypeHelper.isPointer(left.theType)) => x + y * TypeHelper.sizeof(TypeHelper.resolve(left.theType))
-          case _ => performBinaryOperation(op1, op2, operator)
-        }
-      case `op_minus` =>
-        (op1, op2) match {
-          case (x: Int, y: Int) if (TypeHelper.isPointer(left.theType)) => x - y * TypeHelper.sizeof(TypeHelper.resolve(left.theType))
-          case _ => performBinaryOperation(op1, op2, operator)
-        }
-      case _ => performBinaryOperation(op1, op2, operator)
+    val op2: AnyVal =
+      operator match {
+      case `op_plus` | `op_minus` =>
+          if (TypeHelper.isPointer(left.theType)) {
+            // pointers get special treatment in binary expressions sometimes
+            right.asInstanceOf[Int] * TypeHelper.sizeof(TypeHelper.resolve(left.theType))
+          } else {
+            right
+          }
+      case _ => right
     }
+
+    performBinaryOperation(op1, op2, operator)
   }
   
   def parse(binaryExpr: IASTBinaryExpression)(implicit state: State): Any = {

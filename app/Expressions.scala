@@ -379,8 +379,8 @@ object Expressions {
       if (direction == Exiting) {
         if (context.context.visited.contains(bin.getOperand2)) {
           val result = if (Utils.isAssignment(bin.getOperator)) {
-              var op2: Any = context.stack.pop
-              var op1: Any = context.stack.pop
+              val op2: Any = context.stack.pop
+              val op1: Any = context.stack.pop
               BinaryExpr.parseAssign(bin.getOperator, op1, op2)
           } else {    
             BinaryExpr.parse(bin)
