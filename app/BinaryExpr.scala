@@ -53,28 +53,6 @@ object BinaryExpr {
     dst
   }
   
-  def performTypedBinaryOperation(left: ValueInfo, right: AnyVal, operator: Int): Option[AnyVal] = {
-    
-    val op1 = left.value
-    val op2 = right
-    
-    val result: Option[AnyVal] = operator match {
-      case `op_plus` =>
-        (op1, op2) match {
-          case (x: Int, y: Int) if (TypeHelper.isPointer(left.theType)) => Some(x + y * TypeHelper.sizeof(TypeHelper.resolve(left.theType)))
-          case _ => None
-        }
-      case `op_minus` =>
-        (op1, op2) match {
-          case (x: Int, y: Int) if (TypeHelper.isPointer(left.theType)) => Some(x - y * TypeHelper.sizeof(TypeHelper.resolve(left.theType)))
-          case _ => None
-        }
-      case _ => None
-    }
-
-    result
-  }
-  
   def performBinaryOperation(left: AnyVal, right: AnyVal, operator: Int): AnyVal = {
     
     val op1 = left
@@ -397,9 +375,23 @@ object BinaryExpr {
     result
   }
   
-  def evaluate(op1: ValueInfo, op2: AnyVal, operator: Int) = {
-    performTypedBinaryOperation(op1, op2, operator).getOrElse{
-      performBinaryOperation(op1.value, op2, operator)
+  def evaluate(left: ValueInfo, right: AnyVal, operator: Int): AnyVal = {
+
+    val op1 = left.value
+    val op2 = right
+
+    operator match {
+      case `op_plus` =>
+        (op1, op2) match {
+          case (x: Int, y: Int) if (TypeHelper.isPointer(left.theType)) => x + y * TypeHelper.sizeof(TypeHelper.resolve(left.theType))
+          case _ => performBinaryOperation(op1, op2, operator)
+        }
+      case `op_minus` =>
+        (op1, op2) match {
+          case (x: Int, y: Int) if (TypeHelper.isPointer(left.theType)) => x - y * TypeHelper.sizeof(TypeHelper.resolve(left.theType))
+          case _ => performBinaryOperation(op1, op2, operator)
+        }
+      case _ => performBinaryOperation(op1, op2, operator)
     }
   }
   
@@ -411,12 +403,10 @@ object BinaryExpr {
 
     rawOp1 match {
       case Variable(info: Variable)  =>
-        val result = performTypedBinaryOperation(info.value, op2, binaryExpr.getOperator).getOrElse{
-          performBinaryOperation(info.value.value, op2, binaryExpr.getOperator)
-        }
-        
+        val result = evaluate(info.value, op2, binaryExpr.getOperator)
+
         if (!result.isInstanceOf[Boolean] && TypeHelper.resolve(info.value.theType).isUnsigned) {
-          TypeHelper.cast(TypeHelper.resolve(info.value.theType), result).value
+          TypeHelper.cast(info.value.theType, result).value
         } else if (!result.isInstanceOf[Boolean] && TypeHelper.isPointer(info.info.theType)) {
           ValueInfo(Address(result.asInstanceOf[Int]), info.info.theType)
         } else {
