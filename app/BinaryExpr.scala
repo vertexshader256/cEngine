@@ -17,7 +17,6 @@ object BinaryExpr {
     val dst: AddressInfo = op1 match {
       case Variable(info: Variable) => info.info
       case info @ AddressInfo(_, _) => info
-      case ValueInfo(value, info) => AddressInfo(Address(value.asInstanceOf[Byte].toInt), info)
     }
     
     val resolvedop2 = op2 match {
