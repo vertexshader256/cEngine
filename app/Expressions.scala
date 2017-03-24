@@ -44,9 +44,9 @@ object Expressions {
           case addy @ Address(_) => ValueInfo(addy, theType);
           case Variable(info: Variable) => AddressInfo(info.address, theType)
           case AddressInfo(addr, info) => AddressInfo(addr, theType)
-          case lit @ Literal(str) => TypeHelper.cast(TypeHelper.resolve(theType), lit.cast.value)
-          case int: Int => TypeHelper.cast(TypeHelper.resolve(theType), int)
-          case long: Long => TypeHelper.cast(TypeHelper.resolve(theType), long)
+          case lit @ Literal(str) => TypeHelper.cast(theType, lit.cast.value)
+          case int: Int => TypeHelper.cast(theType, int)
+          case long: Long => TypeHelper.cast(theType, long)
         })
 
         Seq()

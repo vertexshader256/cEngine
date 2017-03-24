@@ -12,7 +12,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c.CStructure
 
 object BinaryExpr {
   
-  def parseAssign(op: Int, op1: Any, op2: Any)(implicit state: State): Any = {
+  def parseAssign(op: Int, op1: Any, op2: Any)(implicit state: State): AddressInfo = {
 
     val dst: AddressInfo = op1 match {
       case Variable(info: Variable) => info.info
@@ -25,8 +25,6 @@ object BinaryExpr {
           state.createStringVariable(str, false)
       case x => TypeHelper.resolve(x).value
     }
-    
-    
     
     val theVal = ValueInfo(state.readVal(dst.address, dst.theType).value, dst.theType)
     
@@ -52,7 +50,7 @@ object BinaryExpr {
     val casted = TypeHelper.downcast(dst.theType, result).value
     state.setValue(casted, dst.address)
     
-    resolvedop2
+    dst
   }
   
   def performTypedBinaryOperation(left: ValueInfo, right: AnyVal, operator: Int): Option[AnyVal] = {
