@@ -27,24 +27,7 @@ object BinaryExpr {
     
     val theVal = ValueInfo(state.readVal(dst.address, dst.theType).value, dst.theType)
     
-    val result = op match {
-      case `op_plusAssign` =>
-        performBinaryOperation(theVal.value, resolvedop2, op_plus)
-      case `op_minusAssign` =>
-        performBinaryOperation(theVal.value, resolvedop2, op_minus)
-      case `op_multiplyAssign` =>
-        performBinaryOperation(theVal.value, resolvedop2, op_multiply)
-      case `op_binaryXorAssign` =>
-        performBinaryOperation(theVal.value, resolvedop2, op_binaryXor)
-      case `op_binaryAndAssign` =>
-        performBinaryOperation(theVal.value, resolvedop2, op_binaryAnd)
-      case `op_binaryOrAssign` =>
-        performBinaryOperation(theVal.value, resolvedop2, op_binaryOr)
-      case `op_shiftRightAssign` =>
-        performBinaryOperation(theVal.value, resolvedop2, op_shiftRight)
-      case `op_assign` =>
-        resolvedop2
-    }  
+    val result = performBinaryOperation(theVal.value, resolvedop2, op)
     
     val casted = TypeHelper.downcast(dst.theType, result).value
     state.setValue(casted, dst.address)
@@ -58,7 +41,7 @@ object BinaryExpr {
     val op2 = right
     
     val result: AnyVal = operator match {
-      case `op_multiply` =>
+      case `op_multiply` | `op_multiplyAssign` =>
         (op1, op2) match {
           case (x: Int, y: Character) => x * y
           case (x: Int, y: Short) => x * y
@@ -102,7 +85,7 @@ object BinaryExpr {
           case (x: Short, y: Double) => x * y
           case (x: Short, y: Long) => x * y
         }
-      case `op_plus` =>
+      case `op_plus` | `op_plusAssign` =>
         (op1, op2) match {
           case (x: Int, y: Character) => x + y
           case (x: Int, y: Int) => x + y
@@ -147,7 +130,7 @@ object BinaryExpr {
           case (x: Short, y: Long) => x + y
           
         }
-      case `op_minus` =>
+      case `op_minus` | `op_minusAssign` =>
         (op1, op2) match {
           case (x: Int, y: Character) => x - y
           case (x: Int, y: Short) => x - y
@@ -236,12 +219,12 @@ object BinaryExpr {
           case (x: Short, y: Long) => x / y
         }
         result
-      case `op_shiftRight` =>
+      case `op_shiftRight` | `op_shiftRightAssign` =>
         (op1, op2) match {
           case (x: Long, y: Int) => x >> y
           case (x: Int, y: Int) => x >> y
         }
-      case `op_shiftLeft` =>
+      case `op_shiftLeft` | `op_shiftLeftAssign` =>
         (op1, op2) match {
           case (x: Long, y: Int) => x << y
           case (x: Int, y: Int) => x << y
@@ -323,17 +306,17 @@ object BinaryExpr {
           case (x: Int, y: Double) => x % y
           case (x: Double, y: Double) => x % y
         } 
-      case `op_binaryOr` =>
+      case `op_binaryOr`  | `op_binaryOrAssign`=>
         (op1, op2) match {
           case (x: Int, y: Int) => x | y
         }  
-      case `op_binaryXor` =>
+      case `op_binaryXor` | `op_binaryXorAssign` =>
         (op1, op2) match {
           case (x: Int, y: Int) => x ^ y
           case (x: Character, y: Int) => x ^ y
           case (x: Int, y: Char) => x ^ y
         }   
-      case `op_binaryAnd` =>
+      case `op_binaryAnd` | `op_binaryAndAssign` =>
         (op1, op2) match {
           case (x: Int, y: Int) => x & y
           case (x: Character, y: Int) => x & y
@@ -368,6 +351,8 @@ object BinaryExpr {
           case (x: Int, y: Boolean) => (x > 0) || y
           case (x: Int, y: Int) => (x > 0) || (y > 0)
         }
+      case `op_assign` =>
+        op2
       case _ => throw new Exception("unhandled binary operator: " + operator); 0
     }
 
