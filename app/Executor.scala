@@ -69,48 +69,36 @@ case class Address(value: Int) extends AnyVal {
 }
 case class AddressInfo(address: Address, theType: IType)
 
-// A symbolic reference is a string that becomes something else, payload: X, after processing
-// For most variables, this is an address
-
-trait SymbolicReference {
-  val theType: IType
-  def allocate: Address
-}
-
 protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) extends Variable(state, theType) {
  
-  override def allocate: Address = {
+  def allocate: Address = {
     // where we store the actual data
-    
-    val dimensions = dim.reverse
-    
-    if (!dimensions.isEmpty) {      
-      address = Variable.allocateSpace(state, TypeHelper.pointerType, 1)
-      
-      def recurse(subType: IType, dimensions: Seq[Int]): Address = {
 
-        val addr = Variable.allocateSpace(state, subType, dimensions.head)
-        for (i <- (0 until dimensions.head)) {
+    def recurse(subType: IType, dimensions: Seq[Int]): Address = {
 
-          if (dimensions.size > 1) {
-            val subaddr = recurse(subType, dimensions.tail)
-            state.setValue(subaddr.value, addr + i * 4)
-          }
+      val addr = Variable.allocateSpace(state, subType, dimensions.head)
+      for (i <- (0 until dimensions.head)) {
+
+        if (dimensions.size > 1) {
+          val subaddr = recurse(subType, dimensions.tail)
+          state.setValue(subaddr.value, addr + i * 4)
         }
-        addr
       }
-      
-      recurse(state.resolve(theType), dimensions)
-    } else {
-      Address(0)
+      addr
     }
+
+    recurse(state.resolve(theType), dim.reverse)
   }
-  
-  val theArrayAddress = allocate
-  state.setValue(theArrayAddress.value, info.address)
+
+  address = Variable.allocateSpace(state, TypeHelper.pointerType, 1)
+
+  if (!dim.isEmpty) {
+    val theArrayAddress = allocate
+    state.setValue(theArrayAddress.value, info.address)
+  }
 
   def setArray(array: Array[_])(implicit state: State): Unit = {
-      state.setArray(array, AddressInfo(theArrayAddress, theType))
+      state.setArray(array, AddressInfo(address + 4, theType))
   }
   
   override def sizeof: Int = {
@@ -119,14 +107,9 @@ protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) exten
   }
 }
 
-protected class Variable(val state: State, val theType: IType) extends SymbolicReference {
-  var address = Address(0)
-  
-  def allocate: Address = {
-    address = Variable.allocateSpace(state, theType, 1)
-    address
-  }
-  
+protected class Variable(val state: State, val theType: IType) {
+  var address = Variable.allocateSpace(state, theType, 1)
+
   val size = TypeHelper.sizeof(theType)
 
   def info = AddressInfo(address, theType)
@@ -138,8 +121,6 @@ protected class Variable(val state: State, val theType: IType) extends SymbolicR
         offset += TypeHelper.sizeof(theType)
       }
   }
-
-  
   
   def value: ValueInfo = {
     ValueInfo(state.readVal(address, theType).value, theType)
@@ -401,7 +382,6 @@ object Executor {
                 val initString = state.stack.pop.asInstanceOf[StringLiteral].str                
                 val strAddr = state.createStringVariable(initString, false)
                 val theArrayPtr = new Variable(state, theType.asInstanceOf[IArrayType])
-                theArrayPtr.allocate
                 state.setValue(strAddr.value, theArrayPtr.address)
                 state.context.addVariable(name, theArrayPtr)
               } else {
@@ -440,10 +420,9 @@ object Executor {
                 }
               }
 
-              state.setArray(initialArray.toArray, AddressInfo(theArrayVar.theArrayAddress, resolvedType))
+              state.setArray(initialArray, AddressInfo(theArrayVar.address + 4, resolvedType))
               state.context.addVariable(name, theArrayVar)
             } else {
-              val initialArray = new ListBuffer[Any]()            
               val theArrayVar = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)             
               state.context.addVariable(name, theArrayVar)
             }
@@ -452,7 +431,6 @@ object Executor {
             val stripped = TypeHelper.stripSyntheticTypeInfo(theType)
             
             val newVar = new Variable(state, theType)
-            newVar.allocate
             state.context.addVariable(name, newVar)
 
             if (!stripped.isInstanceOf[CStructure]) {
@@ -555,7 +533,6 @@ object Executor {
   
                 val name = paramDecl.getDeclarator.getName.getRawSignature
                 val newVar = new Variable(state, paramInfo.getType)
-                newVar.allocate
                 val casted = TypeHelper.cast(newVar.info.theType, arg).value
                 state.setValue(casted, newVar.info.address)          
             

@@ -66,7 +66,6 @@ class State {
     val fcnType = new CFunctionType(new CBasicType(IBasicType.Kind.eVoid, 0), null)
     
     val newVar = new Variable(State.this, fcnType)
-    newVar.allocate
     setValue(functionCount, newVar.address)
     
     functionPointers += fcn.name -> newVar
@@ -85,7 +84,6 @@ class State {
     }
     
     val newVar = new Variable(State.this, fcnType)
-    newVar.allocate
     setValue(functionCount, newVar.address)
     
     functionPointers += name.getRawSignature -> newVar
