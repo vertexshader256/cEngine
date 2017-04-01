@@ -322,13 +322,13 @@ object Executor {
           state.stack.push(returnVal match {
             case lit @ Literal(_) if state.context.returnType != null => lit.typeCast(TypeHelper.resolve(state.context.returnType))
             case lit @ Literal(_) => lit.cast.value
-            case Variable(info)       =>
+            case Addressable(AddressInfo(addr, theType)) =>
+              val value = state.readVal(addr, theType)
               if (TypeHelper.isPointer(state.context.returnType)) {
-                info.value.value
+                value.value
               } else {
-                TypeHelper.cast(state.context.returnType, info.value.value)
+                TypeHelper.cast(state.context.returnType, value.value)
               }
-            case addy @ AddressInfo(addr, theType) => addy
             case ValueInfo(theVal, _) => theVal
             case int: Int         => int
             case doub: Double     => doub

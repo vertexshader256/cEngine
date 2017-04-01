@@ -42,8 +42,7 @@ object Expressions {
 
         context.stack.push(operand match {
           case addy @ Address(_) => ValueInfo(addy, theType);
-          case Variable(info) => AddressInfo(info.address, theType)
-          case AddressInfo(addr, info) => AddressInfo(addr, theType)
+          case Addressable(AddressInfo(addr, theType)) => AddressInfo(addr, theType)
           case lit @ Literal(str) => TypeHelper.cast(theType, lit.cast.value)
           case int: Int => TypeHelper.cast(theType, int)
           case long: Long => TypeHelper.cast(theType, long)
@@ -72,19 +71,13 @@ object Expressions {
         val structType = if (fieldRef.isPointerDereference) {
 
           owner match {
-//            case Variable(info) =>
-//              //baseAddr = info.address//Address(info.value.value.asInstanceOf[Int])
-//              resolve(info.theType, info.address).asInstanceOf[CStructure]
             case Addressable(AddressInfo(addr, theType)) =>
               baseAddr = addr            
               resolve(theType, addr)
           }
         } else {
           owner match {
-            case Variable(info) =>
-              baseAddr = info.address
-              info.theType.asInstanceOf[CStructure]
-            case AddressInfo(addr, theType) => 
+            case Addressable(AddressInfo(addr, theType)) =>
               baseAddr = addr
               theType match {
                 case typedef: CTypedef => typedef.getType.asInstanceOf[CStructure]
@@ -116,25 +109,19 @@ object Expressions {
         if (!subscript.getArrayExpression.isInstanceOf[IASTArraySubscriptExpression]) {
 
           val arrayVarPtr: AddressInfo = context.stack.pop match {
-            case Variable(info) => info.info
-            case addr @ AddressInfo(_, theType) => addr
+            case Addressable(info) => info
           }
           
           val indexes = new ListBuffer[Int]()
           var itr: IASTNode = subscript
           while (itr.isInstanceOf[IASTArraySubscriptExpression]) {
             val result: Int = (context.stack.pop match {
-              case Variable(info) =>
-                info.value.value match {
-                  case int: Int => int
-                  case long: Long => long.toInt
-                }
               case lit @ Literal(_) => lit.cast.value.asInstanceOf[Int]
               case int: Int => int
               case long: Long => long.toInt
               case double: Double => double.toInt
               case ValueInfo(x, _) => x.asInstanceOf[Int]
-              case AddressInfo(addr, theType) => 
+              case Addressable(AddressInfo(addr, theType)) =>
                 context.readVal(addr, theType).value match {
                   case int: Int => int
                   case char: Character => char.toInt
@@ -185,21 +172,14 @@ object Expressions {
 
       def resolveVar(variable: Any): (ValueInfo, AddressInfo) = {
         variable match {
-          case Variable(info) =>
-            val currentVal = context.readVal(info.info.address, info.info.theType).value
-            (ValueInfo(currentVal, info.info.theType), info.info)
-          case AddressInfo(addy, theType) => 
-            val currentVal = context.readVal(addy, theType).value
-            (ValueInfo(currentVal, theType), AddressInfo(addy, theType))
+          case Addressable(AddressInfo(addr, theType)) =>
+            val currentVal = context.readVal(addr, theType).value
+            (ValueInfo(currentVal, theType), AddressInfo(addr, theType))
         }
       }
 
       def not(theVal: Any): AnyVal = theVal match {
-        case Variable(info) =>
-          info.value.value match {
-            case int: Int => if (int == 0) 1 else 0
-          }
-        case AddressInfo(addr, theType) => not(context.readVal(addr, theType).value)
+        case Addressable(AddressInfo(addr, theType)) => not(context.readVal(addr, theType).value)
         case ValueInfo(theVal, _) => not(theVal)
         case int: Int               => if (int == 0) 1 else 0
         case bool: Boolean => !bool
@@ -268,8 +248,8 @@ object Expressions {
             context.stack.push(context.stack.pop match {
               case Variable(info) =>
                 info.sizeof
-              case ValueInfo(_, theType) => TypeHelper.sizeof(theType)  
-              case AddressInfo(_, theType) => TypeHelper.sizeof(theType)  
+              case ValueInfo(_, theType) => TypeHelper.sizeof(theType)
+              case AddressInfo(_, theType) => TypeHelper.sizeof(theType)
               case _: Character => 1
               case _: Int => 4
               case _: Short => 2
