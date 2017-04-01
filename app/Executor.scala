@@ -436,30 +436,20 @@ object Executor {
             if (!stripped.isInstanceOf[CStructure]) {
               val initVal = Option(decl.getInitializer).map(x => state.stack.pop).getOrElse(0)  
               BinaryExpr.parseAssign(op_assign, newVar, initVal)
-            }
-            
-            if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
+            } else if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
                  && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
 
               val fields = theType.asInstanceOf[CStructure].getFields
-              val size = fields.size
               
               val clause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
-              println(clause.getClass.getSimpleName)
               
               clause match {
                 case list: IASTInitializerList =>
-                  
-                  val values: Array[(ValueInfo, IType)] = if (list.getClauses.size == 1 && list.getClauses.head.getRawSignature == "0") {
-                    fields.map{ field =>
-                      ValueInfo(0, field.getType)
-                    }.reverse zip fields.map(_.getType)
-                  } else {
-                    list.getClauses.map{x => state.stack.pop match {
+
+                  val values: Array[(ValueInfo, IType)] = list.getClauses.map{x => state.stack.pop match {
                       case lit: Literal => lit.cast
                       case Address(value) => ValueInfo(value, new CBasicType(IBasicType.Kind.eInt, 4))
                     }}.reverse zip fields.map(_.getType)
-                  }
                   
                   val valueInfos = values.map{x => ValueInfo(x._1.value, x._2)}.toList
                   newVar.setValues(valueInfos)
