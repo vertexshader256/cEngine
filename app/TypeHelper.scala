@@ -158,11 +158,10 @@ object TypeHelper {
   // resolves 'Any' to 'ValueInfo'
   def resolve(any: Any)(implicit state: State): ValueInfo = {
     any match {
-      case Variable(theVar) => theVar.value
       case lit @ Literal(_) => lit.cast
       case Address(addy) => ValueInfo(addy, TypeHelper.pointerType)
-      case AddressInfo(addy, theType) =>
-          state.readVal(addy, TypeHelper.resolve(theType))
+      case Addressable(AddressInfo(addy, theType)) =>
+          state.readVal(addy, theType)
       case value @ ValueInfo(theVal, _) => value
       case int: Int => ValueInfo(int, null)
       case short: Short => ValueInfo(short, null)

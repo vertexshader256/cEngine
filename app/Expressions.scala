@@ -259,8 +259,7 @@ object Expressions {
             })
           case `op_amper` =>
             context.stack.pop match {
-              case AddressInfo(addr, info) => context.stack.push(addr)
-              case Variable(info) =>
+              case Addressable(info) =>
                 info.theType match {
                   case fcn: CFunctionType => context.stack.push(context.readPtrVal(info.address))
                   case _ => context.stack.push(info.address)
