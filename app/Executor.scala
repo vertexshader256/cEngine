@@ -18,7 +18,7 @@ case class ValueInfo(value: AnyVal, theType: IType)
 case class VarRef(name: String)
 
 object Variable {                              
-  def unapply(any: Any)(implicit state: State): Option[Any] = {
+  def unapply(any: Any)(implicit state: State): Option[Variable] = {
     if (any.isInstanceOf[VarRef]) {
       val ref = any.asInstanceOf[VarRef]
       if (state.context.containsId(ref.name)) {
@@ -28,7 +28,7 @@ object Variable {
         None
       }
     } else if (any.isInstanceOf[Variable]) {
-      Some(any)
+      Some(any.asInstanceOf[Variable])
     } else {
       None
     }
