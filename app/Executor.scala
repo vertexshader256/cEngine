@@ -69,6 +69,26 @@ case class Address(value: Int) extends AnyVal {
 }
 case class AddressInfo(address: Address, theType: IType)
 
+object Addressable {
+  def unapply(any: Any)(implicit state: State): Option[AddressInfo] = {
+    if (any.isInstanceOf[VarRef]) {
+      val ref = any.asInstanceOf[VarRef]
+      if (state.context.containsId(ref.name)) {
+        val resolved = state.context.resolveId(ref.name)
+        Some(resolved.info)
+      } else {
+        None
+      }
+    } else if (any.isInstanceOf[Variable]) {
+      Some(any.asInstanceOf[Variable].info)
+    } else if (any.isInstanceOf[AddressInfo]) {
+      Some(any.asInstanceOf[AddressInfo])
+    } else {
+      None
+    }
+  }
+}
+
 protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) extends Variable(state, theType) {
  
   def allocate: Address = {

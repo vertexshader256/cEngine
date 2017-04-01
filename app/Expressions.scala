@@ -72,10 +72,10 @@ object Expressions {
         val structType = if (fieldRef.isPointerDereference) {
 
           owner match {
-            case Variable(info) =>
-              //baseAddr = info.address//Address(info.value.value.asInstanceOf[Int])
-              resolve(info.theType, info.address).asInstanceOf[CStructure]
-            case AddressInfo(addr, theType) => 
+//            case Variable(info) =>
+//              //baseAddr = info.address//Address(info.value.value.asInstanceOf[Int])
+//              resolve(info.theType, info.address).asInstanceOf[CStructure]
+            case Addressable(AddressInfo(addr, theType)) =>
               baseAddr = addr            
               resolve(theType, addr)
           }
