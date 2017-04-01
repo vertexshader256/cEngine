@@ -42,7 +42,7 @@ object Expressions {
 
         context.stack.push(operand match {
           case addy @ Address(_) => ValueInfo(addy, theType);
-          case Variable(info: Variable) => AddressInfo(info.address, theType)
+          case Variable(info) => AddressInfo(info.address, theType)
           case AddressInfo(addr, info) => AddressInfo(addr, theType)
           case lit @ Literal(str) => TypeHelper.cast(theType, lit.cast.value)
           case int: Int => TypeHelper.cast(theType, int)
@@ -72,7 +72,7 @@ object Expressions {
         val structType = if (fieldRef.isPointerDereference) {
 
           owner match {
-            case Variable(info: Variable) => 
+            case Variable(info) =>
               //baseAddr = info.address//Address(info.value.value.asInstanceOf[Int])
               resolve(info.theType, info.address).asInstanceOf[CStructure]
             case AddressInfo(addr, theType) => 
@@ -81,7 +81,7 @@ object Expressions {
           }
         } else {
           owner match {
-            case Variable(info: Variable) =>
+            case Variable(info) =>
               baseAddr = info.address
               info.theType.asInstanceOf[CStructure]
             case AddressInfo(addr, theType) => 
@@ -116,7 +116,7 @@ object Expressions {
         if (!subscript.getArrayExpression.isInstanceOf[IASTArraySubscriptExpression]) {
 
           val arrayVarPtr: AddressInfo = context.stack.pop match {
-            case Variable(info: Variable) => info.info
+            case Variable(info) => info.info
             case addr @ AddressInfo(_, theType) => addr
           }
           
@@ -124,7 +124,7 @@ object Expressions {
           var itr: IASTNode = subscript
           while (itr.isInstanceOf[IASTArraySubscriptExpression]) {
             val result: Int = (context.stack.pop match {
-              case Variable(info: Variable) =>
+              case Variable(info) =>
                 info.value.value match {
                   case int: Int => int
                   case long: Long => long.toInt
@@ -185,7 +185,7 @@ object Expressions {
 
       def resolveVar(variable: Any): (ValueInfo, AddressInfo) = {
         variable match {
-          case Variable(info: Variable) =>
+          case Variable(info) =>
             val currentVal = context.readVal(info.info.address, info.info.theType).value
             (ValueInfo(currentVal, info.info.theType), info.info)
           case AddressInfo(addy, theType) => 
@@ -195,7 +195,7 @@ object Expressions {
       }
 
       def not(theVal: Any): AnyVal = theVal match {
-        case Variable(info: Variable) =>
+        case Variable(info) =>
           info.value.value match {
             case int: Int => if (int == 0) 1 else 0
           }
@@ -222,7 +222,7 @@ object Expressions {
               case int: Int     => context.stack.push(-int)
               case ValueInfo(int: Int, _)     => context.stack.push(-int)
               case ValueInfo(doub: Double, _) => context.stack.push(-doub)
-              case Variable(info: Variable) =>
+              case Variable(info) =>
                 val (currentVal, resolvedInfo) = resolveVar(info.info)
               
                 val basicType = resolvedInfo.theType.asInstanceOf[IBasicType]
@@ -266,7 +266,7 @@ object Expressions {
             context.stack.push(newVal)
           case `op_sizeof` =>
             context.stack.push(context.stack.pop match {
-              case Variable(info: Variable) =>
+              case Variable(info) =>
                 info.sizeof
               case ValueInfo(_, theType) => TypeHelper.sizeof(theType)  
               case AddressInfo(_, theType) => TypeHelper.sizeof(theType)  
@@ -280,14 +280,14 @@ object Expressions {
           case `op_amper` =>
             context.stack.pop match {
               case AddressInfo(addr, info) => context.stack.push(addr)
-              case Variable(info: Variable) =>
+              case Variable(info) =>
                 info.theType match {
                   case fcn: CFunctionType => context.stack.push(context.readPtrVal(info.address))
                   case _ => context.stack.push(info.address)
                 } 
               case ValueInfo(value, info) if info.toString == "void" => context.stack.push(Address(value.asInstanceOf[Int]))
-              case Variable(fcn: IASTFunctionDefinition) =>
-                context.stack.push(fcn)
+//              case Variable(fcn: IASTFunctionDefinition) =>
+//                context.stack.push(fcn)
             }
           case `op_star` =>
             context.stack.pop match {
@@ -298,7 +298,7 @@ object Expressions {
               case ValueInfo(addr @ Address(_), theType) =>
                 val theVal = context.readVal(addr, TypeHelper.resolve(theType))
                 context.stack.push(theVal)
-              case theVar @ Variable(info: Variable) =>       
+              case theVar @ Variable(info) =>
                 val nestedType = info.info.theType match {
                   case ptr: IPointerType => ptr.getType
                   case array: IArrayType => array.getType
@@ -317,7 +317,7 @@ object Expressions {
                       
                        if (Utils.isOnLeftSideOfAssignment(unary) && unary.getChildren.size == 1 && unary.getChildren.head.isInstanceOf[IASTUnaryExpression] && 
                           unary.getChildren.head.asInstanceOf[IASTUnaryExpression].getOperator == op_postFixIncr) {
-                        context.setValue(info.value.value.asInstanceOf[Int] + 1, info.info.address) 
+                        context.setValue(info.value.value.asInstanceOf[Int] + 1, info.info.address)
                       }
                       
                       AddressInfo(Address(deref), nestedType)

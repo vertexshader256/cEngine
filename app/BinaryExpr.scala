@@ -15,7 +15,7 @@ object BinaryExpr {
   def parseAssign(op: Int, op1: Any, op2: Any)(implicit state: State): AddressInfo = {
 
     val dst: AddressInfo = op1 match {
-      case Variable(info: Variable) => info.info
+      case Variable(info) => info.info
       case info @ AddressInfo(_, _) => info
     }
     

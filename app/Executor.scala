@@ -246,7 +246,7 @@ object Executor {
         val result = state.stack.pop
 
         val value = result match {
-          case Variable(info: Variable) => info.value
+          case Variable(info) => info.value
           case lit @ Literal(_) =>
             lit.cast.value
           case x => x
@@ -302,7 +302,7 @@ object Executor {
           state.stack.push(returnVal match {
             case lit @ Literal(_) if state.context.returnType != null => lit.typeCast(TypeHelper.resolve(state.context.returnType))
             case lit @ Literal(_) => lit.cast.value
-            case Variable(info: Variable)       => 
+            case Variable(info)       =>
               if (TypeHelper.isPointer(state.context.returnType)) {
                 info.value.value
               } else {
@@ -366,7 +366,7 @@ object Executor {
             val dimensions = arrayDecl.getArrayModifiers.filter{_.getConstantExpression != null}.map{dim => state.stack.pop match {
               // can we can assume dimensions are integers
               case lit: Literal => lit.cast.value.asInstanceOf[Int]
-              case Variable(info: Variable) => info.value.value.asInstanceOf[Int]
+              case Variable(info) => info.value.value.asInstanceOf[Int]
               case int: Int => int
             }}
             
