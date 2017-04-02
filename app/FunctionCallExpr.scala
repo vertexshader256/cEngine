@@ -35,7 +35,7 @@ object FunctionCallExpr {
           val results = call.getArguments.map{call => 
             state.stack.pop match {
               case Variable(theInfo: Variable) => 
-                val info = theInfo.info
+                val info = theInfo
                 if (TypeHelper.isPointer(info.theType) && TypeHelper.getPointedType(info.theType).isInstanceOf[IBasicType] &&
                     TypeHelper.getPointedType(info.theType).asInstanceOf[IBasicType].getKind == IBasicType.Kind.eChar) {
                   Address(state.readVal(info.address, info.theType).value.asInstanceOf[Int])

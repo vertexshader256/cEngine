@@ -67,7 +67,9 @@ case class Address(value: Int) extends AnyVal {
     Address(value + x)
   }
 }
-case class AddressInfo(address: Address, theType: IType)
+case class AddressInfo(address: Address, theType: IType) {
+  def sizeof = TypeHelper.sizeof(theType)
+}
 
 object Addressable {
   def unapply(any: Any)(implicit state: State): Option[AddressInfo] = {
@@ -75,12 +77,12 @@ object Addressable {
       val ref = any.asInstanceOf[VarRef]
       if (state.context.containsId(ref.name)) {
         val resolved = state.context.resolveId(ref.name)
-        Some(resolved.info)
+        Some(resolved)
       } else {
         None
       }
     } else if (any.isInstanceOf[Variable]) {
-      Some(any.asInstanceOf[Variable].info)
+      Some(any.asInstanceOf[Variable])
     } else if (any.isInstanceOf[AddressInfo]) {
       Some(any.asInstanceOf[AddressInfo])
     } else {
@@ -112,7 +114,7 @@ protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) exten
 
   if (!dim.isEmpty) {
     val theArrayAddress = allocate
-    state.setValue(theArrayAddress.value, info.address)
+    state.setValue(theArrayAddress.value, address)
   }
 
   def setArray(array: Array[_])(implicit state: State): Unit = {
@@ -128,8 +130,6 @@ protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) exten
 protected class Variable(val state: State, theType: IType) extends AddressInfo(Variable.allocateSpace(state, theType, 1), theType) {
   val size = TypeHelper.sizeof(theType)
 
-  def info = AddressInfo(address, theType)
-  
   def setValues(values: List[ValueInfo]) = {
      var offset = 0
       values.foreach { case ValueInfo(value, theType) =>
@@ -140,10 +140,6 @@ protected class Variable(val state: State, theType: IType) extends AddressInfo(V
   
   def value: ValueInfo = {
     ValueInfo(state.readVal(address, theType).value, theType)
-  }
-  
-  def sizeof: Int = {
-    TypeHelper.sizeof(theType)
   }
 }
 
@@ -421,7 +417,7 @@ object Executor {
               
               val theArrayVar: ArrayVariable = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)
               
-              var resolvedType = theArrayVar.info.theType
+              var resolvedType = theArrayVar.theType
               
               val initialArray = initVals.map { newInit =>
                 if (newInit.isInstanceOf[StringLiteral]) {
@@ -539,8 +535,8 @@ object Executor {
   
                 val name = paramDecl.getDeclarator.getName.getRawSignature
                 val newVar = new Variable(state, paramInfo.getType)
-                val casted = TypeHelper.cast(newVar.info.theType, arg).value
-                state.setValue(casted, newVar.info.address)          
+                val casted = TypeHelper.cast(newVar.theType, arg).value
+                state.setValue(casted, newVar.address)
             
                 state.context.addVariable(name, newVar)
               } else {

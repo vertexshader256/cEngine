@@ -203,7 +203,7 @@ object Expressions {
               case ValueInfo(int: Int, _)     => context.stack.push(-int)
               case ValueInfo(doub: Double, _) => context.stack.push(-doub)
               case Variable(info) =>
-                val (currentVal, resolvedInfo) = resolveVar(info.info)
+                val (currentVal, resolvedInfo) = resolveVar(info)
               
                 val basicType = resolvedInfo.theType.asInstanceOf[IBasicType]
                 context.stack.push(basicType.getKind match {
@@ -278,7 +278,7 @@ object Expressions {
                 val theVal = context.readVal(addr, TypeHelper.resolve(theType))
                 context.stack.push(theVal)
               case theVar @ Variable(info) =>
-                val nestedType = info.info.theType match {
+                val nestedType = info.theType match {
                   case ptr: IPointerType => ptr.getType
                   case array: IArrayType => array.getType
                 }
@@ -292,16 +292,16 @@ object Expressions {
                   
                   context.stack.push(
                     if (Utils.isOnLeftSideOfAssignment(unary) || isNested || specialCase) { 
-                      val deref = context.readPtrVal(info.info.address)
+                      val deref = context.readPtrVal(info.address)
                       
                        if (Utils.isOnLeftSideOfAssignment(unary) && unary.getChildren.size == 1 && unary.getChildren.head.isInstanceOf[IASTUnaryExpression] && 
                           unary.getChildren.head.asInstanceOf[IASTUnaryExpression].getOperator == op_postFixIncr) {
-                        context.setValue(info.value.value.asInstanceOf[Int] + 1, info.info.address)
+                        context.setValue(info.value.value.asInstanceOf[Int] + 1, info.address)
                       }
                       
                       AddressInfo(Address(deref), nestedType)
                     } else {
-                      context.readVal(Address(info.value.value.asInstanceOf[Int]), TypeHelper.resolve(info.info.theType))
+                      context.readVal(Address(info.value.value.asInstanceOf[Int]), TypeHelper.resolve(info.theType))
                     }
                   )
                 } else {
