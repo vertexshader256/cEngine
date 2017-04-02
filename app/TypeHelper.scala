@@ -209,9 +209,8 @@ object TypeHelper {
       case int: Int => int > 0
       case char: Character => char > 0
       case ValueInfo(value, theType) => resolveBoolean(value)
-      case AddressInfo(addr, theType) => resolveBoolean(context.readVal(addr, theType).value)
+      case Addressable(AddressInfo(addr, theType)) => resolveBoolean(context.readVal(addr, theType).value)
       case x: Literal => resolveBoolean(x.cast.value)
-      case Variable(theVar) => resolveBoolean(theVar.value.value)
   }
 
   def sizeof(theType: IType): Int = theType match {
