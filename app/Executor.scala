@@ -110,8 +110,6 @@ protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) exten
     recurse(state.resolve(theType), dim.reverse)
   }
 
-  address = Variable.allocateSpace(state, TypeHelper.pointerType, 1)
-
   if (!dim.isEmpty) {
     val theArrayAddress = allocate
     state.setValue(theArrayAddress.value, info.address)
@@ -127,9 +125,7 @@ protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) exten
   }
 }
 
-protected class Variable(val state: State, val theType: IType) {
-  var address = Variable.allocateSpace(state, theType, 1)
-
+protected class Variable(val state: State, theType: IType) extends AddressInfo(Variable.allocateSpace(state, theType, 1), theType) {
   val size = TypeHelper.sizeof(theType)
 
   def info = AddressInfo(address, theType)
@@ -443,7 +439,7 @@ object Executor {
               state.setArray(initialArray, AddressInfo(theArrayVar.address + 4, resolvedType))
               state.context.addVariable(name, theArrayVar)
             } else {
-              val theArrayVar = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)             
+              val theArrayVar = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)
               state.context.addVariable(name, theArrayVar)
             }
           case decl: CASTDeclarator =>
