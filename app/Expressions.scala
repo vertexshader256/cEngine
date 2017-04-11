@@ -41,11 +41,14 @@ object Expressions {
         val operand = context.stack.pop
 
         context.stack.push(operand match {
-          case addy @ Address(_) => ValueInfo(addy, theType);
-          case Addressable(AddressInfo(addr, theType)) => AddressInfo(addr, theType)
+          case addy @ Address(_) => ValueInfo(addy, theType)
+          case Addressable(addr) => addr
+          case ValueInfo(value, _) => TypeHelper.cast(theType, value)
           case lit @ Literal(str) => TypeHelper.cast(theType, lit.cast.value)
           case int: Int => TypeHelper.cast(theType, int)
           case long: Long => TypeHelper.cast(theType, long)
+          case double: Double => TypeHelper.cast(theType, double)
+          case float: Float => TypeHelper.cast(theType, float)
         })
 
         Seq()
@@ -263,15 +266,10 @@ object Expressions {
                 info.theType match {
                   case fcn: CFunctionType => context.stack.push(context.readPtrVal(info.address))
                   case _ => context.stack.push(info.address)
-                } 
-              case ValueInfo(value, info) if info.toString == "void" => context.stack.push(Address(value.asInstanceOf[Int]))
-//              case Variable(fcn: IASTFunctionDefinition) =>
-//                context.stack.push(fcn)
+                }
             }
           case `op_star` =>
             context.stack.pop match {
-              case ValueInfo(char: Character, theType) =>
-                context.stack.push(context.readVal(Address(char), TypeHelper.resolve(theType)))
               case ValueInfo(int: Int, theType) =>
                 context.stack.push(context.readVal(Address(int), TypeHelper.resolve(theType)))
               case ValueInfo(addr @ Address(_), theType) =>

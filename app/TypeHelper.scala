@@ -47,6 +47,7 @@ object TypeHelper {
               case int: Int => int.toLong
               case long: Long => long
               case double: Double => double.toLong
+              case float: Float => float.toLong
             } 
          case `eInt` if basic.isShort & basic.isUnsigned =>
             newVal match {
@@ -80,6 +81,7 @@ object TypeHelper {
          case `eDouble`  =>
             newVal match {
               case int: Int => int.toDouble
+              case long: Long => long.toDouble
               case double: Double => double
               case float: Float => float.toDouble
             } 
