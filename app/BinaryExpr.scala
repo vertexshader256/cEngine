@@ -389,7 +389,7 @@ object BinaryExpr {
         val result = evaluate(value, op2, binaryExpr.getOperator)
 
         if (!result.isInstanceOf[Boolean] && TypeHelper.resolve(value.theType).isUnsigned) {
-          TypeHelper.cast(value.theType, result).value
+          TypeHelper.cast(value.theType, result)
         } else if (!result.isInstanceOf[Boolean] && TypeHelper.isPointer(info.theType)) {
           ValueInfo(Address(result.asInstanceOf[Int]), info.theType)
         } else {
