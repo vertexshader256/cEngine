@@ -163,14 +163,14 @@ class State {
     readVal(address, TypeHelper.pointerType).value.asInstanceOf[Int]
   }
   
-  def createStringVariable(str: String, isHeap: Boolean)(implicit state: State): Address = {
+  def createStringVariable(str: String, isHeap: Boolean)(implicit state: State): ValueInfo = {
     val theStr = Utils.stripQuotes(str)
     val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
     val withNull = translateLineFeed.toCharArray() :+ 0.toChar // terminating null char
     val strAddr = if (isHeap) allocateHeapSpace(withNull.size) else allocateSpace(withNull.size)
     
     setArray(withNull, AddressInfo(strAddr, new CBasicType(IBasicType.Kind.eChar, 0)))
-    strAddr
+    ValueInfo(strAddr, TypeHelper.pointerType)
   }
 
   def readVal(addr: Address, theType: IType): ValueInfo = {

@@ -21,12 +21,12 @@ object BinaryExpr {
     val resolvedop2 = op2 match {
       case StringLiteral(str) =>
           state.createStringVariable(str, false)
-      case x => TypeHelper.resolve(x).value
+      case x => TypeHelper.resolve(x)
     }
     
     val theVal = ValueInfo(state.readVal(dst.address, dst.theType).value, dst.theType)
     
-    val result = performBinaryOperation(theVal.value, resolvedop2, op)
+    val result = performBinaryOperation(theVal, resolvedop2, op)
     
     val casted = TypeHelper.downcast(dst.theType, result).value
     state.setValue(casted, dst.address)
@@ -34,10 +34,10 @@ object BinaryExpr {
     dst
   }
   
-  def performBinaryOperation(left: AnyVal, right: AnyVal, operator: Int): AnyVal = {
+  def performBinaryOperation(left: ValueInfo, right: ValueInfo, operator: Int): AnyVal = {
     
-    val op1 = left
-    val op2 = right
+    val op1 = left.value
+    val op2 = right.value
     
     val result: AnyVal = operator match {
       case `op_multiply` | `op_multiplyAssign` =>
@@ -358,16 +358,16 @@ object BinaryExpr {
     result
   }
   
-  def evaluate(left: ValueInfo, right: AnyVal, operator: Int): AnyVal = {
+  def evaluate(left: ValueInfo, right: ValueInfo, operator: Int): AnyVal = {
 
-    val op1 = left.value
+    val op1 = left
 
-    val op2: AnyVal =
+    val op2 =
       operator match {
       case `op_plus` | `op_minus` =>
           if (TypeHelper.isPointer(left.theType)) {
             // pointers get special treatment in binary expressions sometimes
-            right.asInstanceOf[Int] * TypeHelper.sizeof(TypeHelper.resolve(left.theType))
+            ValueInfo(right.value.asInstanceOf[Int] * TypeHelper.sizeof(TypeHelper.resolve(left.theType)), TypeHelper.pointerType)
           } else {
             right
           }
@@ -379,7 +379,7 @@ object BinaryExpr {
   
   def parse(binaryExpr: IASTBinaryExpression)(implicit state: State): Any = {
 
-    val op2 = TypeHelper.resolve(state.stack.pop).value
+    val op2 = TypeHelper.resolve(state.stack.pop)
     
     val rawOp1 = state.stack.pop
 
@@ -396,8 +396,10 @@ object BinaryExpr {
           result
         }
       case _ =>
-        val simple = TypeHelper.resolve(rawOp1).value
+        val simple = TypeHelper.resolve(rawOp1)
         performBinaryOperation(simple, op2, binaryExpr.getOperator)
     }
+
+
   }
 }

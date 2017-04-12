@@ -42,7 +42,7 @@ object FunctionCallExpr {
                 } else {
                   state.readVal(info.address, info.theType).value
                 }
-              case x => Utils.allocateString(x, false)
+              case x => Utils.allocateString(x, false).value
             }
             
           }
@@ -54,11 +54,9 @@ object FunctionCallExpr {
           val rawResults = call.getArguments.map{x => state.stack.pop}
           
           // do this up here so string allocation doesnt clobber arg stack
-          val results = rawResults.map{x => 
-            Utils.allocateString(x, false)
+          rawResults.map{x =>
+            Utils.allocateString(x, false).value
           }
-          
-          results
         }
 
         state.callTheFunction(name, call, results)

@@ -29,12 +29,11 @@ object Utils {
     str.tail.reverse.tail.reverse
   }
   
-  def allocateString(arg: Any, isHeap: Boolean)(implicit state: State): AnyVal = {
+  def allocateString(arg: Any, isHeap: Boolean)(implicit state: State): ValueInfo = {
     arg match {
         case StringLiteral(str) => 
-          val strAddr = state.createStringVariable(str, isHeap)
-          strAddr   
-        case x => TypeHelper.resolve(x).value
+          state.createStringVariable(str, isHeap)
+        case x => TypeHelper.resolve(x)
       }
   }
   

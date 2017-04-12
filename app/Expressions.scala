@@ -192,6 +192,8 @@ object Expressions {
       if (direction == Entering) {
         Seq(unary.getOperand)
       } else {
+        val one = ValueInfo(1, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))
+
         unary.getOperator match {
           case `op_tilde` => context.stack.push(~context.stack.pop.asInstanceOf[Int])
           case `op_not` => context.stack.push(not(context.stack.pop))
@@ -217,7 +219,7 @@ object Expressions {
           case `op_postFixIncr` =>
             val vari = context.stack.pop
             val (currentVal, info) = resolveVar(vari)
-            val newVal = BinaryExpr.evaluate(currentVal, 1, IASTBinaryExpression.op_plus)
+            val newVal = BinaryExpr.evaluate(currentVal, one, IASTBinaryExpression.op_plus)
             
             if (Utils.isOnLeftSideOfAssignment(unary) && unary.getParent.isInstanceOf[IASTUnaryExpression] && unary.getParent.asInstanceOf[IASTUnaryExpression].getOperator == op_star) {
               context.stack.push(vari)
@@ -228,21 +230,21 @@ object Expressions {
             }
           case `op_postFixDecr` =>          
             val (currentVal, info) = resolveVar(context.stack.pop)
-            val newVal = BinaryExpr.evaluate(currentVal, 1, IASTBinaryExpression.op_minus)
+            val newVal = BinaryExpr.evaluate(currentVal, one, IASTBinaryExpression.op_minus)
             
             // push then set
             context.stack.push(currentVal)
             context.setValue(newVal, info.address)  
           case `op_prefixIncr` =>
             val (currentVal, info) = resolveVar(context.stack.pop)            
-            val newVal = BinaryExpr.evaluate(currentVal, 1, IASTBinaryExpression.op_plus)
+            val newVal = BinaryExpr.evaluate(currentVal, one, IASTBinaryExpression.op_plus)
             
             // set then push
             context.setValue(newVal, info.address)  
             context.stack.push(newVal)
           case `op_prefixDecr` =>
             val (currentVal, info) = resolveVar(context.stack.pop)
-            val newVal = BinaryExpr.evaluate(currentVal, 1, IASTBinaryExpression.op_minus)
+            val newVal = BinaryExpr.evaluate(currentVal, one, IASTBinaryExpression.op_minus)
             
             // set then push
             context.setValue(newVal, info.address)  
