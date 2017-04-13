@@ -62,18 +62,6 @@ case class AddressInfo(address: Address, theType: IType) {
   def sizeof = TypeHelper.sizeof(theType)
 }
 
-object Addressable {
-  def unapply(any: Any)(implicit state: State): Option[AddressInfo] = {
-    if (any.isInstanceOf[Variable]) {
-      Some(any.asInstanceOf[Variable])
-    } else if (any.isInstanceOf[AddressInfo]) {
-      Some(any.asInstanceOf[AddressInfo])
-    } else {
-      None
-    }
-  }
-}
-
 protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) extends Variable(state, theType) {
  
   def allocate: Address = {
@@ -297,7 +285,7 @@ object Executor {
           state.stack.push(returnVal match {
             case lit @ Literal(_) if state.context.returnType != null => lit.typeCast(TypeHelper.resolve(state.context.returnType))
             case lit @ Literal(_) => lit.cast.value
-            case Addressable(AddressInfo(addr, theType)) =>
+            case AddressInfo(addr, theType) =>
               val value = state.readVal(addr, theType)
               if (TypeHelper.isPointer(state.context.returnType)) {
                 value.value

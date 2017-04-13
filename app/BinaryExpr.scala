@@ -15,7 +15,7 @@ object BinaryExpr {
   def parseAssign(op: Int, op1: Any, op2: Any)(implicit state: State): AddressInfo = {
 
     val dst: AddressInfo = op1 match {
-      case Addressable(info) => info
+      case info @ AddressInfo(_, _) => info
     }
     
     val resolvedop2 = op2 match {
@@ -384,7 +384,7 @@ object BinaryExpr {
     val rawOp1 = state.stack.pop
 
     rawOp1 match {
-      case Addressable(info)  =>
+      case info @ AddressInfo(_, _)  =>
         val value = state.readVal(info.address, info.theType)
         val result = evaluate(value, op2, binaryExpr.getOperator)
 

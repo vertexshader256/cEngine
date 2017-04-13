@@ -42,7 +42,7 @@ object Expressions {
 
         context.stack.push(operand match {
           case addy @ Address(_) => ValueInfo(addy, theType)
-          case Addressable(addr) => addr
+          case info @ AddressInfo(_, _) => info
           case ValueInfo(value, _) => TypeHelper.cast(theType, value)
           case lit @ Literal(str) => TypeHelper.cast(theType, lit.cast.value)
           case int: Int => TypeHelper.cast(theType, int)
@@ -74,13 +74,13 @@ object Expressions {
         val structType = if (fieldRef.isPointerDereference) {
 
           owner match {
-            case Addressable(AddressInfo(addr, theType)) =>
+            case AddressInfo(addr, theType) =>
               baseAddr = addr            
               resolve(theType, addr)
           }
         } else {
           owner match {
-            case Addressable(AddressInfo(addr, theType)) =>
+            case AddressInfo(addr, theType) =>
               baseAddr = addr
               theType match {
                 case typedef: CTypedef => typedef.getType.asInstanceOf[CStructure]
@@ -112,7 +112,7 @@ object Expressions {
         if (!subscript.getArrayExpression.isInstanceOf[IASTArraySubscriptExpression]) {
 
           val arrayVarPtr: AddressInfo = context.stack.pop match {
-            case Addressable(info) => info
+            case info @ AddressInfo(_, _) => info
           }
           
           val indexes = new ListBuffer[Int]()
@@ -124,7 +124,7 @@ object Expressions {
               case long: Long => long.toInt
               case double: Double => double.toInt
               case ValueInfo(x, _) => x.asInstanceOf[Int]
-              case Addressable(AddressInfo(addr, theType)) =>
+              case AddressInfo(addr, theType) =>
                 context.readVal(addr, theType).value match {
                   case int: Int => int
                   case char: Character => char.toInt
@@ -175,14 +175,14 @@ object Expressions {
 
       def resolveVar(variable: Any): (ValueInfo, AddressInfo) = {
         variable match {
-          case Addressable(AddressInfo(addr, theType)) =>
+          case AddressInfo(addr, theType) =>
             val currentVal = context.readVal(addr, theType).value
             (ValueInfo(currentVal, theType), AddressInfo(addr, theType))
         }
       }
 
       def not(theVal: Any): AnyVal = theVal match {
-        case Addressable(AddressInfo(addr, theType)) => not(context.readVal(addr, theType).value)
+        case AddressInfo(addr, theType) => not(context.readVal(addr, theType).value)
         case ValueInfo(theVal, _) => not(theVal)
         case int: Int               => if (int == 0) 1 else 0
         case bool: Boolean => !bool
@@ -264,7 +264,7 @@ object Expressions {
             })
           case `op_amper` =>
             context.stack.pop match {
-              case Addressable(info) =>
+              case info @ AddressInfo(_, _) =>
                 info.theType match {
                   case fcn: CFunctionType => context.stack.push(context.readPtrVal(info.address))
                   case _ => context.stack.push(info.address)
