@@ -15,19 +15,10 @@ import scala.collection.mutable.Map
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 
 case class ValueInfo(value: AnyVal, theType: IType)
-case class VarRef(name: String)
 
 object Variable {                              
   def unapply(any: Any)(implicit state: State): Option[Variable] = {
-    if (any.isInstanceOf[VarRef]) {
-      val ref = any.asInstanceOf[VarRef]
-      if (state.context.containsId(ref.name)) {
-        val resolved = state.context.resolveId(ref.name)
-        Some(resolved)
-      } else {
-        None
-      }
-    } else if (any.isInstanceOf[Variable]) {
+    if (any.isInstanceOf[Variable]) {
       Some(any.asInstanceOf[Variable])
     } else {
       None
@@ -73,15 +64,7 @@ case class AddressInfo(address: Address, theType: IType) {
 
 object Addressable {
   def unapply(any: Any)(implicit state: State): Option[AddressInfo] = {
-    if (any.isInstanceOf[VarRef]) {
-      val ref = any.asInstanceOf[VarRef]
-      if (state.context.containsId(ref.name)) {
-        val resolved = state.context.resolveId(ref.name)
-        Some(resolved)
-      } else {
-        None
-      }
-    } else if (any.isInstanceOf[Variable]) {
+    if (any.isInstanceOf[Variable]) {
       Some(any.asInstanceOf[Variable])
     } else if (any.isInstanceOf[AddressInfo]) {
       Some(any.asInstanceOf[AddressInfo])

@@ -339,8 +339,8 @@ object Expressions {
       Seq()
     case id: IASTIdExpression =>
       if (direction == Exiting) {
-        //println("PUSHING ID: " + id.getName.getRawSignature)
-        context.stack.push(VarRef(id.getName.getRawSignature))
+        //println("PUSHING ID: " + id.getName.getRawSignature
+        context.stack.push(context.context.resolveId(id.getName.getRawSignature))
       }
       Seq()
     case typeExpr: IASTTypeIdExpression =>
