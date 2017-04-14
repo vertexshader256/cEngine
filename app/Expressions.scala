@@ -277,7 +277,7 @@ object Expressions {
               case ValueInfo(addr @ Address(_), theType) =>
                 val theVal = context.readVal(addr, TypeHelper.resolve(theType))
                 context.stack.push(theVal)
-              case theVar @ Variable(info) =>
+              case info @ AddressInfo(_,_) =>
                 val nestedType = info.theType match {
                   case ptr: IPointerType => ptr.getType
                   case array: IArrayType => array.getType
@@ -289,6 +289,8 @@ object Expressions {
                   
                   val specialCase = unary.getParent.isInstanceOf[IASTUnaryExpression] &&
                         unary.getParent.asInstanceOf[IASTUnaryExpression].getOperator == op_bracketedPrimary // (k*)++
+
+                  val value = context.readVal(info.address, info.theType)
                   
                   context.stack.push(
                     if (Utils.isOnLeftSideOfAssignment(unary) || isNested || specialCase) { 
@@ -296,30 +298,19 @@ object Expressions {
                       
                        if (Utils.isOnLeftSideOfAssignment(unary) && unary.getChildren.size == 1 && unary.getChildren.head.isInstanceOf[IASTUnaryExpression] && 
                           unary.getChildren.head.asInstanceOf[IASTUnaryExpression].getOperator == op_postFixIncr) {
-                        context.setValue(info.value.value.asInstanceOf[Int] + 1, info.address)
+                        context.setValue(value.value.asInstanceOf[Int] + 1, info.address)
                       }
                       
                       AddressInfo(Address(deref), nestedType)
                     } else {
-                      context.readVal(Address(info.value.value.asInstanceOf[Int]), TypeHelper.resolve(info.theType))
+                      context.readVal(Address(value.value.asInstanceOf[Int]), TypeHelper.resolve(info.theType))
                     }
                   )
                 } else {
                   // function pointers can ignore the star
-                  context.stack.push(theVar)
+                  context.stack.push(info)
                 }
-              case address @ AddressInfo(addr, theType) =>
-                theType match {
-                  
-                  case ptr: IPointerType =>
-                    // nested pointers
-                    val deref = context.readPtrVal(addr)
-                    val refAddressInfo = AddressInfo(Address(deref), ptr.getType)
-                    context.stack.push(refAddressInfo)
-                  case basic: IBasicType =>
-                    // actually dereference
-                    context.stack.push(context.readVal(addr, basic))
-               }
+
            }
           case `op_bracketedPrimary` => // not sure what this is for but I need it for weird stuff like (k*)++
         }
