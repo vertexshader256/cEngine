@@ -112,8 +112,8 @@ object Expressions {
               case long: Long => long.toInt
               case double: Double => double.toInt
               case ValueInfo(x, _) => x.asInstanceOf[Int]
-              case AddressInfo(addr, theType) =>
-                context.readVal(addr, theType).value match {
+              case info @ AddressInfo(addr, theType) =>
+                info.value match {
                   case int: Int => int
                   case char: Character => char.toInt
                   case long: Long => long.toInt
@@ -163,14 +163,13 @@ object Expressions {
 
       def resolveVar(variable: Any): (ValueInfo, AddressInfo) = {
         variable match {
-          case AddressInfo(addr, theType) =>
-            val currentVal = context.readVal(addr, theType).value
-            (ValueInfo(currentVal, theType), AddressInfo(addr, theType))
+          case info @ AddressInfo(addr, theType) =>
+            (ValueInfo(info.value, theType), AddressInfo(addr, theType))
         }
       }
 
       def not(theVal: Any): AnyVal = theVal match {
-        case AddressInfo(addr, theType) => not(context.readVal(addr, theType).value)
+        case info @ AddressInfo(_, _) => not(info.value)
         case ValueInfo(theVal, _) => not(theVal)
         case int: Int               => if (int == 0) 1 else 0
         case bool: Boolean => !bool
@@ -276,7 +275,7 @@ object Expressions {
                   val specialCase = unary.getParent.isInstanceOf[IASTUnaryExpression] &&
                         unary.getParent.asInstanceOf[IASTUnaryExpression].getOperator == op_bracketedPrimary // (k*)++
 
-                  val value = context.readVal(info.address, info.theType)
+                  val value = info.value
                   
                   context.stack.push(
                     if (Utils.isOnLeftSideOfAssignment(unary) || isNested || specialCase) { 
@@ -284,12 +283,12 @@ object Expressions {
                       
                        if (Utils.isOnLeftSideOfAssignment(unary) && unary.getChildren.size == 1 && unary.getChildren.head.isInstanceOf[IASTUnaryExpression] && 
                           unary.getChildren.head.asInstanceOf[IASTUnaryExpression].getOperator == op_postFixIncr) {
-                        context.setValue(value.value.asInstanceOf[Int] + 1, info.address)
+                        context.setValue(value.asInstanceOf[Int] + 1, info.address)
                       }
                       
                       AddressInfo(Address(deref), nestedType)
                     } else {
-                      context.readVal(Address(value.value.asInstanceOf[Int]), TypeHelper.resolve(info.theType))
+                      context.readVal(Address(value.asInstanceOf[Int]), TypeHelper.resolve(info.theType))
                     }
                   )
                 } else {

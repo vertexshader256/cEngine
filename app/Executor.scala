@@ -281,9 +281,8 @@ object Executor {
           val returnVal = state.stack.pop
           state.stack.push(returnVal match {
             case lit @ Literal(_) => lit.cast
-            case AddressInfo(addr, theType) =>
-              val value = state.readVal(addr, theType)
-              TypeHelper.cast(state.context.returnType, value.value)
+            case info @ AddressInfo(addr, theType) =>
+              TypeHelper.cast(state.context.returnType, info.value)
             case ValueInfo(theVal, _) => theVal
             case int: Int         => int
             case doub: Double     => doub
