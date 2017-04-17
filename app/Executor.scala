@@ -58,8 +58,9 @@ case class Address(value: Int) extends AnyVal {
     Address(value + x)
   }
 }
-case class AddressInfo(address: Address, theType: IType) {
+case class AddressInfo(address: Address, theType: IType)(implicit state: State) {
   def sizeof = TypeHelper.sizeof(theType)
+  def value = state.readVal(address, theType)
 }
 
 protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) extends Variable(state, theType) {
@@ -98,7 +99,7 @@ protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) exten
   }
 }
 
-protected class Variable(val state: State, theType: IType) extends AddressInfo(Variable.allocateSpace(state, theType, 1), theType) {
+protected class Variable(val state: State, theType: IType) extends AddressInfo(Variable.allocateSpace(state, theType, 1), theType)(state) {
   val size = TypeHelper.sizeof(theType)
 
   def setValues(values: List[ValueInfo]) = {
@@ -107,10 +108,6 @@ protected class Variable(val state: State, theType: IType) extends AddressInfo(V
         state.setValue(value, address + offset)
         offset += TypeHelper.sizeof(theType)
       }
-  }
-  
-  def value: ValueInfo = {
-    ValueInfo(state.readVal(address, theType).value, theType)
   }
 }
 
