@@ -239,10 +239,8 @@ object Expressions {
             context.stack.push(newVal)
           case `op_sizeof` =>
             context.stack.push(context.stack.pop match {
-              case Variable(info) =>
-                info.sizeof
               case ValueInfo(_, theType) => TypeHelper.sizeof(theType)
-              case AddressInfo(_, theType) => TypeHelper.sizeof(theType)
+              case info @ AddressInfo(_, _) => info.sizeof
               case _: Character => 1
               case _: Int => 4
               case _: Short => 2
