@@ -108,7 +108,7 @@ class State {
     }.getOrElse{
       // function pointer case
       val fcnPointer = functionContexts.head.varMap(name)
-      val fcn = getFunctionByIndex(fcnPointer.value.value.asInstanceOf[Int])
+      val fcn = getFunctionByIndex(fcnPointer.value.asInstanceOf[Int])
       Seq(callFunction(fcn, call, args))
     }
   }

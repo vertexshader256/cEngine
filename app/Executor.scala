@@ -60,7 +60,7 @@ case class Address(value: Int) extends AnyVal {
 }
 case class AddressInfo(address: Address, theType: IType)(implicit state: State) {
   def sizeof = TypeHelper.sizeof(theType)
-  def value = state.readVal(address, theType)
+  def value: AnyVal = state.readVal(address, theType).value
 }
 
 protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) extends Variable(state, theType) {
@@ -341,7 +341,7 @@ object Executor {
             val dimensions = arrayDecl.getArrayModifiers.filter{_.getConstantExpression != null}.map{dim => state.stack.pop match {
               // can we can assume dimensions are integers
               case lit: Literal => lit.cast.value.asInstanceOf[Int]
-              case Variable(info) => info.value.value.asInstanceOf[Int]
+              case Variable(info) => info.value.asInstanceOf[Int]
               case int: Int => int
             }}
             
