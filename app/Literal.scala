@@ -31,23 +31,25 @@ case class Literal(litStr: String) {
       pre
     }
 
-    if (lit.head == '\"' && lit.last == '\"') {
-      ValueInfo(StringLiteral(lit), new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0))
+    val (resultValue, theType) = if (lit.head == '\"' && lit.last == '\"') {
+      (StringLiteral(lit), new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0))
     } else if (lit.head == '\'' && lit.last == '\'' && (lit.size == 3 || lit == "'\\0'")) {
       if (lit == "'\\0'") {
-        ValueInfo(0, new CBasicType(IBasicType.Kind.eFloat, 0))
+        (0, new CBasicType(IBasicType.Kind.eFloat, 0))
       } else {
-        ValueInfo(lit.toCharArray.apply(1).toByte, new CBasicType(IBasicType.Kind.eChar, 0))
+        (lit.toCharArray.apply(1).toByte, new CBasicType(IBasicType.Kind.eChar, 0))
       }
     } else if (isIntNumber(lit)) {
-      ValueInfo(lit.toInt, new CBasicType(IBasicType.Kind.eInt, 0))
+      (lit.toInt, new CBasicType(IBasicType.Kind.eInt, 0))
     } else if (isLongNumber(lit)) {
-      ValueInfo(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
+      (lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
     } else if (lit.contains('F') || lit.contains('f')) {
       val num = lit.toCharArray.filter(x => x != 'f' && x != 'F').mkString
-      ValueInfo(num.toFloat, new CBasicType(IBasicType.Kind.eFloat, 0))
+      (num.toFloat, new CBasicType(IBasicType.Kind.eFloat, 0))
     } else {
-      ValueInfo(lit.toDouble, new CBasicType(IBasicType.Kind.eDouble, 0))
+      (lit.toDouble, new CBasicType(IBasicType.Kind.eDouble, 0))
     }
+
+    ValueInfo(resultValue.asInstanceOf[AnyVal], theType)
   }
 }
