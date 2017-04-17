@@ -225,7 +225,7 @@ class State {
           case addr @ Address(addy) => 
             setValue(addy, info.address + i)
           case lit @ Literal(_) =>
-            setValue(lit.typeCast(resolved).value, info.address + i)
+            setValue(lit.cast.value, info.address + i)
           case ValueInfo(newVal, _) =>
             setValue(newVal, info.address + i)
           case int: Int =>

@@ -50,8 +50,4 @@ case class Literal(litStr: String) {
       ValueInfo(lit.toDouble, new CBasicType(IBasicType.Kind.eDouble, 0))
     }
   }
-  
-  def typeCast(theType: IBasicType): ValueInfo = {
-    TypeHelper.cast(theType, cast.value)
-  }
 }

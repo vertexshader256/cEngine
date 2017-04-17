@@ -283,7 +283,7 @@ object Executor {
         if (ret.getReturnValue != null) {
           val returnVal = state.stack.pop
           state.stack.push(returnVal match {
-            case lit @ Literal(_) if state.context.returnType != null => lit.typeCast(TypeHelper.resolve(state.context.returnType))
+            case lit @ Literal(_) if state.context.returnType != null => lit.cast
             case lit @ Literal(_) => lit.cast.value
             case AddressInfo(addr, theType) =>
               val value = state.readVal(addr, theType)
