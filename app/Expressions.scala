@@ -71,22 +71,10 @@ object Expressions {
             resolve(ptr.getType, baseAddr)
         }
         
-        val structType = if (fieldRef.isPointerDereference) {
-
-          owner match {
-            case AddressInfo(addr, theType) =>
-              baseAddr = addr            
-              resolve(theType, addr)
-          }
-        } else {
-          owner match {
-            case AddressInfo(addr, theType) =>
-              baseAddr = addr
-              theType match {
-                case typedef: CTypedef => typedef.getType.asInstanceOf[CStructure]
-                case struct: CStructure => struct
-              }
-          }
+        val structType = owner match {
+          case AddressInfo(addr, theType) =>
+            baseAddr = addr
+            resolve(theType, addr)
         }
         
         var offset = 0
