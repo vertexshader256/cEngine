@@ -171,7 +171,7 @@ object Executor {
         Seq(caseStatement.getExpression)
       } else {
 
-        val caseExpr = state.stack.pop.asInstanceOf[Literal].cast.value
+        val caseExpr = state.stack.pop.asInstanceOf[ValueInfo].value
         val switchExpr = state.stack.head
         
         val resolved = TypeHelper.resolve(switchExpr).value
@@ -339,7 +339,7 @@ object Executor {
 
             val dimensions = arrayDecl.getArrayModifiers.filter{_.getConstantExpression != null}.map{dim => state.stack.pop match {
               // can we can assume dimensions are integers
-              case lit: Literal => lit.cast.value.asInstanceOf[Int]
+              case ValueInfo(value, _) => value.asInstanceOf[Int]
               case Variable(info) => info.value.asInstanceOf[Int]
               case int: Int => int
             }}
@@ -421,7 +421,7 @@ object Executor {
                 case list: IASTInitializerList =>
 
                   val values: Array[(ValueInfo, IType)] = list.getClauses.map{x => state.stack.pop match {
-                      case lit: Literal => lit.cast
+                      case value @ ValueInfo(_,_) => value
                       case Address(value) => ValueInfo(value, new CBasicType(IBasicType.Kind.eInt, 4))
                     }}.reverse zip fields.map(_.getType)
                   

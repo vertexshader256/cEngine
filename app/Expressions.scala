@@ -193,7 +193,7 @@ object Expressions {
             resolveLit match {
               case int: Int     => context.stack.push(-int)
               case ValueInfo(int: Int, _)     => context.stack.push(-int)
-              case ValueInfo(doub: Double, _) => context.stack.push(-doub)
+              case doub: Double => context.stack.push(-doub)
               case Variable(info) =>
                 val (currentVal, resolvedInfo) = resolveVar(info)
               
@@ -309,7 +309,7 @@ object Expressions {
         if (litStr.head == '\"' && litStr.last == '\"') {
           context.stack.push(StringLiteral(litStr))
         } else {
-          context.stack.push(Literal(lit.getRawSignature))
+          context.stack.push(Literal(lit.getRawSignature).cast)
         }
       }
       Seq()

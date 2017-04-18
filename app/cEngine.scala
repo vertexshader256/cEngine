@@ -224,8 +224,10 @@ class State {
         element match {
           case addr @ Address(addy) => 
             setValue(addy, info.address + i)
-          case lit @ Literal(_) =>
-            setValue(lit.cast.value, info.address + i)
+          case char: Character =>
+            setValue(char, info.address + i)
+          case doub: Double =>
+            setValue(doub, info.address + i)
           case ValueInfo(newVal, _) =>
             setValue(newVal, info.address + i)
           case int: Int =>
