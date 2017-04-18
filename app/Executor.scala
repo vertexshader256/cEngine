@@ -204,7 +204,6 @@ object Executor {
       } else {
 
         val cast = state.stack.pop match {
-          case lit @ Literal(_) => lit.cast.value
           case x                => x
         }
 
@@ -227,8 +226,6 @@ object Executor {
 
         val value = result match {
           case Variable(info) => info.value
-          case lit @ Literal(_) =>
-            lit.cast.value
           case x => x
         }
 
@@ -280,7 +277,6 @@ object Executor {
         if (ret.getReturnValue != null) {
           val returnVal = state.stack.pop
           state.stack.push(returnVal match {
-            case lit @ Literal(_) => lit.cast
             case info @ AddressInfo(addr, theType) =>
               TypeHelper.cast(state.context.returnType, info.value)
             case ValueInfo(theVal, _) => theVal
@@ -363,7 +359,6 @@ object Executor {
                 val size = list.getSize
                 
                 val values: Array[Any] = (0 until size).map{x => state.stack.pop match {
-                  case lit: Literal => lit.cast
                   case int: Int => int
                   case ValueInfo(value,_) => value
                   case Variable(theVar: Variable) => theVar.value

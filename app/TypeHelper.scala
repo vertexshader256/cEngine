@@ -160,7 +160,6 @@ object TypeHelper {
   // resolves 'Any' to 'ValueInfo'
   def resolve(any: Any)(implicit state: State): ValueInfo = {
     any match {
-      case lit @ Literal(_) => lit.cast
       case Address(addy) => ValueInfo(addy, TypeHelper.pointerType)
       case info @ AddressInfo(_, _) => ValueInfo(info.value, null)
       case value @ ValueInfo(theVal, _) => value
@@ -211,7 +210,6 @@ object TypeHelper {
       case char: Character => char > 0
       case ValueInfo(value, _) => resolveBoolean(value)
       case info @ AddressInfo(_, _) => resolveBoolean(info.value)
-      case x: Literal => resolveBoolean(x.cast.value)
   }
 
   def sizeof(theType: IType): Int = theType match {

@@ -44,7 +44,6 @@ object Expressions {
           case addy @ Address(_) => ValueInfo(addy, theType)
           case info @ AddressInfo(_, _) => info
           case ValueInfo(value, _) => TypeHelper.cast(theType, value)
-          case lit @ Literal(str) => TypeHelper.cast(theType, lit.cast.value)
           case int: Int => TypeHelper.cast(theType, int)
           case long: Long => TypeHelper.cast(theType, long)
           case double: Double => TypeHelper.cast(theType, double)
@@ -107,7 +106,6 @@ object Expressions {
           var itr: IASTNode = subscript
           while (itr.isInstanceOf[IASTArraySubscriptExpression]) {
             val result: Int = (context.stack.pop match {
-              case lit @ Literal(_) => lit.cast.value.asInstanceOf[Int]
               case int: Int => int
               case long: Long => long.toInt
               case double: Double => double.toInt
@@ -186,7 +184,6 @@ object Expressions {
           case `op_not` => context.stack.push(not(context.stack.pop))
           case `op_minus` =>
             val resolveLit = context.stack.pop match {
-              case lit @ Literal(_) => lit.cast
               case x            => x
             }
 
@@ -309,7 +306,7 @@ object Expressions {
         if (litStr.head == '\"' && litStr.last == '\"') {
           context.stack.push(StringLiteral(litStr))
         } else {
-          context.stack.push(Literal(lit.getRawSignature).cast)
+          context.stack.push(Literal.cast(lit.getRawSignature))
         }
       }
       Seq()

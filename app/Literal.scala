@@ -9,8 +9,8 @@ import scala.collection.mutable.Map
 import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
 import org.eclipse.cdt.internal.core.dom.parser.c.CPointerType
 
-case class Literal(litStr: String) {
-  def cast: ValueInfo = {
+object Literal {
+  def cast(litStr: String): ValueInfo = {
 
     def isIntNumber(s: String): Boolean = (allCatch opt s.toInt).isDefined
     def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
