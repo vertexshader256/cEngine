@@ -162,8 +162,7 @@ object TypeHelper {
     any match {
       case lit @ Literal(_) => lit.cast
       case Address(addy) => ValueInfo(addy, TypeHelper.pointerType)
-      case AddressInfo(addy, theType) =>
-          state.readVal(addy, theType)
+      case info @ AddressInfo(_, _) => ValueInfo(info.value, null)
       case value @ ValueInfo(theVal, _) => value
       case int: Int => ValueInfo(int, null)
       case short: Short => ValueInfo(short, null)
@@ -210,8 +209,8 @@ object TypeHelper {
       case x: Boolean => x
       case int: Int => int > 0
       case char: Character => char > 0
-      case ValueInfo(value, theType) => resolveBoolean(value)
-      case AddressInfo(addr, theType) => resolveBoolean(context.readVal(addr, theType).value)
+      case ValueInfo(value, _) => resolveBoolean(value)
+      case info @ AddressInfo(_, _) => resolveBoolean(info.value)
       case x: Literal => resolveBoolean(x.cast.value)
   }
 
