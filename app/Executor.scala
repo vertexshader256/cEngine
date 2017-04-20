@@ -408,20 +408,17 @@ object Executor {
             } else if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
                  && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
 
-              val fields = theType.asInstanceOf[CStructure].getFields
-              
               val clause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
               
               clause match {
                 case list: IASTInitializerList =>
 
-                  val values: Array[(ValueInfo, IType)] = list.getClauses.map{x => state.stack.pop match {
+                  val values = list.getClauses.map{x => state.stack.pop match {
                       case value @ ValueInfo(_,_) => value
                       case Address(value) => ValueInfo(value, new CBasicType(IBasicType.Kind.eInt, 4))
-                    }}.reverse zip fields.map(_.getType)
-                  
-                  val valueInfos = values.map{x => ValueInfo(x._1.value, x._2)}.toList
-                  newVar.setValues(valueInfos)
+                    }}.reverse.toList
+
+                  newVar.setValues(values)
               }
             }
         }
