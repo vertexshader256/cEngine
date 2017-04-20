@@ -43,7 +43,7 @@ object Expressions {
         context.stack.push(operand match {
           case addy @ Address(_) => ValueInfo(addy, theType)
           case info @ AddressInfo(_, _) => info
-          case ValueInfo(value, _) => TypeHelper.cast(theType, value)
+          case ValueInfo(value, _) => ValueInfo(value, theType)
           case int: Int => TypeHelper.cast(theType, int)
           case long: Long => TypeHelper.cast(theType, long)
           case double: Double => TypeHelper.cast(theType, double)
