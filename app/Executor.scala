@@ -377,15 +377,13 @@ object Executor {
               var resolvedType = theArrayVar.theType
               
               val initialArray = initVals.map { newInit =>
-                if (newInit.isInstanceOf[StringLiteral]) {
-                  val result = state.createStringVariable(newInit.asInstanceOf[StringLiteral].str, false)
-                  resolvedType = TypeHelper.pointerType
-                  result
-                } else {
-                  (newInit match {
-                    case Variable(x: Variable) => x.value
-                    case x => x
-                  })
+                newInit match {
+                  case StringLiteral(x) =>
+                    val result = state.createStringVariable(newInit.asInstanceOf[StringLiteral].str, false)
+                    resolvedType = TypeHelper.pointerType
+                    result
+                  case Variable(x: Variable) => x.value
+                  case x => x
                 }
               }
 
