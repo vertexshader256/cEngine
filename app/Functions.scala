@@ -133,22 +133,13 @@ object Functions {
       },
       new Function("printf", false) {
         def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = {
-          val resolved = formattedOutputParams.map{x => 
-            x match {
-              case strLit: StringLiteral => strLit.str
-              case addy @ Address(addr) => {
-                  // its a string!
-                Utils.readString(addy)(state)
-              }
-              case int: Int => int
-              case long: Long => long
-              case short: Short => short
-              case byte: Byte => byte
-              case double: Double => double
-              case float: Float => float
-              case char: Character => char
+          val resolved = formattedOutputParams.map{x => x match {
+            case addy @ Address(addr) => {
+              // its a string!
+              Utils.readString(addy)(state)
             }
-          }
+            case x => TypeHelper.resolve(x)(state).value
+          }}
           
           Functions.printf(state, resolved.map(_.asInstanceOf[Object]))
           null
