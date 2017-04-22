@@ -237,12 +237,12 @@ object Expressions {
             context.stack.push(context.stack.pop match {
               case ValueInfo(_, theType) => TypeHelper.sizeof(theType)
               case info @ AddressInfo(_, _) => info.sizeof
-              case _: Character => 1
-              case _: Int => 4
-              case _: Short => 2
-              case _: Long => 8
-              case _: Float => 4
-              case _: Double => 8
+              case _: Character => ValueInfo(1, null)
+              case _: Int => ValueInfo(4, null)
+              case _: Short => ValueInfo(2, null)
+              case _: Long => ValueInfo(8, null)
+              case _: Float => ValueInfo(4, null)
+              case _: Double => ValueInfo(8, null)
             })
           case `op_amper` =>
             context.stack.pop match {
