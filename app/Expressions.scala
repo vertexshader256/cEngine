@@ -37,7 +37,10 @@ object Expressions {
         context.stack.push(operand match {
           case addy @ Address(_) => ValueInfo(addy, theType)
           case info @ AddressInfo(_, _) => info
-          case ValueInfo(value, _) => ValueInfo(value, theType)
+          case ValueInfo(value, _) =>
+            val newAddr = context.allocateSpace(TypeHelper.sizeof(theType))
+            context.setValue(TypeHelper.cast(theType, value).value, newAddr)
+            AddressInfo(newAddr, theType)
           case int: Int => TypeHelper.cast(theType, int)
           case long: Long => TypeHelper.cast(theType, long)
           case double: Double => TypeHelper.cast(theType, double)
@@ -181,7 +184,7 @@ object Expressions {
             context.stack.pop match {
               case int: Int     => context.stack.push(ValueInfo(-int, null))
               case ValueInfo(int: Int, theType)     => context.stack.push(ValueInfo(-int, theType))
-              case doub: Double => context.stack.push(ValueInfo(-doub, null))
+              case ValueInfo(doub: Double, theType)     => context.stack.push(ValueInfo(-doub, theType))
               case Variable(info) =>
                 val (currentVal, resolvedInfo) = resolveVar(info)
               

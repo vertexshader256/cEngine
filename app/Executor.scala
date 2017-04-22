@@ -279,12 +279,11 @@ object Executor {
         if (ret.getReturnValue != null) {
           val returnVal = state.stack.pop
           state.stack.push(returnVal match {
-            case info @ AddressInfo(addr, theType) =>
-              TypeHelper.cast(state.context.returnType, info.value)
-            case ValueInfo(theVal, _) => theVal
-            case int: Int         => int
-            case doub: Double     => doub
-            case bool: Boolean    => bool
+            case info @ AddressInfo(addr, theType) => TypeHelper.cast(state.context.returnType, info.value)
+            case value @ ValueInfo(_, _) => value
+            case int: Int      => ValueInfo(int, new CBasicType(IBasicType.Kind.eInt, 0))
+            case doub: Double  => ValueInfo(doub, new CBasicType(IBasicType.Kind.eDouble, 0))
+            case bool: Boolean => ValueInfo(bool, new CBasicType(IBasicType.Kind.eBoolean, 0))
           })
         }
         state.isReturning = true
