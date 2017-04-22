@@ -63,7 +63,7 @@ object Expressions {
             resolve(typedef.getType, addr)
           case struct: CStructure => struct
           case ptr: IPointerType => 
-            baseAddr = Address(context.readPtrVal(addr))
+            baseAddr = Address(context.readPtrVal(addr).value.asInstanceOf[Int])
             resolve(ptr.getType, baseAddr)
         }
         
@@ -119,7 +119,7 @@ object Expressions {
             itr = itr.getParent
           }
           
-          val arrayAddress = context.readPtrVal(arrayVarPtr.address)
+          val arrayAddress = context.readPtrVal(arrayVarPtr.address).value.asInstanceOf[Int]
   
           val ancestors = Utils.getAncestors(subscript)
 
@@ -140,7 +140,7 @@ object Expressions {
             val step = TypeHelper.sizeof(aType)
             if (aType.isInstanceOf[IArrayType] || TypeHelper.resolve(aType).getKind == IBasicType.Kind.eChar && !aType.isInstanceOf[IBasicType]) {
               // special case for strings
-              offset = context.readPtrVal(Address(offset + arrayIndex * step))
+              offset = context.readPtrVal(Address(offset + arrayIndex * step)).value.asInstanceOf[Int]
             } else {
               offset += arrayIndex * step
             }
@@ -270,7 +270,7 @@ object Expressions {
                   
                   context.stack.push(
                     if (Utils.isOnLeftSideOfAssignment(unary) || isNested || specialCase) { 
-                      val deref = context.readPtrVal(info.address)
+                      val deref = context.readPtrVal(info.address).value.asInstanceOf[Int]
                       
                        if (Utils.isOnLeftSideOfAssignment(unary) && unary.getChildren.size == 1 && unary.getChildren.head.isInstanceOf[IASTUnaryExpression] && 
                           unary.getChildren.head.asInstanceOf[IASTUnaryExpression].getOperator == op_postFixIncr) {

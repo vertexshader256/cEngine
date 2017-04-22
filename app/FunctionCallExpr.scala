@@ -24,7 +24,7 @@ object FunctionCallExpr {
   def parse(call: IASTFunctionCallExpression, direction: Direction)(implicit state: State): Seq[IASTNode] = {
     if (direction == Exiting) {
         val name = state.stack.pop match {
-          case AddressInfo(addr, theType) => state.getFunctionByIndex(state.readPtrVal(addr)).name
+          case AddressInfo(addr, theType) => state.getFunctionByIndex(state.readPtrVal(addr).value.asInstanceOf[Int]).name
         }
 
         val results = 
