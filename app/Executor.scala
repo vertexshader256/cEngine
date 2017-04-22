@@ -327,9 +327,9 @@ object Executor {
           case x                 => x
         }
 
-        state.stack.push(decl.getName.getRawSignature)
+        state.stack.push(StringLiteral(decl.getName.getRawSignature))
 
-        val name = state.stack.pop.asInstanceOf[String]
+        val name = state.stack.pop.asInstanceOf[StringLiteral].str
 
         decl match {
           case arrayDecl: IASTArrayDeclarator =>
