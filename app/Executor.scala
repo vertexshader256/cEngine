@@ -14,8 +14,6 @@ import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 import scala.collection.mutable.Map
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 
-case class ValueInfo(value: AnyVal, theType: IType)
-
 object Variable {                              
   def unapply(any: Any)(implicit state: State): Option[Variable] = {
     if (any.isInstanceOf[Variable]) {
@@ -51,14 +49,18 @@ object Variable {
   }
 }
 
-case class StringLiteral(str: String) extends AnyVal
+trait Stackable
+
+case class ValueInfo(value: AnyVal, theType: IType) extends Stackable
+
+case class StringLiteral(str: String) extends Stackable
 
 case class Address(value: Int) extends AnyVal {
   def +(x: Int) = {
     Address(value + x)
   }
 }
-case class AddressInfo(address: Address, theType: IType)(implicit state: State) {
+case class AddressInfo(address: Address, theType: IType)(implicit state: State) extends Stackable {
   def sizeof = TypeHelper.sizeof(theType)
   def value: AnyVal = state.readVal(address, theType).value
 }

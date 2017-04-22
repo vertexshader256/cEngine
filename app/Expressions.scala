@@ -2,15 +2,9 @@ package app.astViewer
 
 import org.eclipse.cdt.core.dom.ast._
 
-import scala.collection.mutable.{ ListBuffer, Stack }
-import scala.util.control.Exception.allCatch
-import java.util.Formatter;
-import java.util.Locale;
-import java.math.BigInteger
+import scala.collection.mutable.{ ListBuffer }
 import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 import org.eclipse.cdt.internal.core.dom.parser.c._
-import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
-import Variable._
 
 object Expressions {
 
@@ -180,24 +174,21 @@ object Expressions {
         val one = ValueInfo(1, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))
 
         unary.getOperator match {
-          case `op_tilde` => context.stack.push(~context.stack.pop.asInstanceOf[Int])
-          case `op_not` => context.stack.push(not(context.stack.pop))
+          case `op_tilde` =>
+            context.stack.push(ValueInfo(~context.stack.pop.asInstanceOf[Int], null))
+          case `op_not` => context.stack.push(ValueInfo(not(context.stack.pop), null))
           case `op_minus` =>
-            val resolveLit = context.stack.pop match {
-              case x            => x
-            }
-
-            resolveLit match {
-              case int: Int     => context.stack.push(-int)
-              case ValueInfo(int: Int, _)     => context.stack.push(-int)
-              case doub: Double => context.stack.push(-doub)
+            context.stack.pop match {
+              case int: Int     => context.stack.push(ValueInfo(-int, null))
+              case ValueInfo(int: Int, theType)     => context.stack.push(ValueInfo(-int, theType))
+              case doub: Double => context.stack.push(ValueInfo(-doub, null))
               case Variable(info) =>
                 val (currentVal, resolvedInfo) = resolveVar(info)
               
                 val basicType = resolvedInfo.theType.asInstanceOf[IBasicType]
                 context.stack.push(basicType.getKind match {
-                  case `eInt`    => -currentVal.value.asInstanceOf[Int]
-                  case `eDouble` => -currentVal.value.asInstanceOf[Double]
+                  case `eInt`    => ValueInfo(-currentVal.value.asInstanceOf[Int], null)
+                  case `eDouble` => ValueInfo(-currentVal.value.asInstanceOf[Double], null)
                 })
             }
           case `op_postFixIncr` =>
