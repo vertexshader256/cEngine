@@ -31,7 +31,7 @@ object Expressions {
       if (direction == Entering) {
         Seq(cast.getOperand, cast.getTypeId)
       } else {
-        val theType = context.stack.pop.asInstanceOf[IType]
+        val theType = context.stack.pop.asInstanceOf[TypeInfo].theType
         val operand = context.stack.pop
 
         context.stack.push(operand match {
@@ -315,7 +315,7 @@ object Expressions {
       if (direction == Entering) {
         Seq(typeExpr.getTypeId)
       } else {
-        val theType = context.stack.pop.asInstanceOf[IType]
+        val theType = context.stack.pop.asInstanceOf[TypeInfo].theType
         context.stack.push(TypeHelper.sizeof(theType))
         Seq()
       }

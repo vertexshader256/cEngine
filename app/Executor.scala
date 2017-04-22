@@ -54,6 +54,7 @@ trait Stackable
 case class ValueInfo(value: AnyVal, theType: IType) extends Stackable
 
 case class StringLiteral(str: String) extends Stackable
+case class TypeInfo(theType: IType) extends Stackable
 
 case class Address(value: Int) extends AnyVal {
   def +(x: Int) = {
@@ -538,7 +539,7 @@ object Executor {
         }
       case typeId: IASTTypeId =>
         if (direction == Exiting) {
-          val result = typeId.getDeclSpecifier match {
+          val result: TypeInfo = typeId.getDeclSpecifier match {
             case simple: IASTSimpleDeclSpecifier =>
               import org.eclipse.cdt.core.dom.ast.IASTSimpleDeclSpecifier._
 
@@ -567,13 +568,13 @@ object Executor {
               for (ptr <- typeId.getAbstractDeclarator.getPointerOperators) {
                 result = new CPointerType(result, 0)
               }
-              
-              result
+
+              TypeInfo(result)
               
             case typespec: CASTTypedefNameSpecifier =>
-              typespec.findBindings(typespec.getName, false).head
+              TypeInfo(null)
             case elab: CASTElaboratedTypeSpecifier =>
-              elab.getName.resolveBinding().asInstanceOf[CStructure]
+              TypeInfo(elab.getName.resolveBinding().asInstanceOf[CStructure])
           }
 
           state.stack.push(result)
