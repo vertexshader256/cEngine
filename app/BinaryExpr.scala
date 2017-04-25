@@ -34,7 +34,7 @@ object BinaryExpr {
     dst
   }
   
-  def performBinaryOperation(left: ValueInfo, right: ValueInfo, operator: Int): AnyVal = {
+  def performBinaryOperation(left: ValueInfo, right: ValueInfo, operator: Int)(implicit state: State): AnyVal = {
     
     val op1 = left.value
     val op2 = right.value
@@ -326,30 +326,9 @@ object BinaryExpr {
           case (x: Long, y: Int) => x & y
         }
       case `op_logicalAnd` =>
-        (op1, op2) match {
-          case (x: Boolean, y: Boolean) => x && y
-          case (x: Boolean, y: Int) => x && (y > 0)
-          case (x: Boolean, y: Long) => x && (y > 0)
-          case (x: Boolean, y: Character) => x && (y > 0)
-          case (x: Int, y: Boolean) => (x > 0) && y
-          case (x: Int, y: Int) => (x > 0) && (y > 0)
-          case (x: Long, y: Long) => (x > 0) && (y > 0)
-          case (x: Short, y: Short) => (x > 0) && (y > 0)
-          case (x: Character, y: Character) => (x > 0) && (y > 0)
-          case (x: Int, y: Long) => (x > 0) && (y > 0)
-          case (x: Long, y: Int) => (x > 0) && (y > 0)
-          case (x: Int, y: Short) => (x > 0) && (y > 0)
-          case (x: Short, y: Int) => (x > 0) && (y > 0)
-          case (x: Int, y: Character) => (x > 0) && (y > 0)
-          case (x: Character, y: Int) => (x > 0) && (y > 0)
-          case (x: Character, y: Boolean) => (x > 0) && y
-        }
+        TypeHelper.resolveBoolean(op1) && TypeHelper.resolveBoolean(op2)
       case `op_logicalOr` =>
-        (op1, op2) match {
-          case (x: Boolean, y: Boolean) => x || y
-          case (x: Int, y: Boolean) => (x > 0) || y
-          case (x: Int, y: Int) => (x > 0) || (y > 0)
-        }
+        TypeHelper.resolveBoolean(op1) || TypeHelper.resolveBoolean(op2)
       case `op_assign` =>
         op2
       case _ => throw new Exception("unhandled binary operator: " + operator); 0
@@ -358,7 +337,7 @@ object BinaryExpr {
     result
   }
   
-  def evaluate(left: ValueInfo, right: ValueInfo, operator: Int): AnyVal = {
+  def evaluate(left: ValueInfo, right: ValueInfo, operator: Int)(implicit state: State): AnyVal = {
 
     val op1 = left
 
@@ -384,13 +363,15 @@ object BinaryExpr {
     val rawOp1 = state.stack.pop
 
     rawOp1 match {
-      case info @ AddressInfo(_, _)  =>
+      case info @ AddressInfo(_, theType)  =>
         val value = state.readVal(info.address, info.theType)
         val result = evaluate(value, op2, binaryExpr.getOperator)
 
-        if (!result.isInstanceOf[Boolean] && TypeHelper.resolve(value.theType).isUnsigned) {
-          ValueInfo(result, value.theType)
-        } else if (!result.isInstanceOf[Boolean] && TypeHelper.isPointer(info.theType)) {
+        if (result.isInstanceOf[Boolean]) {
+          result
+        } else if (TypeHelper.resolve(value.theType).isUnsigned) {
+          ValueInfo(result, theType)
+        } else if (TypeHelper.isPointer(info.theType)) {
           ValueInfo(Address(result.asInstanceOf[Int]), info.theType)
         } else {
           result

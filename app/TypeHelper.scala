@@ -207,6 +207,7 @@ object TypeHelper {
   def resolveBoolean(theVal: Any)(implicit context: State): Boolean = theVal match {
       case x: Boolean => x
       case int: Int => int > 0
+      case long: Long => long > 0
       case char: Character => char > 0
       case ValueInfo(value, _) => resolveBoolean(value)
       case info @ AddressInfo(_, _) => resolveBoolean(info.value)
