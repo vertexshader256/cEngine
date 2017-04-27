@@ -36,8 +36,8 @@ object BinaryExpr {
   
   def performBinaryOperation(left: ValueInfo, right: ValueInfo, operator: Int)(implicit state: State): AnyVal = {
     
-    val op1 = left.value
-    val op2 = right.value
+    val op1 = TypeHelper.resolve(left.value).value
+    val op2 = TypeHelper.resolve(right.value).value
     
     val result: AnyVal = operator match {
       case `op_multiply` | `op_multiplyAssign` =>
@@ -369,8 +369,6 @@ object BinaryExpr {
 
         if (result.value.isInstanceOf[Boolean]) {
           result.value
-        } else if (TypeHelper.resolve(value.theType).isUnsigned) {
-          ValueInfo(result.value, theType)
         } else if (TypeHelper.isPointer(info.theType)) {
           ValueInfo(Address(result.value.asInstanceOf[Int]), info.theType)
         } else {
