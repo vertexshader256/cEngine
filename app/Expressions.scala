@@ -102,11 +102,16 @@ object Expressions {
           val indexes = new ListBuffer[Int]()
           var itr: IASTNode = subscript
           while (itr.isInstanceOf[IASTArraySubscriptExpression]) {
-            val result: Int = (context.stack.pop match {
+
+            val first = (context.stack.pop match {
+              case ValueInfo(x, _) => x
+              case x => x
+            })
+
+            val result: Int = (first match {
               case int: Int => int
               case long: Long => long.toInt
               case double: Double => double.toInt
-              case ValueInfo(x, _) => x.asInstanceOf[Int]
               case info @ AddressInfo(addr, theType) =>
                 info.value match {
                   case int: Int => int

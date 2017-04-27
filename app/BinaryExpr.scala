@@ -374,7 +374,7 @@ object BinaryExpr {
         } else if (TypeHelper.isPointer(info.theType)) {
           ValueInfo(Address(result.value.asInstanceOf[Int]), info.theType)
         } else {
-          result.value
+          result
         }
       case _ =>
         val simple = TypeHelper.resolve(rawOp1)
