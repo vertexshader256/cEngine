@@ -28,13 +28,13 @@ object BinaryExpr {
     
     val result = performBinaryOperation(theVal, resolvedop2, op)
     
-    val casted = TypeHelper.downcast(dst.theType, result).value
+    val casted = TypeHelper.downcast(dst.theType, result.value).value
     state.setValue(casted, dst.address)
     
     dst
   }
   
-  def performBinaryOperation(left: ValueInfo, right: ValueInfo, operator: Int)(implicit state: State): AnyVal = {
+  def performBinaryOperation(left: ValueInfo, right: ValueInfo, operator: Int)(implicit state: State): ValueInfo = {
     
     val op1 = TypeHelper.resolve(left.value).value
     val op2 = TypeHelper.resolve(right.value).value
@@ -243,7 +243,7 @@ object BinaryExpr {
           case (x: Long, y: Long) => x == y
         }
       case `op_notequals` =>
-        !performBinaryOperation(left, right, op_equals).asInstanceOf[Boolean]
+        !performBinaryOperation(left, right, op_equals).value.asInstanceOf[Boolean]
       case `op_greaterThan` =>
         (op1, op2) match {
           case (x: Long, y: Long) => x > y
@@ -334,7 +334,7 @@ object BinaryExpr {
       case _ => throw new Exception("unhandled binary operator: " + operator); 0
     }
 
-    result
+    ValueInfo(result, left.theType)
   }
   
   def evaluate(left: ValueInfo, right: ValueInfo, operator: Int)(implicit state: State): ValueInfo = {
@@ -353,7 +353,7 @@ object BinaryExpr {
       case _ => right
     }
 
-    ValueInfo(performBinaryOperation(op1, op2, operator), left.theType)
+    performBinaryOperation(op1, op2, operator)
   }
   
   def parse(binaryExpr: IASTBinaryExpression)(implicit state: State): Any = {

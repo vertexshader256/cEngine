@@ -344,6 +344,7 @@ object Expressions {
           if (bin.getOperator == IASTBinaryExpression.op_logicalOr) {
             
             context.stack.head match {
+              case ValueInfo(x: Boolean, _) if x => Seq()
               case bool: Boolean if bool => Seq()
               case _ => Seq(bin.getOperand2, bin)
             }
@@ -351,6 +352,7 @@ object Expressions {
           } else if (bin.getOperator == IASTBinaryExpression.op_logicalAnd) {
             
             context.stack.head match {
+              case ValueInfo(x: Boolean, _) if !x => Seq()
               case bool: Boolean if !bool => Seq()
               case int: Int if int == 0 => Seq()
               case _ => Seq(bin.getOperand2, bin)
