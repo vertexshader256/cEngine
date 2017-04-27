@@ -337,7 +337,7 @@ object BinaryExpr {
     result
   }
   
-  def evaluate(left: ValueInfo, right: ValueInfo, operator: Int)(implicit state: State): AnyVal = {
+  def evaluate(left: ValueInfo, right: ValueInfo, operator: Int)(implicit state: State): ValueInfo = {
 
     val op1 = left
 
@@ -353,7 +353,7 @@ object BinaryExpr {
       case _ => right
     }
 
-    performBinaryOperation(op1, op2, operator)
+    ValueInfo(performBinaryOperation(op1, op2, operator), left.theType)
   }
   
   def parse(binaryExpr: IASTBinaryExpression)(implicit state: State): Any = {
@@ -367,14 +367,14 @@ object BinaryExpr {
         val value = state.readVal(info.address, info.theType)
         val result = evaluate(value, op2, binaryExpr.getOperator)
 
-        if (result.isInstanceOf[Boolean]) {
-          result
+        if (result.value.isInstanceOf[Boolean]) {
+          result.value
         } else if (TypeHelper.resolve(value.theType).isUnsigned) {
-          ValueInfo(result, theType)
+          ValueInfo(result.value, theType)
         } else if (TypeHelper.isPointer(info.theType)) {
-          ValueInfo(Address(result.asInstanceOf[Int]), info.theType)
+          ValueInfo(Address(result.value.asInstanceOf[Int]), info.theType)
         } else {
-          result
+          result.value
         }
       case _ =>
         val simple = TypeHelper.resolve(rawOp1)
