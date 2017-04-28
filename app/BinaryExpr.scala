@@ -367,12 +367,10 @@ object BinaryExpr {
         val value = state.readVal(info.address, info.theType)
         val result = evaluate(value, op2, binaryExpr.getOperator)
 
-        if (result.value.isInstanceOf[Boolean]) {
+        if (result.value.isInstanceOf[Boolean] || !TypeHelper.isPointer(info.theType)) {
           result
-        } else if (TypeHelper.isPointer(info.theType)) {
-          ValueInfo(Address(result.value.asInstanceOf[Int]), info.theType)
         } else {
-          result
+          ValueInfo(Address(result.value.asInstanceOf[Int]), info.theType)
         }
       case _ =>
         val simple = TypeHelper.resolve(rawOp1)
