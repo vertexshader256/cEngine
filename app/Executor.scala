@@ -477,7 +477,7 @@ object Executor {
           val others = fcnDec.getChildren.filter{x => !x.isInstanceOf[IASTParameterDeclaration] && !x.isInstanceOf[IASTName]}
           
           if (!isInFunctionPrototype) {
-            numArgs = state.stack.pop.asInstanceOf[Integer]
+            numArgs = state.stack.pop.asInstanceOf[ValueInfo].value.asInstanceOf[Integer]
             val args = (0 until numArgs).map{arg => state.stack.pop.asInstanceOf[AnyVal]}.reverse
           
             args.foreach{ arg =>

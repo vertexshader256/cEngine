@@ -119,7 +119,7 @@ class State {
     context.pathStack.push(call)
     
     args.foreach{ arg => context.stack.push(arg)}
-    context.stack.push(args.size)
+    context.stack.push(ValueInfo(args.size, null))
 
     function.run(args.reverse, this)
   }
