@@ -356,7 +356,7 @@ object BinaryExpr {
     performBinaryOperation(op1, op2, operator)
   }
   
-  def parse(binaryExpr: IASTBinaryExpression)(implicit state: State): Any = {
+  def parse(binaryExpr: IASTBinaryExpression)(implicit state: State): ValueInfo = {
 
     val op2 = TypeHelper.resolve(state.stack.pop)
     
@@ -368,7 +368,7 @@ object BinaryExpr {
         val result = evaluate(value, op2, binaryExpr.getOperator)
 
         if (result.value.isInstanceOf[Boolean]) {
-          result.value
+          result
         } else if (TypeHelper.isPointer(info.theType)) {
           ValueInfo(Address(result.value.asInstanceOf[Int]), info.theType)
         } else {
