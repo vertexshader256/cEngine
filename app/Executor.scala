@@ -63,7 +63,7 @@ case class Address(value: Int) extends AnyVal {
 }
 case class AddressInfo(address: Address, theType: IType)(implicit state: State) extends Stackable {
   def sizeof = TypeHelper.sizeof(theType)
-  def value: AnyVal = state.readVal(address, theType).value
+  def value: ValueInfo = state.readVal(address, theType)
 }
 
 protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) extends Variable(state, theType) {
@@ -280,7 +280,7 @@ object Executor {
         if (ret.getReturnValue != null) {
           val returnVal = state.stack.pop
           state.stack.push(returnVal match {
-            case info @ AddressInfo(addr, theType) => TypeHelper.cast(state.context.returnType, info.value)
+            case info @ AddressInfo(addr, theType) => TypeHelper.cast(state.context.returnType, info.value.value)
             case value @ ValueInfo(_, _) => value
             case int: Int      => ValueInfo(int, new CBasicType(IBasicType.Kind.eInt, 0))
             case doub: Double  => ValueInfo(doub, new CBasicType(IBasicType.Kind.eDouble, 0))
@@ -338,7 +338,7 @@ object Executor {
             val dimensions = arrayDecl.getArrayModifiers.filter{_.getConstantExpression != null}.map{dim => state.stack.pop match {
               // can we can assume dimensions are integers
               case ValueInfo(value, _) => value.asInstanceOf[Int]
-              case Variable(info) => info.value.asInstanceOf[Int]
+              case Variable(info) => info.value.value.asInstanceOf[Int]
               case int: Int => int
             }}
             

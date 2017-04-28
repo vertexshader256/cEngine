@@ -24,7 +24,7 @@ object BinaryExpr {
       case x => TypeHelper.resolve(x)
     }
     
-    val theVal = ValueInfo(dst.value, dst.theType)
+    val theVal = dst.value
     
     val result = performBinaryOperation(theVal, resolvedop2, op)
     

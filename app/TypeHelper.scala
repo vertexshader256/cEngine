@@ -161,7 +161,7 @@ object TypeHelper {
   def resolve(any: Any)(implicit state: State): ValueInfo = {
     any match {
       case Address(addy) => ValueInfo(addy, TypeHelper.pointerType)
-      case info @ AddressInfo(_, _) => ValueInfo(info.value, null)
+      case info @ AddressInfo(_, _) => info.value
       case value @ ValueInfo(theVal, _) => value
       case int: Int => ValueInfo(int, null)
       case short: Short => ValueInfo(short, null)

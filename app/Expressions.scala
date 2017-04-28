@@ -113,7 +113,7 @@ object Expressions {
               case long: Long => long.toInt
               case double: Double => double.toInt
               case info @ AddressInfo(addr, theType) =>
-                info.value match {
+                info.value.value match {
                   case int: Int => int
                   case char: Character => char.toInt
                   case long: Long => long.toInt
@@ -164,7 +164,7 @@ object Expressions {
       def resolveVar(variable: Any): (ValueInfo, AddressInfo) = {
         variable match {
           case info @ AddressInfo(addr, theType) =>
-            (ValueInfo(info.value, theType), AddressInfo(addr, theType))
+            (ValueInfo(info.value.value, theType), AddressInfo(addr, theType))
         }
       }
 
@@ -271,7 +271,7 @@ object Expressions {
                   val specialCase = unary.getParent.isInstanceOf[IASTUnaryExpression] &&
                         unary.getParent.asInstanceOf[IASTUnaryExpression].getOperator == op_bracketedPrimary // (k*)++
 
-                  val value = info.value
+                  val value = info.value.value
                   
                   context.stack.push(
                     if (Utils.isOnLeftSideOfAssignment(unary) || isNested || specialCase) { 
