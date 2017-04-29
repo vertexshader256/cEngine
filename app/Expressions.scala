@@ -248,7 +248,7 @@ object Expressions {
               case info @ AddressInfo(_, _) =>
                 info.theType match {
                   case fcn: CFunctionType => context.stack.push(context.readPtrVal(info.address))
-                  case _ => context.stack.push(info.address)
+                  case _ => context.stack.push(ValueInfo(info.address.value, new CBasicType(IBasicType.Kind.eInt, 0)))
                 }
             }
           case `op_star` =>
@@ -321,7 +321,7 @@ object Expressions {
         Seq(typeExpr.getTypeId)
       } else {
         val theType = context.stack.pop.asInstanceOf[TypeInfo].value
-        context.stack.push(TypeHelper.sizeof(theType))
+        context.stack.push(ValueInfo(TypeHelper.sizeof(theType), null))
         Seq()
       }
     case call: IASTFunctionCallExpression =>
