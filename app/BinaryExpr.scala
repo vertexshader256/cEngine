@@ -363,9 +363,8 @@ object BinaryExpr {
     val rawOp1 = state.stack.pop
 
     rawOp1 match {
-      case info @ AddressInfo(_, theType)  =>
-        val value = state.readVal(info.address, info.theType)
-        val result = evaluate(value, op2, binaryExpr.getOperator)
+      case info @ AddressInfo(_, _)  =>
+        val result = evaluate(info.value, op2, binaryExpr.getOperator)
 
         if (result.value.isInstanceOf[Boolean] || !TypeHelper.isPointer(info.theType)) {
           result
