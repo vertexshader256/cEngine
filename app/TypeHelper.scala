@@ -18,6 +18,10 @@ object TypeHelper {
       case typedef: CTypedef => cast(typedef.getType, newVal).value
       case qual: IQualifierType => cast(qual.getType, newVal).value
       case fcn: IFunctionType => newVal.asInstanceOf[Int]
+      case struct: CStructure =>  newVal match {
+        case Address(addy) => addy
+        case int: Int => int
+      }
       case ptr: IPointerType => newVal match {
         case Address(addy) => addy
         case int: Int => int

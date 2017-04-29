@@ -80,7 +80,7 @@ class State {
     functionList += new Function(name.getRawSignature, true) {
       index = functionCount
       def parameters = fcnType.getParameterTypes.toList
-      def run(formattedOutputParams: Array[AnyVal], state: State) = {}
+      def run(formattedOutputParams: Array[AnyVal], state: State): Option[AnyVal] = {None}
       override def getNext = fcnDef
     }
     
@@ -101,7 +101,7 @@ class State {
     functionList.find(_.name == name).map{ fcn =>
       if (!fcn.isNative) {
         // this is a function simulated in scala
-        fcn.run(args.reverse, this)
+        fcn.run(args.reverse, this).foreach{retVal => context.stack.push(ValueInfo(retVal, null))}
         Seq()
       } else {
         callFunction(fcn, call, args)
@@ -207,6 +207,7 @@ class State {
       case ptr: IPointerType => tape.getInt(address)
       case array: IArrayType => tape.getInt(address)
       case fcn: IFunctionType => tape.getInt(address)
+      case struct: CStructure => tape.getInt(address)
       case qual: IQualifierType => readVal(addr, qual.getType).value
       case typedef: CTypedef => readVal(addr, typedef.getType).value
     }
