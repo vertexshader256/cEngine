@@ -45,8 +45,7 @@ object FunctionCallExpr {
             }
             
           }
-          
-          results.foreach{ result =>  state.stack.push(result)}
+
           results
         } else {
           

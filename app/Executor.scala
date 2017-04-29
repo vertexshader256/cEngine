@@ -49,6 +49,7 @@ object Variable {
   }
 }
 
+trait Stackable {
   def value: Any
 }
 
