@@ -80,7 +80,8 @@ class State {
     functionList += new Function(name.getRawSignature, true) {
       index = functionCount
       def parameters = fcnType.getParameterTypes.toList
-      def run(formattedOutputParams: Array[AnyVal], state: State): IASTNode = fcnDef
+      def run(formattedOutputParams: Array[AnyVal], state: State) = {}
+      override def getNext = fcnDef
     }
     
     val newVar = new Variable(State.this, fcnType)
@@ -103,25 +104,25 @@ class State {
         fcn.run(args.reverse, this)
         Seq()
       } else {
-        Seq(callFunction(fcn, call, args))
+        callFunction(fcn, call, args)
+        Seq(fcn.getNext)
       }
     }.getOrElse{
       // function pointer case
       val fcnPointer = functionContexts.head.varMap(name)
       val fcn = getFunctionByIndex(fcnPointer.value.asInstanceOf[Int])
-      Seq(callFunction(fcn, call, args))
+      Seq(fcn.getNext)
     }
   }
   
   def callFunction(function: Function, call: IASTFunctionCallExpression, args: Array[AnyVal]): IASTNode = {
-        
     functionContexts.push(new ExecutionContext(functionContexts.head.varMap, call.getExpressionType, stackInsertIndex, this))
     context.pathStack.push(call)
     
     args.foreach{ arg => context.stack.push(arg)}
     context.stack.push(ValueInfo(args.size, null))
 
-    function.run(args.reverse, this)
+    function.getNext
   }
 
   def clearVisited(parent: IASTNode) {
