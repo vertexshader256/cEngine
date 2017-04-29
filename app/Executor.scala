@@ -49,12 +49,13 @@ object Variable {
   }
 }
 
-trait Stackable
+  def value: Any
+}
 
 case class ValueInfo(value: AnyVal, theType: IType) extends Stackable
 
-case class StringLiteral(str: String) extends Stackable
-case class TypeInfo(theType: IType) extends Stackable
+case class StringLiteral(value: String) extends Stackable
+case class TypeInfo(value: IType) extends Stackable
 
 case class Address(value: Int) extends AnyVal {
   def +(x: Int) = {
@@ -330,7 +331,7 @@ object Executor {
 
         state.stack.push(StringLiteral(decl.getName.getRawSignature))
 
-        val name = state.stack.pop.asInstanceOf[StringLiteral].str
+        val name = state.stack.pop.asInstanceOf[StringLiteral].value
 
         decl match {
           case arrayDecl: IASTArrayDeclarator =>
@@ -351,7 +352,7 @@ object Executor {
               
               if (TypeHelper.resolve(theType).getKind == eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
                 // char str[] = "Hello!\n";
-                val initString = state.stack.pop.asInstanceOf[StringLiteral].str                
+                val initString = state.stack.pop.asInstanceOf[StringLiteral].value
                 val strAddr = state.createStringVariable(initString, false)
                 val theArrayPtr = new Variable(state, theType.asInstanceOf[IArrayType])
                 state.setValue(strAddr.value, theArrayPtr.address)
@@ -381,7 +382,7 @@ object Executor {
               val initialArray = initVals.map { newInit =>
                 newInit match {
                   case StringLiteral(x) =>
-                    val result = state.createStringVariable(newInit.asInstanceOf[StringLiteral].str, false)
+                    val result = state.createStringVariable(newInit.asInstanceOf[StringLiteral].value, false)
                     resolvedType = TypeHelper.pointerType
                     result
                   case Variable(x: Variable) => x.value
