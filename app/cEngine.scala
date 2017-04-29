@@ -119,7 +119,7 @@ class State {
     functionContexts.push(new ExecutionContext(functionContexts.head.varMap, call.getExpressionType, stackInsertIndex, this))
     context.pathStack.push(call)
     
-    args.foreach{ arg => context.stack.push(arg)}
+    args.foreach{ arg => context.stack.push(ValueInfo(arg, null))}
     context.stack.push(ValueInfo(args.size, null))
 
     function.getNext

@@ -120,7 +120,7 @@ class ExecutionContext(parentVars: Map[String, Variable], val returnType: IType,
   val visited = new ListBuffer[IASTNode]()
   val varMap = parentVars.clone()
   val pathStack = new Stack[IASTNode]()
-  val stack = new Stack[Any]()
+  val stack = new Stack[Stackable]()
 
   def containsId(id: String) = varMap.contains(id) || state.functionPointers.contains(id)
   def resolveId(id: String): Variable = varMap.get(id).getOrElse(state.functionPointers(id))
@@ -284,9 +284,6 @@ object Executor {
           state.stack.push(returnVal match {
             case info @ AddressInfo(addr, theType) => TypeHelper.cast(state.context.returnType, info.value.value)
             case value @ ValueInfo(_, _) => value
-            case int: Int      => ValueInfo(int, new CBasicType(IBasicType.Kind.eInt, 0))
-            case doub: Double  => ValueInfo(doub, new CBasicType(IBasicType.Kind.eDouble, 0))
-            case bool: Boolean => ValueInfo(bool, new CBasicType(IBasicType.Kind.eBoolean, 0))
           })
         }
         state.isReturning = true
@@ -341,7 +338,6 @@ object Executor {
               // can we can assume dimensions are integers
               case ValueInfo(value, _) => value.asInstanceOf[Int]
               case Variable(info) => info.value.value.asInstanceOf[Int]
-              case int: Int => int
             }}
             
             val initializer = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
@@ -363,7 +359,6 @@ object Executor {
                 val size = list.getSize
                 
                 val values: Array[Any] = (0 until size).map{x => state.stack.pop match {
-                  case int: Int => int
                   case ValueInfo(value,_) => value
                   case Variable(theVar: Variable) => theVar.value
                 }}.reverse.toArray
@@ -417,7 +412,6 @@ object Executor {
 
                   val values = list.getClauses.map{x => state.stack.pop match {
                       case value @ ValueInfo(_,_) => value
-                      case Address(value) => ValueInfo(value, new CBasicType(IBasicType.Kind.eInt, 4))
                     }}.reverse.toList
 
                   newVar.setValues(values)
@@ -480,7 +474,7 @@ object Executor {
           
           if (!isInFunctionPrototype) {
             numArgs = state.stack.pop.asInstanceOf[ValueInfo].value.asInstanceOf[Integer]
-            val args = (0 until numArgs).map{arg => state.stack.pop.asInstanceOf[AnyVal]}.reverse
+            val args = (0 until numArgs).map{arg => state.stack.pop.asInstanceOf[ValueInfo]}.reverse
           
             args.foreach{ arg =>
               if (!isInFunctionPrototype && !paramDecls.isEmpty) {
@@ -491,15 +485,15 @@ object Executor {
   
                 val name = paramDecl.getDeclarator.getName.getRawSignature
                 val newVar = new Variable(state, paramInfo.getType)
-                val casted = TypeHelper.cast(newVar.theType, arg).value
+                val casted = TypeHelper.cast(newVar.theType, arg.value).value
                 state.setValue(casted, newVar.address)
             
                 state.context.addVariable(name, newVar)
               } else {
-                val theType = TypeHelper.getType(arg)
+                val theType = TypeHelper.getType(arg.value)
                 val sizeof = TypeHelper.sizeof(theType)
                 val space = state.allocateSpace(Math.max(sizeof, 4))
-                state.setValue(arg, space) 
+                state.setValue(arg.value, space)
               }
             }
           }

@@ -35,16 +35,11 @@ object Expressions {
         val operand = context.stack.pop
 
         context.stack.push(operand match {
-          case addy @ Address(_) => ValueInfo(addy, theType)
           case info @ AddressInfo(_, _) => info
           case ValueInfo(value, _) =>
             val newAddr = context.allocateSpace(TypeHelper.sizeof(theType))
             context.setValue(TypeHelper.cast(theType, value).value, newAddr)
             AddressInfo(newAddr, theType)
-          case int: Int => TypeHelper.cast(theType, int)
-          case long: Long => TypeHelper.cast(theType, long)
-          case double: Double => TypeHelper.cast(theType, double)
-          case float: Float => TypeHelper.cast(theType, float)
         })
 
         Seq()
@@ -187,7 +182,6 @@ object Expressions {
           case `op_not` => context.stack.push(ValueInfo(not(context.stack.pop), null))
           case `op_minus` =>
             context.stack.pop match {
-              case int: Int     => context.stack.push(ValueInfo(-int, null))
               case ValueInfo(int: Int, theType)     => context.stack.push(ValueInfo(-int, theType))
               case ValueInfo(doub: Double, theType)     => context.stack.push(ValueInfo(-doub, theType))
               case Variable(info) =>
@@ -236,12 +230,6 @@ object Expressions {
             context.stack.push(context.stack.pop match {
               case ValueInfo(_, theType) => ValueInfo(TypeHelper.sizeof(theType), null)
               case info @ AddressInfo(_, _) => ValueInfo(info.sizeof, null)
-              case _: Character => ValueInfo(1, null)
-              case _: Int => ValueInfo(4, null)
-              case _: Short => ValueInfo(2, null)
-              case _: Long => ValueInfo(8, null)
-              case _: Float => ValueInfo(4, null)
-              case _: Double => ValueInfo(8, null)
             })
           case `op_amper` =>
             context.stack.pop match {
@@ -345,7 +333,6 @@ object Expressions {
             
             context.stack.head match {
               case ValueInfo(x: Boolean, _) if x => Seq()
-              case bool: Boolean if bool => Seq()
               case _ => Seq(bin.getOperand2, bin)
             }
 
@@ -353,8 +340,6 @@ object Expressions {
             
             context.stack.head match {
               case ValueInfo(x: Boolean, _) if !x => Seq()
-              case bool: Boolean if !bool => Seq()
-              case int: Int if int == 0 => Seq()
               case _ => Seq(bin.getOperand2, bin)
             }
 
