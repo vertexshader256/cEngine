@@ -28,7 +28,7 @@ object BinaryExpr {
     
     val result = performBinaryOperation(theVal, resolvedop2, op)
     
-    val casted = TypeHelper.downcast(dst.theType, result.value).value
+    val casted = TypeHelper.cast(dst.theType, result.value).value
     state.setValue(casted, dst.address)
     
     dst

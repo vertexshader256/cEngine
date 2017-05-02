@@ -36,48 +36,31 @@ object TypeHelper {
     val casted: AnyVal = theType match {
       case typedef: CTypedef => cast(typedef.getType, newVal).value
       case qual: IQualifierType => cast(qual.getType, newVal).value
-      case fcn: IFunctionType => newVal.asInstanceOf[Int]
-      case struct: CStructure =>  newVal match {
-        case Address(addy) => addy
-        case int: Int => int
-      }
-      case ptr: IPointerType => newVal match {
-        case Address(addy) => addy
-        case int: Int => int
-      }
-      case array: IArrayType => if (newVal.isInstanceOf[Address]) newVal.asInstanceOf[Address] else newVal.asInstanceOf[Int]
+      case fcn: IFunctionType => newVal
+      case struct: CStructure =>  newVal
+      case ptr: IPointerType => newVal
+      case array: IArrayType => newVal
       case basic: IBasicType =>
        basic.getKind match {
-          case `eChar` if basic.isUnsigned    => 
-            newVal match {
-              case int: Int => (int & 0xFFFFFFFF).toByte
-              case char: Character => char & 0xFF
-            } 
+         case `eChar` if basic.isUnsigned    =>
+           newVal match {
+             case int: Int => (int & 0xFFFFFFFF).toChar.toByte
+           }
+         case x if basic.isUnsigned    =>
+            castSign(theType, newVal).value
           case `eChar`    => 
             newVal match {
               case int: Int => int.toChar.toByte
               case char: Character => char
               case char: Char => char.toByte
-            } 
-         case `eInt` if basic.isLong && basic.isUnsigned =>
-            newVal match {
-              case int: Int => int.toLong & 0x00000000ffffffffL
-              case long: Long => long & 0x00000000ffffffffL
-              case double: Double => double.toLong
-            } 
+            }
          case `eInt` if basic.isLong =>
             newVal match {
               case int: Int => int.toLong
               case long: Long => long
               case double: Double => double.toLong
               case float: Float => float.toLong
-            } 
-         case `eInt` if basic.isShort & basic.isUnsigned =>
-            newVal match {
-              case int: Int => int.toShort & 0xFFFF
-              case short: Short => short & 0xFFFF
-              case long: Long => long.toShort & 0xFFFF
-            }  
+            }
          case `eInt` if basic.isShort =>
             newVal match {
               case int: Int => int.toShort
@@ -111,43 +94,13 @@ object TypeHelper {
           case `eBoolean` =>
             if (TypeHelper.resolveBoolean(newVal)) 1 else 0
           case `eVoid` =>
-            newVal match {
-              case int: Int => int
-              case double: Double => double
-              case float: Float => float
-              case char: Character => char
-            } 
+            newVal
         }
       }
     
     ValueInfo(casted, theType)
   }
-  
-  // kind of hacky here, but needed a way to be a bit more strict about casting in regards to memory space
-  def downcast(theType: IType, newVal: AnyVal): ValueInfo = {
-    val casted: AnyVal = theType match {
-      case typedef: CTypedef => cast(typedef.getType, newVal).value
-      case qual: IQualifierType => cast(qual.getType, newVal).value
-      case ptr: IPointerType => cast(ptr, newVal).value
-      case array: IArrayType => cast(array, newVal).value
-      case basic: IBasicType =>
-       basic.getKind match {
-          case `eChar` if basic.isUnsigned    => 
-            newVal match {
-              case int: Int => (int & 0xFFFFFFFF).toChar.toByte
-              case char: Character => char & 0xFF
-            }  
-         case _ =>
-            cast(basic, newVal).value
-        }
-       case _ =>
-            cast(theType, newVal).value
-      }
-    
-    
-    ValueInfo(casted, theType)
-  }
-  
+
   def getType(value: AnyVal): IBasicType = {
     var config = 0
               
