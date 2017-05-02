@@ -251,28 +251,16 @@ object Expressions {
                 }
                 
                 if (!nestedType.isInstanceOf[IFunctionType]) {
-                  
-                  val isNested = nestedType.isInstanceOf[IPointerType]
-                  
-                  val specialCase = unary.getParent.isInstanceOf[IASTUnaryExpression] &&
-                        unary.getParent.asInstanceOf[IASTUnaryExpression].getOperator == op_bracketedPrimary // (k*)++
 
                   val value = info.value.value
-                  
-                  context.stack.push(
-                    if (Utils.isOnLeftSideOfAssignment(unary) || isNested || specialCase) { 
-                      val deref = info.value.value.asInstanceOf[Int]
-                      
-                       if (Utils.isOnLeftSideOfAssignment(unary) && unary.getChildren.size == 1 && unary.getChildren.head.isInstanceOf[IASTUnaryExpression] && 
-                          unary.getChildren.head.asInstanceOf[IASTUnaryExpression].getOperator == op_postFixIncr) {
-                        context.setValue(value.asInstanceOf[Int] + 1, info.address)
-                      }
-                      
-                      AddressInfo(Address(deref), nestedType)
-                    } else {
-                      AddressInfo(Address(value.asInstanceOf[Int]), TypeHelper.resolve(info.theType))
-                    }
-                  )
+
+                   if (Utils.isOnLeftSideOfAssignment(unary) && unary.getChildren.size == 1 && unary.getChildren.head.isInstanceOf[IASTUnaryExpression] &&
+                      unary.getChildren.head.asInstanceOf[IASTUnaryExpression].getOperator == op_postFixIncr) {
+                    context.setValue(value.asInstanceOf[Int] + 1, info.address)
+                  }
+
+                  context.stack.push(AddressInfo(Address(value.asInstanceOf[Int]), nestedType))
+
                 } else {
                   // function pointers can ignore the star
                   context.stack.push(info)
