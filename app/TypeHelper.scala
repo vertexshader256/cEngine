@@ -50,7 +50,7 @@ object TypeHelper {
        basic.getKind match {
           case `eChar` if basic.isUnsigned    => 
             newVal match {
-              case int: Int => int & 0xFFFFFFFF
+              case int: Int => (int & 0xFFFFFFFF).toByte
               case char: Character => char & 0xFF
             } 
           case `eChar`    => 
@@ -109,12 +109,7 @@ object TypeHelper {
               case float: Float => float.toDouble
             } 
           case `eBoolean` =>
-            // booleans are integers in C
-            val result: Int = newVal match {
-              case bool: Boolean => 1
-              case int: Int => if (int > 0) 1 else 0
-            } 
-            result
+            if (TypeHelper.resolveBoolean(newVal)) 1 else 0
           case `eVoid` =>
             newVal match {
               case int: Int => int
@@ -227,7 +222,7 @@ object TypeHelper {
     case fcn: IFunctionType       => fcn
   }
   
-  def resolveBoolean(theVal: Any)(implicit context: State): Boolean = theVal match {
+  def resolveBoolean(theVal: Any): Boolean = theVal match {
       case x: Boolean => x
       case int: Int => int > 0
       case long: Long => long > 0
