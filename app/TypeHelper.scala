@@ -32,22 +32,23 @@ object TypeHelper {
   }
 
   // Kind of hacky; this will do whatever it needs to match gcc.  casts 'AnyVal' to 'ValueInfo'
-  def cast(theType: IType, newVal: AnyVal): ValueInfo = {
+  def cast(theType: IType, theVal: AnyVal): ValueInfo = {
     val casted: AnyVal = theType match {
-      case typedef: CTypedef => cast(typedef.getType, newVal).value
-      case qual: IQualifierType => cast(qual.getType, newVal).value
-      case fcn: IFunctionType => newVal
-      case struct: CStructure =>  newVal
-      case ptr: IPointerType => newVal
-      case array: IArrayType => newVal
+      case typedef: CTypedef => cast(typedef.getType, theVal).value
+      case qual: IQualifierType => cast(qual.getType, theVal).value
+      case fcn: IFunctionType => theVal
+      case struct: CStructure =>  theVal
+      case ptr: IPointerType => theVal
+      case array: IArrayType => theVal
       case basic: IBasicType =>
+
+       val newVal = if (basic.isUnsigned) {
+         castSign(theType, theVal).value
+       } else {
+         theVal
+       }
+
        basic.getKind match {
-         case `eChar` if basic.isUnsigned    =>
-           newVal match {
-             case int: Int => (int & 0xFFFFFFFF).toChar.toByte
-           }
-         case x if basic.isUnsigned    =>
-            castSign(theType, newVal).value
           case `eChar`    => 
             newVal match {
               case int: Int => int.toChar.toByte
