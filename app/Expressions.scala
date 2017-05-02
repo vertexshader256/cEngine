@@ -234,7 +234,7 @@ object Expressions {
             context.stack.pop match {
               case info @ AddressInfo(_, _) =>
                 info.theType match {
-                  case fcn: CFunctionType => context.stack.push(context.readPtrVal(info.address))
+                  case fcn: CFunctionType => context.stack.push(AddressInfo(info.address, TypeHelper.pointerType))
                   case _ => context.stack.push(ValueInfo(info.address.value, new CBasicType(IBasicType.Kind.eInt, 0)))
                 }
             }
@@ -261,7 +261,7 @@ object Expressions {
                   
                   context.stack.push(
                     if (Utils.isOnLeftSideOfAssignment(unary) || isNested || specialCase) { 
-                      val deref = context.readPtrVal(info.address).value.asInstanceOf[Int]
+                      val deref = info.value.value.asInstanceOf[Int]
                       
                        if (Utils.isOnLeftSideOfAssignment(unary) && unary.getChildren.size == 1 && unary.getChildren.head.isInstanceOf[IASTUnaryExpression] && 
                           unary.getChildren.head.asInstanceOf[IASTUnaryExpression].getOperator == op_postFixIncr) {
