@@ -182,9 +182,6 @@ class State {
     
     val result: AnyVal = theType match {
       case basic: IBasicType =>
-        // if it is neither signed or unsigned, assume its signed
-        val isSigned = TypeHelper.isSigned(basic)
-    
         if (basic.getKind == eInt && basic.isShort) {
           tape.getShort(address)
         }  else if (basic.getKind == eInt && basic.isLong) {

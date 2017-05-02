@@ -241,10 +241,9 @@ object Expressions {
           case `op_star` =>
             context.stack.pop match {
               case ValueInfo(int: Int, theType) =>
-                context.stack.push(context.readVal(Address(int), TypeHelper.resolve(theType)))
+                context.stack.push(AddressInfo(Address(int), TypeHelper.resolve(theType)))
               case ValueInfo(addr @ Address(_), theType) =>
-                val theVal = context.readVal(addr, TypeHelper.resolve(theType))
-                context.stack.push(theVal)
+                context.stack.push(AddressInfo(addr, TypeHelper.resolve(theType)))
               case info @ AddressInfo(_,_) =>
                 val nestedType = info.theType match {
                   case ptr: IPointerType => ptr.getType
@@ -271,7 +270,7 @@ object Expressions {
                       
                       AddressInfo(Address(deref), nestedType)
                     } else {
-                      context.readVal(Address(value.asInstanceOf[Int]), TypeHelper.resolve(info.theType))
+                      AddressInfo(Address(value.asInstanceOf[Int]), TypeHelper.resolve(info.theType))
                     }
                   )
                 } else {
