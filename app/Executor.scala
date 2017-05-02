@@ -535,6 +535,7 @@ object Executor {
         }
       case typeId: IASTTypeId =>
         if (direction == Exiting) {
+
           val result: TypeInfo = typeId.getDeclSpecifier match {
             case simple: IASTSimpleDeclSpecifier =>
               import org.eclipse.cdt.core.dom.ast.IASTSimpleDeclSpecifier._
@@ -568,7 +569,7 @@ object Executor {
               TypeInfo(result)
               
             case typespec: CASTTypedefNameSpecifier =>
-              TypeInfo(null)
+              TypeInfo(typespec.getName.resolveBinding().asInstanceOf[IType])
             case elab: CASTElaboratedTypeSpecifier =>
               TypeInfo(elab.getName.resolveBinding().asInstanceOf[CStructure])
           }
