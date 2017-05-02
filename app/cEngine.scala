@@ -212,7 +212,7 @@ class State {
       case typedef: CTypedef => readVal(addr, typedef.getType).value
     }
     
-    TypeHelper.cast(theType, result)
+    TypeHelper.castSign(theType, result)
   }
 
   def putPointer(addr: Address, newVal: AnyVal) = {

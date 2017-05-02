@@ -11,7 +11,26 @@ object TypeHelper {
   
   // 8 bytes
   val qword = new CBasicType(IBasicType.Kind.eInt , IBasicType.IS_LONG_LONG)
-  
+
+  def castSign(theType: IType, newVal: AnyVal): ValueInfo = {
+    val casted: AnyVal = theType match {
+      case basic: IBasicType =>
+        if (basic.isUnsigned) {
+          newVal match {
+            case long: Long => long & 0x00000000FFFFFFFFL
+            case int: Int => int & 0xFFFFFFFF
+            case short: Short => short & 0xFFFF
+            case byte: Byte => byte & 0xFF
+          }
+        } else {
+          newVal
+        }
+      case _ => newVal
+    }
+
+    ValueInfo(casted, theType)
+  }
+
   // Kind of hacky; this will do whatever it needs to match gcc.  casts 'AnyVal' to 'ValueInfo'
   def cast(theType: IType, newVal: AnyVal): ValueInfo = {
     val casted: AnyVal = theType match {
