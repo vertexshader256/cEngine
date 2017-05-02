@@ -156,10 +156,9 @@ object Expressions {
     case unary: IASTUnaryExpression =>
       import org.eclipse.cdt.core.dom.ast.IASTUnaryExpression._
 
-      def resolveVar(variable: Any): (ValueInfo, AddressInfo) = {
+      def resolveVar(variable: Any): AddressInfo = {
         variable match {
-          case info @ AddressInfo(addr, theType) =>
-            (ValueInfo(info.value.value, theType), AddressInfo(addr, theType))
+          case info @ AddressInfo(addr, theType) => info
         }
       }
 
@@ -185,43 +184,43 @@ object Expressions {
               case ValueInfo(int: Int, theType)     => context.stack.push(ValueInfo(-int, theType))
               case ValueInfo(doub: Double, theType)     => context.stack.push(ValueInfo(-doub, theType))
               case Variable(info) =>
-                val (currentVal, resolvedInfo) = resolveVar(info)
+                val resolvedInfo = resolveVar(info)
               
                 val basicType = resolvedInfo.theType.asInstanceOf[IBasicType]
                 context.stack.push(basicType.getKind match {
-                  case `eInt`    => ValueInfo(-currentVal.value.asInstanceOf[Int], null)
-                  case `eDouble` => ValueInfo(-currentVal.value.asInstanceOf[Double], null)
+                  case `eInt`    => ValueInfo(-resolvedInfo.value.value.asInstanceOf[Int], null)
+                  case `eDouble` => ValueInfo(-resolvedInfo.value.value.asInstanceOf[Double], null)
                 })
             }
           case `op_postFixIncr` =>
             val vari = context.stack.pop
-            val (currentVal, info) = resolveVar(vari)
-            val newVal = BinaryExpr.evaluate(currentVal, one, IASTBinaryExpression.op_plus)
+            val info = resolveVar(vari)
+            val newVal = BinaryExpr.evaluate(info.value, one, IASTBinaryExpression.op_plus)
             
             if (Utils.isOnLeftSideOfAssignment(unary) && unary.getParent.isInstanceOf[IASTUnaryExpression] && unary.getParent.asInstanceOf[IASTUnaryExpression].getOperator == op_star) {
               context.stack.push(vari)
             } else {
               // push then set
-              context.stack.push(currentVal)
+              context.stack.push(info.value)
               context.setValue(newVal.value, info.address)
             }
           case `op_postFixDecr` =>          
-            val (currentVal, info) = resolveVar(context.stack.pop)
-            val newVal = BinaryExpr.evaluate(currentVal, one, IASTBinaryExpression.op_minus)
+            val info = resolveVar(context.stack.pop)
+            val newVal = BinaryExpr.evaluate(info.value, one, IASTBinaryExpression.op_minus)
             
             // push then set
-            context.stack.push(currentVal)
+            context.stack.push(info.value)
             context.setValue(newVal.value, info.address)
           case `op_prefixIncr` =>
-            val (currentVal, info) = resolveVar(context.stack.pop)            
-            val newVal = BinaryExpr.evaluate(currentVal, one, IASTBinaryExpression.op_plus)
+            val info = resolveVar(context.stack.pop)
+            val newVal = BinaryExpr.evaluate(info.value, one, IASTBinaryExpression.op_plus)
             
             // set then push
             context.setValue(newVal.value, info.address)
             context.stack.push(newVal)
           case `op_prefixDecr` =>
-            val (currentVal, info) = resolveVar(context.stack.pop)
-            val newVal = BinaryExpr.evaluate(currentVal, one, IASTBinaryExpression.op_minus)
+            val info = resolveVar(context.stack.pop)
+            val newVal = BinaryExpr.evaluate(info.value, one, IASTBinaryExpression.op_minus)
             
             // set then push
             context.setValue(newVal.value, info.address)
