@@ -182,17 +182,11 @@ object Expressions {
                 })
             }
           case `op_postFixIncr` =>
-            val vari = context.stack.pop
-            val info = resolveVar(vari)
+            val info = resolveVar(context.stack.pop)
             val newVal = BinaryExpr.evaluate(info.value, one, IASTBinaryExpression.op_plus)
-            
-            if (Utils.isOnLeftSideOfAssignment(unary) && unary.getParent.isInstanceOf[IASTUnaryExpression] && unary.getParent.asInstanceOf[IASTUnaryExpression].getOperator == op_star) {
-              context.stack.push(vari)
-            } else {
-              // push then set
-              context.stack.push(info.value)
-              context.setValue(newVal.value, info.address)
-            }
+
+            context.stack.push(info.value)
+            context.setValue(newVal.value, info.address)
           case `op_postFixDecr` =>          
             val info = resolveVar(context.stack.pop)
             val newVal = BinaryExpr.evaluate(info.value, one, IASTBinaryExpression.op_minus)
@@ -240,16 +234,8 @@ object Expressions {
                 }
                 
                 if (!nestedType.isInstanceOf[IFunctionType]) {
-
                   val value = info.value.value
-
-                   if (Utils.isOnLeftSideOfAssignment(unary) && unary.getChildren.size == 1 && unary.getChildren.head.isInstanceOf[IASTUnaryExpression] &&
-                      unary.getChildren.head.asInstanceOf[IASTUnaryExpression].getOperator == op_postFixIncr) {
-                    context.setValue(value.asInstanceOf[Int] + 1, info.address)
-                  }
-
                   context.stack.push(AddressInfo(Address(value.asInstanceOf[Int]), nestedType))
-
                 } else {
                   // function pointers can ignore the star
                   context.stack.push(info)
