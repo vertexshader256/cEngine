@@ -188,8 +188,8 @@ object Expressions {
               
                 val basicType = resolvedInfo.theType.asInstanceOf[IBasicType]
                 context.stack.push(basicType.getKind match {
-                  case `eInt`    => ValueInfo(-resolvedInfo.value.value.asInstanceOf[Int], null)
-                  case `eDouble` => ValueInfo(-resolvedInfo.value.value.asInstanceOf[Double], null)
+                  case `eInt`    => ValueInfo2(-resolvedInfo.value.value.asInstanceOf[Int], basicType)
+                  case `eDouble` => ValueInfo2(-resolvedInfo.value.value.asInstanceOf[Double], basicType)
                 })
             }
           case `op_postFixIncr` =>
@@ -227,8 +227,8 @@ object Expressions {
             context.stack.push(newVal)
           case `op_sizeof` =>
             context.stack.push(context.stack.pop match {
-              case ValueInfo(_, theType) => ValueInfo(TypeHelper.sizeof(theType), null)
-              case info @ AddressInfo(_, _) => ValueInfo(info.sizeof, null)
+              case ValueInfo(_, theType) => ValueInfo2(TypeHelper.sizeof(theType), TypeHelper.pointerType)
+              case info @ AddressInfo(_, theType) => ValueInfo2(info.sizeof, TypeHelper.pointerType)
             })
           case `op_amper` =>
             context.stack.pop match {
