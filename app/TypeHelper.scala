@@ -84,6 +84,7 @@ object TypeHelper {
               case int: Int => int.toFloat
               case double: Double => double.toFloat
               case float: Float => float
+              case long: Long => long.toFloat
             }  
          case `eDouble`  =>
             newVal match {

@@ -229,6 +229,8 @@ class State {
             setValue(doub, info.address + i)
           case ValueInfo(newVal, _) =>
             setValue(newVal, info.address + i)
+          case addrInfo @ AddressInfo(_, _) =>
+            setValue(addrInfo.value.value, info.address + i)
           case int: Int =>
             setValue(int, info.address + i)
           case char: Char =>

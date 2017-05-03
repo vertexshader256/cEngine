@@ -170,8 +170,8 @@ object Expressions {
           case `op_not` => context.stack.push(ValueInfo2(not(context.stack.pop), one.theType))
           case `op_minus` =>
             context.stack.pop match {
-              case ValueInfo(int: Int, theType)     => context.stack.push(ValueInfo(-int, theType))
-              case ValueInfo(doub: Double, theType)     => context.stack.push(ValueInfo(-doub, theType))
+              case ValueInfo(int: Int, theType)     => context.stack.push(ValueInfo2(-int, theType))
+              case ValueInfo(doub: Double, theType)     => context.stack.push(ValueInfo2(-doub, theType))
               case Variable(info) =>
                 val resolvedInfo = resolveVar(info)
               

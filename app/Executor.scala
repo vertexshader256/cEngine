@@ -368,6 +368,7 @@ object Executor {
                 
                 val values: Array[Any] = (0 until size).map{x => state.stack.pop match {
                   case ValueInfo(value,_) => value
+                  case info @ AddressInfo(_,_) => info.value.value
                   case Variable(theVar: Variable) => theVar.value
                 }}.reverse.toArray
   
