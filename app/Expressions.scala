@@ -177,7 +177,7 @@ object Expressions {
 
         unary.getOperator match {
           case `op_tilde` =>
-            context.stack.push(ValueInfo(~context.stack.pop.asInstanceOf[Int], null))
+            context.stack.push(ValueInfo2(~context.stack.pop.asInstanceOf[Int], null))
           case `op_not` => context.stack.push(ValueInfo(not(context.stack.pop), null))
           case `op_minus` =>
             context.stack.pop match {

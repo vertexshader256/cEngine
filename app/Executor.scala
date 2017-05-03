@@ -55,6 +55,14 @@ trait Stackable {
 
 case class ValueInfo(value: AnyVal, theType: IType) extends Stackable
 
+object ValueInfo2 {
+  def apply(value: AnyVal, theType: IType)(implicit state: State): AddressInfo = {
+    val addr = state.allocateSpace(TypeHelper.sizeof(TypeHelper.getType(value)))
+    state.setValue(value, addr)
+    AddressInfo(addr, theType)
+  }
+}
+
 case class StringLiteral(value: String) extends Stackable
 case class TypeInfo(value: IType) extends Stackable
 
