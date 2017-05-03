@@ -115,6 +115,7 @@ object TypeHelper {
     
     value match {
       case Address(_)    => pointerType
+      case bool: Boolean => new CBasicType(IBasicType.Kind.eBoolean, config)
       case int: Int      => new CBasicType(IBasicType.Kind.eInt, config)
       case long: Long    => new CBasicType(IBasicType.Kind.eInt, config)
       case float: Float  => new CBasicType(IBasicType.Kind.eFloat, config)

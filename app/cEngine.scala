@@ -261,7 +261,8 @@ class State {
   def setValue(newVal: AnyVal, address: Address): Unit = newVal match {
     case char: Character    => tape.put(address.value, char)
     case long: Long => tape.putLong(address.value, long)
-    case short: Short  => tape.putShort(address.value, short) 
+    case short: Short  => tape.putShort(address.value, short)
+    case bool: Boolean => tape.putInt(address.value, if (bool) 1 else 0)
     case int: Int => tape.putInt(address.value, int) 
     case Address(int) => tape.putInt(address.value, int) 
     case float: Float   => tape.putFloat(address.value, float)
