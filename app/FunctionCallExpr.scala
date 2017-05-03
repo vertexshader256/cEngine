@@ -37,11 +37,11 @@ object FunctionCallExpr {
                 val info = theInfo
                 if (TypeHelper.isPointer(info.theType) && TypeHelper.getPointedType(info.theType).isInstanceOf[IBasicType] &&
                     TypeHelper.getPointedType(info.theType).asInstanceOf[IBasicType].getKind == IBasicType.Kind.eChar) {
-                  Address(info.value.value.asInstanceOf[Int])
+                  ValueInfo(Address(info.value.value.asInstanceOf[Int]), info.theType)
                 } else {
-                  info.value.value
+                  info.value
                 }
-              case x => Utils.allocateString(x, false).value
+              case x => Utils.allocateString(x, false)
             }
             
           }
@@ -53,7 +53,7 @@ object FunctionCallExpr {
           
           // do this up here so string allocation doesnt clobber arg stack
           rawResults.map{x =>
-            Utils.allocateString(x, false).value
+            Utils.allocateString(x, false)
           }
         }
 

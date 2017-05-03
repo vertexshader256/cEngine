@@ -96,12 +96,12 @@ class State {
   var isBreaking = false
   var isContinuing = false
 
-  def callTheFunction(name: String, call: IASTFunctionCallExpression, args: Array[AnyVal]): Seq[IASTNode] = {
+  def callTheFunction(name: String, call: IASTFunctionCallExpression, args: Array[ValueInfo]): Seq[IASTNode] = {
 
     functionList.find(_.name == name).map{ fcn =>
       if (!fcn.isNative) {
         // this is a function simulated in scala
-        fcn.run(args.reverse, this).foreach{retVal => context.stack.push(ValueInfo(retVal, null))}
+        fcn.run(args.map(_.value).reverse, this).foreach{retVal => context.stack.push(ValueInfo(retVal, null))}
         Seq()
       } else {
         callFunction(fcn, call, args)
@@ -115,11 +115,11 @@ class State {
     }
   }
   
-  def callFunction(function: Function, call: IASTFunctionCallExpression, args: Array[AnyVal]): IASTNode = {
+  def callFunction(function: Function, call: IASTFunctionCallExpression, args: Array[ValueInfo]): IASTNode = {
     functionContexts.push(new ExecutionContext(functionContexts.head.varMap, call.getExpressionType, stackInsertIndex, this))
     context.pathStack.push(call)
     
-    args.foreach{ arg => context.stack.push(ValueInfo(arg, null))}
+    args.foreach{ arg => context.stack.push(arg)}
     context.stack.push(ValueInfo(args.size, null))
 
     function.getNext
