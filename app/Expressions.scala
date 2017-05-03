@@ -98,34 +98,25 @@ object Expressions {
           var itr: IASTNode = subscript
           while (itr.isInstanceOf[IASTArraySubscriptExpression]) {
 
-            val first = (context.stack.pop match {
-              case ValueInfo(x, _) => x
-              case x => x
-            })
+            val first = context.stack.pop
 
-            val result: Int = (first match {
-              case int: Int => int
-              case long: Long => long.toInt
-              case double: Double => double.toInt
+            val result: Int = first match {
+              case x @ ValueInfo(_, _) => TypeHelper.cast(TypeHelper.pointerType, x.value).value.asInstanceOf[Int]
               case info @ AddressInfo(addr, theType) =>
                 info.value.value match {
                   case int: Int => int
                   case char: Character => char.toInt
                   case long: Long => long.toInt
                 }
-            })
+            }
             
             indexes += result
             itr = itr.getParent
           }
-          
-          val arrayAddress = context.readPtrVal(arrayVarPtr.address).value.asInstanceOf[Int]
-  
-          val ancestors = Utils.getAncestors(subscript)
 
-          var offset = arrayAddress
+          var offset = arrayVarPtr.value.value.asInstanceOf[Int]
           
-          var arrayTypes = new ListBuffer[IType]();
+          var arrayTypes = new ListBuffer[IType]()
           
           var tempType = arrayVarPtr.theType
           
@@ -146,9 +137,7 @@ object Expressions {
             }
           }
 
-          val elementAddress = Address(offset)
-
-          context.stack.push(AddressInfo(elementAddress, indexTypes.last._2))
+          context.stack.push(AddressInfo(Address(offset), indexTypes.last._2))
         }
 
         Seq()
