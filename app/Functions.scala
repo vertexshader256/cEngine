@@ -125,28 +125,23 @@ object Functions {
       new Function("printf", false) {
         def run(formattedOutputParams: Array[AnyVal], state: State) = {
 
-          val resolved = formattedOutputParams.map{x => x match {
-            case addy @ Address(addr) => {
-              // its a string!
-              Utils.readString(addy)(state)
-            }
-            case x => TypeHelper.resolve(x)(state).value
-          }}.reverse
-
-          val str = resolved.head.asInstanceOf[String]
+          val str = Utils.readString(formattedOutputParams.last.asInstanceOf[Address])(state)
           val formatString = str.replaceAll("^\"|\"$", "").replaceAll("%ld", "%d").replaceAll("%l", "%d").replaceAll(10.asInstanceOf[Char].toString, System.lineSeparator())
 
-          val buffer = new StringBuffer();
-          val formatter = new Formatter(buffer, Locale.US);
+          val buffer = new StringBuffer()
+          val formatter = new Formatter(buffer, Locale.US)
 
-          val resolvedStrings = resolved.tail.map{ _ match {
-            case str: String =>
+          val resolved = formattedOutputParams.reverse.tail.map{x => x match {
+            case addy @ Address(addr) => {
+              // its a string!
+              val str = Utils.readString(addy)(state)
               val resolved = str.replaceAll(10.asInstanceOf[Char].toString, System.lineSeparator())
               resolved.split(System.lineSeparator()).mkString
-            case x => x
+            }
+            case x => TypeHelper.resolve(x)(state).value
           }}.map{_.asInstanceOf[Object]}
 
-          formatter.format(formatString, resolvedStrings: _*)
+          formatter.format(formatString, resolved: _*)
 
           state.stdout ++= buffer.toString.split(System.lineSeparator())
           None
