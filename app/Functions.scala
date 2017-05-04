@@ -124,15 +124,31 @@ object Functions {
       },
       new Function("printf", false) {
         def run(formattedOutputParams: Array[AnyVal], state: State) = {
+
           val resolved = formattedOutputParams.map{x => x match {
             case addy @ Address(addr) => {
               // its a string!
               Utils.readString(addy)(state)
             }
             case x => TypeHelper.resolve(x)(state).value
-          }}
-          
-          Functions.printf(state, resolved.map(_.asInstanceOf[Object]))
+          }}.reverse
+
+          val str = resolved.head.asInstanceOf[String]
+          val formatString = str.replaceAll("^\"|\"$", "").replaceAll("%ld", "%d").replaceAll("%l", "%d").replaceAll(10.asInstanceOf[Char].toString, System.lineSeparator())
+
+          val buffer = new StringBuffer();
+          val formatter = new Formatter(buffer, Locale.US);
+
+          val resolvedStrings = resolved.tail.map{ _ match {
+            case str: String =>
+              val resolved = str.replaceAll(10.asInstanceOf[Char].toString, System.lineSeparator())
+              resolved.split(System.lineSeparator()).mkString
+            case x => x
+          }}.map{_.asInstanceOf[Object]}
+
+          formatter.format(formatString, resolvedStrings: _*)
+
+          state.stdout ++= buffer.toString.split(System.lineSeparator())
           None
         }
       },
@@ -218,28 +234,6 @@ object Functions {
         }
       }
   )
-  
-  
-  
-  
+
   var standardOutBuffer = ""
-
-  def printf(context: State, theArgs: Seq[Object]) = {
-    val args = theArgs.reverse
-    val formatString = args.head.asInstanceOf[String].replaceAll("^\"|\"$", "").replaceAll("%ld", "%d").replaceAll("%l", "%d").replaceAll(10.asInstanceOf[Char].toString, System.lineSeparator())
-
-    val buffer = new StringBuffer();
-    val formatter = new Formatter(buffer, Locale.US);
-    
-    val resolvedStrings = args.tail.map{ _ match {
-      case str: String => 
-        val resolved = str.replaceAll(10.asInstanceOf[Char].toString, System.lineSeparator())
-        resolved.split(System.lineSeparator()).mkString
-      case x => x 
-    }}.toArray
-    
-    formatter.format(formatString, resolvedStrings: _*)
-
-    context.stdout ++= buffer.toString.split(System.lineSeparator())
-  }
 }
