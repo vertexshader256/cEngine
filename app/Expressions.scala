@@ -217,7 +217,7 @@ object Expressions {
             context.stack.pop match {
               case info @ AddressInfo(_, _) =>
                 info.theType match {
-                  case fcn: CFunctionType => context.stack.push(AddressInfo(info.address, TypeHelper.pointerType))
+                  case fcn: CFunctionType => context.stack.push(AddressInfo(info.address, fcn))
                   case x: IType => context.stack.push(ValueInfo(info.address.value, x))
                 }
             }
