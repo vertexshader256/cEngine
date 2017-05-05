@@ -23,16 +23,16 @@ object Variable {
     }
   }
   
-  def allocateSpace(state: State, aType: IType, numElements: Int): Address = {
+  def allocateSpace(state: State, aType: IType, numElements: Int): Int = {
     if (aType.isInstanceOf[CFunctionType]) {
-      Address(state.allocateSpace(4 * numElements))
+      state.allocateSpace(4 * numElements)
     } else if (TypeHelper.isPointer(aType)) {
-      Address(state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * numElements))
+      state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * numElements)
     } else if (aType.isInstanceOf[CStructure]) {
       val struct = aType.asInstanceOf[CStructure]
-      var result: Address = Address(-1)
+      var result = -1
       struct.getFields.foreach { field =>
-        if (result == Address(-1)) {
+        if (result == -1) {
           result = allocateSpace(state, field.getType, numElements)
         } else {
           allocateSpace(state, field.getType, numElements)
@@ -44,7 +44,7 @@ object Variable {
     } else if (aType.isInstanceOf[IQualifierType]) {
       allocateSpace(state, aType.asInstanceOf[IQualifierType].getType, numElements)
     } else {
-      Address(state.allocateSpace(TypeHelper.sizeof(aType) * numElements))
+      state.allocateSpace(TypeHelper.sizeof(aType) * numElements)
     }
   }
 }
@@ -83,7 +83,7 @@ protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) exten
 
     def recurse(subType: IType, dimensions: Seq[Int]): Address = {
 
-      val addr = Variable.allocateSpace(state, subType, dimensions.head)
+      val addr = Address(Variable.allocateSpace(state, subType, dimensions.head))
       for (i <- (0 until dimensions.head)) {
 
         if (dimensions.size > 1) {
@@ -112,7 +112,7 @@ protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) exten
   }
 }
 
-protected class Variable(val state: State, theType: IType) extends AddressInfo(Variable.allocateSpace(state, theType, 1), theType)(state) {
+protected class Variable(val state: State, theType: IType) extends AddressInfo(Address(Variable.allocateSpace(state, theType, 1)), theType)(state) {
   val size = TypeHelper.sizeof(theType)
 
   def setValues(values: List[ValueInfo]) = {
