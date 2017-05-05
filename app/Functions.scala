@@ -105,7 +105,7 @@ object Functions {
           val fraction = formattedOutputParams(0).asInstanceOf[Double]
           val intPart = formattedOutputParams(1).asInstanceOf[Int]
           
-          state.setValue(fraction.toInt, Address(intPart))
+          state.setValue(fraction.toInt, intPart)
           
           Some(fraction % 1.0)
         }
@@ -211,7 +211,7 @@ object Functions {
           val precision = formattedOutputParams(3).asInstanceOf[Int]
           val decpt = formattedOutputParams(2).asInstanceOf[Int]
           
-          state.setValue(1, Address(decpt))
+          state.setValue(1, decpt)
           
           val buffer = new StringBuffer();
           val formatter = new Formatter(buffer, Locale.US);

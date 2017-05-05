@@ -38,8 +38,8 @@ object Expressions {
           case info @ AddressInfo(_, _) => info
           case ValueInfo(value, _) =>
             val newAddr = context.allocateSpace(TypeHelper.sizeof(theType))
-            context.setValue(TypeHelper.cast(theType, value).value, Address(newAddr))
-            AddressInfo(Address(newAddr), theType)
+            context.setValue(TypeHelper.cast(theType, value).value, newAddr)
+            AddressInfo(newAddr, theType)
         })
 
         Seq()
@@ -49,16 +49,16 @@ object Expressions {
         Seq(fieldRef.getFieldOwner)
       } else {
         
-        var baseAddr: Address = Address(-1)
+        var baseAddr = -1
         
         val owner = context.stack.pop
         
-        def resolve(theType: IType, addr: Address): CStructure = theType match {
+        def resolve(theType: IType, addr: Int): CStructure = theType match {
           case typedef: CTypedef => 
             resolve(typedef.getType, addr)
           case struct: CStructure => struct
           case ptr: IPointerType => 
-            baseAddr = Address(context.readPtrVal(addr).value.asInstanceOf[Int])
+            baseAddr = context.readPtrVal(Address(addr)).value.asInstanceOf[Int]
             resolve(ptr.getType, baseAddr)
         }
         
@@ -137,7 +137,7 @@ object Expressions {
             }
           }
 
-          context.stack.push(AddressInfo(Address(offset), indexTypes.last._2))
+          context.stack.push(AddressInfo(offset, indexTypes.last._2))
         }
 
         Seq()
@@ -218,15 +218,15 @@ object Expressions {
               case info @ AddressInfo(_, _) =>
                 info.theType match {
                   case fcn: CFunctionType => context.stack.push(AddressInfo(info.address, fcn))
-                  case x: IType => context.stack.push(ValueInfo(info.address.value, x))
+                  case x: IType => context.stack.push(ValueInfo(info.address, x))
                 }
             }
           case `op_star` =>
             context.stack.pop match {
               case ValueInfo(int: Int, theType) =>
-                context.stack.push(AddressInfo(Address(int), TypeHelper.resolve(theType)))
+                context.stack.push(AddressInfo(int, TypeHelper.resolve(theType)))
               case ValueInfo(addr @ Address(_), theType) =>
-                context.stack.push(AddressInfo(addr, TypeHelper.resolve(theType)))
+                context.stack.push(AddressInfo(addr.value, TypeHelper.resolve(theType)))
               case info @ AddressInfo(_,_) =>
                 val nestedType = info.theType match {
                   case ptr: IPointerType => ptr.getType
@@ -235,7 +235,7 @@ object Expressions {
                 
                 if (!nestedType.isInstanceOf[IFunctionType]) {
                   val value = info.value.value
-                  context.stack.push(AddressInfo(Address(value.asInstanceOf[Int]), nestedType))
+                  context.stack.push(AddressInfo(value.asInstanceOf[Int], nestedType))
                 } else {
                   // function pointers can ignore the star
                   context.stack.push(info)
