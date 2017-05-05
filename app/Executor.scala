@@ -58,7 +58,7 @@ case class ValueInfo(value: AnyVal, theType: IType) extends Stackable
 object ValueInfo2 {
   def apply(value: AnyVal, theType: IType)(implicit state: State): AddressInfo = {
     val addr = state.allocateSpace(TypeHelper.sizeof(TypeHelper.getType(value)))
-    state.setValue(value, Address(addr))
+    state.setValue(value, addr)
     AddressInfo(addr, theType)
   }
 }
@@ -88,7 +88,7 @@ protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) exten
 
         if (dimensions.size > 1) {
           val subaddr = recurse(subType, dimensions.tail)
-          state.setValue(subaddr, Address(addr) + i * 4)
+          state.setValue(subaddr, addr + i * 4)
         }
       }
       addr
@@ -99,7 +99,7 @@ protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) exten
 
   if (!dim.isEmpty) {
     val theArrayAddress = allocate
-    state.setValue(theArrayAddress, Address(address))
+    state.setValue(theArrayAddress, address)
   }
 
   def setArray(array: Array[_])(implicit state: State): Unit = {
@@ -118,7 +118,7 @@ protected class Variable(val state: State, theType: IType) extends AddressInfo(V
   def setValues(values: List[ValueInfo]) = {
      var offset = 0
       values.foreach { case ValueInfo(value, theType) =>
-        state.setValue(value, Address(address) + offset)
+        state.setValue(value, address + offset)
         offset += TypeHelper.sizeof(theType)
       }
   }
@@ -360,7 +360,7 @@ object Executor {
                 val initString = state.stack.pop.asInstanceOf[StringLiteral].value
                 val strAddr = state.createStringVariable(initString, false)
                 val theArrayPtr = new Variable(state, theType.asInstanceOf[IArrayType])
-                state.setValue(strAddr.value, Address(theArrayPtr.address))
+                state.setValue(strAddr.value, theArrayPtr.address)
                 state.context.addVariable(name, theArrayPtr)
               } else {
                 val list = initializer.getInitializerClause.asInstanceOf[IASTInitializerList]
@@ -495,14 +495,14 @@ object Executor {
                 val name = paramDecl.getDeclarator.getName.getRawSignature
                 val newVar = new Variable(state, paramInfo.getType)
                 val casted = TypeHelper.cast(newVar.theType, arg.value).value
-                state.setValue(casted, Address(newVar.address))
+                state.setValue(casted, newVar.address)
             
                 state.context.addVariable(name, newVar)
               } else {
                 val theType = TypeHelper.getType(arg.value)
                 val sizeof = TypeHelper.sizeof(theType)
                 val space = state.allocateSpace(Math.max(sizeof, 4))
-                state.setValue(arg.value, Address(space))
+                state.setValue(arg.value, space)
               }
             }
           }
