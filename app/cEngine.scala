@@ -66,7 +66,7 @@ class State {
     val fcnType = new CFunctionType(new CBasicType(IBasicType.Kind.eVoid, 0), null)
     
     val newVar = new Variable(State.this, fcnType)
-    setValue(functionCount, newVar.address)
+    setValue(functionCount, Address(newVar.address))
     
     functionPointers += fcn.name -> newVar
     functionCount += 1
@@ -85,7 +85,7 @@ class State {
     }
     
     val newVar = new Variable(State.this, fcnType)
-    setValue(functionCount, newVar.address)
+    setValue(functionCount, Address(newVar.address))
     
     functionPointers += name.getRawSignature -> newVar
     functionCount += 1
@@ -170,7 +170,7 @@ class State {
     val withNull = translateLineFeed.toCharArray() :+ 0.toChar // terminating null char
     val strAddr = if (isHeap) allocateHeapSpace(withNull.size) else allocateSpace(withNull.size)
     
-    setArray(withNull, AddressInfo(Address(strAddr), new CBasicType(IBasicType.Kind.eChar, 0)))
+    setArray(withNull, AddressInfo(strAddr, new CBasicType(IBasicType.Kind.eChar, 0)))
     ValueInfo(Address(strAddr), TypeHelper.pointerType)
   }
 
@@ -216,23 +216,24 @@ class State {
 
   def setArray(array: Array[_], info: AddressInfo)(implicit state: State): Unit = {
       var i = 0
+      val address = Address(info.address)
       val resolved = TypeHelper.resolve(info.theType)
       array.foreach { element =>
         element match {
           case addr @ Address(addy) => 
-            setValue(addy, info.address + i)
+            setValue(addy, address + i)
           case char: Character =>
-            setValue(char, info.address + i)
+            setValue(char, address + i)
           case doub: Double =>
-            setValue(doub, info.address + i)
+            setValue(doub, address + i)
           case ValueInfo(newVal, _) =>
-            setValue(newVal, info.address + i)
+            setValue(newVal, address + i)
           case addrInfo @ AddressInfo(_, _) =>
-            setValue(addrInfo.value.value, info.address + i)
+            setValue(addrInfo.value.value, address + i)
           case int: Int =>
-            setValue(int, info.address + i)
+            setValue(int, address + i)
           case char: Char =>
-            setValue(char.toByte, info.address + i)
+            setValue(char.toByte, address + i)
 //          case double: Double =>
 //            state.setValue(double, AddressInfo(theArrayAddress + i, resolved))
         }

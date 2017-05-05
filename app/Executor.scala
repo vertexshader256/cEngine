@@ -57,8 +57,8 @@ case class ValueInfo(value: AnyVal, theType: IType) extends Stackable
 
 object ValueInfo2 {
   def apply(value: AnyVal, theType: IType)(implicit state: State): AddressInfo = {
-    val addr = Address(state.allocateSpace(TypeHelper.sizeof(TypeHelper.getType(value))))
-    state.setValue(value, addr)
+    val addr = state.allocateSpace(TypeHelper.sizeof(TypeHelper.getType(value)))
+    state.setValue(value, Address(addr))
     AddressInfo(addr, theType)
   }
 }
@@ -71,24 +71,24 @@ case class Address(value: Int) extends AnyVal {
     Address(value + x)
   }
 }
-case class AddressInfo(address: Address, theType: IType)(implicit state: State) extends Stackable {
+case class AddressInfo(address: Int, theType: IType)(implicit state: State) extends Stackable {
   def sizeof = TypeHelper.sizeof(theType)
-  def value: ValueInfo = state.readVal(address.value, theType)
+  def value: ValueInfo = state.readVal(address, theType)
 }
 
 protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) extends Variable(state, theType) {
  
-  def allocate: Address = {
+  def allocate: Int = {
     // where we store the actual data
 
-    def recurse(subType: IType, dimensions: Seq[Int]): Address = {
+    def recurse(subType: IType, dimensions: Seq[Int]): Int = {
 
-      val addr = Address(Variable.allocateSpace(state, subType, dimensions.head))
+      val addr = Variable.allocateSpace(state, subType, dimensions.head)
       for (i <- (0 until dimensions.head)) {
 
         if (dimensions.size > 1) {
           val subaddr = recurse(subType, dimensions.tail)
-          state.setValue(subaddr.value, addr + i * 4)
+          state.setValue(subaddr, Address(addr) + i * 4)
         }
       }
       addr
@@ -99,7 +99,7 @@ protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) exten
 
   if (!dim.isEmpty) {
     val theArrayAddress = allocate
-    state.setValue(theArrayAddress.value, address)
+    state.setValue(theArrayAddress, Address(address))
   }
 
   def setArray(array: Array[_])(implicit state: State): Unit = {
@@ -112,13 +112,13 @@ protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) exten
   }
 }
 
-protected class Variable(val state: State, theType: IType) extends AddressInfo(Address(Variable.allocateSpace(state, theType, 1)), theType)(state) {
+protected class Variable(val state: State, theType: IType) extends AddressInfo(Variable.allocateSpace(state, theType, 1), theType)(state) {
   val size = TypeHelper.sizeof(theType)
 
   def setValues(values: List[ValueInfo]) = {
      var offset = 0
       values.foreach { case ValueInfo(value, theType) =>
-        state.setValue(value, address + offset)
+        state.setValue(value, Address(address) + offset)
         offset += TypeHelper.sizeof(theType)
       }
   }
@@ -360,7 +360,7 @@ object Executor {
                 val initString = state.stack.pop.asInstanceOf[StringLiteral].value
                 val strAddr = state.createStringVariable(initString, false)
                 val theArrayPtr = new Variable(state, theType.asInstanceOf[IArrayType])
-                state.setValue(strAddr.value, theArrayPtr.address)
+                state.setValue(strAddr.value, Address(theArrayPtr.address))
                 state.context.addVariable(name, theArrayPtr)
               } else {
                 val list = initializer.getInitializerClause.asInstanceOf[IASTInitializerList]
@@ -495,7 +495,7 @@ object Executor {
                 val name = paramDecl.getDeclarator.getName.getRawSignature
                 val newVar = new Variable(state, paramInfo.getType)
                 val casted = TypeHelper.cast(newVar.theType, arg.value).value
-                state.setValue(casted, newVar.address)
+                state.setValue(casted, Address(newVar.address))
             
                 state.context.addVariable(name, newVar)
               } else {
