@@ -25,9 +25,9 @@ object Variable {
   
   def allocateSpace(state: State, aType: IType, numElements: Int): Address = {
     if (aType.isInstanceOf[CFunctionType]) {
-      state.allocateSpace(4 * numElements)
+      Address(state.allocateSpace(4 * numElements))
     } else if (TypeHelper.isPointer(aType)) {
-      state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * numElements)
+      Address(state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * numElements))
     } else if (aType.isInstanceOf[CStructure]) {
       val struct = aType.asInstanceOf[CStructure]
       var result: Address = Address(-1)
@@ -44,7 +44,7 @@ object Variable {
     } else if (aType.isInstanceOf[IQualifierType]) {
       allocateSpace(state, aType.asInstanceOf[IQualifierType].getType, numElements)
     } else {
-      state.allocateSpace(TypeHelper.sizeof(aType) * numElements)
+      Address(state.allocateSpace(TypeHelper.sizeof(aType) * numElements))
     }
   }
 }
@@ -57,7 +57,7 @@ case class ValueInfo(value: AnyVal, theType: IType) extends Stackable
 
 object ValueInfo2 {
   def apply(value: AnyVal, theType: IType)(implicit state: State): AddressInfo = {
-    val addr = state.allocateSpace(TypeHelper.sizeof(TypeHelper.getType(value)))
+    val addr = Address(state.allocateSpace(TypeHelper.sizeof(TypeHelper.getType(value))))
     state.setValue(value, addr)
     AddressInfo(addr, theType)
   }
@@ -502,7 +502,7 @@ object Executor {
                 val theType = TypeHelper.getType(arg.value)
                 val sizeof = TypeHelper.sizeof(theType)
                 val space = state.allocateSpace(Math.max(sizeof, 4))
-                state.setValue(arg.value, space)
+                state.setValue(arg.value, Address(space))
               }
             }
           }

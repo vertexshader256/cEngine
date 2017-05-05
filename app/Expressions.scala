@@ -38,8 +38,8 @@ object Expressions {
           case info @ AddressInfo(_, _) => info
           case ValueInfo(value, _) =>
             val newAddr = context.allocateSpace(TypeHelper.sizeof(theType))
-            context.setValue(TypeHelper.cast(theType, value).value, newAddr)
-            AddressInfo(newAddr, theType)
+            context.setValue(TypeHelper.cast(theType, value).value, Address(newAddr))
+            AddressInfo(Address(newAddr), theType)
         })
 
         Seq()

@@ -132,23 +132,23 @@ class State {
     }
   }
 
-  def allocateSpace(numBytes: Int): Address = {
+  def allocateSpace(numBytes: Int): Int = {
     if (numBytes > 0) {
       val result = stackInsertIndex
       stackInsertIndex += numBytes
-      Address(result)
+      result
     } else {
-      Address(0)
+      0
     }
   }
   
-  def allocateHeapSpace(numBytes: Int): Address = {
+  def allocateHeapSpace(numBytes: Int): Int = {
     if (numBytes > 0) {
       val result = heapInsertIndex
       heapInsertIndex += numBytes
-      Address(result)
+      result
     } else {
-      Address(0)
+      0
     }
   }
   
@@ -170,8 +170,8 @@ class State {
     val withNull = translateLineFeed.toCharArray() :+ 0.toChar // terminating null char
     val strAddr = if (isHeap) allocateHeapSpace(withNull.size) else allocateSpace(withNull.size)
     
-    setArray(withNull, AddressInfo(strAddr, new CBasicType(IBasicType.Kind.eChar, 0)))
-    ValueInfo(strAddr, TypeHelper.pointerType)
+    setArray(withNull, AddressInfo(Address(strAddr), new CBasicType(IBasicType.Kind.eChar, 0)))
+    ValueInfo(Address(strAddr), TypeHelper.pointerType)
   }
 
   def readVal(addr: Address, theType: IType): ValueInfo = {
