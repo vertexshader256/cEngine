@@ -152,10 +152,10 @@ class State {
     }
   }
   
-  def copy(dst: Address, src: Address, numBytes: Int) = {
+  def copy(dst: Int, src: Int, numBytes: Int) = {
     if (numBytes != 0) {
       for (i <- (0 until numBytes)) {
-         tape.put(dst.value + i, tape.get(src.value + i))
+         tape.put(dst + i, tape.get(src + i))
       }   
     }
   }

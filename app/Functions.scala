@@ -79,7 +79,7 @@ object Functions {
           val src = formattedOutputParams(1).asInstanceOf[Address]
           val numBytes = formattedOutputParams(2).asInstanceOf[Int]
           
-          state.copy(dst, src, numBytes)
+          state.copy(dst.value, src.value, numBytes)
           None
         }
       },
@@ -89,7 +89,7 @@ object Functions {
           val src = formattedOutputParams(1).asInstanceOf[Int]
           val numBytes = formattedOutputParams(2).asInstanceOf[Int]
 
-          state.copy(Address(dst), Address(src), numBytes)
+          state.copy(dst, src, numBytes)
           None
         }
       },
