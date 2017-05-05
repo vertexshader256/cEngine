@@ -66,7 +66,7 @@ class State {
     val fcnType = new CFunctionType(new CBasicType(IBasicType.Kind.eVoid, 0), null)
     
     val newVar = new Variable(State.this, fcnType)
-    setValue(functionCount, Address(newVar.address))
+    setValue(functionCount, newVar.address)
     
     functionPointers += fcn.name -> newVar
     functionCount += 1
@@ -85,7 +85,7 @@ class State {
     }
     
     val newVar = new Variable(State.this, fcnType)
-    setValue(functionCount, Address(newVar.address))
+    setValue(functionCount, newVar.address)
     
     functionPointers += name.getRawSignature -> newVar
     functionCount += 1
@@ -216,7 +216,7 @@ class State {
 
   def setArray(array: Array[_], info: AddressInfo)(implicit state: State): Unit = {
       var i = 0
-      val address = Address(info.address)
+      val address = info.address
       val resolved = TypeHelper.resolve(info.theType)
       array.foreach { element =>
         element match {
@@ -259,14 +259,14 @@ class State {
   }
   
   // use Address type to prevent messing up argument order
-  def setValue(newVal: AnyVal, address: Address): Unit = newVal match {
-    case char: Character    => tape.put(address.value, char)
-    case long: Long => tape.putLong(address.value, long)
-    case short: Short  => tape.putShort(address.value, short)
-    case bool: Boolean => tape.putInt(address.value, if (bool) 1 else 0)
-    case int: Int => tape.putInt(address.value, int) 
-    case Address(int) => tape.putInt(address.value, int) 
-    case float: Float   => tape.putFloat(address.value, float)
-    case double: Double  => tape.putDouble(address.value, double)
+  def setValue(newVal: AnyVal, address: Int): Unit = newVal match {
+    case char: Character    => tape.put(address, char)
+    case long: Long => tape.putLong(address, long)
+    case short: Short  => tape.putShort(address, short)
+    case bool: Boolean => tape.putInt(address, if (bool) 1 else 0)
+    case int: Int => tape.putInt(address, int)
+    case Address(int) => tape.putInt(address, int)
+    case float: Float   => tape.putFloat(address, float)
+    case double: Double  => tape.putDouble(address, double)
   }
 }
