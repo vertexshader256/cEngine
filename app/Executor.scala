@@ -73,7 +73,7 @@ case class Address(value: Int) extends AnyVal {
 }
 case class AddressInfo(address: Address, theType: IType)(implicit state: State) extends Stackable {
   def sizeof = TypeHelper.sizeof(theType)
-  def value: ValueInfo = state.readVal(address, theType)
+  def value: ValueInfo = state.readVal(address.value, theType)
 }
 
 protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) extends Variable(state, theType) {

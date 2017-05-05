@@ -161,7 +161,7 @@ class State {
   }
   
   def readPtrVal(address: Address): ValueInfo = {
-    readVal(address, TypeHelper.pointerType)
+    readVal(address.value, TypeHelper.pointerType)
   }
   
   def createStringVariable(str: String, isHeap: Boolean)(implicit state: State): ValueInfo = {
@@ -174,11 +174,9 @@ class State {
     ValueInfo(Address(strAddr), TypeHelper.pointerType)
   }
 
-  def readVal(addr: Address, theType: IType): ValueInfo = {
+  def readVal(address: Int, theType: IType): ValueInfo = {
 
     import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
-
-    val address = addr.value
     
     val result: AnyVal = theType match {
       case basic: IBasicType =>
@@ -205,8 +203,8 @@ class State {
       case array: IArrayType => tape.getInt(address)
       case fcn: IFunctionType => tape.getInt(address)
       case struct: CStructure => tape.getInt(address)
-      case qual: IQualifierType => readVal(addr, qual.getType).value
-      case typedef: CTypedef => readVal(addr, typedef.getType).value
+      case qual: IQualifierType => readVal(address, qual.getType).value
+      case typedef: CTypedef => readVal(address, typedef.getType).value
     }
     
     TypeHelper.castSign(theType, result)

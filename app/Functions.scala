@@ -157,7 +157,7 @@ object Functions {
           var current: Character = 0
           var i = 0
           do {
-            current = state.readVal(Address(straddy + i), new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[Character]
+            current = state.readVal(straddy + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[Character]
             if (current != 0) {
               i += 1
             }
@@ -183,7 +183,7 @@ object Functions {
             case _ => (4, TypeHelper.pointerType)
           })
           
-          val result = state.readVal(Address(varArgStartingAddr), theType).value
+          val result = state.readVal(varArgStartingAddr, theType).value
           println("RESULT: " + result)
 
           
