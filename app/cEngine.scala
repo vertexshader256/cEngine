@@ -171,7 +171,7 @@ class State {
     val strAddr = if (isHeap) allocateHeapSpace(withNull.size) else allocateSpace(withNull.size)
     
     setArray(withNull, AddressInfo(strAddr, new CBasicType(IBasicType.Kind.eChar, 0)))
-    ValueInfo(StringAddress(strAddr), TypeHelper.pointerType)
+    ValueInfo(strAddr, TypeHelper.pointerType)
   }
 
   def readVal(address: Int, theType: IType): ValueInfo = {
@@ -259,7 +259,6 @@ class State {
     case short: Short  => tape.putShort(address, short)
     case bool: Boolean => tape.putInt(address, if (bool) 1 else 0)
     case int: Int => tape.putInt(address, int)
-    case StringAddress(int) => tape.putInt(address, int)
     case float: Float   => tape.putFloat(address, float)
     case double: Double  => tape.putDouble(address, double)
   }

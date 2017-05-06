@@ -125,7 +125,7 @@ object Functions {
       new Function("printf", false) {
         def run(formattedOutputParams: Array[ValueInfo], state: State) = {
 
-          val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[StringAddress].value)(state)
+          val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(state)
           val formatString = str.replaceAll("^\"|\"$", "").replaceAll("%ld", "%d").replaceAll("%l", "%d").replaceAll(10.asInstanceOf[Char].toString, System.lineSeparator())
 
           val buffer = new StringBuffer()
@@ -144,7 +144,7 @@ object Functions {
             } else if (percentFound && c == 's') {
               percentFound = false
               val theVal = varArgs(paramCount).value
-              val stringAddr = if (theVal.isInstanceOf[Int]) theVal.asInstanceOf[Int] else theVal.asInstanceOf[StringAddress].value
+              val stringAddr = theVal.asInstanceOf[Int]
               val str = Utils.readString(stringAddr)(state)
               val replaced = str.replaceAll(10.asInstanceOf[Char].toString, System.lineSeparator())
               resolved += replaced.split(System.lineSeparator()).mkString.asInstanceOf[Object]
@@ -180,7 +180,6 @@ object Functions {
         def run(formattedOutputParams: Array[ValueInfo], state: State) = {
           val straddy = formattedOutputParams.head.value match {
             //case AddressInfo(addr, _) => addr.value
-            case StringAddress(addr) => addr
             case int: Int => int
           }
           var current: Character = 0
@@ -201,9 +200,9 @@ object Functions {
       },
       new Function("va_arg", false) {
         def run(formattedOutputParams: Array[ValueInfo], state: State) = {
-          val argTypeStr = formattedOutputParams(0).value.asInstanceOf[StringAddress]
+          val argTypeStr = formattedOutputParams(0).value.asInstanceOf[Int]
           
-          val str = Utils.readString(argTypeStr.value)(state)
+          val str = Utils.readString(argTypeStr)(state)
           
           val (offset, theType) = (str match {
             case "int" => (4, TypeHelper.pointerType)

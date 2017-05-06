@@ -66,8 +66,6 @@ object ValueInfo2 {
 case class StringLiteral(value: String) extends Stackable
 case class TypeInfo(value: IType) extends Stackable
 
-case class StringAddress(value: Int) extends AnyVal
-
 case class AddressInfo(address: Int, theType: IType)(implicit state: State) extends Stackable {
   def sizeof = TypeHelper.sizeof(theType)
   def value: ValueInfo = state.readVal(address, theType)
