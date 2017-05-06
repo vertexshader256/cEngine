@@ -160,8 +160,8 @@ class State {
     }
   }
   
-  def readPtrVal(address: Address): ValueInfo = {
-    readVal(address.value, TypeHelper.pointerType)
+  def readPtrVal(address: Int): ValueInfo = {
+    readVal(address, TypeHelper.pointerType)
   }
   
   def createStringVariable(str: String, isHeap: Boolean)(implicit state: State): ValueInfo = {

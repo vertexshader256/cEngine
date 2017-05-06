@@ -58,7 +58,7 @@ object Expressions {
             resolve(typedef.getType, addr)
           case struct: CStructure => struct
           case ptr: IPointerType => 
-            baseAddr = context.readPtrVal(Address(addr)).value.asInstanceOf[Int]
+            baseAddr = context.readPtrVal(addr).value.asInstanceOf[Int]
             resolve(ptr.getType, baseAddr)
         }
         
@@ -131,7 +131,7 @@ object Expressions {
             val step = TypeHelper.sizeof(aType)
             if (aType.isInstanceOf[IArrayType] || TypeHelper.resolve(aType).getKind == IBasicType.Kind.eChar && !aType.isInstanceOf[IBasicType]) {
               // special case for strings
-              offset = context.readPtrVal(Address(offset + arrayIndex * step)).value.asInstanceOf[Int]
+              offset = context.readPtrVal(offset + arrayIndex * step).value.asInstanceOf[Int]
             } else {
               offset += arrayIndex * step
             }
