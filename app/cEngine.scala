@@ -80,7 +80,7 @@ class State {
     functionList += new Function(name.getRawSignature, true) {
       index = functionCount
       def parameters = fcnType.getParameterTypes.toList
-      def run(formattedOutputParams: Array[AnyVal], state: State): Option[AnyVal] = {None}
+      def run(formattedOutputParams: Array[ValueInfo], state: State): Option[AnyVal] = {None}
       override def getNext = fcnDef
     }
     
@@ -101,7 +101,7 @@ class State {
     functionList.find(_.name == name).map{ fcn =>
       if (!fcn.isNative) {
         // this is a function simulated in scala
-        fcn.run(args.map(_.value).reverse, this).foreach{retVal => context.stack.push(ValueInfo(retVal, null))}
+        fcn.run(args.reverse, this).foreach{retVal => context.stack.push(ValueInfo(retVal, null))}
         Seq()
       } else {
         callFunction(fcn, call, args)
