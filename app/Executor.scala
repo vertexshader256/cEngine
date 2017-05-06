@@ -118,7 +118,6 @@ class ExecutionContext(parentVars: Map[String, Variable], val returnType: IType,
   val pathStack = new Stack[IASTNode]()
   val stack = new Stack[Stackable]()
 
-  def containsId(id: String) = varMap.contains(id) || state.functionPointers.contains(id)
   def resolveId(id: String): Variable = varMap.get(id).getOrElse(state.functionPointers(id))
   def addVariable(id: String, theVar: Variable) = varMap += (id -> theVar) 
 }
@@ -555,7 +554,6 @@ object Executor {
                 case `t_double` => new CBasicType(IBasicType.Kind.eDouble, config)           
                 case `t_char`   => new CBasicType(IBasicType.Kind.eChar, config)
                 case `t_void`   => new CBasicType(IBasicType.Kind.eVoid, config)
-                case `t_typeof`   => new CBasicType(IBasicType.Kind.eVoid, config) // FIX
               }
               
               for (ptr <- typeId.getAbstractDeclarator.getPointerOperators) {

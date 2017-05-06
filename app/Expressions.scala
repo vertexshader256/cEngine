@@ -105,7 +105,6 @@ object Expressions {
               case info @ AddressInfo(addr, theType) =>
                 info.value.value match {
                   case int: Int => int
-                  case char: Character => char.toInt
                   case long: Long => long.toInt
                 }
             }
@@ -210,7 +209,6 @@ object Expressions {
             context.stack.push(newVal)
           case `op_sizeof` =>
             context.stack.push(context.stack.pop match {
-              case ValueInfo(_, theType) => ValueInfo2(TypeHelper.sizeof(theType), TypeHelper.pointerType)
               case info @ AddressInfo(_, theType) => ValueInfo2(info.sizeof, TypeHelper.pointerType)
             })
           case `op_amper` =>
