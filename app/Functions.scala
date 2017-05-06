@@ -131,15 +131,44 @@ object Functions {
           val buffer = new StringBuffer()
           val formatter = new Formatter(buffer, Locale.US)
 
-          val resolved = formattedOutputParams.reverse.tail.map{x => x.value match {
-            case addy @ StringAddress(addr) => {
-              // its a string!
-              val str = Utils.readString(addy.value)(state)
-              val resolved = str.replaceAll(10.asInstanceOf[Char].toString, System.lineSeparator())
-              resolved.split(System.lineSeparator()).mkString
+          var percentFound = false
+          var paramCount = 0
+
+          val resolved = new ListBuffer[Object]()
+
+          val varArgs = formattedOutputParams.reverse.tail.toList
+
+          str.toCharArray.foreach{ c =>
+            if (!percentFound && c == '%') {
+              percentFound = true
+            } else if (percentFound && c == 's') {
+              percentFound = false
+              val theVal = varArgs(paramCount).value
+              val stringAddr = if (theVal.isInstanceOf[Int]) theVal.asInstanceOf[Int] else theVal.asInstanceOf[StringAddress].value
+              val str = Utils.readString(stringAddr)(state)
+              val replaced = str.replaceAll(10.asInstanceOf[Char].toString, System.lineSeparator())
+              resolved += replaced.split(System.lineSeparator()).mkString.asInstanceOf[Object]
+              paramCount += 1
+            } else if (percentFound && c == 'd') {
+              val x = TypeHelper.resolve(varArgs(paramCount))(state).value
+              resolved += (if (x.isInstanceOf[Boolean]) {
+                if (x.asInstanceOf[Boolean]) 1 else 0
+              } else {
+                x
+              }).asInstanceOf[Object]
+
+              percentFound = false
+              paramCount += 1
+            } else if (percentFound && c == 'c') {
+              resolved += TypeHelper.resolve(varArgs(paramCount))(state).value.asInstanceOf[Object]
+              percentFound = false
+              paramCount += 1
+            } else if (percentFound && c == 'f') {
+              resolved += TypeHelper.resolve(varArgs(paramCount))(state).value.asInstanceOf[Object]
+              percentFound = false
+              paramCount += 1
             }
-            case x => TypeHelper.resolve(x)(state).value
-          }}.map{_.asInstanceOf[Object]}
+          }
 
           formatter.format(formatString, resolved: _*)
 
