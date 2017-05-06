@@ -364,13 +364,7 @@ object BinaryExpr {
 
     rawOp1 match {
       case info @ AddressInfo(_, _)  =>
-        val result = evaluate(info.value, op2, binaryExpr.getOperator)
-
-        if (result.value.isInstanceOf[Boolean] || !TypeHelper.isPointer(info.theType)) {
-          result
-        } else {
-          ValueInfo(result.value.asInstanceOf[Int], info.theType)
-        }
+        evaluate(info.value, op2, binaryExpr.getOperator)
       case _ =>
         val simple = TypeHelper.resolve(rawOp1)
         performBinaryOperation(simple, op2, binaryExpr.getOperator)
