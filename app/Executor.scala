@@ -15,14 +15,7 @@ import scala.collection.mutable.Map
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 
 object Variable {                              
-  def unapply(any: Any)(implicit state: State): Option[Variable] = {
-    if (any.isInstanceOf[Variable]) {
-      Some(any.asInstanceOf[Variable])
-    } else {
-      None
-    }
-  }
-  
+
   def allocateSpace(state: State, aType: IType, numElements: Int): Int = {
     if (aType.isInstanceOf[CFunctionType]) {
       state.allocateSpace(4 * numElements)
@@ -233,7 +226,7 @@ object Executor {
         val result = state.stack.pop
 
         val value = result match {
-          case Variable(info) => info.value
+          case info @ AddressInfo(_,_) => info.value
           case x => x
         }
 
@@ -340,7 +333,7 @@ object Executor {
             val dimensions = arrayDecl.getArrayModifiers.filter{_.getConstantExpression != null}.map{dim => state.stack.pop match {
               // can we can assume dimensions are integers
               case ValueInfo(value, _) => value.asInstanceOf[Int]
-              case Variable(info) => info.value.value.asInstanceOf[Int]
+              case info @ AddressInfo(_, _) => info.value.value.asInstanceOf[Int]
             }}
             
             val initializer = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
@@ -364,7 +357,6 @@ object Executor {
                 val values: Array[Any] = (0 until size).map{x => state.stack.pop match {
                   case ValueInfo(value,_) => value
                   case info @ AddressInfo(_,_) => info.value.value
-                  case Variable(theVar: Variable) => theVar.value
                 }}.reverse.toArray
   
                 val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], Array(size))
@@ -385,7 +377,7 @@ object Executor {
                     val result = state.createStringVariable(newInit.asInstanceOf[StringLiteral].value, false)
                     resolvedType = TypeHelper.pointerType
                     result
-                  case Variable(x: Variable) => x.value
+                  case info @ AddressInfo(_, _) => info.value
                   case x => x
                 }
               }

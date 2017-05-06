@@ -172,7 +172,7 @@ object Expressions {
             context.stack.pop match {
               case ValueInfo(int: Int, theType)     => context.stack.push(ValueInfo2(-int, theType))
               case ValueInfo(doub: Double, theType)     => context.stack.push(ValueInfo2(-doub, theType))
-              case Variable(info) =>
+              case info @ AddressInfo(_, _) =>
                 val resolvedInfo = resolveVar(info)
               
                 val basicType = resolvedInfo.theType.asInstanceOf[IBasicType]

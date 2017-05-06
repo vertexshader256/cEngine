@@ -33,8 +33,7 @@ object FunctionCallExpr {
           // do this up here so string allocation doesnt clobber arg stack
           val results = call.getArguments.map{call => 
             state.stack.pop match {
-              case Variable(theInfo: Variable) => 
-                val info = theInfo
+              case info @ AddressInfo(_, _) =>
                 if (TypeHelper.isPointer(info.theType) && TypeHelper.getPointedType(info.theType).isInstanceOf[IBasicType] &&
                     TypeHelper.getPointedType(info.theType).asInstanceOf[IBasicType].getKind == IBasicType.Kind.eChar) {
                   ValueInfo(info.value.value.asInstanceOf[Int], info.theType)
