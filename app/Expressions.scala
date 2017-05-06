@@ -225,8 +225,6 @@ object Expressions {
             context.stack.pop match {
               case ValueInfo(int: Int, theType) =>
                 context.stack.push(AddressInfo(int, TypeHelper.resolve(theType)))
-              case ValueInfo(addr @ Address(_), theType) =>
-                context.stack.push(AddressInfo(addr.value, TypeHelper.resolve(theType)))
               case info @ AddressInfo(_,_) =>
                 val nestedType = info.theType match {
                   case ptr: IPointerType => ptr.getType

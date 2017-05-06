@@ -75,11 +75,11 @@ object Functions {
       },
       new Function("memmove", false) {
         def run(formattedOutputParams: Array[AnyVal], state: State) = {
-          val dst = formattedOutputParams(0).asInstanceOf[Address]
-          val src = formattedOutputParams(1).asInstanceOf[Address]
+          val dst = formattedOutputParams(0).asInstanceOf[Int]
+          val src = formattedOutputParams(1).asInstanceOf[Int]
           val numBytes = formattedOutputParams(2).asInstanceOf[Int]
           
-          state.copy(dst.value, src.value, numBytes)
+          state.copy(dst, src, numBytes)
           None
         }
       },
@@ -95,8 +95,8 @@ object Functions {
       },
       new Function("_assert", false) {
         def run(formattedOutputParams: Array[AnyVal], state: State): Option[AnyVal] = {
-          val addy = formattedOutputParams(0).asInstanceOf[Address]
-          println(Utils.readString(addy.value)(state) + " FAILED")
+          val addy = formattedOutputParams(0).asInstanceOf[Int]
+          println(Utils.readString(addy)(state) + " FAILED")
           None
         }
       },

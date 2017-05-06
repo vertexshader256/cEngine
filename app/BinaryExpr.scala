@@ -372,7 +372,7 @@ object BinaryExpr {
           TypeHelper.getPointedType(info.theType).asInstanceOf[IBasicType].getKind == IBasicType.Kind.eChar) {
           ValueInfo(StringAddress(result.value.asInstanceOf[Int]), info.theType)
         } else {
-          ValueInfo(Address(result.value.asInstanceOf[Int]), info.theType)
+          ValueInfo(result.value.asInstanceOf[Int], info.theType)
         }
       case _ =>
         val simple = TypeHelper.resolve(rawOp1)

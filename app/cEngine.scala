@@ -210,18 +210,12 @@ class State {
     TypeHelper.castSign(theType, result)
   }
 
-  def putPointer(addr: Address, newVal: AnyVal) = {
-    tape.putInt(addr.value, newVal.asInstanceOf[Int])
-  }
-
   def setArray(array: Array[_], info: AddressInfo)(implicit state: State): Unit = {
       var i = 0
       val address = info.address
       val resolved = TypeHelper.resolve(info.theType)
       array.foreach { element =>
         element match {
-          case addr @ Address(addy) => 
-            setValue(addy, address + i)
           case char: Character =>
             setValue(char, address + i)
           case doub: Double =>
@@ -265,7 +259,6 @@ class State {
     case short: Short  => tape.putShort(address, short)
     case bool: Boolean => tape.putInt(address, if (bool) 1 else 0)
     case int: Int => tape.putInt(address, int)
-    case Address(int) => tape.putInt(address, int)
     case StringAddress(int) => tape.putInt(address, int)
     case float: Float   => tape.putFloat(address, float)
     case double: Double  => tape.putDouble(address, double)
