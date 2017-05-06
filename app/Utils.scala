@@ -47,12 +47,12 @@ object Utils {
     results
   }
   
-  def readString(address: Address)(implicit state: State): String = {
+  def readString(address: Int)(implicit state: State): String = {
      var current: Char = 0
       var stringBuilder = new ListBuffer[Char]()
       var i = 0
       do {
-        current = state.readVal(address.value + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[Byte].toChar
+        current = state.readVal(address + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[Byte].toChar
         if (current != 0) {
           stringBuilder += current
           i += 1

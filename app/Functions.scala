@@ -96,7 +96,7 @@ object Functions {
       new Function("_assert", false) {
         def run(formattedOutputParams: Array[AnyVal], state: State): Option[AnyVal] = {
           val addy = formattedOutputParams(0).asInstanceOf[Address]
-          println(Utils.readString(addy)(state) + " FAILED")
+          println(Utils.readString(addy.value)(state) + " FAILED")
           None
         }
       },
@@ -125,7 +125,7 @@ object Functions {
       new Function("printf", false) {
         def run(formattedOutputParams: Array[AnyVal], state: State) = {
 
-          val str = Utils.readString(formattedOutputParams.last.asInstanceOf[Address])(state)
+          val str = Utils.readString(formattedOutputParams.last.asInstanceOf[Address].value)(state)
           val formatString = str.replaceAll("^\"|\"$", "").replaceAll("%ld", "%d").replaceAll("%l", "%d").replaceAll(10.asInstanceOf[Char].toString, System.lineSeparator())
 
           val buffer = new StringBuffer()
@@ -134,7 +134,7 @@ object Functions {
           val resolved = formattedOutputParams.reverse.tail.map{x => x match {
             case addy @ Address(addr) => {
               // its a string!
-              val str = Utils.readString(addy)(state)
+              val str = Utils.readString(addy.value)(state)
               val resolved = str.replaceAll(10.asInstanceOf[Char].toString, System.lineSeparator())
               resolved.split(System.lineSeparator()).mkString
             }
@@ -174,7 +174,7 @@ object Functions {
         def run(formattedOutputParams: Array[AnyVal], state: State) = {
           val argTypeStr = formattedOutputParams(0).asInstanceOf[Address]
           
-          val str = Utils.readString(argTypeStr)(state)
+          val str = Utils.readString(argTypeStr.value)(state)
           
           val (offset, theType) = (str match {
             case "int" => (4, TypeHelper.pointerType)
