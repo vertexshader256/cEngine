@@ -101,8 +101,8 @@ object Utils {
     Seq(node) ++ node.getChildren.flatMap{x => getDescendants(x)}
   }
 
-  val mainPath = raw"C:\Scala\Git\AstViewer"
-  val mainAdditionalPath = raw"C:\Scala\Git\AstViewer\test\scala\libds-master"
+  val mainPath = raw"C:\Scala\Git\cEngine"
+  val mainAdditionalPath = raw"C:\Scala\Git\cEngine\test\scala\libds-master"
   val minGWIncludes = raw"C:\MinGW\include"
   val minGWAdditionalIncludes = raw"C:\MinGW\lib\gcc\mingw32\4.9.3\include"
   val minGWMoreIncludes = raw"C:\MinGW\include\GL"
