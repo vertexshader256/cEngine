@@ -37,7 +37,7 @@ object FunctionCallExpr {
                 val info = theInfo
                 if (TypeHelper.isPointer(info.theType) && TypeHelper.getPointedType(info.theType).isInstanceOf[IBasicType] &&
                     TypeHelper.getPointedType(info.theType).asInstanceOf[IBasicType].getKind == IBasicType.Kind.eChar) {
-                  ValueInfo(Address(info.value.value.asInstanceOf[Int]), info.theType)
+                  ValueInfo(StringAddress(info.value.value.asInstanceOf[Int]), info.theType)
                 } else {
                   info.value
                 }

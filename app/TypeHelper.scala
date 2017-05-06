@@ -116,6 +116,7 @@ object TypeHelper {
     
     value match {
       case Address(_)    => pointerType
+      case StringAddress(_)    => pointerType
       case bool: Boolean => new CBasicType(IBasicType.Kind.eBoolean, config)
       case int: Int      => new CBasicType(IBasicType.Kind.eInt, config)
       case long: Long    => new CBasicType(IBasicType.Kind.eInt, config)
@@ -134,6 +135,7 @@ object TypeHelper {
   // resolves 'Any' to 'ValueInfo'
   def resolve(any: Any)(implicit state: State): ValueInfo = {
     any match {
+      case StringAddress(x) => ValueInfo(x, TypeHelper.pointerType)
       case Address(addy) => ValueInfo(addy, TypeHelper.pointerType)
       case info @ AddressInfo(_, _) => info.value
       case value @ ValueInfo(theVal, _) => value

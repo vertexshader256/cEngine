@@ -368,6 +368,9 @@ object BinaryExpr {
 
         if (result.value.isInstanceOf[Boolean] || !TypeHelper.isPointer(info.theType)) {
           result
+        } else if (TypeHelper.isPointer(info.theType) && TypeHelper.getPointedType(info.theType).isInstanceOf[IBasicType] &&
+          TypeHelper.getPointedType(info.theType).asInstanceOf[IBasicType].getKind == IBasicType.Kind.eChar) {
+          ValueInfo(StringAddress(result.value.asInstanceOf[Int]), info.theType)
         } else {
           ValueInfo(Address(result.value.asInstanceOf[Int]), info.theType)
         }

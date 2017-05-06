@@ -66,6 +66,7 @@ object ValueInfo2 {
 case class StringLiteral(value: String) extends Stackable
 case class TypeInfo(value: IType) extends Stackable
 
+case class StringAddress(value: Int) extends AnyVal
 case class Address(value: Int) extends AnyVal {
   def +(x: Int) = {
     Address(value + x)

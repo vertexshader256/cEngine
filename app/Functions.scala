@@ -125,14 +125,14 @@ object Functions {
       new Function("printf", false) {
         def run(formattedOutputParams: Array[AnyVal], state: State) = {
 
-          val str = Utils.readString(formattedOutputParams.last.asInstanceOf[Address].value)(state)
+          val str = Utils.readString(formattedOutputParams.last.asInstanceOf[StringAddress].value)(state)
           val formatString = str.replaceAll("^\"|\"$", "").replaceAll("%ld", "%d").replaceAll("%l", "%d").replaceAll(10.asInstanceOf[Char].toString, System.lineSeparator())
 
           val buffer = new StringBuffer()
           val formatter = new Formatter(buffer, Locale.US)
 
           val resolved = formattedOutputParams.reverse.tail.map{x => x match {
-            case addy @ Address(addr) => {
+            case addy @ StringAddress(addr) => {
               // its a string!
               val str = Utils.readString(addy.value)(state)
               val resolved = str.replaceAll(10.asInstanceOf[Char].toString, System.lineSeparator())
@@ -151,7 +151,7 @@ object Functions {
         def run(formattedOutputParams: Array[AnyVal], state: State) = {
           val straddy = formattedOutputParams.head match {
             //case AddressInfo(addr, _) => addr.value
-            case Address(addr) => addr
+            case StringAddress(addr) => addr
             case int: Int => int
           }
           var current: Character = 0
@@ -172,7 +172,7 @@ object Functions {
       },
       new Function("va_arg", false) {
         def run(formattedOutputParams: Array[AnyVal], state: State) = {
-          val argTypeStr = formattedOutputParams(0).asInstanceOf[Address]
+          val argTypeStr = formattedOutputParams(0).asInstanceOf[StringAddress]
           
           val str = Utils.readString(argTypeStr.value)(state)
           
