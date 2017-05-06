@@ -395,7 +395,7 @@ object Executor {
             state.context.addVariable(name, newVar)
 
             if (!stripped.isInstanceOf[CStructure]) {
-              val initVal = Option(decl.getInitializer).map(x => state.stack.pop).getOrElse(0)  
+              val initVal = Option(decl.getInitializer).map(x => state.stack.pop).getOrElse(ValueInfo(0, null))
               BinaryExpr.parseAssign(op_assign, newVar, initVal)
             } else if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
                  && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {

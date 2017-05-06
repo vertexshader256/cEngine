@@ -12,7 +12,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c.CStructure
 
 object BinaryExpr {
   
-  def parseAssign(op: Int, op1: Any, op2: Any)(implicit state: State): AddressInfo = {
+  def parseAssign(op: Int, op1: Stackable, op2: Stackable)(implicit state: State): AddressInfo = {
 
     val dst: AddressInfo = op1 match {
       case info @ AddressInfo(_, _) => info
@@ -21,7 +21,9 @@ object BinaryExpr {
     val resolvedop2 = op2 match {
       case StringLiteral(str) =>
           state.createStringVariable(str, false)
-      case x => TypeHelper.resolve(x)
+      case addr @ AddressInfo(_, _) => addr.value
+      case value @ ValueInfo(_, _) => value
+      //case x => TypeHelper.resolve(x)
     }
     
     val theVal = dst.value
@@ -36,8 +38,8 @@ object BinaryExpr {
   
   def performBinaryOperation(left: ValueInfo, right: ValueInfo, operator: Int)(implicit state: State): ValueInfo = {
     
-    val op1 = TypeHelper.resolve(left.value).value
-    val op2 = TypeHelper.resolve(right.value).value
+    val op1 = left.value
+    val op2 = right.value
     
     val result: AnyVal = operator match {
       case `op_multiply` | `op_multiplyAssign` =>
