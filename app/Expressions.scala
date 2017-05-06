@@ -270,7 +270,23 @@ object Expressions {
         Seq()
       }
     case call: IASTFunctionCallExpression =>
-      FunctionCallExpr.parse(call, direction)
+      if (direction == Exiting) {
+        val name = context.stack.pop match {
+          case AddressInfo(addr, _) => context.getFunctionByIndex(context.readPtrVal(addr).value.asInstanceOf[Int]).name
+        }
+
+        val rawResults = call.getArguments.map{x => context.stack.pop}
+
+        // do this up here so string allocation doesnt clobber arg stack
+        val results = rawResults.map{x =>
+          Utils.allocateString(x, false)
+        }
+
+        context.callTheFunction(name, call, results)
+
+      } else {
+        call.getArguments.reverse ++ Seq(call.getFunctionNameExpression)
+      }
     case bin: IASTBinaryExpression =>
       if (direction == Exiting) {
         if (context.context.visited.contains(bin.getOperand2)) {
