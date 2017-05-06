@@ -130,17 +130,10 @@ object TypeHelper {
   }
   
   // resolves 'Any' to 'ValueInfo'
-  def resolve(any: Any)(implicit state: State): ValueInfo = {
+  def resolve(any: Stackable)(implicit state: State): ValueInfo = {
     any match {
       case info @ AddressInfo(_, _) => info.value
       case value @ ValueInfo(theVal, _) => value
-      case int: Int => ValueInfo(int, null)
-      case short: Short => ValueInfo(short, null)
-      case float: Float => ValueInfo(float, null)
-      case double: Double => ValueInfo(double, null)
-      case long: Long => ValueInfo(long, null)
-      case bool: Boolean => ValueInfo(if (bool) 1 else 0, null)
-      case byte: Byte => ValueInfo(byte, null)
     }
   }
 

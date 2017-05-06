@@ -29,7 +29,7 @@ object Utils {
     str.tail.reverse.tail.reverse
   }
   
-  def allocateString(arg: Any, isHeap: Boolean)(implicit state: State): ValueInfo = {
+  def allocateString(arg: Stackable, isHeap: Boolean)(implicit state: State): ValueInfo = {
     arg match {
         case StringLiteral(str) => 
           state.createStringVariable(str, isHeap)
