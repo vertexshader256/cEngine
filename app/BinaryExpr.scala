@@ -360,7 +360,10 @@ object BinaryExpr {
   
   def parse(binaryExpr: IASTBinaryExpression)(implicit state: State): ValueInfo = {
 
-    val op2 = TypeHelper.resolve(state.stack.pop)
+    val op2 = state.stack.pop match {
+      case info @ AddressInfo(_, _) => info.value
+      case value @ ValueInfo(_, _) => value
+    }
     
     val rawOp1 = state.stack.pop
 
@@ -368,7 +371,10 @@ object BinaryExpr {
       case info @ AddressInfo(_, _)  =>
         evaluate(info.value, op2, binaryExpr.getOperator)
       case _ =>
-        val simple = TypeHelper.resolve(rawOp1)
+        val simple = rawOp1 match {
+          case info @ AddressInfo(_, _) => info.value
+          case value @ ValueInfo(_, _) => value
+        }
         performBinaryOperation(simple, op2, binaryExpr.getOperator)
     }
 

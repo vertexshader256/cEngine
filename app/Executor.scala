@@ -174,7 +174,10 @@ object Executor {
         val caseExpr = state.stack.pop.asInstanceOf[ValueInfo].value
         val switchExpr = state.stack.head
         
-        val resolved = TypeHelper.resolve(switchExpr).value
+        val resolved = (switchExpr match {
+          case info @ AddressInfo(_, _) => info.value
+          case value @ ValueInfo(_, _) => value
+        }).value
 
         if (caseExpr == resolved) {
           processSwitch(caseStatement)

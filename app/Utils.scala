@@ -33,7 +33,8 @@ object Utils {
     arg match {
         case StringLiteral(str) => 
           state.createStringVariable(str, isHeap)
-        case x => TypeHelper.resolve(x)
+        case info @ AddressInfo(_, _) => info.value
+        case value @ ValueInfo(theVal, _) => value
       }
   }
   
