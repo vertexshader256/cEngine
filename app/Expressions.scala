@@ -256,7 +256,6 @@ object Expressions {
       Seq()
     case id: IASTIdExpression =>
       if (direction == Exiting) {
-        //println("PUSHING ID: " + id.getName.getRawSignature
         context.stack.push(context.context.resolveId(id.getName.getRawSignature))
       }
       Seq()
@@ -271,7 +270,16 @@ object Expressions {
       }
     case call: IASTFunctionCallExpression =>
       if (direction == Exiting) {
+
+//        println(Functions.scalaFunctions.toList)
+//        println(call.getClass.getSimpleName + " : " + call.getRawSignature)
+//        println(call.getFunctionNameExpression.getClass.getSimpleName + " : " + call.getFunctionNameExpression.getRawSignature)
+
         val name = context.stack.pop match {
+          case AddressInfo(addr, theType: CFunctionType) if context.hasFunction(call.getFunctionNameExpression.getRawSignature) =>
+            call.getFunctionNameExpression.getRawSignature
+          case AddressInfo(addr, theType: CFunctionType) =>
+            context.getFunctionByIndex(addr).name
           case AddressInfo(addr, _) => context.getFunctionByIndex(context.readPtrVal(addr).value.asInstanceOf[Int]).name
         }
 

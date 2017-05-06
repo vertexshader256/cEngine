@@ -47,7 +47,9 @@ object Functions {
       },
       new Function("isupper", false) {
         def run(formattedOutputParams: Array[ValueInfo], state: State) = {
-          val theChar = formattedOutputParams.head.value.asInstanceOf[Character].toChar
+          val theChar = formattedOutputParams.head.value match {
+            case int: Int => int.toChar
+          }
           Some(if (theChar.isUpper) 1 else 0)
         }
       },
@@ -85,7 +87,10 @@ object Functions {
       },
       new Function("memcpy", false) {
         def run(formattedOutputParams: Array[ValueInfo], state: State) = {
-          val dst = formattedOutputParams(0).value.asInstanceOf[Int]
+          val dst = formattedOutputParams(0).value match {
+            case int: Int => int
+            case long: Long => long.toInt
+          }
           val src = formattedOutputParams(1).value.asInstanceOf[Int]
           val numBytes = formattedOutputParams(2).value.asInstanceOf[Int]
 
