@@ -35,7 +35,7 @@ object Expressions {
         val operand = context.stack.pop
 
         context.stack.push(operand match {
-          case info @ AddressInfo(_, _) => info
+          case AddressInfo(addr, _) => AddressInfo(addr, theType)
           case ValueInfo(value, _) =>
             val newAddr = context.allocateSpace(TypeHelper.sizeof(theType))
             context.setValue(TypeHelper.cast(theType, value).value, newAddr)
