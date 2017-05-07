@@ -1,14 +1,7 @@
 package app.astViewer
 
 import org.eclipse.cdt.core.dom.ast._
-
-import scala.collection.mutable.{ListBuffer, Stack}
-import scala.util.control.Exception.allCatch
-import java.util.Formatter;
-import java.util.Locale;
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
-import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
-import org.eclipse.cdt.internal.core.dom.parser.c.CStructure
 
 object BinaryExpr {
   
@@ -28,7 +21,7 @@ object BinaryExpr {
     
     val theVal = dst.value
     
-    val result = performBinaryOperation(theVal, resolvedop2, op)
+    val result = evaluate(theVal, resolvedop2, op)
     
     val casted = TypeHelper.cast(dst.theType, result.value).value
     state.setValue(casted, dst.address)
@@ -36,10 +29,15 @@ object BinaryExpr {
     dst
   }
   
-  def performBinaryOperation(left: ValueInfo, right: ValueInfo, operator: Int)(implicit state: State): ValueInfo = {
+  def evaluate(left: ValueInfo, right: ValueInfo, operator: Int)(implicit state: State): ValueInfo = {
     
     val op1 = left.value
-    val op2 = right.value
+    val op2 = if (TypeHelper.isPointer(left.theType) && (operator == `op_minus` || operator == `op_plus`)) {
+      // pointers get special treatment in binary expressions sometimes
+      right.value.asInstanceOf[Int] * TypeHelper.sizeof(TypeHelper.resolve(left.theType))
+    } else {
+      right.value
+    }
     
     val result: AnyVal = operator match {
       case `op_multiply` | `op_multiplyAssign` =>
@@ -245,7 +243,7 @@ object BinaryExpr {
           case (x: Long, y: Long) => x == y
         }
       case `op_notequals` =>
-        !performBinaryOperation(left, right, op_equals).value.asInstanceOf[Boolean]
+        !evaluate(left, right, op_equals).value.asInstanceOf[Boolean]
       case `op_greaterThan` =>
         (op1, op2) match {
           case (x: Long, y: Long) => x > y
@@ -338,26 +336,7 @@ object BinaryExpr {
 
     ValueInfo(result, TypeHelper.getType(result))
   }
-  
-  def evaluate(left: ValueInfo, right: ValueInfo, operator: Int)(implicit state: State): ValueInfo = {
 
-    val op1 = left
-
-    val op2 =
-      operator match {
-      case `op_plus` | `op_minus` =>
-          if (TypeHelper.isPointer(left.theType)) {
-            // pointers get special treatment in binary expressions sometimes
-            ValueInfo(right.value.asInstanceOf[Int] * TypeHelper.sizeof(TypeHelper.resolve(left.theType)), TypeHelper.pointerType)
-          } else {
-            right
-          }
-      case _ => right
-    }
-
-    performBinaryOperation(op1, op2, operator)
-  }
-  
   def parse(binaryExpr: IASTBinaryExpression)(implicit state: State): ValueInfo = {
 
     val op2 = state.stack.pop match {
@@ -375,7 +354,7 @@ object BinaryExpr {
           case info @ AddressInfo(_, _) => info.value
           case value @ ValueInfo(_, _) => value
         }
-        performBinaryOperation(simple, op2, binaryExpr.getOperator)
+        evaluate(simple, op2, binaryExpr.getOperator)
     }
 
 
