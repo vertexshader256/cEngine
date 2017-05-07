@@ -105,11 +105,15 @@ protected class ArrayVariable(state: State, theType: IArrayType, dim: Seq[Int]) 
 protected class Variable(val state: State, theType: IType) extends AddressInfo(Variable.allocateSpace(state, theType, 1), theType)(state) {
   val size = TypeHelper.sizeof(theType)
 
-  def setValues(values: List[ValueInfo]) = {
+  def setValues(values: List[Stackable]) = {
      var offset = 0
-      values.foreach { case ValueInfo(value, theType) =>
-        state.setValue(value, address + offset)
-        offset += TypeHelper.sizeof(theType)
+      values.foreach {
+        case ValueInfo(value, theType) =>
+          state.setValue(value, address + offset)
+          offset += TypeHelper.sizeof(theType)
+        case info @ AddressInfo(_, theType) =>
+          state.setValue(info.value.value, address + offset)
+          offset += TypeHelper.sizeof(theType)
       }
   }
 }
@@ -339,14 +343,14 @@ object Executor {
               case ValueInfo(value, _) => value.asInstanceOf[Int]
               case info @ AddressInfo(_, _) => info.value.value.asInstanceOf[Int]
             }}
-            
+
             val initializer = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
-            
+
             // Oddly enough, it is possible to have a pointer to an array with no dimensions OR initializer:
             //    extern char *x[]
-            
-            if (dimensions.isEmpty && initializer != null) {       
-              
+
+            if (dimensions.isEmpty && initializer != null) {
+
               if (TypeHelper.resolve(theType).getKind == eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
                 // e.g. char str[] = "Hello!\n";
                 val initString = state.stack.pop.asInstanceOf[StringLiteral].value
@@ -357,12 +361,12 @@ object Executor {
               } else {
                 val list = initializer.getInitializerClause.asInstanceOf[IASTInitializerList]
                 val size = list.getSize
-                
+
                 val values: Array[Any] = (0 until size).map{x => state.stack.pop match {
                   case ValueInfo(value,_) => value
                   case info @ AddressInfo(_,_) => info.value.value
                 }}.reverse.toArray
-  
+
                 val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], Array(size))
 
                 theArrayPtr.setArray(values)
@@ -370,11 +374,11 @@ object Executor {
               }
             } else if (initializer != null) {
               val initVals: Array[Any] = (0 until initializer.getInitializerClause.getChildren.size).map{x => state.stack.pop}.reverse.toArray
-              
+
               val theArrayVar: ArrayVariable = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)
-              
+
               var resolvedType = theArrayVar.theType
-              
+
               val initialArray = initVals.map { newInit =>
                 newInit match {
                   case StringLiteral(x) =>
@@ -395,7 +399,7 @@ object Executor {
           case decl: CASTDeclarator =>
 
             val stripped = TypeHelper.stripSyntheticTypeInfo(theType)
-            
+
             val newVar = new Variable(state, theType)
             state.context.addVariable(name, newVar)
 
@@ -406,16 +410,8 @@ object Executor {
                  && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
 
               val clause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
-              
-              clause match {
-                case list: IASTInitializerList =>
-
-                  val values = list.getClauses.map{x => state.stack.pop match {
-                      case value @ ValueInfo(_,_) => value
-                    }}.reverse.toList
-
-                  newVar.setValues(values)
-              }
+              val values = clause.asInstanceOf[IASTInitializerList].getClauses.map{x => state.stack.pop}.reverse.toList
+              newVar.setValues(values)
             }
         }
 
