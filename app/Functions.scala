@@ -49,6 +49,7 @@ object Functions {
         def run(formattedOutputParams: Array[ValueInfo], state: State) = {
           val theChar = formattedOutputParams.head.value match {
             case int: Int => int.toChar
+            case char: Character => char.toChar
           }
           Some(if (theChar.isUpper) 1 else 0)
         }
