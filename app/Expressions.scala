@@ -90,19 +90,15 @@ object Expressions {
         
         if (!subscript.getArrayExpression.isInstanceOf[IASTArraySubscriptExpression]) {
 
-          val arrayVarPtr: AddressInfo = context.stack.pop match {
-            case info @ AddressInfo(_, _) => info
-          }
+          val arrayVarPtr = context.stack.pop.asInstanceOf[AddressInfo]
           
           val indexes = new ListBuffer[Int]()
           var itr: IASTNode = subscript
           while (itr.isInstanceOf[IASTArraySubscriptExpression]) {
 
-            val first = context.stack.pop
-
-            val result: Int = first match {
+            val result: Int = context.stack.pop match {
               case x @ ValueInfo(_, _) => TypeHelper.cast(TypeHelper.pointerType, x.value).value.asInstanceOf[Int]
-              case info @ AddressInfo(addr, theType) =>
+              case info @ AddressInfo(_, _) =>
                 info.value.value match {
                   case int: Int => int
                   case long: Long => long.toInt
@@ -114,29 +110,22 @@ object Expressions {
           }
 
           var offset = arrayVarPtr.value.value.asInstanceOf[Int]
-          
-          var arrayTypes = new ListBuffer[IType]()
-          
-          var tempType = arrayVarPtr.theType
-          
-          while (!tempType.isInstanceOf[IBasicType]) {
-            tempType = context.resolve(tempType)
-            arrayTypes += tempType
-          }
+          var aType = arrayVarPtr.theType
 
-          val indexTypes = indexes zip arrayTypes
+          indexes.foreach{ index =>
 
-          indexTypes.foreach{ case(arrayIndex, aType) =>
+            aType = context.resolve(aType)
+
             val step = TypeHelper.sizeof(aType)
             if (aType.isInstanceOf[IArrayType] || TypeHelper.resolve(aType).getKind == IBasicType.Kind.eChar && !aType.isInstanceOf[IBasicType]) {
               // special case for strings
-              offset = context.readPtrVal(offset + arrayIndex * step).value.asInstanceOf[Int]
+              offset = context.readPtrVal(offset + index * step).value.asInstanceOf[Int]
             } else {
-              offset += arrayIndex * step
+              offset += index * step
             }
           }
 
-          context.stack.push(AddressInfo(offset, indexTypes.last._2))
+          context.stack.push(AddressInfo(offset, aType))
         }
 
         Seq()
