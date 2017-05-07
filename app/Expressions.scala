@@ -63,6 +63,9 @@ object Expressions {
         }
         
         val structType = owner match {
+          case AddressInfo(addr, theType) if fieldRef.isPointerDereference =>
+            baseAddr = context.readPtrVal(addr).value.asInstanceOf[Int]
+            resolve(theType, addr)
           case AddressInfo(addr, theType) =>
             baseAddr = addr
             resolve(theType, addr)
