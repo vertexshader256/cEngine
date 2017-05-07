@@ -77,14 +77,14 @@ protected class ArrayVariable(state: State, theType: IArrayType, dim: Seq[Int]) 
       for (i <- (0 until dimensions.head)) {
 
         if (dimensions.size > 1) {
-          val subaddr = recurse(subType, dimensions.tail)
+          val subaddr = recurse(TypeHelper.resolve(subType), dimensions.tail)
           state.setValue(subaddr, addr + i * 4)
         }
       }
       addr
     }
 
-    recurse(state.resolve(theType), dim.reverse)
+    recurse(theType.getType, dim.reverse)
   }
 
   if (!dim.isEmpty) {
