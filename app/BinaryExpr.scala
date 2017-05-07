@@ -343,20 +343,12 @@ object BinaryExpr {
       case info @ AddressInfo(_, _) => info.value
       case value @ ValueInfo(_, _) => value
     }
-    
-    val rawOp1 = state.stack.pop
 
-    rawOp1 match {
-      case info @ AddressInfo(_, _)  =>
-        evaluate(info.value, op2, binaryExpr.getOperator)
-      case _ =>
-        val simple = rawOp1 match {
-          case info @ AddressInfo(_, _) => info.value
-          case value @ ValueInfo(_, _) => value
-        }
-        evaluate(simple, op2, binaryExpr.getOperator)
+    val op1 = state.stack.pop match {
+      case info @ AddressInfo(_, _) => info.value
+      case value @ ValueInfo(_, _) => value
     }
 
-
+    evaluate(op1, op2, binaryExpr.getOperator)
   }
 }
