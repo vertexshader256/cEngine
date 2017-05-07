@@ -92,7 +92,7 @@ protected class ArrayVariable(state: State, theType: IArrayType, dim: Seq[Int]) 
     state.setValue(theArrayAddress, address)
   }
 
-  def setArray(array: Array[_])(implicit state: State): Unit = {
+  def setArray(array: Array[ValueInfo])(implicit state: State): Unit = {
       state.setArray(array, AddressInfo(address + 4, theType))
   }
   
@@ -362,9 +362,9 @@ object Executor {
                 val list = initializer.getInitializerClause.asInstanceOf[IASTInitializerList]
                 val size = list.getSize
 
-                val values: Array[Any] = (0 until size).map{x => state.stack.pop match {
-                  case ValueInfo(value,_) => value
-                  case info @ AddressInfo(_,_) => info.value.value
+                val values: Array[ValueInfo] = (0 until size).map{x => state.stack.pop match {
+                  case value @ ValueInfo(_,_) => value
+                  case info @ AddressInfo(_,_) => info.value
                 }}.reverse.toArray
 
                 val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], Array(size))
@@ -377,20 +377,16 @@ object Executor {
 
               val theArrayVar: ArrayVariable = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)
 
-              var resolvedType = theArrayVar.theType
-
               val initialArray = initVals.map { newInit =>
                 newInit match {
                   case StringLiteral(x) =>
-                    val result = state.createStringVariable(newInit.asInstanceOf[StringLiteral].value, false)
-                    resolvedType = TypeHelper.pointerType
-                    result
+                    state.createStringVariable(newInit.asInstanceOf[StringLiteral].value, false)
                   case info @ AddressInfo(_, _) => info.value
-                  case x => x
+                  case value @ ValueInfo(_, _) => value
                 }
               }
 
-              state.setArray(initialArray, AddressInfo(theArrayVar.address + 4, resolvedType))
+              state.setArray(initialArray, AddressInfo(theArrayVar.address + 4, theArrayVar.theType))
               state.context.addVariable(name, theArrayVar)
             } else {
               val theArrayVar = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)

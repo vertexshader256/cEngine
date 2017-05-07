@@ -167,7 +167,7 @@ class State {
   def createStringVariable(str: String, isHeap: Boolean)(implicit state: State): ValueInfo = {
     val theStr = Utils.stripQuotes(str)
     val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
-    val withNull = translateLineFeed.toCharArray() :+ 0.toChar // terminating null char
+    val withNull = (translateLineFeed.toCharArray() :+ 0.toChar).map{char => ValueInfo(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))} // terminating null char
     val strAddr = if (isHeap) allocateHeapSpace(withNull.size) else allocateSpace(withNull.size)
     
     setArray(withNull, AddressInfo(strAddr, new CBasicType(IBasicType.Kind.eChar, 0)))
@@ -210,29 +210,17 @@ class State {
     TypeHelper.castSign(theType, result)
   }
 
-  def setArray(array: Array[_], info: AddressInfo)(implicit state: State): Unit = {
+  def setArray(array: Array[ValueInfo], info: AddressInfo)(implicit state: State): Unit = {
       var i = 0
       val address = info.address
-      val resolved = TypeHelper.resolve(info.theType)
+      val size = TypeHelper.sizeof(info.theType)
       array.foreach { element =>
         element match {
-          case char: Character =>
-            setValue(char, address + i)
-          case doub: Double =>
-            setValue(doub, address + i)
           case ValueInfo(newVal, _) =>
             setValue(newVal, address + i)
-          case addrInfo @ AddressInfo(_, _) =>
-            setValue(addrInfo.value.value, address + i)
-          case int: Int =>
-            setValue(int, address + i)
-          case char: Char =>
-            setValue(char.toByte, address + i)
-//          case double: Double =>
-//            state.setValue(double, AddressInfo(theArrayAddress + i, resolved))
         }
 
-        i += TypeHelper.sizeof(resolved)
+        i += size
       }
   }
   
