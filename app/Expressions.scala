@@ -117,9 +117,11 @@ object Expressions {
             aType = context.resolve(aType)
 
             val step = TypeHelper.sizeof(aType)
-            if (aType.isInstanceOf[IArrayType] || TypeHelper.resolve(aType).getKind == IBasicType.Kind.eChar && !aType.isInstanceOf[IBasicType]) {
-              // special case for strings
+            if (aType.isInstanceOf[IArrayType]) {
               offset = context.readPtrVal(offset + index * step).value.asInstanceOf[Int]
+            } else if (TypeHelper.resolve(aType).getKind == IBasicType.Kind.eChar && aType.isInstanceOf[IPointerType]) {
+              // special case for strings
+              offset = context.readPtrVal(arrayVarPtr.value.value.asInstanceOf[Int] + index * step).value.asInstanceOf[Int]
             } else {
               offset += index * step
             }
