@@ -1,24 +1,42 @@
 package scala.astViewer
 
 class StructTestStaging extends StandardTest {
-  "indexing with a variable" should "print the correct results" in {
+
+
+  "pointer to struct with array member" should "print the correct results" in {
     val code = """
-      
+
       struct Test {
-        int* data;
+        int y;
+        int x;
         int length;
+        int *z;
+        struct Test *next;
       };
-      
+
+      struct Test *head = 0;
+
       void main() {
-        struct Test a = {0};
-        a.data = malloc(12);
-        a.data[2] = 10;
-        a.length = 2;
-        printf("%d\n", a.data[a.length]);
+        int i = 0;
+        struct Test x;
+         x.y = 343;
+         x.x = 543;
+        struct Test *y = head;
+        int blah[] = {1,2,3,4,5,6,7,8,9,0};
+
+        y = &x;
+        y->z = malloc(40);
+         memcpy(y->z, blah, 40);
+         for (i = 0; i < 10; i++) {
+           printf("%d\n", y->z[i]);
+         }
+        y->next = head;
+        y->y = 465;
+        printf("%d %d %d\n", x.y, y->y, y->next);
       }"""
 
     checkResults(code)
-  } 
+  }
 }
 
 class StructTest extends StandardTest {
@@ -39,25 +57,21 @@ class StructTest extends StandardTest {
 
     checkResults(code)
   }
-  
-  "pointer to struct" should "print the correct results" in {
+
+  "indexing with a variable" should "print the correct results" in {
     val code = """
-      
+
       struct Test {
-        int y;
-        int x;
-        struct Test *next;
+        int* data;
+        int length;
       };
-      
-      struct Test *head = 0;
-      
+
       void main() {
-        struct Test x = {343, 543, 0};
-        struct Test *y = head;
-        y = &x;
-        y->next = head;
-        y->y = 465;
-        printf("%d %d %d\n", x.y, y->y, y->next);
+        struct Test a = {0};
+        a.data = malloc(12);
+        a.data[2] = 10;
+        a.length = 2;
+        printf("%d\n", a.data[a.length]);
       }"""
 
     checkResults(code)
