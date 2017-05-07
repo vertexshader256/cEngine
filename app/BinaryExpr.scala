@@ -336,7 +336,7 @@ object BinaryExpr {
       case _ => throw new Exception("unhandled binary operator: " + operator); 0
     }
 
-    ValueInfo(result, left.theType)
+    ValueInfo(result, TypeHelper.getType(result))
   }
   
   def evaluate(left: ValueInfo, right: ValueInfo, operator: Int)(implicit state: State): ValueInfo = {
