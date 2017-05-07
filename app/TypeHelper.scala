@@ -212,6 +212,7 @@ object TypeHelper {
     case ptr: IPointerType => true
     case typedef: ITypedef => isPointer(typedef.getType)
     case qual: IQualifierType => isPointer(qual.getType)
+    case fcn: CFunctionType => false
     case struct: CStructure => false
     case basic: IBasicType => false
     case null => false

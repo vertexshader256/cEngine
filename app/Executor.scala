@@ -17,27 +17,29 @@ import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 object Variable {                              
 
   def allocateSpace(state: State, aType: IType, numElements: Int): Int = {
-    if (aType.isInstanceOf[CFunctionType]) {
-      state.allocateSpace(4 * numElements)
-    } else if (TypeHelper.isPointer(aType)) {
-      state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * numElements)
-    } else if (aType.isInstanceOf[CStructure]) {
-      val struct = aType.asInstanceOf[CStructure]
-      var result = -1
-      struct.getFields.foreach { field =>
-        if (result == -1) {
-          result = allocateSpace(state, field.getType, numElements)
-        } else {
-          allocateSpace(state, field.getType, numElements)
+    aType match {
+      case x if TypeHelper.isPointer(x) || x.isInstanceOf[CFunctionType] =>
+        state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * numElements)
+      case structType: CStructure =>
+        val struct = structType.asInstanceOf[CStructure]
+        var result = -1
+        struct.getFields.foreach { field =>
+          if (result == -1) {
+            result = allocateSpace(state, field.getType, numElements)
+          } else {
+            allocateSpace(state, field.getType, numElements)
+          }
         }
-      }
-      result
-    } else if (aType.isInstanceOf[CTypedef]) {
-      allocateSpace(state, aType.asInstanceOf[CTypedef].getType, numElements)
-    } else if (aType.isInstanceOf[IQualifierType]) {
-      allocateSpace(state, aType.asInstanceOf[IQualifierType].getType, numElements)
-    } else {
-      state.allocateSpace(TypeHelper.sizeof(aType) * numElements)
+        result
+      case typedef: CTypedef =>
+        allocateSpace(state, typedef.asInstanceOf[CTypedef].getType, numElements)
+      case qual: IQualifierType =>
+        allocateSpace(state, qual.asInstanceOf[IQualifierType].getType, numElements)
+      case basic: IBasicType =>
+        state.allocateSpace(TypeHelper.sizeof(basic) * numElements)
+//      } else {
+//        state.allocateSpace(TypeHelper.sizeof(aType) * numElements)
+//      }
     }
   }
 }
@@ -64,7 +66,7 @@ case class AddressInfo(address: Int, theType: IType)(implicit state: State) exte
   def value: ValueInfo = state.readVal(address, theType)
 }
 
-protected class ArrayVariable(state: State, theType: IType, dim: Seq[Int]) extends Variable(state, theType) {
+protected class ArrayVariable(state: State, theType: IArrayType, dim: Seq[Int]) extends Variable(state, theType) {
  
   def allocate: Int = {
     // where we store the actual data
@@ -346,7 +348,7 @@ object Executor {
             if (dimensions.isEmpty && initializer != null) {       
               
               if (TypeHelper.resolve(theType).getKind == eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
-                // char str[] = "Hello!\n";
+                // e.g. char str[] = "Hello!\n";
                 val initString = state.stack.pop.asInstanceOf[StringLiteral].value
                 val strAddr = state.createStringVariable(initString, false)
                 val theArrayPtr = new Variable(state, theType.asInstanceOf[IArrayType])
@@ -363,7 +365,7 @@ object Executor {
   
                 val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], Array(size))
 
-                theArrayPtr.setArray(values.toArray)
+                theArrayPtr.setArray(values)
                 state.context.addVariable(name, theArrayPtr)
               }
             } else if (initializer != null) {
