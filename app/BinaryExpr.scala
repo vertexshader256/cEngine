@@ -1,6 +1,5 @@
 package app.astViewer
 
-import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 
 object BinaryExpr {
@@ -16,7 +15,6 @@ object BinaryExpr {
           state.createStringVariable(str, false)
       case addr @ AddressInfo(_, _) => addr.value
       case value @ ValueInfo(_, _) => value
-      //case x => TypeHelper.resolve(x)
     }
     
     val theVal = dst.value
@@ -335,20 +333,5 @@ object BinaryExpr {
     }
 
     ValueInfo(result, TypeHelper.getType(result))
-  }
-
-  def parse(binaryExpr: IASTBinaryExpression)(implicit state: State): ValueInfo = {
-
-    val op2 = state.stack.pop match {
-      case info @ AddressInfo(_, _) => info.value
-      case value @ ValueInfo(_, _) => value
-    }
-
-    val op1 = state.stack.pop match {
-      case info @ AddressInfo(_, _) => info.value
-      case value @ ValueInfo(_, _) => value
-    }
-
-    evaluate(op1, op2, binaryExpr.getOperator)
   }
 }
