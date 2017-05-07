@@ -260,26 +260,21 @@ object Expressions {
     case call: IASTFunctionCallExpression =>
       if (direction == Exiting) {
 
-//        println(Functions.scalaFunctions.toList)
-//        println(call.getClass.getSimpleName + " : " + call.getRawSignature)
-//        println(call.getFunctionNameExpression.getClass.getSimpleName + " : " + call.getFunctionNameExpression.getRawSignature)
-
         val name = context.stack.pop match {
-          case AddressInfo(addr, theType: CFunctionType) if context.hasFunction(call.getFunctionNameExpression.getRawSignature) =>
+          case x if context.hasFunction(call.getFunctionNameExpression.getRawSignature) =>
             call.getFunctionNameExpression.getRawSignature
           case AddressInfo(addr, theType: CFunctionType) =>
             context.getFunctionByIndex(addr).name
-          case AddressInfo(addr, _) => context.getFunctionByIndex(context.readPtrVal(addr).value.asInstanceOf[Int]).name
+          case AddressInfo(addr, theType: CPointerType) => context.getFunctionByIndex(context.readPtrVal(addr).value.asInstanceOf[Int]).name
         }
 
-        val rawResults = call.getArguments.map{x => context.stack.pop}
+        val arg = call.getArguments.map{x => context.stack.pop}
 
-        // do this up here so string allocation doesnt clobber arg stack
-        val results = rawResults.map{x =>
+        val resolvedArgs = arg.map{x =>
           Utils.allocateString(x, false)
         }
 
-        context.callTheFunction(name, call, results)
+        context.callTheFunction(name, call, resolvedArgs)
 
       } else {
         call.getArguments.reverse ++ Seq(call.getFunctionNameExpression)
