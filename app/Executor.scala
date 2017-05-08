@@ -377,7 +377,7 @@ object Executor {
                 // e.g. char str[] = "Hello!\n";
                 val initString = state.stack.pop.asInstanceOf[StringLiteral].value
                 val strAddr = state.createStringVariable(initString, false)
-                val theArrayPtr = new Variable(state, theType.asInstanceOf[IArrayType])
+                val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], Seq(initString.size))
                 state.setValue(strAddr.value, theArrayPtr.address)
                 state.context.addVariable(name, theArrayPtr)
               } else {
