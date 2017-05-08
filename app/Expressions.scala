@@ -60,13 +60,13 @@ object Expressions {
           case ptr: IPointerType =>
             resolve(ptr.getType, baseAddr)
         }
-        
-        val structType = if (fieldRef.isPointerDereference) {
-          baseAddr = context.readPtrVal(struct.address).value.asInstanceOf[Int]
-          resolve(struct.theType, struct.address)
+
+        val structType = resolve(struct.theType, struct.address)
+
+        baseAddr = if (fieldRef.isPointerDereference) {
+          context.readPtrVal(struct.address).value.asInstanceOf[Int]
         } else {
-          baseAddr = struct.address
-          resolve(struct.theType, struct.address)
+          struct.address
         }
         
         var offset = 0
