@@ -102,12 +102,12 @@ object Expressions {
           var aType = arrayVarPtr.theType
         
           val offset = aType match {
-            case array: IArrayType if array.getType.isInstanceOf[IBasicType] =>
-              aType = array.getType
-              context.readPtrVal(arrayVarPtr.address).value.asInstanceOf[Int] + index * TypeHelper.sizeof(aType)
-            case array: IArrayType =>
+            case array: IArrayType if array.getType.isInstanceOf[IArrayType] =>
               aType = array.getType
               context.readPtrVal(arrayVarPtr.address).value.asInstanceOf[Int] + index * 4
+            case array: IArrayType =>
+              aType = array.getType
+              context.readPtrVal(arrayVarPtr.address).value.asInstanceOf[Int] + index * TypeHelper.sizeof(aType)
             case ptr: IPointerType =>
               aType = ptr.getType
               context.readPtrVal(arrayVarPtr.address).value.asInstanceOf[Int] + index * TypeHelper.sizeof(aType)
