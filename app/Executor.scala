@@ -18,7 +18,11 @@ object Variable {
 
   def allocateSpace(state: State, aType: IType, numElements: Int): Int = {
     aType match {
-      case x if TypeHelper.isPointer(x) || x.isInstanceOf[CFunctionType] =>
+      case array: IArrayType =>
+        state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * numElements)
+      case array: IPointerType =>
+        state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * numElements)
+      case fcn: CFunctionType =>
         state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * numElements)
       case structType: CStructure =>
         val struct = structType.asInstanceOf[CStructure]

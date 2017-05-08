@@ -206,17 +206,6 @@ object TypeHelper {
         case `eBoolean`                 => 4
       }
   }
-  
-  def isPointer(theType: IType): Boolean = theType match {
-    case array: IArrayType => true
-    case ptr: IPointerType => true
-    case typedef: ITypedef => isPointer(typedef.getType)
-    case qual: IQualifierType => isPointer(qual.getType)
-    case fcn: CFunctionType => false
-    case struct: CStructure => false
-    case basic: IBasicType => false
-    case null => false
-  }
 
   def getPointedType(theType: IType): IType = {
     theType match {
