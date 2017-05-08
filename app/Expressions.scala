@@ -88,50 +88,43 @@ object Expressions {
       }
     case subscript: IASTArraySubscriptExpression =>
       if (direction == Entering) {
-        Seq(subscript.getArgument, subscript.getArrayExpression)
+        //println(subscript.getRawSignature + ":" + subscript.getArrayExpression.getRawSignature + "::" + subscript.getArgument.getRawSignature)
+        Seq(subscript.getArrayExpression, subscript.getArgument)
       } else {
-        
-        if (!subscript.getArrayExpression.isInstanceOf[IASTArraySubscriptExpression]) {
+
+          val index = context.stack.pop match {
+            case x @ ValueInfo(_, _) => TypeHelper.cast(TypeHelper.pointerType, x.value).value.asInstanceOf[Int]
+            case info @ AddressInfo(_, _) =>
+              info.value.value match {
+                case int: Int => int
+                case long: Long => long.toInt
+              }
+          }
 
           val arrayVarPtr = context.stack.pop.asInstanceOf[AddressInfo]
-          
-          val indexes = new ListBuffer[Int]()
-          var itr: IASTNode = subscript
-          while (itr.isInstanceOf[IASTArraySubscriptExpression]) {
 
-            val result: Int = context.stack.pop match {
-              case x @ ValueInfo(_, _) => TypeHelper.cast(TypeHelper.pointerType, x.value).value.asInstanceOf[Int]
-              case info @ AddressInfo(_, _) =>
-                info.value.value match {
-                  case int: Int => int
-                  case long: Long => long.toInt
-                }
-            }
-            
-            indexes += result
-            itr = itr.getParent
-          }
 
-          var offset = arrayVarPtr.value.value.asInstanceOf[Int]
           var aType = arrayVarPtr.theType
 
-          indexes.foreach{ index =>
-
-            aType = context.resolve(aType)
-
+          val step = TypeHelper.sizeof(aType)
+          val offset = if (aType.isInstanceOf[IArrayType]) {
+            aType = aType.asInstanceOf[IArrayType].getType
+            context.readPtrVal(arrayVarPtr.address).value.asInstanceOf[Int] + index * step
+          } else if (TypeHelper.resolve(aType).getKind == IBasicType.Kind.eChar && aType.isInstanceOf[IPointerType]) {
+            // special case for strings
+            aType = TypeHelper.resolve(aType)
             val step = TypeHelper.sizeof(aType)
-            if (aType.isInstanceOf[IArrayType]) {
-              offset = context.readPtrVal(offset + index * step).value.asInstanceOf[Int]
-            } else if (TypeHelper.resolve(aType).getKind == IBasicType.Kind.eChar && aType.isInstanceOf[IPointerType]) {
-              // special case for strings
-              offset = context.readPtrVal(arrayVarPtr.value.value.asInstanceOf[Int] + index * step).value.asInstanceOf[Int]
-            } else {
-              offset += index * step
-            }
+            context.readPtrVal(arrayVarPtr.address).value.asInstanceOf[Int] + index * step
+
+          } else {
+            aType = TypeHelper.resolve(aType)
+            arrayVarPtr.address + index * step
+
           }
 
+          //println(AddressInfo(offset,aType).value)
+
           context.stack.push(AddressInfo(offset, aType))
-        }
 
         Seq()
       }
