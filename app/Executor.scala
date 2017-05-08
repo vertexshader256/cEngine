@@ -71,20 +71,20 @@ protected class ArrayVariable(state: State, theType: IArrayType, dim: Seq[Int]) 
   def allocate: Int = {
     // where we store the actual data
 
-    def recurse(subType: IType, dimensions: Seq[Int]): Int = {
+    def recurse(subType: IArrayType, dimensions: Seq[Int]): Int = {
 
-      val addr = Variable.allocateSpace(state, subType, dimensions.head)
+      val addr = Variable.allocateSpace(state, subType.getType, dimensions.head)
       for (i <- (0 until dimensions.head)) {
 
         if (dimensions.size > 1) {
-          val subaddr = recurse(TypeHelper.resolve(subType), dimensions.tail)
+          val subaddr = recurse(subType.getType.asInstanceOf[IArrayType], dimensions.tail)
           state.setValue(subaddr, addr + i * 4)
         }
       }
       addr
     }
 
-    recurse(theType.getType, dim.reverse)
+    recurse(theType, dim.reverse)
   }
 
   if (!dim.isEmpty) {
