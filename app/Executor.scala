@@ -84,29 +84,29 @@ protected class ArrayVariable(state: State, arrayType: IArrayType, dim: Seq[Int]
   override val theType = arrayType
   override val address = Variable.allocateSpace(state, theType, 1)
 
-  def allocate: Int = {
+  val allocate: Int = {
     // where we store the actual data
 
     def recurse(subType: IArrayType, dimensions: Seq[Int]): Int = {
 
-      val addr = Variable.allocateSpace(state, subType.getType, dimensions.head)
-      for (i <- (0 until dimensions.head)) {
-
-        if (dimensions.size > 1) {
-          val subaddr = recurse(subType.getType.asInstanceOf[IArrayType], dimensions.tail)
-          state.setValue(subaddr, addr + i * 4)
+      if (dimensions.size > 0) {
+        val addr = Variable.allocateSpace(state, subType.getType, dimensions.head)
+        for (i <- (0 until dimensions.head)) {
+          if (dimensions.size > 1) {
+            val subaddr = recurse(subType.getType.asInstanceOf[IArrayType], dimensions.tail)
+            state.setValue(subaddr, addr + i * 4)
+          }
         }
+        addr
+      } else {
+        0
       }
-      addr
     }
 
     recurse(theType, dim.reverse)
   }
 
-  if (!dim.isEmpty) {
-    val theArrayAddress = allocate
-    state.setValue(theArrayAddress, address)
-  }
+  state.setValue(address + 4, address)
 
   def setArray(array: Array[ValueInfo])(implicit state: State): Unit = {
       state.setArray(array, AddressInfo(address + 4, theType))
