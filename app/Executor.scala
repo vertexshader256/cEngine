@@ -61,13 +61,29 @@ object ValueInfo2 {
 case class StringLiteral(value: String) extends Stackable
 case class TypeInfo(value: IType) extends Stackable
 
-case class AddressInfo(address: Int, theType: IType)(implicit state: State) extends Stackable {
+object AddressInfo {
+  def unapply(info: AddressInfo): Option[(Int, IType)] = Some((info.address, info.theType))
+
+  def apply(addr: Int, aType: IType)(implicit state: State) = {
+    new AddressInfo(state) {
+      val address = addr
+      val theType = aType
+    }
+  }
+}
+
+abstract class AddressInfo(state: State) extends Stackable {
+  val address: Int
+  val theType: IType
   def sizeof = TypeHelper.sizeof(theType)
   def value: ValueInfo = state.readVal(address, theType)
 }
 
-protected class ArrayVariable(state: State, theType: IArrayType, dim: Seq[Int]) extends Variable(state, theType) {
- 
+protected class ArrayVariable(state: State, arrayType: IArrayType, dim: Seq[Int]) extends Variable(state, arrayType) {
+
+  override val theType = arrayType
+  override val address = Variable.allocateSpace(state, theType, 1)
+
   def allocate: Int = {
     // where we store the actual data
 
@@ -102,8 +118,10 @@ protected class ArrayVariable(state: State, theType: IArrayType, dim: Seq[Int]) 
   }
 }
 
-protected class Variable(val state: State, theType: IType) extends AddressInfo(Variable.allocateSpace(state, theType, 1), theType)(state) {
-  val size = TypeHelper.sizeof(theType)
+protected class Variable(val state: State, aType: IType) extends AddressInfo(state) {
+  val theType = aType
+  val size = TypeHelper.sizeof(aType)
+  val address = Variable.allocateSpace(state, aType, 1)
 
   def setValues(values: List[Stackable]) = {
      var offset = 0
