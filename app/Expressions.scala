@@ -100,21 +100,18 @@ object Expressions {
 
           val arrayVarPtr = context.stack.pop.asInstanceOf[AddressInfo]
           var aType = arrayVarPtr.theType
-
-          var step = 0
-          aType match {
+        
+          val offset = aType match {
             case array: IArrayType if array.getType.isInstanceOf[IBasicType] =>
               aType = array.getType
-              step = TypeHelper.sizeof(aType)
+              context.readPtrVal(arrayVarPtr.address).value.asInstanceOf[Int] + index * TypeHelper.sizeof(aType)
             case array: IArrayType =>
               aType = array.getType
-              step = 4
+              context.readPtrVal(arrayVarPtr.address).value.asInstanceOf[Int] + index * 4
             case ptr: IPointerType =>
               aType = ptr.getType
-              step = TypeHelper.sizeof(aType)
+              context.readPtrVal(arrayVarPtr.address).value.asInstanceOf[Int] + index * TypeHelper.sizeof(aType)
           }
-
-        val offset = context.readPtrVal(arrayVarPtr.address).value.asInstanceOf[Int] + index * step
 
         aType = TypeHelper.stripSyntheticTypeInfo(aType)
 
