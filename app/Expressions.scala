@@ -101,10 +101,14 @@ object Expressions {
           val arrayVarPtr = context.stack.pop.asInstanceOf[AddressInfo]
           var aType = arrayVarPtr.theType
 
-          var step = TypeHelper.sizeof(aType)
+          var step = 0
           aType match {
+            case array: IArrayType if array.getType.isInstanceOf[IBasicType] =>
+              aType = array.getType
+              step = TypeHelper.sizeof(aType)
             case array: IArrayType =>
               aType = array.getType
+              step = 4
             case ptr: IPointerType =>
               aType = ptr.getType
               step = TypeHelper.sizeof(aType)
