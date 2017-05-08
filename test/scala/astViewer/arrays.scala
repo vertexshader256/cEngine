@@ -77,6 +77,25 @@ class ArrayInitTest extends StandardTest {
   }
 }
 
+class SimpleHigherDimArrays extends StandardTest {
+  "check for array clobbering" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x[3][9];
+        x[1][0] = 43424;
+        x[1][1] = 43;
+        x[1][2] = 64565;
+        x[0][0] = 5645;
+        x[0][1] = 878;
+        x[0][2] = 98797;
+        printf("%d %d %d\n", x[1][0], x[1][1], x[1][2]);
+        printf("%d %d %d\n", x[0][0], x[0][1], x[0][2]);
+      }"""
+
+    checkResults(code)
+  }
+}
+
 class HigherDimArrays extends StandardTest {
    
   "A rectangular 2d array" should "print the correct results" in {
