@@ -118,7 +118,7 @@ object Expressions {
 
           } else {
             aType = TypeHelper.resolve(aType)
-            arrayVarPtr.address + index * step
+            context.readPtrVal(arrayVarPtr.address).value.asInstanceOf[Int] + index * step
 
           }
 
