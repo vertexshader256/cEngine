@@ -161,10 +161,10 @@ object TypeHelper {
   def stripSyntheticTypeInfo(theType: IType): IType = theType match {
     case struct: CStructure       => struct
     case basicType: IBasicType    => basicType
-    case typedef: ITypedef        => resolve(typedef.getType)
+    case typedef: ITypedef        => stripSyntheticTypeInfo(typedef.getType)
     case ptrType: IPointerType    => ptrType
     case arrayType: IArrayType    => arrayType
-    case qualType: IQualifierType => resolve(qualType.getType)
+    case qualType: IQualifierType => stripSyntheticTypeInfo(qualType.getType)
     case fcn: IFunctionType       => fcn
   }
   

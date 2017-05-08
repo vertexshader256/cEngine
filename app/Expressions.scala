@@ -88,7 +88,6 @@ object Expressions {
       }
     case subscript: IASTArraySubscriptExpression =>
       if (direction == Entering) {
-        //println(subscript.getRawSignature + ":" + subscript.getArrayExpression.getRawSignature + "::" + subscript.getArgument.getRawSignature)
         Seq(subscript.getArrayExpression, subscript.getArgument)
       } else {
 
@@ -102,34 +101,24 @@ object Expressions {
           }
 
           val arrayVarPtr = context.stack.pop.asInstanceOf[AddressInfo]
-
-
           var aType = arrayVarPtr.theType
 
-          val step = TypeHelper.sizeof(aType)
-          val offset = if (aType.isInstanceOf[IArrayType]) {
+          var step = TypeHelper.sizeof(aType)
+          if (aType.isInstanceOf[IArrayType]) {
             aType = aType.asInstanceOf[IArrayType].getType
-            val x = context.readPtrVal(arrayVarPtr.address).value.asInstanceOf[Int] + index * step
-            if (aType.isInstanceOf[CTypedef]) {
-              aType = aType.asInstanceOf[CTypedef].getType
-            }
-            x
           } else if (TypeHelper.resolve(aType).getKind == IBasicType.Kind.eChar && aType.isInstanceOf[IPointerType]) {
             // special case for strings
             aType = TypeHelper.resolve(aType)
-            val step = TypeHelper.sizeof(aType)
-            context.readPtrVal(arrayVarPtr.address).value.asInstanceOf[Int] + index * step
-
+            step = TypeHelper.sizeof(aType)
           } else {
             aType = TypeHelper.resolve(aType)
-            context.readPtrVal(arrayVarPtr.address).value.asInstanceOf[Int] + index * step
-
           }
 
-        println(aType.getClass.getSimpleName)
-          println(AddressInfo(offset,aType).value)
+        val offset = context.readPtrVal(arrayVarPtr.address).value.asInstanceOf[Int] + index * step
 
-          context.stack.push(AddressInfo(offset, aType))
+        aType = TypeHelper.stripSyntheticTypeInfo(aType)
+
+        context.stack.push(AddressInfo(offset, aType))
 
         Seq()
       }
