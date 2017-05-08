@@ -51,7 +51,7 @@ object Expressions {
         
         var baseAddr = -1
         
-        val owner = context.stack.pop
+        val struct = context.stack.pop.asInstanceOf[AddressInfo]
         
         def resolve(theType: IType, addr: Int): CStructure = theType match {
           case typedef: CTypedef => 
@@ -61,13 +61,12 @@ object Expressions {
             resolve(ptr.getType, baseAddr)
         }
         
-        val structType = owner match {
-          case AddressInfo(addr, theType) if fieldRef.isPointerDereference =>
-            baseAddr = context.readPtrVal(addr).value.asInstanceOf[Int]
-            resolve(theType, addr)
-          case AddressInfo(addr, theType) =>
-            baseAddr = addr
-            resolve(theType, addr)
+        val structType = if (fieldRef.isPointerDereference) {
+          baseAddr = context.readPtrVal(struct.address).value.asInstanceOf[Int]
+          resolve(struct.theType, struct.address)
+        } else {
+          baseAddr = struct.address
+          resolve(struct.theType, struct.address)
         }
         
         var offset = 0
