@@ -32,8 +32,8 @@ object BinaryExpr {
     
     val op1 = left.value
     val op2 = if (left.theType.isInstanceOf[IPointerType] && (operator == `op_minus` || operator == `op_plus`)) {
-      // pointers get special treatment in binary expressions sometimes
-      right.value.asInstanceOf[Int] * TypeHelper.sizeof(TypeHelper.resolve(left.theType))
+      // increment by the size of the left arg
+      right.value.asInstanceOf[Int] * TypeHelper.sizeof(left.theType.asInstanceOf[IPointerType].getType)
     } else {
       right.value
     }
