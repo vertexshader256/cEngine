@@ -31,9 +31,9 @@ object BinaryExpr {
   def evaluate(left: ValueInfo, right: ValueInfo, operator: Int)(implicit state: State): ValueInfo = {
     
     val op1 = left.value
-    val op2 = if (left.theType.isInstanceOf[IPointerType] && (operator == `op_minus` || operator == `op_plus`)) {
+    val op2 = if ((left.theType.isInstanceOf[IPointerType] || left.theType.isInstanceOf[IArrayType]) && (operator == `op_minus` || operator == `op_plus`)) {
       // increment by the size of the left arg
-      right.value.asInstanceOf[Int] * TypeHelper.sizeof(left.theType.asInstanceOf[IPointerType].getType)
+      right.value.asInstanceOf[Int] * TypeHelper.sizeof(TypeHelper.resolve(left.theType))
     } else {
       right.value
     }
@@ -333,6 +333,6 @@ object BinaryExpr {
       case _ => throw new Exception("unhandled binary operator: " + operator); 0
     }
 
-    ValueInfo(result, TypeHelper.getType(result))
+    ValueInfo(result, left.theType)
   }
 }
