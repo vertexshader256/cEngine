@@ -31,7 +31,7 @@ object BinaryExpr {
   def evaluate(left: ValueInfo, right: ValueInfo, operator: Int)(implicit state: State): ValueInfo = {
     
     val op1 = left.value
-    val op2 = if ((left.theType.isInstanceOf[IArrayType] || left.theType.isInstanceOf[IPointerType]) && (operator == `op_minus` || operator == `op_plus`)) {
+    val op2 = if (left.theType.isInstanceOf[IPointerType] && (operator == `op_minus` || operator == `op_plus`)) {
       // pointers get special treatment in binary expressions sometimes
       right.value.asInstanceOf[Int] * TypeHelper.sizeof(TypeHelper.resolve(left.theType))
     } else {
