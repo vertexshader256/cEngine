@@ -88,12 +88,12 @@ object Functions {
       },
       new Function("memcpy", false) {
         def run(formattedOutputParams: Array[ValueInfo], state: State) = {
-          val dst = formattedOutputParams(0).value match {
+          val numBytes = formattedOutputParams(0).value match {
             case int: Int => int
             case long: Long => long.toInt
           }
           val src = formattedOutputParams(1).value.asInstanceOf[Int]
-          val numBytes = formattedOutputParams(2).value.asInstanceOf[Int]
+          val dst = formattedOutputParams(2).value.asInstanceOf[Int]
 
           state.copy(dst, src, numBytes)
           None
