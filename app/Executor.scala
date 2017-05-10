@@ -380,9 +380,14 @@ object Executor {
               if (TypeHelper.resolve(theType).getKind == eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
                 // e.g. char str[] = "Hello!\n";
                 val initString = state.stack.pop.asInstanceOf[StringLiteral].value
-                val strAddr = state.createStringVariable(initString, false)
+
                 val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], Seq(initString.size))
-                state.setValue(strAddr.value, theArrayPtr.address)
+
+                val theStr = Utils.stripQuotes(initString)
+                val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
+                val withNull = (translateLineFeed.toCharArray() :+ 0.toChar).map{char => ValueInfo(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))} // terminating null char
+
+                theArrayPtr.setArray(withNull)
                 state.context.addVariable(name, theArrayPtr)
               } else {
                 val list = initializer.getInitializerClause.asInstanceOf[IASTInitializerList]
