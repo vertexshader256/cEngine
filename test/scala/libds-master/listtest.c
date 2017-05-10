@@ -15,35 +15,35 @@ int main(int argc, char** argv){
 	list_add(list, &x, sizeof(int));
 	list_remove(list, FRONT);
 
-//	list_add(list, &x, sizeof(int));
-//	list_remove(list, BACK);
-//
-//	for(x=0;x<10;x++){
-//		list_add(list, (void*)&x, sizeof(int));
-//		list_add(list2, (void*)&x, sizeof(int));
-//	}
+	list_add(list, &x, sizeof(int));
+	list_remove(list, BACK);
 
-//	list_iter_p iter = list_iterator(list, FRONT);
-//
-//	while(list_next(iter)!=NULL){
-//		pi = (int*)list_current(iter);
-//		printf("%d\n", *pi);
-//	}
-//
-//	destroy_list(list);
-//
-//	list_remove(list2, FRONT);
-//	list_remove(list2, BACK);
-//
-//	free(iter);
-//	iter = list_iterator(list2, 1);
-//
-//	while(list_prev(iter)!=NULL){
-//		pi = (int*)list_current(iter);
-//		printf("%d\n", *pi);
-//	}
-//	destroy_list(list2);
-//	free(iter);
+	for(x=0;x<10;x++){
+		list_add(list, (void*)&x, sizeof(int));
+		list_add(list2, (void*)&x, sizeof(int));
+	}
+
+	list_iter_p iter = list_iterator(list, FRONT);
+
+	while(list_next(iter)!=NULL){
+		pi = (int*)list_current(iter);
+		printf("%d\n", *pi);
+	}
+
+	destroy_list(list);
+
+	list_remove(list2, FRONT);
+	list_remove(list2, BACK);
+
+	free(iter);
+	iter = list_iterator(list2, 1);
+
+	while(list_prev(iter)!=NULL){
+		pi = (int*)list_current(iter);
+		printf("%d\n", *pi);
+	}
+	destroy_list(list2);
+	free(iter);
 
 	return 0;
 }
