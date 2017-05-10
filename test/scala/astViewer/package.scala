@@ -25,13 +25,13 @@ package object astViewer {
       
       val gccOutputFuture = Future[Seq[String]] { Gcc.compileAndGetOutput(codeInFiles) }
     
-      val cEngineOutputFuture = Future[ListBuffer[String]] {
+      val cEngineOutputFuture = Future[List[String]] {
         val start = System.nanoTime
         val state = new State
         Executor.init(codeInFiles, true, state)
         Executor.run(state)
         totalTime += (System.nanoTime - start)/1000000000.0
-        state.stdout
+        state.stdout.toList
       }
 
       val testExe = for {

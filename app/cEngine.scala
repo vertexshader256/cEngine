@@ -96,6 +96,16 @@ class State {
   var isBreaking = false
   var isContinuing = false
 
+  def callFunctionFromScala(name: String, args: Array[ValueInfo]): Seq[IASTNode] = {
+
+    functionList.find(_.name == name).map { fcn =>
+      // this is a function simulated in scala
+      fcn.run(args.reverse, this).foreach { retVal => context.stack.push(ValueInfo(retVal, null)) }
+    }
+
+    Seq()
+  }
+
   def callTheFunction(name: String, call: IASTFunctionCallExpression, args: Array[ValueInfo]): Seq[IASTNode] = {
 
     functionList.find(_.name == name).map{ fcn =>

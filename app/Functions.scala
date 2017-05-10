@@ -118,13 +118,19 @@ object Functions {
       },
       new Function("putchar", false) {
         def run(formattedOutputParams: Array[ValueInfo], state: State) = {
-          val theChar = formattedOutputParams(0).value.asInstanceOf[Character]
-          if (theChar == 10) {
-            state.stdout += Functions.standardOutBuffer
-            Functions.standardOutBuffer = ""
+          val char = formattedOutputParams(0).value.asInstanceOf[Character].toChar
+
+          if (char == 10) {
+            if (standardOutBuffer.isEmpty) {
+              state.stdout += ""
+            } else {
+              state.stdout += standardOutBuffer.mkString
+              standardOutBuffer.clear
+            }
           } else {
-            Functions.standardOutBuffer += theChar.toChar
+            standardOutBuffer += char
           }
+
           None
         }
       },
@@ -132,7 +138,7 @@ object Functions {
         def run(formattedOutputParams: Array[ValueInfo], state: State) = {
 
           val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(state)
-          val formatString = str.replaceAll("^\"|\"$", "").replaceAll("%ld", "%d").replaceAll("%l", "%d").replaceAll(10.asInstanceOf[Char].toString, System.lineSeparator())
+          val formatString = str.replaceAll("^\"|\"$", "").replaceAll("%ld", "%d").replaceAll("%l", "%d")
 
           val buffer = new StringBuffer()
           val formatter = new Formatter(buffer, Locale.US)
@@ -152,8 +158,7 @@ object Functions {
               val theVal = varArgs(paramCount).value
               val stringAddr = theVal.asInstanceOf[Int]
               val str = Utils.readString(stringAddr)(state)
-              val replaced = str.replaceAll(10.asInstanceOf[Char].toString, System.lineSeparator())
-              resolved += replaced.split(System.lineSeparator()).mkString.asInstanceOf[Object]
+              resolved += str.split(System.lineSeparator()).mkString.asInstanceOf[Object]
               paramCount += 1
             } else if (percentFound && c == 'd') {
               val x = TypeHelper.resolve(varArgs(paramCount))(state).value
@@ -178,7 +183,10 @@ object Functions {
 
           formatter.format(formatString, resolved: _*)
 
-          state.stdout ++= buffer.toString.split(System.lineSeparator())
+          buffer.toString.getBytes.foreach{char =>
+            state.callFunctionFromScala("putchar", Array(new ValueInfo(char, new CBasicType(IBasicType.Kind.eChar, 0))))
+          }
+
           None
         }
       },
@@ -264,5 +272,5 @@ object Functions {
       }
   )
 
-  var standardOutBuffer = ""
+  var standardOutBuffer = new ListBuffer[Char]
 }
