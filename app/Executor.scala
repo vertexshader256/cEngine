@@ -81,6 +81,10 @@ abstract class AddressInfo(state: State) extends Stackable {
   val theType: IType
   def sizeof = TypeHelper.sizeof(theType)
   def value: ValueInfo = state.readVal(address, theType)
+
+  override def toString = {
+    "AddressInfo(" + address + ", " + theType + ")"
+  }
 }
 
 protected class ArrayVariable(state: State, arrayType: IArrayType, dim: Seq[Int]) extends Variable(state, arrayType) {
