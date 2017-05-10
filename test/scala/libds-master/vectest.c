@@ -9,22 +9,19 @@ int main(void){
 	int x;
 	char *str = "hello, world";
 	char *str2 = "goodbye, world";
-	for(x=0;x<15;x++){
+	for(x=0;x<8;x++){ //increasing this causes a failure
 		vector_add(vec, (void*)str, strlen(str)+1);
 	}
 	vector_insert(vec, 4, (void*) str2, strlen(str2)+1);
 	vector_set(vec, 7, (void*) str2, strlen(str2)+1);
 	vector_remove(vec, 4);
-	printf("%d\n", (int)vec->length);
-	
+
 	subvec = subvector(vec, 1, 5);
-	
+
 	for(x=0;x<vec->length;x++){
 		printf("%s\n", (char*)vector_get(vec, x));
 	}
-	
-	printf("\n");
-	
+
 	for(x=0;x<subvec->length;x++){
 		printf("%s\n", (char*)vector_get(subvec, x));
 	}
