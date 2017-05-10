@@ -26,3 +26,15 @@ class VectorTest extends StandardTest {
     checkResults(allCode)
   }
 }
+
+class HeapTest extends StandardTest {
+  "heap test" should "print the correct results" in {
+
+    val allCode =  Seq(File("test\\scala\\libds-master\\vector.c").contentAsString,
+      File("test\\scala\\libds-master\\heap.c").contentAsString,
+      File("test\\scala\\libds-master\\heaptest.c").contentAsString)
+
+
+    checkResults(allCode)
+  }
+}

@@ -35,17 +35,17 @@ int main(void){
 
     print_heap(hp->vec);
 	
-	for(i=8; i<10; i++){
-		heap_insert(hp, &i, sizeof(int));
-	}
-
-    print_heap(hp->vec);
-	
-	heap_remove(hp);
-	
-	print_heap(hp->vec);
-	
-	destroy_heap(hp);
+//	for(i=8; i<10; i++){
+//		heap_insert(hp, &i, sizeof(int));
+//	}
+//
+//    print_heap(hp->vec);
+//
+//	heap_remove(hp);
+//
+//	print_heap(hp->vec);
+//
+//	destroy_heap(hp);
 	
 	return 0;
 }

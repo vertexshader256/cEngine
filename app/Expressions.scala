@@ -249,12 +249,17 @@ object Expressions {
     case call: IASTFunctionCallExpression =>
       if (direction == Exiting) {
 
-        val name = context.stack.pop match {
-          case x if context.hasFunction(call.getFunctionNameExpression.getRawSignature) =>
-            call.getFunctionNameExpression.getRawSignature
-          case AddressInfo(addr, theType: CFunctionType) =>
-            context.getFunctionByIndex(addr).name
-          case AddressInfo(addr, theType: CPointerType) => context.getFunctionByIndex(context.readPtrVal(addr).value.asInstanceOf[Int]).name
+        val pop = context.stack.pop
+
+        val name = if (context.hasFunction(call.getFunctionNameExpression.getRawSignature)) {
+          call.getFunctionNameExpression.getRawSignature
+        } else {
+          val info = pop.asInstanceOf[AddressInfo]
+          val resolved = TypeHelper.stripSyntheticTypeInfo(info.theType)
+          resolved match {
+            case fcn: IFunctionType => context.getFunctionByIndex(info.address).name
+            case ptr: IPointerType => context.getFunctionByIndex(context.readPtrVal(info.address).value.asInstanceOf[Int]).name
+          }
         }
 
         val arg = call.getArguments.map{x => context.stack.pop}
