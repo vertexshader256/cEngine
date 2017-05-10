@@ -208,8 +208,14 @@ object Expressions {
                 }
                 
                 if (!nestedType.isInstanceOf[IFunctionType]) {
-                  val value = info.value.value
-                  context.stack.push(AddressInfo(value.asInstanceOf[Int], nestedType))
+
+                  if (info.theType.isInstanceOf[IArrayType]) {
+                    context.stack.push(AddressInfo(info.address + 4, nestedType))
+                  } else {
+                    val value = info.value
+                    context.stack.push(AddressInfo(value.value.asInstanceOf[Int], nestedType))
+                  }
+
                 } else {
                   // function pointers can ignore the star
                   context.stack.push(info)
@@ -288,6 +294,7 @@ object Expressions {
             }
 
             val op1 = context.stack.pop match {
+              case info @ AddressInfo(_, theType: IArrayType) => ValueInfo(info.address + 4, theType)
               case info @ AddressInfo(_, _) => info.value
               case value @ ValueInfo(_, _) => value
             }

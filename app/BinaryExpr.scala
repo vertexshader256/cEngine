@@ -14,6 +14,7 @@ object BinaryExpr {
     val resolvedop2 = op2 match {
       case StringLiteral(str) =>
           state.createStringVariable(str, false)
+      case addr @ AddressInfo(address, theType: IArrayType) => ValueInfo(address + 4, theType)
       case addr @ AddressInfo(_, _) => addr.value
       case value @ ValueInfo(_, _) => value
     }

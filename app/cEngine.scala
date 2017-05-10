@@ -210,7 +210,6 @@ class State {
           throw new Exception("Bad read val: " + basic.getKind)
         }
       case ptr: IPointerType => tape.getInt(address)
-      case array: IArrayType => tape.getInt(address)
       case fcn: IFunctionType => tape.getInt(address)
       case struct: CStructure => tape.getInt(address)
       case qual: IQualifierType => readVal(address, qual.getType).value

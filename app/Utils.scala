@@ -33,7 +33,7 @@ object Utils {
     arg match {
         case StringLiteral(str) => 
           state.createStringVariable(str, isHeap)
-        case info @ AddressInfo(_, theType: IArrayType) => info.value
+        case info @ AddressInfo(_, theType: IArrayType) => ValueInfo(info.address + 4, theType)
         case info @ AddressInfo(_, _) => info.value
         case value @ ValueInfo(theVal, _) => value
       }
