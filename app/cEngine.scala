@@ -193,7 +193,7 @@ class State {
         if (basic.getKind == eInt && basic.isShort) {
           tape.getShort(address)
         }  else if (basic.getKind == eInt && basic.isLong) {
-          tape.getLong(address)
+          tape.getInt(address)
         } else if (basic.getKind == eInt) {
           tape.getInt(address)
         } else if (basic.getKind == eBoolean) {
@@ -253,7 +253,7 @@ class State {
   // use Address type to prevent messing up argument order
   def setValue(newVal: AnyVal, address: Int): Unit = newVal match {
     case char: Character    => tape.put(address, char)
-    case long: Long => tape.putLong(address, long)
+    case long: Long => tape.putInt(address, long.toInt)
     case short: Short  => tape.putShort(address, short)
     case bool: Boolean => tape.putInt(address, if (bool) 1 else 0)
     case int: Int => tape.putInt(address, int)

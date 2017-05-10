@@ -185,7 +185,7 @@ object TypeHelper {
     case basic: IBasicType =>
       basic.getKind match {
         //case `eInt` if basic.isLongLong => 8
-        case `eInt` if basic.isLong     => 8 // BUG: SHOULD BE 4
+        case `eInt` if basic.isLong     => 4
         case `eInt`                     => 4
         case `eFloat`                   => 4
         case `eChar16`                  => 2
