@@ -311,7 +311,11 @@ object BinaryExpr {
         }  
       case `op_binaryXor` | `op_binaryXorAssign` =>
         (op1, op2) match {
+          case (x: Long, y: Long) => x ^ y
+          case (x: Long, y: Int) => x ^ y
           case (x: Int, y: Int) => x ^ y
+          case (x: Int, y: Character) => x ^ y
+          case (x: Int, y: Short) => x ^ y
           case (x: Character, y: Int) => x ^ y
           case (x: Int, y: Char) => x ^ y
         }   
