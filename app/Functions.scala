@@ -209,10 +209,25 @@ object Functions {
       },
     new Function("strcmp", false) {
       def run(formattedOutputParams: Array[ValueInfo], state: State) = {
-        val straddy = formattedOutputParams.head.value.asInstanceOf[Int]
-        val straddy2 = formattedOutputParams.head.value.asInstanceOf[Int]
+        val straddy = formattedOutputParams(0).value.asInstanceOf[Int]
+        val straddy2 = formattedOutputParams(1).value.asInstanceOf[Int]
         val same = Utils.readString(straddy)(state) == Utils.readString(straddy2)(state)
-        Some((if (same) 1 else 0))
+        Some((if (same) 0 else 1))
+      }
+    },
+    new Function("memcmp", false) {
+      def run(formattedOutputParams: Array[ValueInfo], state: State) = {
+        val numBytes = formattedOutputParams(0).value.asInstanceOf[Int]
+        val memaddy = formattedOutputParams(1).value.asInstanceOf[Int]
+        val memaddy2 = formattedOutputParams(2).value.asInstanceOf[Int]
+
+        var same = true
+
+        for (i <- (0 until numBytes)) {
+          same &= state.readVal(memaddy + i, new CBasicType(IBasicType.Kind.eChar, 0)) == state.readVal(memaddy2 + i, new CBasicType(IBasicType.Kind.eChar, 0))
+        }
+
+        Some((if (same) 0 else 1))
       }
     },
       new Function("free", false) {
