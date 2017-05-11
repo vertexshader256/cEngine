@@ -118,7 +118,7 @@ object Utils {
 		newCodes.map{theCode =>
 		  
 		  var lines = if (theCode != newCodes.head) {
-		    //List("#define printf ee_printf \n") ++ theCode.split("\\r?\\n").toList
+		    List("#define printf ee_printf \n") ++ theCode.split("\\r?\\n").toList
 		    theCode.split("\\r?\\n").toList
 		  } else {
 		    List("#define HAS_FLOAT\n") ++ theCode.split("\\r?\\n").toList
