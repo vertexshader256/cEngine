@@ -113,15 +113,14 @@ object Utils {
 
 		val preprocessResults = new StringBuilder
 		
-		val newCodes = List(better.files.File("app\\ee_printf.c").contentAsString) ++ codes
+		val newCodes = codes///List(better.files.File("app\\ee_printf.c").contentAsString) ++ codes
 		
 		newCodes.map{theCode =>
 		  
 		  var lines = if (theCode != newCodes.head) {
-		    List("#define printf ee_printf \n") ++ theCode.split("\\r?\\n").toList
 		    theCode.split("\\r?\\n").toList
 		  } else {
-		    List("#define HAS_FLOAT\n") ++ theCode.split("\\r?\\n").toList
+		    theCode.split("\\r?\\n").toList
 		  }
 		  
 		  // solution to deal with var args

@@ -21,13 +21,12 @@ package object astViewer {
     
     def checkResults(codeInFiles: Seq[String]) = {
 
-      //val codeWithStdio = File("app\\ee_printf.c").contentAsString + code
-      
       val gccOutputFuture = Future[Seq[String]] { Gcc.compileAndGetOutput(codeInFiles) }
     
       val cEngineOutputFuture = Future[List[String]] {
         val start = System.nanoTime
         val state = new State
+        //Executor.init(Seq("#define HAS_FLOAT\n" + File("app\\ee_printf.c").contentAsString) ++ codeInFiles.map{code => "#define printf ee_printf \n" + code}, true, state)
         Executor.init(codeInFiles, true, state)
         Executor.run(state)
         totalTime += (System.nanoTime - start)/1000000000.0

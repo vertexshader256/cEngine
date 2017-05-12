@@ -307,15 +307,18 @@ class ComplexTest extends StandardTest {
 
       int fnv1a(unsigned char oneByte, int hash)
       {
+        printf("%d %d\n", oneByte, hash);
+        printf("%d\n", (oneByte ^ hash));
         return (oneByte ^ hash) * Prime;
       }
   
       void main()
       {
-        printf("%d\n", fnv1a(10, Seed));
-        printf("%d\n", fnv1a(232, Seed));
-        printf("%d\n", fnv1a(110, Seed));
-        printf("%d\n", fnv1a(65, Seed));
+          printf("%d\n", fnv1a(10, Seed));
+//        printf("%d\n", fnv1a(10, Seed));
+//        printf("%d\n", fnv1a(232, Seed));
+//        printf("%d\n", fnv1a(110, Seed));
+//        printf("%d\n", fnv1a(65, Seed));
         return 0;
       }
       """

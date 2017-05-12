@@ -21,7 +21,7 @@ class StructTestStaging extends StandardTest {
         struct Test x;
          x.y = 343;
          x.x = 543;
-        struct Test *y = head;
+        struct Test *y = 0;
         int blah[] = {1,2,3,4,5,6,7,8,9,0};
 
         y = &x;

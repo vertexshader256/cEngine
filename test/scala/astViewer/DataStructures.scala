@@ -38,3 +38,15 @@ class HeapTest extends StandardTest {
     checkResults(allCode)
   }
 }
+
+class HashMapTest extends StandardTest {
+  "heap test" should "print the correct results" in {
+
+    val allCode =  Seq(File("test\\scala\\libds-master\\vector.c").contentAsString,
+      File("test\\scala\\libds-master\\hashmap.c").contentAsString,
+      File("test\\scala\\libds-master\\maptest.c").contentAsString)
+
+
+    checkResults(allCode)
+  }
+}

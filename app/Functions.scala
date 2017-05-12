@@ -272,25 +272,33 @@ object Functions {
       //fcvtbuf(double arg, int ndigits, int *decpt, int *sign, char *buf)
       new Function("fcvtbuf", false) {
         def run(formattedOutputParams: Array[ValueInfo], state: State) = {
-          val arg = formattedOutputParams(4).asInstanceOf[Double]
-          val precision = formattedOutputParams(3).asInstanceOf[Int]
-          val decpt = formattedOutputParams(2).asInstanceOf[Int]
+          val buf = formattedOutputParams(0).value.asInstanceOf[Int]
+          val sign = formattedOutputParams(1).value.asInstanceOf[Int]
+          val decpt = formattedOutputParams(2).value.asInstanceOf[Int]
+          val ndigits = formattedOutputParams(3).value.asInstanceOf[Int]
+          val arg = formattedOutputParams(4).value.asInstanceOf[Double]
           
           state.setValue(1, decpt)
           
           val buffer = new StringBuffer();
           val formatter = new Formatter(buffer, Locale.US);
           
-          val formatString = "%." + precision + "f"
+          val formatString = "%." + ndigits + "f"
           
           val args = Array[Object](arg.asInstanceOf[Object])
           
           formatter.format(formatString, args: _*)
           
-          val result = buffer.toString.split(System.lineSeparator()).mkString
+          val result1 = buffer.toString
+          val index = result1.indexOf('.')
+          val result = result1.replace(".", "")
 
-          val newStr = Utils.allocateString(StringLiteral("\"" + result.replaceAll("\\.", "") + "\""), false)(state)
-          Some(newStr.value)
+          val array = result.toCharArray.map{ char => ValueInfo(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))}
+
+          state.setValue(index, decpt)
+
+          state.setArray(array, AddressInfo(buf, new CBasicType(IBasicType.Kind.eChar, 0))(state))(state)
+          Some(buf)
         }
       }
   )
