@@ -17,17 +17,21 @@ package object astViewer {
   
   class StandardTest extends FlatSpec with ShouldMatchers with ParallelTestExecution {
     
-    def checkResults(code: String): Unit = checkResults(Seq(code))
+    def checkResults(code: String, shouldBootstrap: Boolean = true): Unit = checkResults2(Seq(code), shouldBootstrap)
     
-    def checkResults(codeInFiles: Seq[String]) = {
+    def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = true) = {
 
       val gccOutputFuture = Future[Seq[String]] { Gcc.compileAndGetOutput(codeInFiles) }
     
       val cEngineOutputFuture = Future[List[String]] {
         val start = System.nanoTime
         val state = new State
-        //Executor.init(Seq("#define HAS_FLOAT\n" + File("app\\ee_printf.c").contentAsString) ++ codeInFiles.map{code => "#define printf ee_printf \n" + code}, true, state)
-        Executor.init(codeInFiles, true, state)
+        if (shouldBootstrap) {
+          Executor.init(codeInFiles, true, state)
+        } else {
+          Executor.init(Seq("#define HAS_FLOAT\n" + File("app\\ee_printf.c").contentAsString) ++ codeInFiles.map{code => "#define printf ee_printf \n" + code}, true, state)
+        }
+
         Executor.run(state)
         totalTime += (System.nanoTime - start)/1000000000.0
         state.stdout.toList

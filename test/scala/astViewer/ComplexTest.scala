@@ -238,7 +238,7 @@ class LinkedListTest extends StandardTest {
         }
       
       """
-    checkResults(code)
+    checkResults(code, false)
   }
 }
 
@@ -266,7 +266,7 @@ class ComplexTest extends StandardTest {
       }
       """
 
-    checkResults(code)
+    checkResults(code, false)
   }
   
   
@@ -315,15 +315,14 @@ class ComplexTest extends StandardTest {
       void main()
       {
           printf("%d\n", fnv1a(10, Seed));
-//        printf("%d\n", fnv1a(10, Seed));
-//        printf("%d\n", fnv1a(232, Seed));
-//        printf("%d\n", fnv1a(110, Seed));
-//        printf("%d\n", fnv1a(65, Seed));
+          printf("%d\n", fnv1a(232, Seed));
+          printf("%d\n", fnv1a(110, Seed));
+          printf("%d\n", fnv1a(65, Seed));
         return 0;
       }
       """
 
-    checkResults(code)
+    checkResults(code, false)
   }  
   
   "Palendrome test" should "print the correct results" in {
@@ -351,7 +350,7 @@ class ComplexTest extends StandardTest {
       }
       """
 
-    checkResults(code)
+    checkResults(code, false)
   }  
 }
 
@@ -392,7 +391,7 @@ class CaesarCipherTest extends StandardTest {
       }
       """
 
-    checkResults(code)
+    checkResults(code, false)
   }  
 }
   
@@ -421,6 +420,6 @@ class CaesarCipherTest extends StandardTest {
         }
         """
   
-      checkResults(code)
+      checkResults(code, false)
     }
  }

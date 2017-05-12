@@ -12,7 +12,7 @@ class ListTest extends StandardTest {
       File("test\\scala\\libds-master\\listtest.c").contentAsString)
 
 
-    checkResults(allCode)
+    checkResults2(allCode)
   }
 }
 
@@ -23,7 +23,7 @@ class VectorTest extends StandardTest {
                        File("test\\scala\\libds-master\\vectest.c").contentAsString)
 
 
-    checkResults(allCode)
+    checkResults2(allCode)
   }
 }
 
@@ -35,7 +35,7 @@ class HeapTest extends StandardTest {
       File("test\\scala\\libds-master\\heaptest.c").contentAsString)
 
 
-    checkResults(allCode)
+    checkResults2(allCode)
   }
 }
 
@@ -47,6 +47,6 @@ class HashMapTest extends StandardTest {
       File("test\\scala\\libds-master\\maptest.c").contentAsString)
 
 
-    checkResults(allCode)
+    checkResults2(allCode)
   }
 }

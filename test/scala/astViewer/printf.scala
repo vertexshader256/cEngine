@@ -34,25 +34,16 @@ class printfCustom extends StandardTest {
     val code = """
       void main() {
         int x = 101;
-        ee_printf("Hello World!\n");
-        ee_printf("%d\n", 10);
-        ee_printf("%d %d\n", 10, 15);
-        ee_printf("%c\n", 'a');
-        ee_printf("%s\n", "Just a test!");
-        ee_printf("%s %c %d\n", "Just a test!", 'K', 378437);
+        printf("Hello World!\n");
+        printf("%d\n", 10);
+        printf("%d\n", -10);
+        printf("%d %d\n", 10, 15);
+        printf("%c\n", 'a');
+        printf("%s\n", "Just a test!");
+        printf("%s\n", 0);
+        printf("%s %c %d\n", "Just a test!", 'K', 378437);
       }"""
 
-    checkResults(File("app\\ee_printf.c").contentAsString + "\n" + code)
-  }
-}
-
-class printfCustom2 extends StandardTest {
-  "hello world with custom print function" should "print the correct results" in {
-    val code = """
-      void main() {
-        ee_printf("%d\n", -10);
-      }"""
-
-    checkResults(File("app\\ee_printf.c").contentAsString + "\n" + code)
+    checkResults(code, false)
   }
 }

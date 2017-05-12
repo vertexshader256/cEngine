@@ -527,7 +527,7 @@ static int ee_vsprintf(char *buf, const char *fmt, va_list args)
 
       case 's':
         s = va_arg(args, char *);
-        if (!s) s = "<NULL>";
+        if (!s) s = "(null)";
         len = strnlen(s, precision);
         if (!(flags & LEFT)) while (len < field_width--) *str++ = ' ';
         for (i = 0; i < len; ++i) *str++ = *s++;
@@ -575,7 +575,6 @@ static int ee_vsprintf(char *buf, const char *fmt, va_list args)
 #ifdef HAS_FLOAT
 
       case 'f':
-    	  printf("HERE\n");
         str = flt(str, va_arg(args, double), field_width, precision, *fmt, flags | SIGN);
         continue;
 

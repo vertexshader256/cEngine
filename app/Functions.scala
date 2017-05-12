@@ -244,14 +244,12 @@ object Functions {
           val (offset, theType) = (str match {
             case "int" => (4, TypeHelper.pointerType)
             case "double" => (8, new CBasicType(IBasicType.Kind.eDouble, 0))
-            case "char" => (1, TypeHelper.pointerType)
-            case _ => (4, TypeHelper.pointerType)
+            case "char" => (1, new CBasicType(IBasicType.Kind.eChar, 0))
+            case "char *" => (4, new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0))
           })
           
           val result = state.readVal(varArgStartingAddr, theType).value
-          println("RESULT: " + result)
 
-          
           varArgStartingAddr += offset
           Some(result)
         }
