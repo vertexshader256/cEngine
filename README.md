@@ -13,7 +13,7 @@ CDT: https://eclipse.org/cdt/
 JCPP: http://www.anarres.org/projects/jcpp/
 
 Supports:
-- Pointer Aritmetic
+- Pointer aritmetic
 - Multi-dimensional arrays
 - Variable arguments
 - Recursion
