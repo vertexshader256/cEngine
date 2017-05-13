@@ -42,7 +42,7 @@ class HashMapTest extends StandardTest {
 
     val allCode =  Seq(File("tests\\scala\\libds-master\\vector.c").contentAsString,
       File("tests\\scala\\libds-master\\hashmap.c").contentAsString,
-      File("test\\scala\\libds-master\\maptest.c").contentAsString)
+      File("tests\\scala\\libds-master\\maptest.c").contentAsString)
 
 
     checkResults2(allCode)

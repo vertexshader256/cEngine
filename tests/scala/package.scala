@@ -13,7 +13,7 @@ object TestClasses {
   
   var totalTime: Double = 0.0
   
-  class StandardTest extends FlatSpec with ShouldMatchers with ParallelTestExecution {
+  class StandardTest extends FlatSpec with ShouldMatchers {
     
     def checkResults(code: String, shouldBootstrap: Boolean = true): Unit = checkResults2(Seq(code), shouldBootstrap)
     
@@ -27,6 +27,7 @@ object TestClasses {
         if (shouldBootstrap) {
           Executor.init(codeInFiles, true, state)
         } else {
+          Executor.init(Seq("#define HAS_FLOAT\n" + File("src\\scala\\c_engine\\ee_printf.c").contentAsString) ++ codeInFiles.map{code => "#define printf ee_printf \n" + code}, true, state)
         }
 
         Executor.run(state)
