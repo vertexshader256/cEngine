@@ -20,4 +20,27 @@ class ScopeTest extends StandardTest {
 
     checkResults(code)
   }
+
+  "function-scoped static vars" should "print the correct results" in {
+    val code = """
+
+      void test()
+      {
+        static int x = 10;
+        x++;
+        printf("%d\n", x);
+      }
+
+      void main()
+      {
+        test();
+        test();
+        test();
+      }
+      """
+
+    checkResults(code)
+  }
+
+
 }

@@ -169,8 +169,7 @@ class PrimitiveTest extends StandardTest {
   "hex test" should "print the correct results" in {
     val code = """
       void main() {
-        // int x = 0xFFFFFFFF;   get this working
-        int x = 0xABCDEF;
+        int x = 0xFFFFFFFF;
         int i  = 0x5f3759df - ( x >> 1 );
         printf("%d %d\n", x, i);
       }"""

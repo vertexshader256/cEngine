@@ -87,7 +87,7 @@ abstract class AddressInfo(state: State) extends Stackable {
   }
 }
 
-protected class ArrayVariable(state: State, arrayType: IArrayType, dim: Seq[Int]) extends Variable(state, arrayType) {
+class ArrayVariable(state: State, arrayType: IArrayType, dim: Seq[Int]) extends Variable(state, arrayType) {
 
   override val theType = arrayType
   override val address = Variable.allocateSpace(state, theType, 1)
@@ -126,7 +126,7 @@ protected class ArrayVariable(state: State, arrayType: IArrayType, dim: Seq[Int]
   }
 }
 
-protected class Variable(val state: State, aType: IType) extends AddressInfo(state) {
+class Variable(val state: State, aType: IType) extends AddressInfo(state) {
   val theType = aType
   val size = TypeHelper.sizeof(aType)
   val address = Variable.allocateSpace(state, aType, 1)
@@ -174,286 +174,15 @@ object Executor {
     codeToRun
   }
 
-  def parseStatement(statement: IASTStatement, direction: Direction)(implicit state: State): Seq[IASTNode] = statement match {
-    case breakStatement: IASTNullStatement =>
-      Seq()
-    case breakStatement: IASTBreakStatement =>
-      state.isBreaking = true
-      Seq()
-    case continueStatement: IASTContinueStatement =>
-      state.isContinuing = true
-      Seq()
-    case label: IASTLabelStatement =>
-      Seq()
-    case switch: IASTSwitchStatement =>
-      val cases = switch.getBody.getChildren.collect { case x: IASTCaseStatement => x; case y: IASTDefaultStatement => y }
-      if (direction == Entering) {
-        Seq(switch.getControllerExpression) ++ cases // only process case and default statements
-      } else {
-        Seq()
-      }
-    case default: IASTDefaultStatement =>
-      if (direction == Exiting) {
-        processSwitch(default)
-      } else {
-        Seq()
-      }
-    case caseStatement: IASTCaseStatement =>
-      if (direction == Entering) {
-        Seq(caseStatement.getExpression)
-      } else {
 
-        val caseExpr = state.stack.pop.asInstanceOf[ValueInfo].value
-        val switchExpr = state.stack.head
-        
-        val resolved = (switchExpr match {
-          case info @ AddressInfo(_, _) => info.value
-          case value @ ValueInfo(_, _) => value
-        }).value
-
-        if (caseExpr == resolved) {
-          processSwitch(caseStatement)
-        } else {
-          Seq()
-        }
-      }
-    case doWhileLoop: IASTDoStatement =>
-
-      if (direction == Entering) {
-        Seq(doWhileLoop.getBody, doWhileLoop.getCondition)
-      } else {
-        val shouldLoop = TypeHelper.resolveBoolean(state.stack.pop)
-
-        if (shouldLoop) {
-          state.clearVisited(doWhileLoop.getBody)
-          state.clearVisited(doWhileLoop.getCondition)
-
-          Seq(doWhileLoop.getBody, doWhileLoop.getCondition, doWhileLoop)
-        } else {
-          Seq()
-        }
-      }
-    case whileLoop: IASTWhileStatement =>
-      if (direction == Entering) {
-        Seq(whileLoop.getCondition)
-      } else {
-
-        val cast = state.stack.pop match {
-          case x                => x
-        }
-
-        val shouldLoop = TypeHelper.resolveBoolean(cast)
-
-        if (shouldLoop) {
-          state.clearVisited(whileLoop.getBody)
-          state.clearVisited(whileLoop.getCondition)
-
-          Seq(whileLoop.getBody, whileLoop.getCondition, whileLoop)
-        } else {
-          Seq()
-        }
-      }
-    case ifStatement: IASTIfStatement =>
-      if (direction == Entering) {
-        Seq(ifStatement.getConditionExpression)
-      } else {
-        val result = state.stack.pop
-
-        val value = result match {
-          case info @ AddressInfo(_,_) => info.value
-          case x => x
-        }
-
-        val conditionResult = TypeHelper.resolveBoolean(value)
-        
-        if (conditionResult) {
-          Seq(ifStatement.getThenClause)
-        } else if (ifStatement.getElseClause != null) {
-          Seq(ifStatement.getElseClause)
-        } else {
-          Seq()
-        }
-      }
-    case forLoop: IASTForStatement =>
-      if (direction == Entering) {
-        Seq(Option(forLoop.getInitializerStatement), Option(forLoop.getConditionExpression)).flatten
-      } else {
-        val shouldKeepLooping = if (forLoop.getConditionExpression != null) {
-          
-          val result = TypeHelper.resolve(state.stack.pop).value
-          
-          TypeHelper.resolveBoolean(result)
-        } else {
-          true
-        }
-
-        if (shouldKeepLooping) {
-          state.clearVisited(forLoop.getBody)
-          state.clearVisited(forLoop.getIterationExpression)
-          
-          if (forLoop.getConditionExpression != null) {
-            state.clearVisited(forLoop.getConditionExpression)
-          }
-
-          Seq(Option(forLoop.getBody), Option(forLoop.getIterationExpression), Option(forLoop.getConditionExpression), Some(forLoop)).flatten
-        } else {
-          Seq()
-        }
-      }
-    case ret: IASTReturnStatement =>
-      if (direction == Entering) {
-        if (ret.getReturnValue != null) {
-          Seq(ret.getReturnValue)
-        } else {
-          Seq()
-        }
-      } else {
-        // resolve everything before returning
-        if (ret.getReturnValue != null) {
-          val returnVal = state.stack.pop
-          state.stack.push(returnVal match {
-            case info @ AddressInfo(addr, theType) => TypeHelper.cast(state.context.returnType, info.value.value)
-            case value @ ValueInfo(_, _) => value
-          })
-        }
-        state.isReturning = true
-        
-        Seq()
-      }
-    case decl: IASTDeclarationStatement =>
-      if (direction == Entering) {
-        Seq(decl.getDeclaration)
-      } else {
-        Seq()
-      }
-    case compound: IASTCompoundStatement =>
-      if (direction == Entering) {
-        compound.getStatements
-      } else {
-        Seq()
-      }
-    case exprStatement: IASTExpressionStatement =>
-      if (direction == Entering) {
-        Seq(exprStatement.getExpression)
-      } else {
-        Seq()
-      }
-  }
   
-  def parseDeclarator(decl: IASTDeclarator, direction: Direction)(implicit state: State): Seq[IASTNode] = {
-    if (direction == Entering) {
-      decl match {
-        case array: IASTArrayDeclarator =>
-          Seq(Option(decl.getInitializer)).flatten ++ array.getArrayModifiers
-        case _ =>
-          Seq(Option(decl.getInitializer)).flatten
-      }
-    } else {
-      val nameBinding = decl.getName.resolveBinding()
-      
-      if (nameBinding.isInstanceOf[IVariable]) {
-        val theType = nameBinding.asInstanceOf[IVariable].getType match {
-          case typedef: CTypedef => typedef.getType
-          case x                 => x
-        }
 
-        state.stack.push(StringLiteral(decl.getName.getRawSignature))
-
-        val name = state.stack.pop.asInstanceOf[StringLiteral].value
-
-        decl match {
-          case arrayDecl: IASTArrayDeclarator =>
-
-            val dimensions = arrayDecl.getArrayModifiers.filter{_.getConstantExpression != null}.map{dim => state.stack.pop match {
-              // can we can assume dimensions are integers
-              case ValueInfo(value, _) => value.asInstanceOf[Int]
-              case info @ AddressInfo(_, _) => info.value.value.asInstanceOf[Int]
-            }}
-
-            val initializer = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
-
-            // Oddly enough, it is possible to have a pointer to an array with no dimensions OR initializer:
-            //    extern char *x[]
-
-            if (dimensions.isEmpty && initializer != null) {
-
-              if (TypeHelper.resolve(theType).getKind == eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
-                // e.g. char str[] = "Hello!\n";
-                val initString = state.stack.pop.asInstanceOf[StringLiteral].value
-
-                val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], Seq(initString.size))
-
-                val theStr = Utils.stripQuotes(initString)
-                val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
-                val withNull = (translateLineFeed.toCharArray() :+ 0.toChar).map{char => ValueInfo(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))} // terminating null char
-
-                theArrayPtr.setArray(withNull)
-                state.context.addVariable(name, theArrayPtr)
-              } else {
-                val list = initializer.getInitializerClause.asInstanceOf[IASTInitializerList]
-                val size = list.getSize
-
-                val values: Array[ValueInfo] = (0 until size).map{x => state.stack.pop match {
-                  case value @ ValueInfo(_,_) => value
-                  case info @ AddressInfo(_,_) => info.value
-                }}.reverse.toArray
-
-                val theArrayPtr = new ArrayVariable(state, theType.asInstanceOf[IArrayType], Array(size))
-
-                theArrayPtr.setArray(values)
-                state.context.addVariable(name, theArrayPtr)
-              }
-            } else if (initializer != null) {
-              val initVals: Array[Any] = (0 until initializer.getInitializerClause.getChildren.size).map{x => state.stack.pop}.reverse.toArray
-
-              val theArrayVar: ArrayVariable = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)
-
-              val initialArray = initVals.map { newInit =>
-                newInit match {
-                  case StringLiteral(x) =>
-                    state.createStringVariable(newInit.asInstanceOf[StringLiteral].value, false)
-                  case info @ AddressInfo(_, _) => info.value
-                  case value @ ValueInfo(_, _) => value
-                }
-              }
-
-              state.setArray(initialArray, AddressInfo(theArrayVar.address + 4, theArrayVar.theType))
-              state.context.addVariable(name, theArrayVar)
-            } else {
-              val theArrayVar = new ArrayVariable(state, theType.asInstanceOf[IArrayType], dimensions)
-              state.context.addVariable(name, theArrayVar)
-            }
-          case decl: CASTDeclarator =>
-
-            val stripped = TypeHelper.stripSyntheticTypeInfo(theType)
-
-            val newVar = new Variable(state, theType)
-            state.context.addVariable(name, newVar)
-
-            if (!stripped.isInstanceOf[CStructure]) {
-              val initVal = Option(decl.getInitializer).map(x => state.stack.pop).getOrElse(ValueInfo(0, null))
-              BinaryExpr.parseAssign(op_assign, newVar, initVal)
-            } else if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
-                 && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
-
-              val clause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
-              val values = clause.asInstanceOf[IASTInitializerList].getClauses.map{x => state.stack.pop}.reverse.toList
-              newVar.setValues(values)
-            }
-        }
-
-        Seq()
-      } else {
-        Seq()
-      }
-    }
-  }
 
   def step(current: IASTNode, direction: Direction)(implicit state: State): Seq[IASTNode] = {
 
     current match {
       case statement: IASTStatement =>
-        Executor.parseStatement(statement, direction)
+        Statement.parse(statement, direction)
       case expression: IASTExpression =>
         Expressions.parse(expression, direction)
       case array: IASTArrayModifier =>
@@ -526,7 +255,7 @@ object Executor {
           Seq()
         }
       case decl: IASTDeclarator =>
-        Executor.parseDeclarator(decl, direction)
+        Declarator.parse(decl, direction)
       case fcnDef: IASTFunctionDefinition =>
         if (direction == Exiting) {
           if (!state.context.stack.isEmpty) {
