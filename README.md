@@ -13,21 +13,20 @@ CDT: https://eclipse.org/cdt/
 JCPP: http://www.anarres.org/projects/jcpp/
 
 Supports:
+- Pointer Aritmetic
 - Multi-dimensional arrays
 - Variable arguments
 - Recursion
 - Multilevel pointers
 - Function pointers
-- All primitive types
-- Unsigned primitives
+- All C primitive types
 - Memory allocation
-- Some standard functions
+- Standard functions
 
 Testing approach:
-Output of C Engine is directly compared to that of GCC. C Engine was bootstrapped off of Java Formatter but it can now execute its own version of printf!
+Output of C Engine is directly compared to that of GCC. For a long time C Engine was bootstrapped off of java.util.Formatter https://docs.oracle.com/javase/7/docs/api/java/util/Formatter.html but it can now execute an embedded version of printf, ee_printf!
 
-That version is ee_printf and found here:
-
+ee_printf is found here:
 https://github.com/bwalex/supermips/blob/master/software/coremark/supermips/ee_printf.c
 
 Basic use case:
