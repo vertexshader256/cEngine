@@ -144,7 +144,7 @@ class Variable(val state: State, aType: IType) extends AddressInfo(state) {
   }
 }
 
-class ExecutionContext(parentVars: Map[String, Variable], val returnType: IType, val startingStackAddr: Int, state: State) {
+class ExecutionContext(fcn: Function, parentVars: Map[String, Variable], val returnType: IType, val startingStackAddr: Int, state: State) {
   val visited = new ListBuffer[IASTNode]()
   val varMap = parentVars.clone()
   val pathStack = new Stack[IASTNode]()
@@ -335,13 +335,18 @@ object Executor {
     state.tUnit = Utils.getTranslationUnit(codes)
     state.current = state.tUnit
 
-    if (reset) {
-      state.functionContexts.push(new ExecutionContext(Map(), null, 0, state)) // load initial stack
-    }
-
     val fcns = state.tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
     val (mainFcn, others) = fcns.partition{fcnDef => fcnDef.getDeclarator.getName.getRawSignature == "main"}
     others.foreach{fcnDef => state.addFunctionDef(fcnDef)}
+
+    val mainFunction = new Function("main", true) {
+      def run(formattedOutputParams: Array[ValueInfo], state: State): Option[AnyVal] = None
+      override def getNext: IASTNode = mainFcn.head
+    }
+
+    if (reset) {
+      state.functionContexts.push(new ExecutionContext(mainFunction, Map(), null, 0, state)) // load initial stack
+    }
     
     run(state)
 
