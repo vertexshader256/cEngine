@@ -71,6 +71,28 @@ class State {
     functionPointers += fcn.name -> newVar
     functionCount += 1
   }
+
+  private def addStaticFunctionVars(node: IASTNode, state: State): List[Variable] = {
+    node match {
+      case decl: IASTDeclarator =>
+        val nameBinding = decl.getName.resolveBinding()
+
+        if (nameBinding.isInstanceOf[IVariable]) {
+          val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
+
+          val name = decl.getName.getRawSignature
+          if (decl.getParent.isInstanceOf[IASTSimpleDeclaration] &&
+            decl.getParent.asInstanceOf[IASTSimpleDeclaration].getDeclSpecifier.getStorageClass == IASTDeclSpecifier.sc_static) {
+            List(new Variable(name, state, theType))
+          } else {
+            List()
+          }
+        } else {
+          List()
+        }
+      case x => x.getChildren.toList.flatMap{x => addStaticFunctionVars(x, state)}
+    }
+  }
   
   def addFunctionDef(fcnDef: IASTFunctionDefinition) = {
     val name = fcnDef.getDeclarator.getName
@@ -79,6 +101,9 @@ class State {
 
     functionList += new Function(name.getRawSignature, true) {
       index = functionCount
+
+      override val staticVars = addStaticFunctionVars(fcnDef, State.this)
+
       def parameters = fcnType.getParameterTypes.toList
       def run(formattedOutputParams: Array[ValueInfo], state: State): Option[AnyVal] = {None}
       override def getNext = fcnDef

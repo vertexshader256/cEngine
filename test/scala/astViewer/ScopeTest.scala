@@ -26,6 +26,7 @@ class ScopeTest extends StandardTest {
 
       void test()
       {
+        int y = 5;
         static int x = 10;
         x++;
         printf("%d\n", x);

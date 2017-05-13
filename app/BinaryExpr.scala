@@ -20,7 +20,7 @@ object BinaryExpr {
     }
     
     val theVal = dst.value
-    
+
     val result = evaluate(theVal, resolvedop2, op)
     
     val casted = TypeHelper.cast(dst.theType, result.value).value

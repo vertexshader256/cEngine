@@ -14,40 +14,6 @@ import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 import scala.collection.mutable.Map
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 
-object Variable {                              
-
-  def allocateSpace(state: State, aType: IType, numElements: Int): Int = {
-    aType match {
-      case array: IArrayType =>
-        state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * numElements)
-      case array: IPointerType =>
-        state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * numElements)
-      case fcn: CFunctionType =>
-        state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * numElements)
-      case structType: CStructure =>
-        val struct = structType.asInstanceOf[CStructure]
-        var result = -1
-        struct.getFields.foreach { field =>
-          if (result == -1) {
-            result = allocateSpace(state, field.getType, numElements)
-          } else {
-            allocateSpace(state, field.getType, numElements)
-          }
-        }
-        result
-      case typedef: CTypedef =>
-        allocateSpace(state, typedef.asInstanceOf[CTypedef].getType, numElements)
-      case qual: IQualifierType =>
-        allocateSpace(state, qual.asInstanceOf[IQualifierType].getType, numElements)
-      case basic: IBasicType =>
-        state.allocateSpace(TypeHelper.sizeof(basic) * numElements)
-//      } else {
-//        state.allocateSpace(TypeHelper.sizeof(aType) * numElements)
-//      }
-    }
-  }
-}
-
 trait Stackable {
   def value: Any
 }
@@ -90,7 +56,7 @@ abstract class AddressInfo(state: State) extends Stackable {
 class ArrayVariable(name: String, state: State, arrayType: IArrayType, dim: Seq[Int]) extends Variable(name, state, arrayType) {
 
   override val theType = arrayType
-  override val address = Variable.allocateSpace(state, theType, 1)
+  override val address = allocateSpace(state, theType, 1)
 
   val allocate: Int = {
     // where we store the actual data
@@ -98,7 +64,7 @@ class ArrayVariable(name: String, state: State, arrayType: IArrayType, dim: Seq[
     def recurse(subType: IArrayType, dimensions: Seq[Int]): Int = {
 
       if (dimensions.size > 0) {
-        val addr = Variable.allocateSpace(state, subType.getType, dimensions.head)
+        val addr = allocateSpace(state, subType.getType, dimensions.head)
         for (i <- (0 until dimensions.head)) {
           if (dimensions.size > 1) {
             val subaddr = recurse(subType.getType.asInstanceOf[IArrayType], dimensions.tail)
@@ -129,7 +95,45 @@ class ArrayVariable(name: String, state: State, arrayType: IArrayType, dim: Seq[
 class Variable(val name: String, val state: State, aType: IType) extends AddressInfo(state) {
   val theType = aType
   val size = TypeHelper.sizeof(aType)
-  val address = Variable.allocateSpace(state, aType, 1)
+  val address = allocateSpace(state, aType, 1)
+
+  // need this for function-scoped static vars
+  var isInitialized = false
+
+  override def toString = {
+    "Variable(" + name + ", " + address + ", " + theType + ")"
+  }
+
+  def allocateSpace(state: State, aType: IType, numElements: Int): Int = {
+    aType match {
+      case array: IArrayType =>
+        state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * numElements)
+      case array: IPointerType =>
+        state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * numElements)
+      case fcn: CFunctionType =>
+        state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * numElements)
+      case structType: CStructure =>
+        val struct = structType.asInstanceOf[CStructure]
+        var result = -1
+        struct.getFields.foreach { field =>
+          if (result == -1) {
+            result = allocateSpace(state, field.getType, numElements)
+          } else {
+            allocateSpace(state, field.getType, numElements)
+          }
+        }
+        result
+      case typedef: CTypedef =>
+        allocateSpace(state, typedef.asInstanceOf[CTypedef].getType, numElements)
+      case qual: IQualifierType =>
+        allocateSpace(state, qual.asInstanceOf[IQualifierType].getType, numElements)
+      case basic: IBasicType =>
+        state.allocateSpace(TypeHelper.sizeof(basic) * numElements)
+      //      } else {
+      //        state.allocateSpace(TypeHelper.sizeof(aType) * numElements)
+      //      }
+    }
+  }
 
   def setValues(values: List[Stackable]) = {
      var offset = 0
@@ -146,13 +150,32 @@ class Variable(val name: String, val state: State, aType: IType) extends Address
 
 class ExecutionContext(fcn: Function, parentScopeVars: List[Variable], val returnType: IType, val startingStackAddr: Int, state: State) {
   val visited = new ListBuffer[IASTNode]()
-  var varMap = parentScopeVars
+  var varMap = parentScopeVars ++ fcn.staticVars
   val pathStack = new Stack[IASTNode]()
   val stack = new Stack[Stackable]()
 
   def resolveId(id: String): Variable = varMap.find{_.name == id}.getOrElse(state.functionPointers(id))
-  def addVariable(id: String, theVar: Variable) = {
-    varMap = varMap.filter{theVar => theVar.name != id} :+ theVar
+
+  def addArrayVariable(name: String, theType: IArrayType, dimensions: Seq[Int]): ArrayVariable = {
+
+    if (!fcn.staticVars.exists{_.name == name}) {
+      val newVar = new ArrayVariable(name, state, theType, dimensions)
+      varMap = varMap.filter { theVar => theVar.name != name } :+ newVar
+      newVar
+    } else {
+      fcn.staticVars.find{_.name == name}.get.asInstanceOf[ArrayVariable]
+    }
+  }
+
+  def addVariable(name: String, theType: IType): Variable = {
+
+    if (!fcn.staticVars.exists{_.name == name}) {
+      val newVar = new Variable(name, state, theType)
+      varMap = varMap.filter { theVar => theVar.name != name } :+ newVar
+      newVar
+    } else {
+      fcn.staticVars.find{_.name == name}.get
+    }
   }
 }
 
@@ -238,11 +261,9 @@ object Executor {
                 val paramInfo = paramDecl.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
   
                 val name = paramDecl.getDeclarator.getName.getRawSignature
-                val newVar = new Variable(name, state, paramInfo.getType)
+                val newVar = state.context.addVariable(name, paramInfo.getType)
                 val casted = TypeHelper.cast(newVar.theType, arg.value).value
                 state.setValue(casted, newVar.address)
-            
-                state.context.addVariable(name, newVar)
               } else {
                 val theType = TypeHelper.getType(arg.value)
                 val sizeof = TypeHelper.sizeof(theType)

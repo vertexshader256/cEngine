@@ -42,14 +42,12 @@ object Declarator {
                 // e.g. char str[] = "Hello!\n";
                 val initString = state.stack.pop.asInstanceOf[StringLiteral].value
 
-                val theArrayPtr = new ArrayVariable(name, state, theType.asInstanceOf[IArrayType], Seq(initString.size))
-
                 val theStr = Utils.stripQuotes(initString)
                 val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
                 val withNull = (translateLineFeed.toCharArray() :+ 0.toChar).map{char => ValueInfo(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))} // terminating null char
 
+                val theArrayPtr =  state.context.addArrayVariable(name, theType.asInstanceOf[IArrayType], Seq(initString.size))
                 theArrayPtr.setArray(withNull)
-                state.context.addVariable(name, theArrayPtr)
               } else {
                 val list = initializer.getInitializerClause.asInstanceOf[IASTInitializerList]
                 val size = list.getSize
@@ -59,15 +57,11 @@ object Declarator {
                   case info @ AddressInfo(_,_) => info.value
                 }}.reverse.toArray
 
-                val theArrayPtr = new ArrayVariable(name, state, theType.asInstanceOf[IArrayType], Array(size))
-
+                val theArrayPtr = state.context.addArrayVariable(name, theType.asInstanceOf[IArrayType], Array(size))
                 theArrayPtr.setArray(values)
-                state.context.addVariable(name, theArrayPtr)
               }
             } else if (initializer != null) {
               val initVals: Array[Any] = (0 until initializer.getInitializerClause.getChildren.size).map{x => state.stack.pop}.reverse.toArray
-
-              val theArrayVar: ArrayVariable = new ArrayVariable(name, state, theType.asInstanceOf[IArrayType], dimensions)
 
               val initialArray = initVals.map { newInit =>
                 newInit match {
@@ -78,28 +72,30 @@ object Declarator {
                 }
               }
 
+              val theArrayVar = state.context.addArrayVariable(name, theType.asInstanceOf[IArrayType], dimensions)
               state.setArray(initialArray, AddressInfo(theArrayVar.address + 4, theArrayVar.theType))
-              state.context.addVariable(name, theArrayVar)
             } else {
-              val theArrayVar = new ArrayVariable(name, state, theType.asInstanceOf[IArrayType], dimensions)
-              state.context.addVariable(name, theArrayVar)
+              state.context.addArrayVariable(name, theType.asInstanceOf[IArrayType], dimensions)
             }
           case decl: CASTDeclarator =>
 
             val stripped = TypeHelper.stripSyntheticTypeInfo(theType)
 
-            val newVar = new Variable(name, state, theType)
-            state.context.addVariable(name, newVar)
+            val variable = state.context.addVariable(name, theType)
 
-            if (!stripped.isInstanceOf[CStructure]) {
-              val initVal = Option(decl.getInitializer).map(x => state.stack.pop).getOrElse(ValueInfo(0, null))
-              BinaryExpr.parseAssign(op_assign, newVar, initVal)
-            } else if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
-              && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
+            if (!variable.isInitialized) {
+              if (!stripped.isInstanceOf[CStructure]) {
+                val initVal = Option(decl.getInitializer).map(x => state.stack.pop).getOrElse(ValueInfo(0, null))
+                BinaryExpr.parseAssign(op_assign, variable, initVal)
+              } else if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
+                && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
 
-              val clause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
-              val values = clause.asInstanceOf[IASTInitializerList].getClauses.map{x => state.stack.pop}.reverse.toList
-              newVar.setValues(values)
+                val clause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
+                val values = clause.asInstanceOf[IASTInitializerList].getClauses.map { x => state.stack.pop }.reverse.toList
+                variable.setValues(values)
+              }
+
+              variable.isInitialized = true
             }
         }
 

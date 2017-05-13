@@ -12,7 +12,9 @@ import org.eclipse.cdt.internal.core.dom.parser.c.CPointerType
 abstract case class Function(name: String, isNative: Boolean) {
   
   var index = -1
-  
+
+  val staticVars: List[Variable] = List()
+
   def run(formattedOutputParams: Array[ValueInfo], state: State): Option[AnyVal]
   def getNext: IASTNode = null
 }
