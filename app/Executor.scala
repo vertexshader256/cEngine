@@ -144,14 +144,16 @@ class Variable(val name: String, val state: State, aType: IType) extends Address
   }
 }
 
-class ExecutionContext(fcn: Function, parentVars: Map[String, Variable], val returnType: IType, val startingStackAddr: Int, state: State) {
+class ExecutionContext(fcn: Function, parentScopeVars: List[Variable], val returnType: IType, val startingStackAddr: Int, state: State) {
   val visited = new ListBuffer[IASTNode]()
-  val varMap = parentVars.clone()
+  var varMap = parentScopeVars
   val pathStack = new Stack[IASTNode]()
   val stack = new Stack[Stackable]()
 
-  def resolveId(id: String): Variable = varMap.get(id).getOrElse(state.functionPointers(id))
-  def addVariable(id: String, theVar: Variable) = varMap += (id -> theVar) 
+  def resolveId(id: String): Variable = varMap.find{_.name == id}.getOrElse(state.functionPointers(id))
+  def addVariable(id: String, theVar: Variable) = {
+    varMap = varMap.filter{theVar => theVar.name != id} :+ theVar
+  }
 }
 
 object Executor {
@@ -345,7 +347,7 @@ object Executor {
     }
 
     if (reset) {
-      state.functionContexts.push(new ExecutionContext(mainFunction, Map(), null, 0, state)) // load initial stack
+      state.functionContexts.push(new ExecutionContext(mainFunction, List(), null, 0, state)) // load initial stack
     }
     
     run(state)

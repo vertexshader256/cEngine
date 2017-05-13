@@ -119,14 +119,14 @@ class State {
       }
     }.getOrElse{
       // function pointer case
-      val fcnPointer = functionContexts.head.varMap(name)
+      val fcnPointer = functionContexts.head.varMap.find{_.name == name}.get
       val fcn = getFunctionByIndex(fcnPointer.value.asInstanceOf[Int])
       Seq(fcn.getNext)
     }
   }
   
   def callFunction(function: Function, call: IASTFunctionCallExpression, args: Array[ValueInfo]): IASTNode = {
-    functionContexts.push(new ExecutionContext(function, functionContexts.head.varMap, call.getExpressionType, stackInsertIndex, this))
+    functionContexts.push(new ExecutionContext(function, functionContexts.head.varMap.toList, call.getExpressionType, stackInsertIndex, this))
     context.pathStack.push(call)
     
     args.foreach{ arg => context.stack.push(arg)}
