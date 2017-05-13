@@ -87,7 +87,7 @@ abstract class AddressInfo(state: State) extends Stackable {
   }
 }
 
-class ArrayVariable(state: State, arrayType: IArrayType, dim: Seq[Int]) extends Variable(state, arrayType) {
+class ArrayVariable(name: String, state: State, arrayType: IArrayType, dim: Seq[Int]) extends Variable(name, state, arrayType) {
 
   override val theType = arrayType
   override val address = Variable.allocateSpace(state, theType, 1)
@@ -126,7 +126,7 @@ class ArrayVariable(state: State, arrayType: IArrayType, dim: Seq[Int]) extends 
   }
 }
 
-class Variable(val state: State, aType: IType) extends AddressInfo(state) {
+class Variable(val name: String, val state: State, aType: IType) extends AddressInfo(state) {
   val theType = aType
   val size = TypeHelper.sizeof(aType)
   val address = Variable.allocateSpace(state, aType, 1)
@@ -236,7 +236,7 @@ object Executor {
                 val paramInfo = paramDecl.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
   
                 val name = paramDecl.getDeclarator.getName.getRawSignature
-                val newVar = new Variable(state, paramInfo.getType)
+                val newVar = new Variable(name, state, paramInfo.getType)
                 val casted = TypeHelper.cast(newVar.theType, arg.value).value
                 state.setValue(casted, newVar.address)
             
