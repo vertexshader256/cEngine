@@ -1,6 +1,16 @@
-name := "astViewer"
+name := "c_engine"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala, LauncherJarPlugin)
+lazy val root = (project in file("."))
+  .settings(
+    name         := "c_engine",
+    organization := "org.c_engine",
+    scalaVersion := "2.11.7",
+    version      := "0.1.0-SNAPSHOT"
+  ).enablePlugins(PlayScala, LauncherJarPlugin)
+
+scalaSource in Compile := baseDirectory.value / "src"
+
+scalaSource in Test := baseDirectory.value / "tests"
 
 scalaVersion := "2.11.7"
 
@@ -13,4 +23,4 @@ libraryDependencies ++= Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0-RC1" % Test
 )
 
-testOptions in Test += Tests.Argument("-P")
+//testOptions in Test += Tests.Argument("-P")
