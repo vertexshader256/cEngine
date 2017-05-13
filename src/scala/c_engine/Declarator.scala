@@ -6,7 +6,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c.{CASTDeclarator, CBasicType, C
 
 object Declarator {
 
-  def parse(decl: IASTDeclarator, direction: Direction)(implicit state: State): Seq[IASTNode] = {
+  def execute(decl: IASTDeclarator, direction: Direction)(implicit state: State): Seq[IASTNode] = {
     if (direction == Entering) {
       decl match {
         case array: IASTArrayDeclarator =>

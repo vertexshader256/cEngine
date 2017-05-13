@@ -13,7 +13,7 @@ object TestClasses {
   
   var totalTime: Double = 0.0
   
-  class StandardTest extends FlatSpec with ShouldMatchers {
+  class StandardTest extends FlatSpec {
     
     def checkResults(code: String, shouldBootstrap: Boolean = true): Unit = checkResults2(Seq(code), shouldBootstrap)
     
@@ -46,10 +46,10 @@ object TestClasses {
         case Success((gccOutput, cEngineOutput)) => 
           info("C_Engine output: " + cEngineOutput)
           info("Gcc output: " + gccOutput)
-          cEngineOutput should equal (gccOutput)
+          assert(cEngineOutput == gccOutput)
         case Failure(e) => 
           e.printStackTrace()
-          e.getMessage should equal (false)
+          false
       }
     }
   }

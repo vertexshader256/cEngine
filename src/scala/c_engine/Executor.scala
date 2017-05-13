@@ -278,7 +278,7 @@ object Executor {
           Seq()
         }
       case decl: IASTDeclarator =>
-        Declarator.parse(decl, direction)
+        Declarator.execute(decl, direction)
       case fcnDef: IASTFunctionDefinition =>
         if (direction == Exiting) {
           if (!state.context.stack.isEmpty) {

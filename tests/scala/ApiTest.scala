@@ -16,7 +16,6 @@ class ApiTest extends StandardTest {
       printf("what: %.1f\n", x);
       
       """
-
-    state.stdout.toSeq should equal (Seq("1432", "what: 2.5"))
+      assert(state.stdout.toSeq == (Seq("1432", "what: 2.5")))
   }
 }

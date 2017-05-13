@@ -1,9 +1,6 @@
 package scala.c_engine
 
 import org.eclipse.cdt.core.dom.ast._
-
-import scala.collection.mutable.{ ListBuffer }
-import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 import org.eclipse.cdt.internal.core.dom.parser.c._
 
 object Expressions {
@@ -121,110 +118,10 @@ object Expressions {
         Seq()
       }
     case unary: IASTUnaryExpression =>
-      import org.eclipse.cdt.core.dom.ast.IASTUnaryExpression._
-
-      def resolveVar(variable: Any): AddressInfo = {
-        variable match {
-          case info @ AddressInfo(addr, theType) => info
-        }
-      }
-
-      def not(theVal: Any): AnyVal = theVal match {
-        case info @ AddressInfo(_, _) => not(info.value)
-        case ValueInfo(theVal, _) => not(theVal)
-        case int: Int               => if (int == 0) 1 else 0
-        case bool: Boolean => !bool
-        case char: Character => if (char == 0) 1 else 0
-      }
-      
       if (direction == Entering) {
         Seq(unary.getOperand)
       } else {
-        val one = ValueInfo(1, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))
-
-        unary.getOperator match {
-          case `op_tilde` =>
-            context.stack.push(ValueInfo2(~context.stack.pop.asInstanceOf[Int], null))
-          case `op_not` => context.stack.push(ValueInfo2(not(context.stack.pop), one.theType))
-          case `op_minus` =>
-            context.stack.pop match {
-              case ValueInfo(int: Int, theType)     => context.stack.push(ValueInfo2(-int, theType))
-              case ValueInfo(doub: Double, theType)     => context.stack.push(ValueInfo2(-doub, theType))
-              case info @ AddressInfo(_, _) =>
-                val resolvedInfo = resolveVar(info)
-              
-                val basicType = resolvedInfo.theType.asInstanceOf[IBasicType]
-                context.stack.push(basicType.getKind match {
-                  case `eInt`    => ValueInfo2(-resolvedInfo.value.value.asInstanceOf[Int], basicType)
-                  case `eDouble` => ValueInfo2(-resolvedInfo.value.value.asInstanceOf[Double], basicType)
-                })
-            }
-          case `op_postFixIncr` =>
-            val info = resolveVar(context.stack.pop)
-            val newVal = BinaryExpr.evaluate(info.value, one, IASTBinaryExpression.op_plus)
-
-            context.stack.push(info.value)
-            context.setValue(newVal.value, info.address)
-          case `op_postFixDecr` =>          
-            val info = resolveVar(context.stack.pop)
-            val newVal = BinaryExpr.evaluate(info.value, one, IASTBinaryExpression.op_minus)
-            
-            // push then set
-            context.stack.push(info.value)
-            context.setValue(newVal.value, info.address)
-          case `op_prefixIncr` =>
-            val info = resolveVar(context.stack.pop)
-            val newVal = BinaryExpr.evaluate(info.value, one, IASTBinaryExpression.op_plus)
-            
-            // set then push
-            context.setValue(newVal.value, info.address)
-            context.stack.push(newVal)
-          case `op_prefixDecr` =>
-            val info = resolveVar(context.stack.pop)
-            val newVal = BinaryExpr.evaluate(info.value, one, IASTBinaryExpression.op_minus)
-            
-            // set then push
-            context.setValue(newVal.value, info.address)
-            context.stack.push(newVal)
-          case `op_sizeof` =>
-            context.stack.push(context.stack.pop match {
-              case info @ AddressInfo(_, theType) => ValueInfo2(info.sizeof, TypeHelper.pointerType)
-            })
-          case `op_amper` =>
-            context.stack.pop match {
-              case info @ AddressInfo(_, _) =>
-                info.theType match {
-                  case fcn: CFunctionType => context.stack.push(AddressInfo(info.address, fcn))
-                  case x: IType => context.stack.push(ValueInfo(info.address, x))
-                }
-            }
-          case `op_star` =>
-            context.stack.pop match {
-              case ValueInfo(int: Int, theType) =>
-                context.stack.push(AddressInfo(int, TypeHelper.resolve(theType)))
-              case info @ AddressInfo(_,_) =>
-                val nestedType = info.theType match {
-                  case ptr: IPointerType => ptr.getType
-                  case array: IArrayType => array.getType
-                }
-                
-                if (!nestedType.isInstanceOf[IFunctionType]) {
-
-                  if (info.theType.isInstanceOf[IArrayType]) {
-                    context.stack.push(AddressInfo(info.address + 4, nestedType))
-                  } else {
-                    val value = info.value
-                    context.stack.push(AddressInfo(value.value.asInstanceOf[Int], nestedType))
-                  }
-
-                } else {
-                  // function pointers can ignore the star
-                  context.stack.push(info)
-                }
-
-           }
-          case `op_bracketedPrimary` => // not sure what this is for but I need it for weird stuff like (k*)++
-        }
+        UnaryExpression.execute(unary)
         Seq()
       }
     case lit: IASTLiteralExpression =>
