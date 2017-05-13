@@ -160,7 +160,7 @@ class PrimitiveTest extends StandardTest {
         char null = '\0';
         printf("%c %c\n", x, z);
         printf("%c\n", null);
-        // printf("%c %c %c\n", x, z, null); // TODO make this work
+        printf("%c %c %c\n", x, z, null);
       }"""
 
     checkResults(code)
