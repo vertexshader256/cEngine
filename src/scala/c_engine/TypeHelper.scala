@@ -52,7 +52,7 @@ object TypeHelper {
           case `eChar`    => 
             newVal match {
               case int: Int => int.toChar.toByte
-              case char: Character => char
+              case char: char => char
               case char: Char => char.toByte
             }
          case `eInt` if basic.isLong =>
@@ -74,7 +74,7 @@ object TypeHelper {
               case long: Long => long.toInt
               case int: Int => int
               case short: Short => short.toInt
-              case char: Character => char.toInt
+              case char: char => char.toInt
               case double: Double => double.toInt
               case float: Float => float.toInt
             }  
@@ -121,7 +121,7 @@ object TypeHelper {
       case doub: Double  => new CBasicType(IBasicType.Kind.eDouble, config)           
       case char: Char    => new CBasicType(IBasicType.Kind.eChar, config)
       case short: Short  => new CBasicType(IBasicType.Kind.eInt, config)
-      case char: Character => new CBasicType(IBasicType.Kind.eChar, config)
+      case char: char => new CBasicType(IBasicType.Kind.eChar, config)
     }
   }
   
@@ -160,10 +160,10 @@ object TypeHelper {
   
   def resolveBoolean(theVal: Any): Boolean = theVal match {
       case x: Boolean => x
-      case int: Int => int != 0
+      case int: int => int != 0
       case long: Long => long != 0
-      case short: Short => short != 0
-      case char: Character => char != 0
+      case short: short => short != 0
+      case char: char => char != 0
       case ValueInfo(value, _) => resolveBoolean(value)
       case info @ AddressInfo(_, _) => resolveBoolean(info.value)
   }

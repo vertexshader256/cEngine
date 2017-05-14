@@ -31,27 +31,27 @@ object Functions {
       },
       new Function("isalpha", false) {
         def run(formattedOutputParams: Array[ValueInfo], state: State) = {
-          val theChar = formattedOutputParams.head.value.asInstanceOf[Character].toChar
+          val theChar = formattedOutputParams.head.value.asInstanceOf[char].toChar
           Some(if (theChar.isLetter) 1 else 0)
         }
       },
       new Function("tolower", false) {
         def run(formattedOutputParams: Array[ValueInfo], state: State) = {
-          val theChar = formattedOutputParams.head.value.asInstanceOf[Character].toChar
+          val theChar = formattedOutputParams.head.value.asInstanceOf[char].toChar
           Some(theChar.toLower.toByte)
         }
       },
       new Function("toupper", false) {
         def run(formattedOutputParams: Array[ValueInfo], state: State) = {
-          val theChar = formattedOutputParams.head.value.asInstanceOf[Character].toChar
+          val theChar = formattedOutputParams.head.value.asInstanceOf[char].toChar
           Some(theChar.toUpper.toByte)
         }
       },
       new Function("isupper", false) {
         def run(formattedOutputParams: Array[ValueInfo], state: State) = {
           val theChar = formattedOutputParams.head.value match {
-            case int: Int => int.toChar
-            case char: Character => char.toChar
+            case int: int => int.toChar
+            case char: char => char.toChar
           }
           Some(if (theChar.isUpper) 1 else 0)
         }
@@ -120,7 +120,7 @@ object Functions {
       },
       new Function("putchar", false) {
         def run(formattedOutputParams: Array[ValueInfo], state: State) = {
-          val char = formattedOutputParams(0).value.asInstanceOf[Character].toChar
+          val char = formattedOutputParams(0).value.asInstanceOf[char].toChar
 
           if (char == 10) {
             if (standardOutBuffer.isEmpty) {
@@ -198,10 +198,10 @@ object Functions {
             //case AddressInfo(addr, _) => addr.value
             case int: Int => int
           }
-          var current: Character = 0
+          var current: char = 0
           var i = 0
           do {
-            current = state.readVal(straddy + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[Character]
+            current = state.readVal(straddy + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[char]
             if (current != 0) {
               i += 1
             }

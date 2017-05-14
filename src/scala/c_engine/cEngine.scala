@@ -278,7 +278,7 @@ class State {
   
   // use Address type to prevent messing up argument order
   def setValue(newVal: AnyVal, address: Int): Unit = newVal match {
-    case char: Character    => tape.put(address, char)
+    case char: char    => tape.put(address, char)
     case long: Long => tape.putInt(address, long.toInt)
     case short: Short  => tape.putShort(address, short)
     case bool: Boolean => tape.putInt(address, if (bool) 1 else 0)

@@ -8,7 +8,7 @@ import java.io.OutputStream
 import java.io.InputStream
 
 object Gcc {
- 
+
   def runCode(code: String, state: State) = {
     
       val exeCode = s"""

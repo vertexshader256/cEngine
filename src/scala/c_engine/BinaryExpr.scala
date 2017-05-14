@@ -42,42 +42,42 @@ object BinaryExpr {
     val result: AnyVal = operator match {
       case `op_multiply` | `op_multiplyAssign` =>
         (op1, op2) match {
-          case (x: Int, y: Character) => x * y
-          case (x: Int, y: Short) => x * y
-          case (x: Int, y: Int) => x * y
-          case (x: Int, y: Float) => x * y
-          case (x: Int, y: Double) => x * y
-          case (x: Int, y: Long) => x * y
+          case (x: int, y: char) => x * y
+          case (x: int, y: short) => x * y
+          case (x: int, y: int) => x * y
+          case (x: int, y: float) => x * y
+          case (x: int, y: double) => x * y
+          case (x: int, y: long) => x * y
           
-          case (x: Character, y: Character) => x * y
-          case (x: Character, y: Short) => x * y
-          case (x: Character, y: Int) => x * y
-          case (x: Character, y: Float) => x * y
-          case (x: Character, y: Long) => x * y
-          case (x: Character, y: Double) => x * y
+          case (x: char, y: char) => x * y
+          case (x: char, y: Short) => x * y
+          case (x: char, y: Int) => x * y
+          case (x: char, y: Float) => x * y
+          case (x: char, y: Long) => x * y
+          case (x: char, y: Double) => x * y
           
-          case (x: Float, y: Character) => x * y
+          case (x: Float, y: char) => x * y
           case (x: Float, y: Short) => x * y
           case (x: Float, y: Int) => x * y
           case (x: Float, y: Double) => x * y
           case (x: Float, y: Float) => x * y
           case (x: Float, y: Long) => x * y
           
-          case (x: Double, y: Character) => x * y
+          case (x: Double, y: char) => x * y
           case (x: Double, y: Short) => x * y          
           case (x: Double, y: Int) => x * y
           case (x: Double, y: Double) => x * y
           case (x: Double, y: Float) => x * y
           case (x: Double, y: Long) => x * y
           
-          case (x: Long, y: Character) => x * y
+          case (x: Long, y: char) => x * y
           case (x: Long, y: Short) => x * y          
           case (x: Long, y: Int) => x * y
           case (x: Long, y: Float) => x * y
           case (x: Long, y: Double) => x * y
           case (x: Long, y: Long) => x * y
           
-          case (x: Short, y: Character) => x * y         
+          case (x: Short, y: char) => x * y
           case (x: Short, y: Short) => x * y
           case (x: Short, y: Int) => x * y
           case (x: Short, y: Float) => x * y
@@ -86,42 +86,42 @@ object BinaryExpr {
         }
       case `op_plus` | `op_plusAssign` =>
         (op1, op2) match {
-          case (x: Int, y: Character) => x + y
+          case (x: Int, y: char) => x + y
           case (x: Int, y: Int) => x + y
           case (x: Int, y: Short) => x + y
           case (x: Int, y: Float) => x + y
           case (x: Int, y: Double) => x + y
           case (x: Int, y: Long) => x + y
           
-          case (x: Character, y: Character) => x + y  
-          case (x: Character, y: Short) => x + y          
-          case (x: Character, y: Int) => x + y
-          case (x: Character, y: Float) => x + y
-          case (x: Character, y: Double) => x + y
-          case (x: Character, y: Long) => x + y
+          case (x: char, y: char) => x + y
+          case (x: char, y: Short) => x + y
+          case (x: char, y: Int) => x + y
+          case (x: char, y: Float) => x + y
+          case (x: char, y: Double) => x + y
+          case (x: char, y: Long) => x + y
           
-          case (x: Float, y: Character) => x + y
+          case (x: Float, y: char) => x + y
           case (x: Float, y: Short) => x + y
           case (x: Float, y: Int) => x + y
           case (x: Float, y: Float) => x + y
           case (x: Float, y: Double) => x + y
           case (x: Float, y: Long) => x + y
           
-          case (x: Double, y: Character) => x + y
+          case (x: Double, y: char) => x + y
           case (x: Double, y: Short) => x + y          
           case (x: Double, y: Int) => x + y
           case (x: Double, y: Double) => x + y
           case (x: Double, y: Float) => x + y
           case (x: Double, y: Long) => x + y
           
-          case (x: Long, y: Character) => x + y
+          case (x: Long, y: char) => x + y
           case (x: Long, y: Short) => x + y
           case (x: Long, y: Int) => x + y
           case (x: Long, y: Float) => x + y
           case (x: Long, y: Double) => x + y
           case (x: Long, y: Long) => x + y
           
-          case (x: Short, y: Character) => x + y
+          case (x: Short, y: char) => x + y
           case (x: Short, y: Short) => x + y
           case (x: Short, y: Int) => x + y
           case (x: Short, y: Float) => x + y
@@ -131,42 +131,42 @@ object BinaryExpr {
         }
       case `op_minus` | `op_minusAssign` =>
         (op1, op2) match {
-          case (x: Int, y: Character) => x - y
+          case (x: Int, y: char) => x - y
           case (x: Int, y: Short) => x - y
           case (x: Int, y: Int) => x - y
           case (x: Int, y: Float) => x - y
           case (x: Int, y: Double) => x - y
           case (x: Int, y: Long) => x - y
           
-          case (x: Character, y: Character) => x - y
-          case (x: Character, y: Short) => x - y         
-          case (x: Character, y: Int) => x - y
-          case (x: Character, y: Float) => x - y
-          case (x: Character, y: Double) => x - y
-          case (x: Character, y: Long) => x - y
+          case (x: char, y: char) => x - y
+          case (x: char, y: Short) => x - y
+          case (x: char, y: Int) => x - y
+          case (x: char, y: Float) => x - y
+          case (x: char, y: Double) => x - y
+          case (x: char, y: Long) => x - y
           
-          case (x: Float, y: Character) => x - y
+          case (x: Float, y: char) => x - y
           case (x: Float, y: Short) => x - y
           case (x: Float, y: Int) => x - y
           case (x: Float, y: Double) => x - y
           case (x: Float, y: Float) => x - y
           case (x: Float, y: Long) => x - y
           
-          case (x: Double, y: Character) => x - y
+          case (x: Double, y: char) => x - y
           case (x: Double, y: Short) => x - y
           case (x: Double, y: Int) => x - y
           case (x: Double, y: Double) => x - y
           case (x: Double, y: Float) => x - y
           case (x: Double, y: Long) => x - y
           
-          case (x: Long, y: Character) => x - y
+          case (x: Long, y: char) => x - y
           case (x: Long, y: Short) => x - y         
           case (x: Long, y: Int) => x - y
           case (x: Long, y: Float) => x - y
           case (x: Long, y: Double) => x - y
           case (x: Long, y: Long) => x - y
           
-          case (x: Short, y: Character) => x - y
+          case (x: Short, y: char) => x - y
           case (x: Short, y: Short) => x - y
           case (x: Short, y: Int) => x - y
           case (x: Short, y: Float) => x - y
@@ -175,21 +175,21 @@ object BinaryExpr {
         }
       case `op_divide` | `op_divideAssign` =>
         val result: Double = (op1, op2) match {
-          case (x: Int, y: Character) => x / y
+          case (x: Int, y: char) => x / y
           case (x: Int, y: Short) => x / y
           case (x: Int, y: Int) => x / y
           case (x: Int, y: Float) => x / y
           case (x: Int, y: Double) => x / y
           case (x: Int, y: Long) => x / y
           
-          case (x: Character, y: Character) => x / y
-          case (x: Character, y: Short) => x / y
-          case (x: Character, y: Int) => x / y
-          case (x: Character, y: Float) => x / y
-          case (x: Character, y: Double) => x / y
-          case (x: Character, y: Long) => x / y
+          case (x: char, y: char) => x / y
+          case (x: char, y: Short) => x / y
+          case (x: char, y: Int) => x / y
+          case (x: char, y: Float) => x / y
+          case (x: char, y: Double) => x / y
+          case (x: char, y: Long) => x / y
 
-          case (x: Float, y: Character) => x / y
+          case (x: Float, y: char) => x / y
           case (x: Float, y: Short) => x / y
           case (x: Float, y: Int) => x / y
           case (x: Float, y: Double) => x / y
@@ -203,14 +203,14 @@ object BinaryExpr {
           case (x: Double, y: Long) => x / y
           case (x: Double, y: Short) => x / y
  
-          case (x: Long, y: Character) => x / y
+          case (x: Long, y: char) => x / y
           case (x: Long, y: Short) => x / y
           case (x: Long, y: Int) => x / y
           case (x: Long, y: Float) => x / y
           case (x: Long, y: Double) => x / y
           case (x: Long, y: Long) => x / y
 
-          case (x: Short, y: Character) => x / y
+          case (x: Short, y: char) => x / y
           case (x: Short, y: Short) => x / y
           case (x: Short, y: Int) => x / y
           case (x: Short, y: Float) => x / y
@@ -224,8 +224,8 @@ object BinaryExpr {
           case (x: Int, y: Int) => x >> y
           case (x: Short, y: Int) => x >> y
           case (x: Int, y: Short) => x >> y
-          case (x: Int, y: Character) => x >> y
-          case (x: Character, y: Int) => x >> y
+          case (x: Int, y: char) => x >> y
+          case (x: char, y: Int) => x >> y
 
         }
       case `op_shiftLeft` | `op_shiftLeftAssign` =>
@@ -234,18 +234,18 @@ object BinaryExpr {
           case (x: Int, y: Int) => x << y
           case (x: Short, y: Int) => x << y
           case (x: Int, y: Short) => x << y
-          case (x: Character, y: Int) => x << y
-          case (x: Int, y: Character) => x << y
+          case (x: char, y: Int) => x << y
+          case (x: Int, y: char) => x << y
         }
       case `op_equals` =>
         (op1, op2) match {
-          case (x: Character, y: Int) => x == y
+          case (x: char, y: Int) => x == y
           case (x: Int, y: Int) => x == y
-          case (x: Character, y: Character) => x == y
+          case (x: char, y: char) => x == y
           case (x: Short, y: Short) => x == y
           case (x: Long, y: Int) => x == y
           case (x: Int, y: Long) => x == y
-          case (x: Int, y: Character) => x == y
+          case (x: Int, y: char) => x == y
           case (x: Double, y: Int) => x == y
           case (x: Int, y: Double) => x == y
           case (x: Double, y: Double) => x == y
@@ -269,9 +269,9 @@ object BinaryExpr {
           case (x: Long, y: Int) => x >= y
           case (x: Long, y: Long) => x >= y
           case (x: Int, y: Int) => x >= y
-          case (x: Character, y: Character) => x >= y
-          case (x: Character, y: Int) => x >= y
-          case (x: Int, y: Character) => x >= y
+          case (x: char, y: char) => x >= y
+          case (x: char, y: Int) => x >= y
+          case (x: Int, y: char) => x >= y
           case (x: Double, y: Int) => x >= y
           case (x: Int, y: Double) => x >= y
           case (x: Double, y: Double) => x >= y
@@ -280,13 +280,13 @@ object BinaryExpr {
         (op1, op2) match {
           case (x: Int, y: Int) => x < y
           case (x: Int, y: Short) => x < y
-          case (x: Int, y: Character) => x < y
+          case (x: Int, y: char) => x < y
           case (x: Int, y: Long) => x < y
           case (x: Int, y: Double) => x < y
           
           case (x: Short, y: Int) => x < y
           
-          case (x: Character, y: Int) => x < y
+          case (x: char, y: Int) => x < y
           case (x: Long, y: Int) => x < y
           case (x: Long, y: Long) => x < y
           case (x: Double, y: Int) => x < y         
@@ -297,9 +297,9 @@ object BinaryExpr {
       case `op_lessEqual` =>
         (op1, op2) match {
           case (x: Int, y: Int) => x <= y
-          case (x: Character, y: Int) => x <= y
-          case (x: Int, y: Character) => x <= y
-          case (x: Character, y: Character) => x <= y
+          case (x: char, y: Int) => x <= y
+          case (x: Int, y: char) => x <= y
+          case (x: char, y: char) => x <= y
           case (x: Double, y: Int) => x <= y
           case (x: Int, y: Double) => x <= y
           case (x: Double, y: Double) => x <= y
@@ -323,15 +323,15 @@ object BinaryExpr {
           case (x: Long, y: Long) => x ^ y
           case (x: Long, y: Int) => x ^ y
           case (x: Int, y: Int) => x ^ y
-          case (x: Int, y: Character) => x ^ y
+          case (x: Int, y: char) => x ^ y
           case (x: Int, y: Short) => x ^ y
-          case (x: Character, y: Int) => x ^ y
+          case (x: char, y: Int) => x ^ y
           case (x: Int, y: Char) => x ^ y
         }   
       case `op_binaryAnd` | `op_binaryAndAssign` =>
         (op1, op2) match {
           case (x: Int, y: Int) => x & y
-          case (x: Character, y: Int) => x & y
+          case (x: char, y: Int) => x & y
           case (x: Int, y: Char) => x & y
           case (x: Int, y: Long) => x & y
           

@@ -20,7 +20,7 @@ object UnaryExpression {
       case ValueInfo(theVal, _) => not(theVal)
       case int: Int               => if (int == 0) 1 else 0
       case bool: Boolean => !bool
-      case char: Character => if (char == 0) 1 else 0
+      case char: char => if (char == 0) 1 else 0
     }
 
     unary.getOperator match {
