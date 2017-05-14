@@ -159,8 +159,13 @@ object Functions {
               percentFound = false
               val theVal = varArgs(paramCount).value
               val stringAddr = theVal.asInstanceOf[Int]
-              val str = Utils.readString(stringAddr)(state)
-              resolved += str.split(System.lineSeparator()).mkString.asInstanceOf[Object]
+
+              if (stringAddr != 0) {
+                val str = Utils.readString(stringAddr)(state)
+                resolved += str.split(System.lineSeparator()).mkString.asInstanceOf[Object]
+              } else {
+                resolved += "(null)".asInstanceOf[Object]
+              }
               paramCount += 1
             } else if (percentFound && c == 'd') {
               val x = TypeHelper.resolve(varArgs(paramCount))(state).value
@@ -213,7 +218,13 @@ object Functions {
       def run(formattedOutputParams: Array[ValueInfo], state: State) = {
         val straddy = formattedOutputParams(0).value.asInstanceOf[Int]
         val straddy2 = formattedOutputParams(1).value.asInstanceOf[Int]
-        val same = Utils.readString(straddy)(state) == Utils.readString(straddy2)(state)
+
+        val str1 = Utils.readString(straddy)(state)
+        val str2 = Utils.readString(straddy2)(state)
+
+        println(str1 + " : " + str2)
+
+        val same = str1 == str2
         Some((if (same) 0 else 1))
       }
     },
