@@ -43,6 +43,8 @@ class State {
   val stdout = new ListBuffer[String]()
   var functionCount = 0
   def stack = context.stack
+
+  var isFirst = true
   
   def popFunctionContext = {
     stackInsertIndex = functionContexts.head.startingStackAddr

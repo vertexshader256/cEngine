@@ -173,7 +173,7 @@ object BinaryExpr {
           case (x: Short, y: Double) => x - y
           case (x: Short, y: Long) => x - y
         }
-      case `op_divide` =>
+      case `op_divide` | `op_divideAssign` =>
         val result: Double = (op1, op2) match {
           case (x: Int, y: Character) => x / y
           case (x: Int, y: Short) => x / y
@@ -222,11 +222,20 @@ object BinaryExpr {
         (op1, op2) match {
           case (x: Long, y: Int) => x >> y
           case (x: Int, y: Int) => x >> y
+          case (x: Short, y: Int) => x >> y
+          case (x: Int, y: Short) => x >> y
+          case (x: Int, y: Character) => x >> y
+          case (x: Character, y: Int) => x >> y
+
         }
       case `op_shiftLeft` | `op_shiftLeftAssign` =>
         (op1, op2) match {
           case (x: Long, y: Int) => x << y
           case (x: Int, y: Int) => x << y
+          case (x: Short, y: Int) => x << y
+          case (x: Int, y: Short) => x << y
+          case (x: Character, y: Int) => x << y
+          case (x: Int, y: Character) => x << y
         }
       case `op_equals` =>
         (op1, op2) match {

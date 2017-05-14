@@ -16,6 +16,42 @@ class StagingAreaPrimitive extends StandardTest {
   }
 }
 
+class RobustPrimitiveTest extends StandardTest {
+  "robust primitive test" should "print the correct results" in {
+    val code = """
+       void main() {
+        int x = 0;
+        int a = 0;
+        char b = 0;
+        float c = 0.0f;
+        double d = 0.0;
+        long e = 0;
+        short f = 0;
+        unsigned int g = 0;
+        unsigned short h = 0;
+        """ + List('a', 'b', 'e', 'f', 'g', 'h').map{ x => s"""
+              $x = 0;
+              $x = $x + 2;
+              $x = $x - 1;
+              $x >>= 1;
+              $x <<= 1;
+              $x -= 5;
+              $x += 2;
+
+            printf("%d\\n", $x);"""
+    }.reduce(_ + "\n" + _) ++ List('c', 'd').map{ x => s"""
+            $x = 0;
+            $x = $x + 2.0;
+            $x = $x - 1.0;
+            $x /= 2.0;
+            $x *= 5.0;
+
+            printf("%f\\n", $x);"""
+    }.reduce(_ + "\n" + _) + "}"
+    checkResults(code)
+  }
+}
+
 class LimitsTest extends StandardTest {
   
   "A limits.h test" should "print the correct results" in {

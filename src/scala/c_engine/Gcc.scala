@@ -8,9 +8,7 @@ import java.io.OutputStream
 import java.io.InputStream
 
 object Gcc {
-  
-  var isFirst = true
-  
+ 
   def runCode(code: String, state: State) = {
     
       val exeCode = s"""
@@ -18,8 +16,8 @@ object Gcc {
            $code
         }
       """
-      Executor.init(Seq(exeCode), isFirst, state)
-      isFirst = false
+      Executor.init(Seq(exeCode), state.isFirst, state)
+      state.isFirst = false
       Executor.run(state)
     }
   

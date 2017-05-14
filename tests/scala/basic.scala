@@ -42,7 +42,7 @@ class PreprocessorTest extends StandardTest {
   }
 }
 
-class HelloWorld extends StandardTest {
+class BasicHelloWorld extends StandardTest {
   
   "Hello world" should "print the correct results" in {
     val code =
