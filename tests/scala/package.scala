@@ -19,20 +19,37 @@ object TestClasses {
     
     def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = true) = {
 
-      val gccOutputFuture = Future[Seq[String]] { Gcc.compileAndGetOutput(codeInFiles) }
+      var isFailed = false
+
+      val gccOutputFuture = Future[Seq[String]] {
+        var result: Seq[String] = Seq()
+        try {
+          result = Gcc.compileAndGetOutput(codeInFiles)
+        } catch {
+          case e => isFailed = true
+        }
+        result
+      }
     
       val cEngineOutputFuture = Future[List[String]] {
-        val start = System.nanoTime
-        val state = new State
-        if (shouldBootstrap) {
-          Executor.init(codeInFiles, true, state)
-        } else {
-          Executor.init(Seq("#define HAS_FLOAT\n" + File("src\\scala\\c_engine\\ee_printf.c").contentAsString) ++ codeInFiles.map{code => "#define printf ee_printf \n" + code}, true, state)
-        }
 
-        Executor.run(state)
-        totalTime += (System.nanoTime - start)/1000000000.0
-        state.stdout.toList
+        var result: List[String] = List()
+        try {
+          val start = System.nanoTime
+          val state = new State
+          if (shouldBootstrap) {
+            Executor.init(codeInFiles, true, state)
+          } else {
+            Executor.init(Seq("#define HAS_FLOAT\n" + File("src\\scala\\c_engine\\ee_printf.c").contentAsString) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }, true, state)
+          }
+
+          Executor.run(state)
+          totalTime += (System.nanoTime - start) / 1000000000.0
+          result = state.stdout.toList
+        } catch {
+          case e => isFailed = true
+        }
+        result
       }
 
       val testExe = for {
@@ -46,7 +63,7 @@ object TestClasses {
         case Success((gccOutput, cEngineOutput)) => 
           info("C_Engine output: " + cEngineOutput)
           info("Gcc output: " + gccOutput)
-          assert(cEngineOutput == gccOutput)
+          assert(cEngineOutput == gccOutput && !isFailed)
         case Failure(e) => 
           e.printStackTrace()
           false
