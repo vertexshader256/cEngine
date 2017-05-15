@@ -12,7 +12,7 @@ object TypeHelper {
   // 8 bytes
   val qword = new CBasicType(IBasicType.Kind.eInt , IBasicType.IS_LONG_LONG)
 
-  def castSign(theType: IType, newVal: AnyVal): ValueInfo = {
+  def castSign(theType: IType, newVal: AnyVal): RValue = {
     val casted: AnyVal = theType match {
       case basic: IBasicType =>
         if (basic.isUnsigned) {
@@ -28,11 +28,11 @@ object TypeHelper {
       case _ => newVal
     }
 
-    ValueInfo(casted, theType)
+    RValue(casted, theType)
   }
 
   // Kind of hacky; this will do whatever it needs to match gcc.  casts 'AnyVal' to 'ValueInfo'
-  def cast(theType: IType, theVal: AnyVal): ValueInfo = {
+  def cast(theType: IType, theVal: AnyVal): RValue = {
     val casted: AnyVal = theType match {
       case typedef: CTypedef => cast(typedef.getType, theVal).value
       case qual: IQualifierType => cast(qual.getType, theVal).value
@@ -99,7 +99,7 @@ object TypeHelper {
         }
       }
     
-    ValueInfo(casted, theType)
+    RValue(casted, theType)
   }
 
   def getType(value: AnyVal): IBasicType = {
@@ -126,10 +126,10 @@ object TypeHelper {
   }
   
   // resolves 'Any' to 'ValueInfo'
-  def resolve(any: Stackable)(implicit state: State): ValueInfo = {
+  def resolve(any: Stackable)(implicit state: State): RValue = {
     any match {
-      case info @ AddressInfo(_, _) => info.value
-      case value @ ValueInfo(theVal, _) => value
+      case info @ LValue(_, _) => info.value
+      case value @ RValue(theVal, _) => value
     }
   }
 
@@ -158,8 +158,8 @@ object TypeHelper {
       case int: int => int != 0
       case short: short => short != 0
       case char: char => char != 0
-      case ValueInfo(value, _) => resolveBoolean(value)
-      case info @ AddressInfo(_, _) => resolveBoolean(info.value)
+      case RValue(value, _) => resolveBoolean(value)
+      case info @ LValue(_, _) => resolveBoolean(info.value)
   }
 
   def sizeof(theType: IType): Int = theType match {

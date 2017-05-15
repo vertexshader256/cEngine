@@ -33,11 +33,11 @@ object Expressions {
 
         context.stack.push(operand match {
           case str @ StringLiteral(_) => str
-          case AddressInfo(addr, _) => AddressInfo(addr, theType)
-          case ValueInfo(value, _) =>
+          case LValue(addr, _) => LValue(addr, theType)
+          case RValue(value, _) =>
             val newAddr = context.allocateSpace(TypeHelper.sizeof(theType))
             context.setValue(TypeHelper.cast(theType, value).value, newAddr)
-            AddressInfo(newAddr, theType)
+            LValue(newAddr, theType)
         })
 
         Seq()
@@ -49,7 +49,7 @@ object Expressions {
         
         var baseAddr = -1
         
-        val struct = context.stack.pop.asInstanceOf[AddressInfo]
+        val struct = context.stack.pop.asInstanceOf[LValue]
         
         def resolve(theType: IType, addr: Int): CStructure = theType match {
           case typedef: CTypedef => 
@@ -68,11 +68,11 @@ object Expressions {
         }
         
         var offset = 0
-        var resultAddress: AddressInfo = null
+        var resultAddress: LValue = null
         structType.getFields.foreach{field =>
           if (field.getName == fieldRef.getFieldName.getRawSignature) {
             // can assume names are unique
-            resultAddress = AddressInfo(baseAddr + offset, field.getType)
+            resultAddress = LValue(baseAddr + offset, field.getType)
           } else {
             offset += TypeHelper.sizeof(field.getType)
           }
@@ -88,15 +88,15 @@ object Expressions {
       } else {
 
           val index = context.stack.pop match {
-            case x @ ValueInfo(_, _) => TypeHelper.cast(TypeHelper.pointerType, x.value).value.asInstanceOf[Int]
-            case info @ AddressInfo(_, _) =>
+            case x @ RValue(_, _) => TypeHelper.cast(TypeHelper.pointerType, x.value).value.asInstanceOf[Int]
+            case info @ LValue(_, _) =>
               info.value.value match {
                 case int: Int => int
                 case long: Long => long.toInt
               }
           }
 
-          val arrayVarPtr = context.stack.pop.asInstanceOf[AddressInfo]
+          val arrayVarPtr = context.stack.pop.asInstanceOf[LValue]
           var aType = arrayVarPtr.theType
         
           val offset = aType match {
@@ -113,7 +113,7 @@ object Expressions {
 
         aType = TypeHelper.stripSyntheticTypeInfo(aType)
 
-        context.stack.push(AddressInfo(offset, aType))
+        context.stack.push(LValue(offset, aType))
 
         Seq()
       }
@@ -158,7 +158,7 @@ object Expressions {
         val name = if (context.hasFunction(call.getFunctionNameExpression.getRawSignature)) {
           call.getFunctionNameExpression.getRawSignature
         } else {
-          val info = pop.asInstanceOf[AddressInfo]
+          val info = pop.asInstanceOf[LValue]
           val resolved = TypeHelper.stripSyntheticTypeInfo(info.theType)
           resolved match {
             case fcn: IFunctionType => context.getFunctionByIndex(info.address).name
@@ -186,15 +186,15 @@ object Expressions {
               BinaryExpr.parseAssign(bin.getOperator, op1, op2)
           } else {
             val op2 = context.stack.pop match {
-              case info @ AddressInfo(_, theType: IArrayType) => ValueInfo(info.address + 4, theType)
-              case info @ AddressInfo(_, _) => info.value
-              case value @ ValueInfo(_, _) => value
+              case info @ LValue(_, theType: IArrayType) => RValue(info.address + 4, theType)
+              case info @ LValue(_, _) => info.value
+              case value @ RValue(_, _) => value
             }
 
             val op1 = context.stack.pop match {
-              case info @ AddressInfo(_, theType: IArrayType) => ValueInfo(info.address + 4, theType)
-              case info @ AddressInfo(_, _) => info.value
-              case value @ ValueInfo(_, _) => value
+              case info @ LValue(_, theType: IArrayType) => RValue(info.address + 4, theType)
+              case info @ LValue(_, _) => info.value
+              case value @ RValue(_, _) => value
             }
 
             BinaryExpr.evaluate(op1, op2, bin.getOperator)
@@ -207,14 +207,14 @@ object Expressions {
           if (bin.getOperator == IASTBinaryExpression.op_logicalOr) {
             
             context.stack.head match {
-              case ValueInfo(x: Boolean, _) if x => Seq()
+              case RValue(x: Boolean, _) if x => Seq()
               case _ => Seq(bin.getOperand2, bin)
             }
 
           } else if (bin.getOperator == IASTBinaryExpression.op_logicalAnd) {
             
             context.stack.head match {
-              case ValueInfo(x: Boolean, _) if !x => Seq()
+              case RValue(x: Boolean, _) if !x => Seq()
               case _ => Seq(bin.getOperand2, bin)
             }
 

@@ -18,35 +18,35 @@ trait Stackable {
   def value: Any
 }
 
-case class ValueInfo(value: AnyVal, theType: IType) extends Stackable
+case class RValue(value: AnyVal, theType: IType) extends Stackable
 
 object ValueInfo2 {
-  def apply(value: AnyVal, theType: IType)(implicit state: State): AddressInfo = {
+  def apply(value: AnyVal, theType: IType)(implicit state: State): LValue = {
     val addr = state.allocateSpace(TypeHelper.sizeof(TypeHelper.getType(value)))
     state.setValue(value, addr)
-    AddressInfo(addr, theType)
+    LValue(addr, theType)
   }
 }
 
 case class StringLiteral(value: String) extends Stackable
 case class TypeInfo(value: IType) extends Stackable
 
-object AddressInfo {
-  def unapply(info: AddressInfo): Option[(Int, IType)] = Some((info.address, info.theType))
+object LValue {
+  def unapply(info: LValue): Option[(Int, IType)] = Some((info.address, info.theType))
 
   def apply(addr: Int, aType: IType)(implicit state: State) = {
-    new AddressInfo(state) {
+    new LValue(state) {
       val address = addr
       val theType = aType
     }
   }
 }
 
-abstract class AddressInfo(state: State) extends Stackable {
+abstract class LValue(state: State) extends Stackable {
   val address: Int
   val theType: IType
   def sizeof = TypeHelper.sizeof(theType)
-  def value: ValueInfo = state.readVal(address, theType)
+  def value: RValue = state.readVal(address, theType)
 
   override def toString = {
     "AddressInfo(" + address + ", " + theType + ")"
@@ -82,17 +82,17 @@ class ArrayVariable(name: String, state: State, arrayType: IArrayType, dim: Seq[
 
   state.setValue(address + 4, address)
 
-  def setArray(array: Array[ValueInfo])(implicit state: State): Unit = {
-      state.setArray(array, AddressInfo(address + 4, theType))
+  def setArray(array: Array[RValue])(implicit state: State): Unit = {
+      state.setArray(array, LValue(address + 4, theType))
   }
-  
+
   override def sizeof: Int = {
     val numElements = if (dim.isEmpty) 0 else dim.reduce{_ * _}
     TypeHelper.sizeof(theType) * numElements
   }
 }
 
-class Variable(val name: String, val state: State, aType: IType) extends AddressInfo(state) {
+class Variable(val name: String, val state: State, aType: IType) extends LValue(state) {
   val theType = aType
   val size = TypeHelper.sizeof(aType)
   val address = allocateSpace(state, aType, 1)
@@ -138,7 +138,7 @@ class Variable(val name: String, val state: State, aType: IType) extends Address
   def setValues(values: List[Stackable]) = {
      var offset = 0
       values.foreach {
-        case ValueInfo(value, theType) =>
+        case RValue(value, theType) =>
           state.setValue(value, address + offset)
           offset += TypeHelper.sizeof(theType)
       }
@@ -197,7 +197,7 @@ object Executor {
   }
 
 
-  
+
 
 
   def step(current: IASTNode, direction: Direction)(implicit state: State): Seq[IASTNode] = {
@@ -229,30 +229,30 @@ object Executor {
         }
       case fcnDec: IASTFunctionDeclarator =>
         val isInFunctionPrototype = Utils.getAncestors(fcnDec).exists{_.isInstanceOf[IASTSimpleDeclaration]}
-          
+
         // ignore main's params for now
         val isInMain = fcnDec.getName.getRawSignature == "main"
         val fcnName = fcnDec.getName.getRawSignature
-        
+
         val paramDecls = new Stack[IASTParameterDeclaration]() ++ fcnDec.getChildren.collect{case x: IASTParameterDeclaration => x}
-        
+
         if (!paramDecls.isEmpty && direction == Entering && !isInMain) {
-          
+
           var numArgs = 0
 
           val others = fcnDec.getChildren.filter{x => !x.isInstanceOf[IASTParameterDeclaration] && !x.isInstanceOf[IASTName]}
-          
+
           if (!isInFunctionPrototype) {
-            numArgs = state.stack.pop.asInstanceOf[ValueInfo].value.asInstanceOf[Integer]
-            val args = (0 until numArgs).map{arg => state.stack.pop.asInstanceOf[ValueInfo]}.reverse
-          
+            numArgs = state.stack.pop.asInstanceOf[RValue].value.asInstanceOf[Integer]
+            val args = (0 until numArgs).map{arg => state.stack.pop.asInstanceOf[RValue]}.reverse
+
             args.foreach{ arg =>
               if (!isInFunctionPrototype && !paramDecls.isEmpty) {
 
                 val paramDecl = paramDecls.pop
-                
+
                 val paramInfo = paramDecl.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
-  
+
                 val name = paramDecl.getDeclarator.getName.getRawSignature
                 val newVar = state.context.addVariable(name, paramInfo.getType)
                 val casted = TypeHelper.cast(newVar.theType, arg.value).value
@@ -265,7 +265,7 @@ object Executor {
               }
             }
           }
-          
+
           others
         } else {
           Seq()
@@ -309,32 +309,32 @@ object Executor {
               import org.eclipse.cdt.core.dom.ast.IASTSimpleDeclSpecifier._
 
               var config = 0
-              
+
               if (simple.isLong) {
                 config |= IBasicType.IS_LONG
               }
-              
+
               if (simple.isUnsigned) {
                 config |= IBasicType.IS_UNSIGNED
               } else {
                 config |= IBasicType.IS_SIGNED
               }
-              
+
               var result: IType = simple.getType match {
                 case `t_unspecified` => new CBasicType(IBasicType.Kind.eInt, config)
                 case `t_int`    => new CBasicType(IBasicType.Kind.eInt, config)
                 case `t_float`  => new CBasicType(IBasicType.Kind.eFloat, config)
-                case `t_double` => new CBasicType(IBasicType.Kind.eDouble, config)           
+                case `t_double` => new CBasicType(IBasicType.Kind.eDouble, config)
                 case `t_char`   => new CBasicType(IBasicType.Kind.eChar, config)
                 case `t_void`   => new CBasicType(IBasicType.Kind.eVoid, config)
               }
-              
+
               for (ptr <- typeId.getAbstractDeclarator.getPointerOperators) {
                 result = new CPointerType(result, 0)
               }
 
               TypeInfo(result)
-              
+
             case typespec: CASTTypedefNameSpecifier =>
               TypeInfo(typespec.getName.resolveBinding().asInstanceOf[IType])
             case elab: CASTElaboratedTypeSpecifier =>
@@ -356,7 +356,7 @@ object Executor {
     others.foreach{fcnDef => state.addFunctionDef(fcnDef)}
 
     val mainFunction = new Function("main", true) {
-      def run(formattedOutputParams: Array[ValueInfo], state: State): Option[AnyVal] = None
+      def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = None
       override def getNext: IASTNode = mainFcn.head
     }
 

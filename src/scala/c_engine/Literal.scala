@@ -10,7 +10,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
 import org.eclipse.cdt.internal.core.dom.parser.c.CPointerType
 
 object Literal {
-  def cast(litStr: String): ValueInfo = {
+  def cast(litStr: String): RValue = {
 
     def isIntNumber(s: String): Boolean = (allCatch opt s.toInt).isDefined
     def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
@@ -50,6 +50,6 @@ object Literal {
       (lit.toDouble, new CBasicType(IBasicType.Kind.eDouble, 0))
     }
 
-    ValueInfo(resultValue.asInstanceOf[AnyVal], theType)
+    RValue(resultValue.asInstanceOf[AnyVal], theType)
   }
 }

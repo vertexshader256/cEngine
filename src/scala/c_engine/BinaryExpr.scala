@@ -5,18 +5,18 @@ import org.eclipse.cdt.core.dom.ast._
 
 object BinaryExpr {
   
-  def parseAssign(op: Int, op1: Stackable, op2: Stackable)(implicit state: State): AddressInfo = {
+  def parseAssign(op: Int, op1: Stackable, op2: Stackable)(implicit state: State): LValue = {
 
-    val dst: AddressInfo = op1 match {
-      case info @ AddressInfo(_, _) => info
+    val dst: LValue = op1 match {
+      case info @ LValue(_, _) => info
     }
     
     val resolvedop2 = op2 match {
       case StringLiteral(str) =>
           state.createStringVariable(str, false)
-      case addr @ AddressInfo(address, theType: IArrayType) => ValueInfo(address + 4, theType)
-      case addr @ AddressInfo(_, _) => addr.value
-      case value @ ValueInfo(_, _) => value
+      case addr @ LValue(address, theType: IArrayType) => RValue(address + 4, theType)
+      case addr @ LValue(_, _) => addr.value
+      case value @ RValue(_, _) => value
     }
     
     val theVal = dst.value
@@ -29,7 +29,7 @@ object BinaryExpr {
     dst
   }
   
-  def evaluate(left: ValueInfo, right: ValueInfo, operator: Int)(implicit state: State): ValueInfo = {
+  def evaluate(left: RValue, right: RValue, operator: Int)(implicit state: State): RValue = {
     
     val op1 = left.value
     val op2 = if ((left.theType.isInstanceOf[IPointerType] || left.theType.isInstanceOf[IArrayType]) && (operator == `op_minus` || operator == `op_plus`)) {
@@ -313,6 +313,6 @@ object BinaryExpr {
       case _ => throw new Exception("unhandled binary operator: " + operator); 0
     }
 
-    ValueInfo(result, left.theType)
+    RValue(result, left.theType)
   }
 }

@@ -34,12 +34,12 @@ object Statement {
         Seq(caseStatement.getExpression)
       } else {
 
-        val caseExpr = state.stack.pop.asInstanceOf[ValueInfo].value
+        val caseExpr = state.stack.pop.asInstanceOf[RValue].value
         val switchExpr = state.stack.head
 
         val resolved = (switchExpr match {
-          case info @ AddressInfo(_, _) => info.value
-          case value @ ValueInfo(_, _) => value
+          case info @ LValue(_, _) => info.value
+          case value @ RValue(_, _) => value
         }).value
 
         if (caseExpr == resolved) {
@@ -91,7 +91,7 @@ object Statement {
         val result = state.stack.pop
 
         val value = result match {
-          case info @ AddressInfo(_,_) => info.value
+          case info @ LValue(_,_) => info.value
           case x => x
         }
 
@@ -143,8 +143,8 @@ object Statement {
         if (ret.getReturnValue != null) {
           val returnVal = state.stack.pop
           state.stack.push(returnVal match {
-            case info @ AddressInfo(addr, theType) => TypeHelper.cast(state.context.returnType, info.value.value)
-            case value @ ValueInfo(_, _) => value
+            case info @ LValue(addr, theType) => TypeHelper.cast(state.context.returnType, info.value.value)
+            case value @ RValue(_, _) => value
           })
         }
         state.isReturning = true

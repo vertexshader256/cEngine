@@ -27,8 +27,8 @@ object Declarator {
 
             val dimensions = arrayDecl.getArrayModifiers.filter{_.getConstantExpression != null}.map{dim => state.stack.pop match {
               // can we can assume dimensions are integers
-              case ValueInfo(value, _) => value.asInstanceOf[Int]
-              case info @ AddressInfo(_, _) => info.value.value.asInstanceOf[Int]
+              case RValue(value, _) => value.asInstanceOf[Int]
+              case info @ LValue(_, _) => info.value.value.asInstanceOf[Int]
             }}
 
             val initializer = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
@@ -44,7 +44,7 @@ object Declarator {
 
                 val theStr = Utils.stripQuotes(initString)
                 val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
-                val withNull = (translateLineFeed.toCharArray() :+ 0.toChar).map{char => ValueInfo(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))} // terminating null char
+                val withNull = (translateLineFeed.toCharArray() :+ 0.toChar).map{char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))} // terminating null char
 
                 val theArrayPtr =  state.context.addArrayVariable(name, theType.asInstanceOf[IArrayType], Seq(initString.size))
                 theArrayPtr.setArray(withNull)
@@ -52,9 +52,9 @@ object Declarator {
                 val list = initializer.getInitializerClause.asInstanceOf[IASTInitializerList]
                 val size = list.getSize
 
-                val values: Array[ValueInfo] = (0 until size).map{x => state.stack.pop match {
-                  case value @ ValueInfo(_,_) => value
-                  case info @ AddressInfo(_,_) => info.value
+                val values: Array[RValue] = (0 until size).map{ x => state.stack.pop match {
+                  case value @ RValue(_,_) => value
+                  case info @ LValue(_,_) => info.value
                 }}.reverse.toArray
 
                 val theArrayPtr = state.context.addArrayVariable(name, theType.asInstanceOf[IArrayType], Array(size))
@@ -67,13 +67,13 @@ object Declarator {
                 newInit match {
                   case StringLiteral(x) =>
                     state.createStringVariable(newInit.asInstanceOf[StringLiteral].value, false)
-                  case info @ AddressInfo(_, _) => info.value
-                  case value @ ValueInfo(_, _) => value
+                  case info @ LValue(_, _) => info.value
+                  case value @ RValue(_, _) => value
                 }
               }
 
               val theArrayVar = state.context.addArrayVariable(name, theType.asInstanceOf[IArrayType], dimensions)
-              state.setArray(initialArray, AddressInfo(theArrayVar.address + 4, theArrayVar.theType))
+              state.setArray(initialArray, LValue(theArrayVar.address + 4, theArrayVar.theType))
             } else {
               state.context.addArrayVariable(name, theType.asInstanceOf[IArrayType], dimensions)
             }
@@ -85,7 +85,7 @@ object Declarator {
 
             if (!variable.isInitialized) {
               if (!stripped.isInstanceOf[CStructure]) {
-                val initVal = Option(decl.getInitializer).map(x => state.stack.pop).getOrElse(ValueInfo(0, null))
+                val initVal = Option(decl.getInitializer).map(x => state.stack.pop).getOrElse(RValue(0, null))
                 BinaryExpr.parseAssign(op_assign, variable, initVal)
               } else if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
                 && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {

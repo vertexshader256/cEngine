@@ -15,7 +15,7 @@ abstract case class Function(name: String, isNative: Boolean) {
 
   val staticVars: List[Variable] = List()
 
-  def run(formattedOutputParams: Array[ValueInfo], state: State): Option[AnyVal]
+  def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal]
   def getNext: IASTNode = null
 }
 
@@ -25,30 +25,30 @@ object Functions {
   
   val scalaFunctions = List[Function](
       new Function("rand", false) {
-        def run(formattedOutputParams: Array[ValueInfo], state: State) = {
+        def run(formattedOutputParams: Array[RValue], state: State) = {
           Some(Math.abs(scala.util.Random.nextInt))
         }
       },
       new Function("isalpha", false) {
-        def run(formattedOutputParams: Array[ValueInfo], state: State) = {
+        def run(formattedOutputParams: Array[RValue], state: State) = {
           val theChar = formattedOutputParams.head.value.asInstanceOf[char].toChar
           Some(if (theChar.isLetter) 1 else 0)
         }
       },
       new Function("tolower", false) {
-        def run(formattedOutputParams: Array[ValueInfo], state: State) = {
+        def run(formattedOutputParams: Array[RValue], state: State) = {
           val theChar = formattedOutputParams.head.value.asInstanceOf[char].toChar
           Some(theChar.toLower.toByte)
         }
       },
       new Function("toupper", false) {
-        def run(formattedOutputParams: Array[ValueInfo], state: State) = {
+        def run(formattedOutputParams: Array[RValue], state: State) = {
           val theChar = formattedOutputParams.head.value.asInstanceOf[char].toChar
           Some(theChar.toUpper.toByte)
         }
       },
       new Function("isupper", false) {
-        def run(formattedOutputParams: Array[ValueInfo], state: State) = {
+        def run(formattedOutputParams: Array[RValue], state: State) = {
           val theChar = formattedOutputParams.head.value match {
             case int: int => int.toChar
             case char: char => char.toChar
@@ -57,7 +57,7 @@ object Functions {
         }
       },
       new Function("calloc", false) {
-        def run(formattedOutputParams: Array[ValueInfo], state: State) = {
+        def run(formattedOutputParams: Array[RValue], state: State) = {
           val numBlocks = formattedOutputParams(0).value.asInstanceOf[Int]
           val blockSize = formattedOutputParams(1).value.asInstanceOf[Int]
           val addr = state.allocateHeapSpace(numBlocks * blockSize)
@@ -65,7 +65,7 @@ object Functions {
         }
       },
       new Function("malloc", false) {
-        def run(formattedOutputParams: Array[ValueInfo], state: State) = {
+        def run(formattedOutputParams: Array[RValue], state: State) = {
           val returnVal = formattedOutputParams.head.value match {
             case long: Long => state.allocateHeapSpace(long.toInt)
             case int: Int => state.allocateHeapSpace(int)
@@ -74,12 +74,12 @@ object Functions {
         }
       },
       new Function("realloc", false) {
-        def run(formattedOutputParams: Array[ValueInfo], state: State) = {
+        def run(formattedOutputParams: Array[RValue], state: State) = {
           Some(state.allocateHeapSpace(formattedOutputParams.head.value.asInstanceOf[Int]))
         }
       },
       new Function("memmove", false) {
-        def run(formattedOutputParams: Array[ValueInfo], state: State) = {
+        def run(formattedOutputParams: Array[RValue], state: State) = {
           val dst = formattedOutputParams(0).value.asInstanceOf[Int]
           val src = formattedOutputParams(1).value.asInstanceOf[Int]
           val numBytes = formattedOutputParams(2).value.asInstanceOf[Int]
@@ -89,7 +89,7 @@ object Functions {
         }
       },
       new Function("memcpy", false) {
-        def run(formattedOutputParams: Array[ValueInfo], state: State) = {
+        def run(formattedOutputParams: Array[RValue], state: State) = {
           val numBytes = formattedOutputParams(0).value match {
             case int: Int => int
             case long: Long => long.toInt
@@ -102,14 +102,14 @@ object Functions {
         }
       },
       new Function("_assert", false) {
-        def run(formattedOutputParams: Array[ValueInfo], state: State): Option[AnyVal] = {
+        def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = {
           val addy = formattedOutputParams(0).value.asInstanceOf[Int]
           println(Utils.readString(addy)(state) + " FAILED")
           None
         }
       },
       new Function("modf", false) {
-        def run(formattedOutputParams: Array[ValueInfo], state: State) = {
+        def run(formattedOutputParams: Array[RValue], state: State) = {
           val fraction = formattedOutputParams(0).value.asInstanceOf[Double]
           val intPart = formattedOutputParams(1).value.asInstanceOf[Int]
           
@@ -119,7 +119,7 @@ object Functions {
         }
       },
       new Function("putchar", false) {
-        def run(formattedOutputParams: Array[ValueInfo], state: State) = {
+        def run(formattedOutputParams: Array[RValue], state: State) = {
           val char = formattedOutputParams(0).value.asInstanceOf[char].toChar
 
           if (char == 10) {
@@ -137,7 +137,7 @@ object Functions {
         }
       },
       new Function("printf", false) {
-        def run(formattedOutputParams: Array[ValueInfo], state: State) = {
+        def run(formattedOutputParams: Array[RValue], state: State) = {
 
           val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(state)
           val formatString = str.replaceAll("^\"|\"$", "").replaceAll("%ld", "%d").replaceAll("%l", "%d")
@@ -191,14 +191,14 @@ object Functions {
           formatter.format(formatString, resolved: _*)
 
           buffer.toString.getBytes.foreach{char =>
-            state.callFunctionFromScala("putchar", Array(new ValueInfo(char, new CBasicType(IBasicType.Kind.eChar, 0))))
+            state.callFunctionFromScala("putchar", Array(new RValue(char, new CBasicType(IBasicType.Kind.eChar, 0))))
           }
 
           None
         }
       },
       new Function("strlen", false) {
-        def run(formattedOutputParams: Array[ValueInfo], state: State) = {
+        def run(formattedOutputParams: Array[RValue], state: State) = {
           val straddy = formattedOutputParams.head.value match {
             //case AddressInfo(addr, _) => addr.value
             case int: Int => int
@@ -215,7 +215,7 @@ object Functions {
         }
       },
     new Function("strcmp", false) {
-      def run(formattedOutputParams: Array[ValueInfo], state: State) = {
+      def run(formattedOutputParams: Array[RValue], state: State) = {
         val straddy = formattedOutputParams(0).value.asInstanceOf[Int]
         val straddy2 = formattedOutputParams(1).value.asInstanceOf[Int]
 
@@ -229,7 +229,7 @@ object Functions {
       }
     },
     new Function("memcmp", false) {
-      def run(formattedOutputParams: Array[ValueInfo], state: State) = {
+      def run(formattedOutputParams: Array[RValue], state: State) = {
         val numBytes = formattedOutputParams(0).value.asInstanceOf[Int]
         val memaddy = formattedOutputParams(1).value.asInstanceOf[Int]
         val memaddy2 = formattedOutputParams(2).value.asInstanceOf[Int]
@@ -244,12 +244,12 @@ object Functions {
       }
     },
       new Function("free", false) {
-        def run(formattedOutputParams: Array[ValueInfo], state: State): Option[AnyVal] = {
+        def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = {
           None
         }
       },
       new Function("va_arg", false) {
-        def run(formattedOutputParams: Array[ValueInfo], state: State) = {
+        def run(formattedOutputParams: Array[RValue], state: State) = {
           val argTypeStr = formattedOutputParams(0).value.asInstanceOf[Int]
           
           val str = Utils.readString(argTypeStr)(state)
@@ -268,7 +268,7 @@ object Functions {
         }
       },
       new Function("va_start", false) {
-        def run(formattedOutputParams: Array[ValueInfo], state: State) = {
+        def run(formattedOutputParams: Array[RValue], state: State) = {
           val lastNamedArgAddr = formattedOutputParams(0).value.asInstanceOf[Int]
           val listAddr = formattedOutputParams(1).value.asInstanceOf[Int]
           varArgStartingAddr = lastNamedArgAddr + 4
@@ -276,13 +276,13 @@ object Functions {
         }
       },
       new Function("va_end", false) {
-        def run(formattedOutputParams: Array[ValueInfo], state: State) = {
+        def run(formattedOutputParams: Array[RValue], state: State) = {
            None
         }
       },
       //fcvtbuf(double arg, int ndigits, int *decpt, int *sign, char *buf)
       new Function("fcvtbuf", false) {
-        def run(formattedOutputParams: Array[ValueInfo], state: State) = {
+        def run(formattedOutputParams: Array[RValue], state: State) = {
           val buf = formattedOutputParams(0).value.asInstanceOf[Int]
           val sign = formattedOutputParams(1).value.asInstanceOf[Int]
           val decpt = formattedOutputParams(2).value.asInstanceOf[Int]
@@ -304,11 +304,11 @@ object Functions {
           val index = result1.indexOf('.')
           val result = result1.replace(".", "")
 
-          val array = result.toCharArray.map{ char => ValueInfo(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))}
+          val array = result.toCharArray.map{ char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))}
 
           state.setValue(index, decpt)
 
-          state.setArray(array, AddressInfo(buf, new CBasicType(IBasicType.Kind.eChar, 0))(state))(state)
+          state.setArray(array, LValue(buf, new CBasicType(IBasicType.Kind.eChar, 0))(state))(state)
           Some(buf)
         }
       }

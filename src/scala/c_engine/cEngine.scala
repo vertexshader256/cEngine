@@ -107,7 +107,7 @@ class State {
       override val staticVars = addStaticFunctionVars(fcnDef, State.this)
 
       def parameters = fcnType.getParameterTypes.toList
-      def run(formattedOutputParams: Array[ValueInfo], state: State): Option[AnyVal] = {None}
+      def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = {None}
       override def getNext = fcnDef
     }
     
@@ -123,22 +123,22 @@ class State {
   var isBreaking = false
   var isContinuing = false
 
-  def callFunctionFromScala(name: String, args: Array[ValueInfo]): Seq[IASTNode] = {
+  def callFunctionFromScala(name: String, args: Array[RValue]): Seq[IASTNode] = {
 
     functionList.find(_.name == name).map { fcn =>
       // this is a function simulated in scala
-      fcn.run(args.reverse, this).foreach { retVal => context.stack.push(ValueInfo(retVal, null)) }
+      fcn.run(args.reverse, this).foreach { retVal => context.stack.push(RValue(retVal, null)) }
     }
 
     Seq()
   }
 
-  def callTheFunction(name: String, call: IASTFunctionCallExpression, args: Array[ValueInfo]): Seq[IASTNode] = {
+  def callTheFunction(name: String, call: IASTFunctionCallExpression, args: Array[RValue]): Seq[IASTNode] = {
 
     functionList.find(_.name == name).map{ fcn =>
       if (!fcn.isNative) {
         // this is a function simulated in scala
-        fcn.run(args.reverse, this).foreach{retVal => context.stack.push(ValueInfo(retVal, null))}
+        fcn.run(args.reverse, this).foreach{retVal => context.stack.push(RValue(retVal, null))}
         Seq()
       } else {
         callFunction(fcn, call, args)
@@ -152,12 +152,12 @@ class State {
     }
   }
   
-  def callFunction(function: Function, call: IASTFunctionCallExpression, args: Array[ValueInfo]): IASTNode = {
+  def callFunction(function: Function, call: IASTFunctionCallExpression, args: Array[RValue]): IASTNode = {
     functionContexts.push(new ExecutionContext(function, functionContexts.head.varMap.toList, call.getExpressionType, stackInsertIndex, this))
     context.pathStack.push(call)
     
     args.foreach{ arg => context.stack.push(arg)}
-    context.stack.push(ValueInfo(args.size, null))
+    context.stack.push(RValue(args.size, null))
 
     function.getNext
   }
@@ -197,21 +197,21 @@ class State {
     }
   }
   
-  def readPtrVal(address: Int): ValueInfo = {
+  def readPtrVal(address: Int): RValue = {
     readVal(address, TypeHelper.pointerType)
   }
   
-  def createStringVariable(str: String, isHeap: Boolean)(implicit state: State): ValueInfo = {
+  def createStringVariable(str: String, isHeap: Boolean)(implicit state: State): RValue = {
     val theStr = Utils.stripQuotes(str)
     val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
-    val withNull = (translateLineFeed.toCharArray() :+ 0.toChar).map{char => ValueInfo(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))} // terminating null char
+    val withNull = (translateLineFeed.toCharArray() :+ 0.toChar).map{char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))} // terminating null char
     val strAddr = if (isHeap) allocateHeapSpace(withNull.size) else allocateSpace(withNull.size)
     
-    setArray(withNull, AddressInfo(strAddr, new CBasicType(IBasicType.Kind.eChar, 0)))
-    ValueInfo(strAddr, TypeHelper.pointerType)
+    setArray(withNull, LValue(strAddr, new CBasicType(IBasicType.Kind.eChar, 0)))
+    RValue(strAddr, TypeHelper.pointerType)
   }
 
-  def readVal(address: Int, theType: IType): ValueInfo = {
+  def readVal(address: Int, theType: IType): RValue = {
 
     import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
     
@@ -246,13 +246,13 @@ class State {
     TypeHelper.castSign(theType, result)
   }
 
-  def setArray(array: Array[ValueInfo], info: AddressInfo)(implicit state: State): Unit = {
+  def setArray(array: Array[RValue], info: LValue)(implicit state: State): Unit = {
       var i = 0
       val address = info.address
       val size = TypeHelper.sizeof(info.theType)
       array.foreach { element =>
         element match {
-          case ValueInfo(newVal, _) =>
+          case RValue(newVal, _) =>
             setValue(newVal, address + i)
         }
 
