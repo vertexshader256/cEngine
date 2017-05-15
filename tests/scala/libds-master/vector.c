@@ -100,9 +100,9 @@ int vector_index(vector_p vec, void* data, size_t n){
 
 void destroy_vector(vector_p vec){
 	int i;
-	for(i=0;i<vec->length;i++){
-		vec->destructor(vec->data[i]);
-	}
+//	for(i=0;i<vec->length;i++){
+//		vec->destructor(vec->data[i]);
+//	}
 	free(vec->data);
 	free(vec->sizes);
 	free(vec);

@@ -31,31 +31,34 @@ void* hashmap_get(hashmap_p m, char * key){
 void hashmap_put(hashmap_p m, char* key, void* val, size_t len){
 	int keylen = strlen(key);
 	printf("%d\n", keylen);
-//	size_t h = hash_func(key) % m->num_buckets;
-//	item_t* itm = m->buckets[h];
-//	item_t* last = NULL;
-//
-//	while(itm!=NULL){
-//		if(strcmp(key, itm->key)==0){
-//		if(itm->val!=NULL) m->destructor(itm->val);
-//		itm->val = malloc(len);
-//		memcpy(itm->val, val, len);
-//			return;
-//		}
-//		if(itm->next==NULL) last = itm;
-//		itm = itm->next;
-//	}
-//
-//	itm = (item_t*)malloc(sizeof(item_t));
-//	itm->key = malloc(keylen+1);
-//	memcpy(itm->key, key, keylen+1);
-//	itm->val = malloc(len);
-//	memcpy(itm->val, val, len);
-//	itm->next = NULL;
-//	if(last==NULL) m->buckets[h] = itm;
-//	else last->next = itm;
-//	vector_add(m->keys, itm->key, keylen+1);
-//	m->size++;
+	size_t h = hash_func(key) % m->num_buckets;
+	item_t* itm = m->buckets[h];
+	item_t* last = NULL;
+
+	while(itm!=NULL){
+		if(strcmp(key, itm->key)==0){
+		if(itm->val!=NULL) m->destructor(itm->val);
+		itm->val = malloc(len);
+		memcpy(itm->val, val, len);
+			return;
+		}
+		if(itm->next==NULL) last = itm;
+		itm = itm->next;
+	}
+
+	itm = (item_t*)malloc(sizeof(item_t));
+	itm->key = malloc(keylen+1);
+	memcpy(itm->key, key, keylen+1);
+	itm->val = malloc(len);
+	memcpy(itm->val, val, len);
+	itm->next = NULL;
+	if(last==NULL) {
+	  m->buckets[h] = itm;
+	} else {
+	  last->next = itm;
+	}
+	vector_add(m->keys, itm->key, keylen+1);
+	m->size++;
 }
 
 void hashmap_remove(hashmap_p m, char* key){

@@ -15,13 +15,13 @@ int main(void){
 	printf("hashmap size: %d\n", (int) m->size);
 
 	hashmap_put(m, "key1", (void*)"val1", 5);
-//	hashmap_put(m, "key2", (void*)"val2", 5);
-//	hashmap_put(m, "key3", (void*)"val3", 5);
-//
+	hashmap_put(m, "key2", (void*)"val2", 5);
+	hashmap_put(m, "key3", (void*)"val3", 5);
+
 //	hashmap_resize(m, 211);
-//
-//	res = (char*) hashmap_get(m, "key1");
-//	printf("key: %s\n", res);
+
+	res = (char*) hashmap_get(m, "key1");
+	printf("key: %s\n", res);
 	printf("num_buckets: %d\n", (int) m->num_buckets);
 
 	destroy_hashmap(m);
