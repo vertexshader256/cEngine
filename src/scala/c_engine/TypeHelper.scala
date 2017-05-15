@@ -125,10 +125,6 @@ object TypeHelper {
     }
   }
   
-  def isSigned(theType: IBasicType) = {
-    theType.isSigned || (!theType.isSigned && !theType.isUnsigned)
-  }
-  
   // resolves 'Any' to 'ValueInfo'
   def resolve(any: Stackable)(implicit state: State): ValueInfo = {
     any match {
@@ -139,7 +135,6 @@ object TypeHelper {
 
   // Some standard cases of needing to know what a type resolves to
   def resolve(theType: IType): IBasicType = theType match {
-    case struct: CStructure       => TypeHelper.pointerType
     case basicType: IBasicType    => basicType
     case typedef: ITypedef        => resolve(typedef.getType)
     case ptrType: IPointerType    => resolve(ptrType.getType)
@@ -161,7 +156,6 @@ object TypeHelper {
   def resolveBoolean(theVal: Any): Boolean = theVal match {
       case x: Boolean => x
       case int: int => int != 0
-      case long: Long => long != 0
       case short: short => short != 0
       case char: char => char != 0
       case ValueInfo(value, _) => resolveBoolean(value)
@@ -195,14 +189,5 @@ object TypeHelper {
         case `eVoid`                    => 4
         case `eBoolean`                 => 4
       }
-  }
-
-  def getPointedType(theType: IType): IType = {
-    theType match {
-      case ptr: IPointerType => ptr.getType
-      case array: IArrayType => array.getType
-      case typedef: ITypedef => getPointedType(typedef.getType)
-      case qual: IQualifierType => getPointedType(qual.getType)
-    }
   }
 }

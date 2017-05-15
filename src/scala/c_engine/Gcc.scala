@@ -256,64 +256,6 @@ class LinkerLogger extends Logger {
     errors ++= newErrors
   }
 
- def parseLinkerErrorStrings(error: String, functionName: String): Option[BuildError] = {
-
-    if (error.contains("cannot open output") ||
-        error.contains("cannot find") ||
-        error.contains("final link failed")) {
-        val tokens = error.split("ld.exe:")
-        val rawMsg = tokens.last.trim
-        val msg = if (rawMsg.contains("Permission denied")) {
-          rawMsg + " (Is the app running?)"
-        } else {
-          rawMsg
-        }
-        if (msg.startsWith("Warning:")) {
-          Some(BuildError(Seq(), Some(functionName), "warning", msg))
-        } else {
-          Some(BuildError(Seq(), Some(functionName), "linker error", msg))
-        }
-    } else if (error.contains("(.text")) {
-      val tokens = error.split(":")
-      val rawMsg = tokens.last.trim
-      val fileName = tokens(2)
-      Some(BuildError(Seq(ErrorLocation(File(fileName), 0, 0)), Some(functionName), "linker error", rawMsg))
-    } else if (error.contains("undefined reference")) {
-      val tokens = error.split(":")
-      val rawMsg = tokens.last.trim
-      val filePath = tokens(0) + ":" + tokens(1)
-      Some(BuildError(Seq(ErrorLocation(File(filePath), 0, 0)), Some(functionName), "linker error", rawMsg))
-    } else if (error.contains("In function") && !error.contains("At top level:")) {
-      if (error.startsWith("Warning:")) {
-          Some(BuildError(Seq(), Some(functionName), "warning", error))
-        } else {
-          Some(BuildError(Seq(), Some(functionName), "linker error", error))
-        }
-    } else {
-      None
-    }
-  }
-  
-  private def checkForLinkerErrors(error: String): Option[BuildError] = {
-    if (error contains "In function") {
-      val start = error.indexOf("`") + 1 // its really weird, the linker emits a backtick, but the compiler emits a single quote "'"
-      val end = error.size - 2
-      currentFunction = error.substring(start, end)
-      None
-    } else if (!error.contains("<command-line>")) {
-      parseLinkerErrorStrings(error, currentFunction)
-    } else {
-      None
-    }
-  }
-  
-  def getLinkerErrors(lines: Seq[String]): Seq[BuildError] = {
-    for {
-      errorString <- lines
-      error <- checkForLinkerErrors(errorString)
-    } yield error
-  }
-  
   def in(stream: OutputStream) = {}
   def out(stream: InputStream) = { scala.io.Source.fromInputStream(stream).getLines }
   def err(stream: InputStream) = {
@@ -322,7 +264,6 @@ class LinkerLogger extends Logger {
 
     if (!lines.isEmpty) {
       lines.foreach(x => println("LINKER ERROR: " + x))
-      addErrors(getLinkerErrors(lines.toSeq))
     }
   }
 }

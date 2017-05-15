@@ -259,23 +259,7 @@ class State {
         i += size
       }
   }
-  
-  def resolve(theType: IType): IType = {
-    val result = theType match {
-      case ptr: IPointerType => ptr.getType
-      case typedef: ITypedef => typedef.getType
-      case array: IArrayType => array.getType
-      case qual: IQualifierType => qual.getType
-      case _ => TypeHelper.resolve(theType)
-    }
-    
-    if (result.isInstanceOf[IQualifierType] || result.isInstanceOf[ITypedef]) {
-      resolve(result)
-    } else {
-      result
-    }
-  }
-  
+
   // use Address type to prevent messing up argument order
   def setValue(newVal: AnyVal, address: Int): Unit = newVal match {
     case char: char    => tape.put(address, char)

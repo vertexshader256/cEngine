@@ -141,9 +141,6 @@ class Variable(val name: String, val state: State, aType: IType) extends Address
         case ValueInfo(value, theType) =>
           state.setValue(value, address + offset)
           offset += TypeHelper.sizeof(theType)
-        case info @ AddressInfo(_, theType) =>
-          state.setValue(info.value.value, address + offset)
-          offset += TypeHelper.sizeof(theType)
       }
   }
 }
@@ -223,11 +220,7 @@ object Executor {
       case ptr: IASTPointer =>
         Seq()
       case tUnit: IASTTranslationUnit =>
-        if (direction == Entering) {
-          tUnit.getChildren.filterNot{_.isInstanceOf[IASTFunctionDefinition]}
-        } else {
-          Seq()
-        }
+        tUnit.getChildren.filterNot{_.isInstanceOf[IASTFunctionDefinition]}
       case simple: IASTSimpleDeclaration =>
         if (direction == Entering) {
           simple.getDeclarators
