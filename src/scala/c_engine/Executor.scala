@@ -14,9 +14,7 @@ import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 import scala.collection.mutable.Map
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 
-trait Stackable {
-  def value: Any
-}
+trait Stackable
 
 case class RValue(value: AnyVal, theType: IType) extends Stackable
 

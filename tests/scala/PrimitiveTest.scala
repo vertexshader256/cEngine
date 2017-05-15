@@ -18,18 +18,31 @@ class StagingAreaPrimitive extends StandardTest {
 
 class RobustPrimitiveTest extends StandardTest {
   "robust primitive test" should "print the correct results" in {
+
+
+    val combo = List('a', 'b', 'e', 'f', 'g', 'h').combinations(2).toList
+    val perms = combo.flatMap{case List(x,y) => List((x,y),(y,x))}
+    val uniques = perms.toSet.toList
+
     val code = """
        void main() {
         int x = 0;
-        int a = 0;
-        char b = 0;
+        int a = 43;
+        char b = 65;
         float c = 0.0f;
         double d = 0.0;
-        long e = 0;
-        short f = 0;
-        unsigned int g = 0;
-        unsigned short h = 0;
-        """ + List('a', 'b', 'e', 'f', 'g', 'h').map{ x => s"""
+        long e = 254345;
+        short f = 3544;
+        unsigned int g = 776;
+        unsigned short h = 345;
+
+        """ + uniques.map{case (x,y) => s"""
+              $x += $y;
+              $x -= $y;
+              $x *= $y;
+              printf("%d\\n", $x);
+             """
+    }.reduce(_ + "\n" + _) ++ List('a', 'b', 'e', 'f', 'g', 'h').map{ x => s"""
               $x = 0;
               $x = $x + 2;
               $x = $x - 1;
