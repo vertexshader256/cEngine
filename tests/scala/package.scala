@@ -19,14 +19,14 @@ object TestClasses {
     
     def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = true) = {
 
-      var isFailed = false
+      var except: Exception = null
 
       val gccOutputFuture = Future[Seq[String]] {
         var result: Seq[String] = Seq()
         try {
           result = Gcc.compileAndGetOutput(codeInFiles)
         } catch {
-          case e => isFailed = true
+          case e: Exception => except = e
         }
         result
       }
@@ -47,7 +47,7 @@ object TestClasses {
           totalTime += (System.nanoTime - start) / 1000000000.0
           result = state.stdout.toList
         } catch {
-          case e => isFailed = true
+          case e: Exception => except = e
         }
         result
       }
@@ -63,7 +63,12 @@ object TestClasses {
         case Success((gccOutput, cEngineOutput)) => 
           info("C_Engine output: " + cEngineOutput)
           info("Gcc output: " + gccOutput)
-          assert(cEngineOutput == gccOutput && !isFailed)
+
+          if (except != null) {
+            throw except
+          }
+
+          assert(cEngineOutput == gccOutput)
         case Failure(e) => 
           e.printStackTrace()
           false

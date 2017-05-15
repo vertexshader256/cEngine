@@ -276,7 +276,9 @@ object BinaryExpr {
         }  
       case `op_modulo` =>
         (op1, op2) match {
+          case (x: Int, y: Short) => x % y
           case (x: Long, y: Long) => x % y
+          case (x: Long, y: Int) => x % y
           case (x: Int, y: Int) => x % y
           case (x: Double, y: Int) => x % y
           case (x: Int, y: Double) => x % y
