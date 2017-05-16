@@ -29,13 +29,12 @@ object Utils {
     str.tail.reverse.tail.reverse
   }
   
-  def allocateString(arg: Stackable, isHeap: Boolean)(implicit state: State): RValue = {
+  def allocateString(arg: ValueType, isHeap: Boolean)(implicit state: State): RValue = {
     arg match {
         case StringLiteral(str) => 
           state.createStringVariable(str, isHeap)
-        case info @ LValue(_, theType: IArrayType) => RValue(info.address + 4, theType)
         case info @ LValue(_, _) => info.value
-        case value @ RValue(theVal, _) => value
+        case value @ RValue(_, _) => value
       }
   }
   

@@ -186,13 +186,11 @@ object Expressions {
               BinaryExpr.parseAssign(bin.getOperator, op1, op2)
           } else {
             val op2 = context.stack.pop match {
-              case info @ LValue(_, theType: IArrayType) => RValue(info.address + 4, theType)
               case info @ LValue(_, _) => info.value
               case value @ RValue(_, _) => value
             }
 
             val op1 = context.stack.pop match {
-              case info @ LValue(_, theType: IArrayType) => RValue(info.address + 4, theType)
               case info @ LValue(_, _) => info.value
               case value @ RValue(_, _) => value
             }

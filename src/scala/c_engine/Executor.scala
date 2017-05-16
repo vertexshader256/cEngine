@@ -14,20 +14,27 @@ import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 import scala.collection.mutable.Map
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 
-trait Stackable
+trait ValueType
 
-case class RValue(value: AnyVal, theType: IType) extends Stackable
+case class StringLiteral(value: String) extends ValueType
+case class TypeInfo(value: IType) extends ValueType
+case class RValue(value: AnyVal, theType: IType) extends ValueType
+abstract class LValue(state: State) extends ValueType {
+  val address: Int
+  val theType: IType
+  def sizeof = TypeHelper.sizeof(theType)
+  def value: RValue = {
+    if (theType.isInstanceOf[IArrayType]) {
+      RValue(address + 4, theType)
+    } else {
+      state.readVal(address, theType)
+    }
+  }
 
-object ValueInfo2 {
-  def apply(value: AnyVal, theType: IType)(implicit state: State): LValue = {
-    val addr = state.allocateSpace(TypeHelper.sizeof(TypeHelper.getType(value)))
-    state.setValue(value, addr)
-    LValue(addr, theType)
+  override def toString = {
+    "AddressInfo(" + address + ", " + theType + ")"
   }
 }
-
-case class StringLiteral(value: String) extends Stackable
-case class TypeInfo(value: IType) extends Stackable
 
 object LValue {
   def unapply(info: LValue): Option[(Int, IType)] = Some((info.address, info.theType))
@@ -40,14 +47,11 @@ object LValue {
   }
 }
 
-abstract class LValue(state: State) extends Stackable {
-  val address: Int
-  val theType: IType
-  def sizeof = TypeHelper.sizeof(theType)
-  def value: RValue = state.readVal(address, theType)
-
-  override def toString = {
-    "AddressInfo(" + address + ", " + theType + ")"
+object ValueInfo2 {
+  def apply(value: AnyVal, theType: IType)(implicit state: State): LValue = {
+    val addr = state.allocateSpace(TypeHelper.sizeof(TypeHelper.getType(value)))
+    state.setValue(value, addr)
+    LValue(addr, theType)
   }
 }
 
@@ -133,7 +137,7 @@ class Variable(val name: String, val state: State, aType: IType) extends LValue(
     }
   }
 
-  def setValues(values: List[Stackable]) = {
+  def setValues(values: List[ValueType]) = {
      var offset = 0
       values.foreach {
         case RValue(value, theType) =>
@@ -147,7 +151,7 @@ class ExecutionContext(fcn: Function, parentScopeVars: List[Variable], val retur
   val visited = new ListBuffer[IASTNode]()
   var varMap: List[Variable] = (fcn.staticVars.toSet ++ parentScopeVars.toSet).toList
   val pathStack = new Stack[IASTNode]()
-  val stack = new Stack[Stackable]()
+  val stack = new Stack[ValueType]()
 
   def resolveId(id: String): Variable = varMap.find{_.name == id}.getOrElse(state.functionPointers(id))
 

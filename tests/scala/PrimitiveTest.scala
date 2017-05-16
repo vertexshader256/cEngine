@@ -40,6 +40,10 @@ class RobustPrimitiveTest extends StandardTest {
               $x += $y;
               $x -= $y;
               $x *= $y;
+              $x < $y;
+              $x > $y;
+              $x <= $y;
+              $x >= $y;
               printf("%d\\n", $x);
              """
     }.reduce(_ + "\n" + _) ++ List('a', 'b', 'e', 'f', 'g', 'h').map{ x => s"""
@@ -61,6 +65,7 @@ class RobustPrimitiveTest extends StandardTest {
 
             printf("%f\\n", $x);"""
     }.reduce(_ + "\n" + _) + "}"
+
     checkResults(code)
   }
 }

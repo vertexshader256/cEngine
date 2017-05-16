@@ -5,7 +5,7 @@ import org.eclipse.cdt.core.dom.ast._
 
 object BinaryExpr {
   
-  def parseAssign(op: Int, op1: Stackable, op2: Stackable)(implicit state: State): LValue = {
+  def parseAssign(op: Int, op1: ValueType, op2: ValueType)(implicit state: State): LValue = {
 
     val dst: LValue = op1 match {
       case info @ LValue(_, _) => info
@@ -14,7 +14,6 @@ object BinaryExpr {
     val resolvedop2 = op2 match {
       case StringLiteral(str) =>
           state.createStringVariable(str, false)
-      case addr @ LValue(address, theType: IArrayType) => RValue(address + 4, theType)
       case addr @ LValue(_, _) => addr.value
       case value @ RValue(_, _) => value
     }
@@ -47,7 +46,7 @@ object BinaryExpr {
           case (x: int, y: int) => x * y
           case (x: int, y: float) => x * y
           case (x: int, y: double) => x * y
-          case (x: int, y: long) => x * y
+          case (x: int, y: Long) => x * y
           
           case (x: char, y: char) => x * y
           case (x: char, y: Short) => x * y
@@ -169,6 +168,7 @@ object BinaryExpr {
           case (x: char, y: Int) => x / y
           case (x: char, y: Float) => x / y
           case (x: char, y: Double) => x / y
+
           case (x: Float, y: char) => x / y
           case (x: Float, y: Short) => x / y
           case (x: Float, y: Int) => x / y
@@ -214,66 +214,53 @@ object BinaryExpr {
           case (x: Int, y: char) => x << y
         }
       case `op_equals` =>
-        (op1, op2) match {
-          case (x: char, y: Int) => x == y
-          case (x: Int, y: Int) => x == y
-          case (x: char, y: char) => x == y
-          case (x: Short, y: Short) => x == y
-          case (x: Int, y: Long) => x == y
-          case (x: Int, y: char) => x == y
-          case (x: Double, y: Int) => x == y
-          case (x: Int, y: Double) => x == y
-          case (x: Double, y: Double) => x == y
-          case (x: Long, y: Long) => x == y
-        }
+        op1 == op2
       case `op_notequals` =>
         !evaluate(left, right, op_equals).value.asInstanceOf[Boolean]
       case `op_greaterThan` =>
         (op1, op2) match {
-          case (x: Long, y: Long) => x > y
-          case (x: Int, y: Long) => x > y
+          case (x: Int, y: char) => x > y
+          case (x: Int, y: Short) => x > y
           case (x: Int, y: Int) => x > y
-          case (x: Double, y: Int) => x > y
+          case (x: Int, y: Float) => x > y
           case (x: Int, y: Double) => x > y
+
+          case (x: char, y: char) => x > y
+          case (x: char, y: Short) => x > y
+          case (x: char, y: Int) => x > y
+          case (x: char, y: Float) => x > y
+          case (x: char, y: Double) => x > y
+
+          case (x: Float, y: char) => x > y
+          case (x: Float, y: Short) => x > y
+          case (x: Float, y: Int) => x > y
+          case (x: Float, y: Double) => x > y
+          case (x: Float, y: Float) => x > y
+
+          case (x: Double, y: Int) => x > y
           case (x: Double, y: Double) => x > y
+          case (x: Double, y: Char) => x > y
+          case (x: Double, y: Float) => x > y
+          case (x: Double, y: Short) => x > y
+
+          case (x: Long, y: char) => x > y
+          case (x: Long, y: Short) => x > y
+          case (x: Long, y: Int) => x > y
+          case (x: Long, y: Float) => x > y
+          case (x: Long, y: Double) => x > y
+
+          case (x: Short, y: char) => x > y
+          case (x: Short, y: Short) => x > y
+          case (x: Short, y: Int) => x > y
+          case (x: Short, y: Float) => x > y
+          case (x: Short, y: Double) => x > y
         }
       case `op_greaterEqual` =>
-        (op1, op2) match {
-          case (x: Int, y: Long) => x >= y
-          case (x: Int, y: Int) => x >= y
-          case (x: char, y: char) => x >= y
-          case (x: char, y: Int) => x >= y
-          case (x: Int, y: char) => x >= y
-          case (x: Double, y: Int) => x >= y
-          case (x: Int, y: Double) => x >= y
-          case (x: Double, y: Double) => x >= y
-        }  
+        evaluate(left, right, op_greaterThan).value.asInstanceOf[Boolean] || evaluate(left, right, op_equals).value.asInstanceOf[Boolean]
       case `op_lessThan` =>
-        (op1, op2) match {
-          case (x: Int, y: Int) => x < y
-          case (x: Int, y: Short) => x < y
-          case (x: Int, y: char) => x < y
-          case (x: Int, y: Long) => x < y
-          case (x: Int, y: Double) => x < y
-          
-          case (x: Short, y: Int) => x < y
-          
-          case (x: char, y: Int) => x < y
-          case (x: Double, y: Int) => x < y         
-          case (x: Double, y: Double) => x < y
-          case (x: Float, y: Double) => x < y
-          case (x: Float, y: Float) => x < y
-        }
+        !evaluate(left, right, op_greaterEqual).value.asInstanceOf[Boolean]
       case `op_lessEqual` =>
-        (op1, op2) match {
-          case (x: Int, y: Int) => x <= y
-          case (x: char, y: Int) => x <= y
-          case (x: Int, y: char) => x <= y
-          case (x: char, y: char) => x <= y
-          case (x: Double, y: Int) => x <= y
-          case (x: Int, y: Double) => x <= y
-          case (x: Double, y: Double) => x <= y
-        }  
+        !evaluate(left, right, op_greaterThan).value.asInstanceOf[Boolean]
       case `op_modulo` =>
         (op1, op2) match {
           case (x: Int, y: Short) => x % y

@@ -126,7 +126,7 @@ object TypeHelper {
   }
   
   // resolves 'Any' to 'ValueInfo'
-  def resolve(any: Stackable)(implicit state: State): RValue = {
+  def resolve(any: ValueType)(implicit state: State): RValue = {
     any match {
       case info @ LValue(_, _) => info.value
       case value @ RValue(theVal, _) => value
