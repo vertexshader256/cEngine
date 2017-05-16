@@ -185,15 +185,8 @@ object Expressions {
               val op1 = context.stack.pop
               BinaryExpr.parseAssign(bin.getOperator, op1, op2)
           } else {
-            val op2 = context.stack.pop match {
-              case info @ LValue(_, _) => info.value
-              case value @ RValue(_, _) => value
-            }
-
-            val op1 = context.stack.pop match {
-              case info @ LValue(_, _) => info.value
-              case value @ RValue(_, _) => value
-            }
+            val op2 = context.stack.pop
+            val op1 = context.stack.pop
 
             BinaryExpr.evaluate(op1, op2, bin.getOperator)
           }

@@ -10,17 +10,10 @@ object BinaryExpr {
     val dst: LValue = op1 match {
       case info @ LValue(_, _) => info
     }
-    
-    val resolvedop2 = op2 match {
-      case StringLiteral(str) =>
-          state.createStringVariable(str, false)
-      case addr @ LValue(_, _) => addr.value
-      case value @ RValue(_, _) => value
-    }
-    
+
     val theVal = dst.value
 
-    val result = evaluate(theVal, resolvedop2, op)
+    val result = evaluate(op1, op2, op)
     
     val casted = TypeHelper.cast(dst.theType, result.value).value
     state.setValue(casted, dst.address)
@@ -28,8 +21,22 @@ object BinaryExpr {
     dst
   }
   
-  def evaluate(left: RValue, right: RValue, operator: Int)(implicit state: State): RValue = {
-    
+  def evaluate(x: ValueType, y: ValueType, operator: Int)(implicit state: State): RValue = {
+
+    val right = y match {
+      case info @ LValue(_, _) => info.value
+      case value @ RValue(_, _) => value
+      case StringLiteral(str) =>
+        state.createStringVariable(str, false)
+    }
+
+    val left = x match {
+      case info @ LValue(_, _) => info.value
+      case value @ RValue(_, _) => value
+      case StringLiteral(str) =>
+        state.createStringVariable(str, false)
+    }
+
     val op1 = left.value
     val op2 = if ((left.theType.isInstanceOf[IPointerType] || left.theType.isInstanceOf[IArrayType]) && (operator == `op_minus` || operator == `op_plus`)) {
       // increment by the size of the left arg
