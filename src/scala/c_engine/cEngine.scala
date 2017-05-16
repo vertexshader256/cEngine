@@ -197,8 +197,8 @@ class State {
     }
   }
   
-  def readPtrVal(address: Int): RValue = {
-    readVal(address, TypeHelper.pointerType)
+  def readPtrVal(address: Int): Int = {
+    readVal(address, TypeHelper.pointerType).value.asInstanceOf[Int]
   }
   
   def createStringVariable(str: String, isHeap: Boolean)(implicit state: State): RValue = {

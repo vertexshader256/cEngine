@@ -62,7 +62,7 @@ object Expressions {
         val structType = resolve(struct.theType, struct.address)
 
         baseAddr = if (fieldRef.isPointerDereference) {
-          context.readPtrVal(struct.address).value.asInstanceOf[Int]
+          context.readPtrVal(struct.address)
         } else {
           struct.address
         }
@@ -105,10 +105,10 @@ object Expressions {
               (arrayVarPtr.address + 4) + index * TypeHelper.sizeof(aType)
             case array: IArrayType =>
               aType = array.getType
-              context.readPtrVal(arrayVarPtr.address).value.asInstanceOf[Int] + index * TypeHelper.sizeof(aType)
+              context.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
             case ptr: IPointerType =>
               aType = ptr.getType
-              context.readPtrVal(arrayVarPtr.address).value.asInstanceOf[Int] + index * TypeHelper.sizeof(aType)
+              context.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
           }
 
         aType = TypeHelper.stripSyntheticTypeInfo(aType)
@@ -162,7 +162,7 @@ object Expressions {
           val resolved = TypeHelper.stripSyntheticTypeInfo(info.theType)
           resolved match {
             case fcn: IFunctionType => context.getFunctionByIndex(info.address).name
-            case ptr: IPointerType => context.getFunctionByIndex(context.readPtrVal(info.address).value.asInstanceOf[Int]).name
+            case ptr: IPointerType => context.getFunctionByIndex(info.value.value.asInstanceOf[Int]).name
           }
         }
 
