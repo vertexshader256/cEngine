@@ -18,7 +18,7 @@ object TypeHelper {
         if (basic.isUnsigned) {
           newVal match {
             case long: Long => long & 0x00000000FFFFFFFFL
-            case int: Int => int & 0xFFFFFFFF
+            case int: Int => int & 0xFFFFFFFFL
             case short: Short => short & 0xFFFF
             case byte: Byte => byte & 0xFF
           }
@@ -52,6 +52,7 @@ object TypeHelper {
           case `eChar`    => 
             newVal match {
               case int: Int => int.toChar.toByte
+              case long: Long => long.toChar.toByte
               case char: char => char
               case char: Char => char.toByte
             }
@@ -158,6 +159,7 @@ object TypeHelper {
       case int: int => int != 0
       case short: short => short != 0
       case char: char => char != 0
+      case long: Long => long != 0
       case RValue(value, _) => resolveBoolean(value)
       case info @ LValue(_, _) => resolveBoolean(info.value)
   }

@@ -61,14 +61,14 @@ object TestClasses {
       
       result match {
         case Success((gccOutput, cEngineOutput)) => 
-          info("C_Engine output: " + cEngineOutput)
-          info("Gcc output: " + gccOutput)
+          //info("C_Engine output: " + cEngineOutput)
+          //info("Gcc output: " + gccOutput)
 
           if (except != null) {
             throw except
           }
 
-          assert(cEngineOutput == gccOutput)
+          assert(cEngineOutput == gccOutput.toList)
         case Failure(e) => 
           e.printStackTrace()
           false

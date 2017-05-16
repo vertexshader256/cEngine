@@ -46,7 +46,7 @@ class RobustPrimitiveTest extends StandardTest {
               $x >= $y;
               printf("%d\\n", $x);
              """
-    }.reduce(_ + "\n" + _) ++ List('a', 'b', 'e', 'f', 'g', 'h').map{ x => s"""
+    }.reduce(_ + "\n" + _) ++ List('a', 'b', 'e', 'f').map{ x => s"""
               $x = 0;
               $x = $x + 2;
               $x = $x - 1;
@@ -268,7 +268,7 @@ class PrimitiveTest extends StandardTest {
       }
       """
 
-    checkResults(code)
+    checkResults(code, false)
   } 
   
   "unsigned char test" should "print the correct results" in {
