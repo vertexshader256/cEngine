@@ -3,9 +3,11 @@ package scala.c_engine
 import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.internal.core.dom.parser.c._
 
+import scala.annotation.switch
+
 object Expressions {
 
-  def parse(expr: IASTExpression, direction: Direction)(implicit context: State): Seq[IASTNode] = expr match {
+  def parse(expr: IASTExpression, direction: Direction)(implicit context: State): Seq[IASTNode] = (expr: @switch) match {
     case exprList: IASTExpressionList =>
       if (direction == Entering) {
         exprList.getExpressions

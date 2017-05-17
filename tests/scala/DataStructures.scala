@@ -45,6 +45,6 @@ class HashMapTest extends StandardTest {
       File("tests\\scala\\libds-master\\maptest.c").contentAsString)
 
 
-    checkResults2(allCode)
+    checkResults2(allCode, false)
   }
 }

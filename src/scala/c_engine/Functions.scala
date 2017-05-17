@@ -255,6 +255,7 @@ object Functions {
           val str = Utils.readString(argTypeStr)(state)
           
           val (offset, theType) = (str match {
+            case "unsigned int" => (4, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))
             case "int" => (4, TypeHelper.pointerType)
             case "double" => (8, new CBasicType(IBasicType.Kind.eDouble, 0))
             case "char" => (1, new CBasicType(IBasicType.Kind.eChar, 0))

@@ -3,9 +3,11 @@ package scala.c_engine
 import scala.c_engine.Executor.processSwitch
 import org.eclipse.cdt.core.dom.ast._
 
+import scala.annotation.switch
+
 object Statement {
 
-  def parse(statement: IASTStatement, direction: Direction)(implicit state: State): Seq[IASTNode] = statement match {
+  def parse(statement: IASTStatement, direction: Direction)(implicit state: State): Seq[IASTNode] = (statement: @switch) match {
     case breakStatement: IASTNullStatement =>
       Seq()
     case breakStatement: IASTBreakStatement =>

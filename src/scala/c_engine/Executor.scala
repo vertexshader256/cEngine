@@ -2,17 +2,22 @@ package scala.c_engine
 
 import org.eclipse.cdt.core.dom.ast._
 
-import scala.collection.mutable.{ ListBuffer, Stack }
+import scala.collection.mutable.{ListBuffer, Stack}
 import scala.util.control.Exception.allCatch
-import java.util.Formatter;
-import java.util.Locale;
+import java.util.Formatter
+import java.util.Locale
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+
 import org.eclipse.cdt.internal.core.dom.parser.c._
 import java.math.BigInteger
+
 import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
+
 import scala.collection.mutable.Map
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
+
+import scala.annotation.switch
 
 trait ValueType
 
@@ -198,13 +203,9 @@ object Executor {
     codeToRun
   }
 
-
-
-
-
   def step(current: IASTNode, direction: Direction)(implicit state: State): Seq[IASTNode] = {
 
-    current match {
+    (current: @switch) match {
       case statement: IASTStatement =>
         Statement.parse(statement, direction)
       case expression: IASTExpression =>
