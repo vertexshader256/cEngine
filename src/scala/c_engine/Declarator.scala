@@ -86,7 +86,7 @@ object Declarator {
             if (!variable.isInitialized) {
               if (!stripped.isInstanceOf[CStructure]) {
                 val initVal = Option(decl.getInitializer).map(x => state.stack.pop).getOrElse(RValue(0, null))
-                BinaryExpr.parseAssign(op_assign, variable, initVal)
+                BinaryExpr.parseAssign(decl, op_assign, variable, initVal)
               } else if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
                 && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
 

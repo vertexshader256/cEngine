@@ -2,24 +2,26 @@ package scala.c_engine
 
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 import org.eclipse.cdt.core.dom.ast._
+import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
+import IBasicType.Kind._
 
 object BinaryExpr {
   
-  def parseAssign(op: Int, op1: ValueType, op2: ValueType)(implicit state: State): LValue = {
+  def parseAssign(node: IASTNode, op: Int, op1: ValueType, op2: ValueType)(implicit state: State): LValue = {
 
     val dst: LValue = op1 match {
       case info @ LValue(_, _) => info
     }
 
-    val result = evaluate(op1, op2, op)
+    val result = evaluate(node, op1, op2, op)
     
     val casted = TypeHelper.cast(dst.theType, result.value).value
     state.setValue(casted, dst.address)
     
     dst
   }
-  
-  def evaluate(x: ValueType, y: ValueType, operator: Int)(implicit state: State): RValue = {
+
+  def evaluate(node: IASTNode, x: ValueType, y: ValueType, operator: Int)(implicit state: State): RValue = {
 
     val right = y match {
       case info @ LValue(_, _) => info.value
@@ -235,7 +237,7 @@ object BinaryExpr {
       case `op_equals` =>
         op1 == op2
       case `op_notequals` =>
-        !evaluate(left, right, op_equals).value.asInstanceOf[Boolean]
+        !evaluate(node, left, right, op_equals).value.asInstanceOf[Boolean]
       case `op_greaterThan` =>
         (op1, op2) match {
           case (x: Int, y: char) => x > y
@@ -279,11 +281,11 @@ object BinaryExpr {
           case (x: Short, y: Long) => x > y
         }
       case `op_greaterEqual` =>
-        evaluate(left, right, op_greaterThan).value.asInstanceOf[Boolean] || evaluate(left, right, op_equals).value.asInstanceOf[Boolean]
+        evaluate(node, left, right, op_greaterThan).value.asInstanceOf[Boolean] || evaluate(node, left, right, op_equals).value.asInstanceOf[Boolean]
       case `op_lessThan` =>
-        !evaluate(left, right, op_greaterEqual).value.asInstanceOf[Boolean]
+        !evaluate(node, left, right, op_greaterEqual).value.asInstanceOf[Boolean]
       case `op_lessEqual` =>
-        !evaluate(left, right, op_greaterThan).value.asInstanceOf[Boolean]
+        !evaluate(node, left, right, op_greaterThan).value.asInstanceOf[Boolean]
       case `op_modulo` =>
 
         (op1, op2) match {
@@ -374,6 +376,34 @@ object BinaryExpr {
       case _ => throw new Exception("unhandled binary operator: " + operator); 0
     }
 
-    RValue(result, left.theType)
+    if (Utils.isAssignment(operator)) {
+      RValue(result, left.theType)
+    } else {
+
+      // offical conversion rules
+      val resultType = (left.theType, right.theType) match {
+        case (l: IBasicType, r: IBasicType) => (l.getKind, r.getKind) match {
+          case (eDouble, _) if (l.isLong) => new CBasicType(eDouble, IBasicType.IS_LONG)
+          case (_, eDouble) if (r.isLong) => new CBasicType(eDouble, IBasicType.IS_LONG)
+          case (eDouble, _) => new CBasicType(eDouble, 0)
+          case (_, eDouble) => new CBasicType(eDouble, 0)
+          case (eFloat, _) => new CBasicType(eFloat, 0)
+          case (_, eFloat) => new CBasicType(eFloat, 0)
+          case (_, _) if (l.isLong && l.isUnsigned) || (r.isLong && r.isUnsigned) => new CBasicType(eInt, IBasicType.IS_UNSIGNED | IBasicType.IS_LONG)
+          case (_, _) if (l.isLong || r.isLong) => new CBasicType(eInt, IBasicType.IS_LONG)
+          case (_, _) if (l.isUnsigned || r.isUnsigned) => new CBasicType(eInt, IBasicType.IS_UNSIGNED)
+          case _ => new CBasicType(eInt, 0)
+        }
+        case _ =>
+          //println("ERROR: (" + left.theType + ", " + right.theType + ") " + node.getParent.getRawSignature)
+          null
+      }
+
+      if (resultType != null) {
+        RValue(result, resultType)
+      } else {
+        RValue(result, left.theType)
+      }
+    }
   }
 }

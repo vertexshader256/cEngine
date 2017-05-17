@@ -183,12 +183,12 @@ object Expressions {
           val result = if (Utils.isAssignment(bin.getOperator)) {
               val op2 = context.stack.pop
               val op1 = context.stack.pop
-              BinaryExpr.parseAssign(bin.getOperator, op1, op2)
+              BinaryExpr.parseAssign(bin, bin.getOperator, op1, op2)
           } else {
             val op2 = context.stack.pop
             val op1 = context.stack.pop
 
-            BinaryExpr.evaluate(op1, op2, bin.getOperator)
+            BinaryExpr.evaluate(bin, op1, op2, bin.getOperator)
           }
 
           context.stack.push(result)

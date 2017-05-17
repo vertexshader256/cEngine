@@ -35,27 +35,27 @@ object UnaryExpression {
         }
       case `op_postFixIncr` =>
         val info = state.stack.pop.asInstanceOf[LValue]
-        val newVal = BinaryExpr.evaluate(info.value, one, IASTBinaryExpression.op_plus)
+        val newVal = BinaryExpr.evaluate(unary, info.value, one, IASTBinaryExpression.op_plus)
 
         state.stack.push(info.value)
         state.setValue(newVal.value, info.address)
       case `op_postFixDecr` =>
         val info = state.stack.pop.asInstanceOf[LValue]
-        val newVal = BinaryExpr.evaluate(info.value, one, IASTBinaryExpression.op_minus)
+        val newVal = BinaryExpr.evaluate(unary, info.value, one, IASTBinaryExpression.op_minus)
 
         // push then set
         state.stack.push(info.value)
         state.setValue(newVal.value, info.address)
       case `op_prefixIncr` =>
         val info = state.stack.pop.asInstanceOf[LValue]
-        val newVal = BinaryExpr.evaluate(info.value, one, IASTBinaryExpression.op_plus)
+        val newVal = BinaryExpr.evaluate(unary, info.value, one, IASTBinaryExpression.op_plus)
 
         // set then push
         state.setValue(newVal.value, info.address)
         state.stack.push(newVal)
       case `op_prefixDecr` =>
         val info = state.stack.pop.asInstanceOf[LValue]
-        val newVal = BinaryExpr.evaluate(info.value, one, IASTBinaryExpression.op_minus)
+        val newVal = BinaryExpr.evaluate(unary, info.value, one, IASTBinaryExpression.op_minus)
 
         // set then push
         state.setValue(newVal.value, info.address)
