@@ -11,8 +11,6 @@ object BinaryExpr {
       case info @ LValue(_, _) => info
     }
 
-    val theVal = dst.value
-
     val result = evaluate(op1, op2, op)
     
     val casted = TypeHelper.cast(dst.theType, result.value).value
@@ -303,25 +301,69 @@ object BinaryExpr {
         } 
       case `op_binaryOr`  | `op_binaryOrAssign`=>
         (op1, op2) match {
+          case (x: Int, y: char) => x | y
+          case (x: Int, y: Short) => x | y
           case (x: Int, y: Int) => x | y
+          case (x: Int, y: Long) => x | y
+
+          case (x: char, y: char) => x | y
+          case (x: char, y: Short) => x | y
+          case (x: char, y: Int) => x | y
+          case (x: char, y: Long) => x | y
+
+          case (x: Long, y: char) => x | y
+          case (x: Long, y: Short) => x | y
+          case (x: Long, y: Int) => x | y
+          case (x: Long, y: Long) => x | y
+
+          case (x: Short, y: char) => x | y
+          case (x: Short, y: Short) => x | y
+          case (x: Short, y: Int) => x | y
+          case (x: Short, y: Long) => x | y
         }  
       case `op_binaryXor` | `op_binaryXorAssign` =>
         (op1, op2) match {
-          case (x: Int, y: Int) => x ^ y
           case (x: Int, y: char) => x ^ y
           case (x: Int, y: Short) => x ^ y
+          case (x: Int, y: Int) => x ^ y
+          case (x: Int, y: Long) => x ^ y
+
+          case (x: char, y: char) => x ^ y
+          case (x: char, y: Short) => x ^ y
           case (x: char, y: Int) => x ^ y
-          case (x: Int, y: Char) => x ^ y
+          case (x: char, y: Long) => x ^ y
+
+          case (x: Long, y: char) => x ^ y
+          case (x: Long, y: Short) => x ^ y
+          case (x: Long, y: Int) => x ^ y
+          case (x: Long, y: Long) => x ^ y
+
+          case (x: Short, y: char) => x ^ y
+          case (x: Short, y: Short) => x ^ y
+          case (x: Short, y: Int) => x ^ y
+          case (x: Short, y: Long) => x ^ y
         }   
       case `op_binaryAnd` | `op_binaryAndAssign` =>
         (op1, op2) match {
+          case (x: Int, y: char) => x & y
+          case (x: Int, y: Short) => x & y
           case (x: Int, y: Int) => x & y
-          case (x: char, y: Int) => x & y
-          case (x: Int, y: Char) => x & y
           case (x: Int, y: Long) => x & y
-          
-          case (x: Long, y: Long) => x & y
+
+          case (x: char, y: char) => x & y
+          case (x: char, y: Short) => x & y
+          case (x: char, y: Int) => x & y
+          case (x: char, y: Long) => x & y
+
+          case (x: Long, y: char) => x & y
+          case (x: Long, y: Short) => x & y
           case (x: Long, y: Int) => x & y
+          case (x: Long, y: Long) => x & y
+
+          case (x: Short, y: char) => x & y
+          case (x: Short, y: Short) => x & y
+          case (x: Short, y: Int) => x & y
+          case (x: Short, y: Long) => x & y
         }
       case `op_logicalAnd` =>
         TypeHelper.resolveBoolean(op1) && TypeHelper.resolveBoolean(op2)

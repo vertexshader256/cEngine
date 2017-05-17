@@ -147,7 +147,7 @@ object Expressions {
         Seq(typeExpr.getTypeId)
       } else {
         val theType = context.stack.pop.asInstanceOf[TypeInfo].value
-        context.stack.push(ValueInfo2(TypeHelper.sizeof(theType), TypeHelper.pointerType))
+        context.stack.push(RValue(TypeHelper.sizeof(theType), TypeHelper.pointerType))
         Seq()
       }
     case call: IASTFunctionCallExpression =>

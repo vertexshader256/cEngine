@@ -47,13 +47,13 @@ object LValue {
   }
 }
 
-object ValueInfo2 {
-  def apply(value: AnyVal, theType: IType)(implicit state: State): LValue = {
-    val addr = state.allocateSpace(TypeHelper.sizeof(TypeHelper.getType(value)))
-    state.setValue(value, addr)
-    LValue(addr, theType)
-  }
-}
+//object ValueInfo2 {
+//  def apply(value: AnyVal, theType: IType)(implicit state: State): LValue = {
+//    val addr = state.allocateSpace(TypeHelper.sizeof(TypeHelper.getType(value)))
+//    state.setValue(value, addr)
+//    LValue(addr, theType)
+//  }
+//}
 
 class ArrayVariable(name: String, state: State, arrayType: IArrayType, dim: Seq[Int]) extends Variable(name, state, arrayType) {
 

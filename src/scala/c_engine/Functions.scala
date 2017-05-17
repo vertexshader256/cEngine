@@ -75,7 +75,7 @@ object Functions {
       },
       new Function("realloc", false) {
         def run(formattedOutputParams: Array[RValue], state: State) = {
-          Some(state.allocateHeapSpace(formattedOutputParams.head.value.asInstanceOf[Int]))
+          Some(state.allocateHeapSpace(formattedOutputParams.head.value.asInstanceOf[Long].toInt))
         }
       },
       new Function("memmove", false) {
@@ -230,9 +230,9 @@ object Functions {
     },
     new Function("memcmp", false) {
       def run(formattedOutputParams: Array[RValue], state: State) = {
-        val numBytes = formattedOutputParams(0).value.asInstanceOf[Int]
-        val memaddy = formattedOutputParams(1).value.asInstanceOf[Int]
-        val memaddy2 = formattedOutputParams(2).value.asInstanceOf[Int]
+        val numBytes = formattedOutputParams(0).value.asInstanceOf[Long].toInt
+        val memaddy = formattedOutputParams(1).value.asInstanceOf[int]
+        val memaddy2 = formattedOutputParams(2).value.asInstanceOf[int]
 
         var same = true
 

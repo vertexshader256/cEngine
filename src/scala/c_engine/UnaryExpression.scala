@@ -9,12 +9,6 @@ object UnaryExpression {
   def execute(unary: IASTUnaryExpression)(implicit state: State) = {
     val one = RValue(1, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))
 
-    def resolveVar(variable: Any): LValue = {
-      variable match {
-        case info @ LValue(addr, theType) => info
-      }
-    }
-
     def not(theVal: Any): AnyVal = theVal match {
       case info @ LValue(_, _) => not(info.value)
       case RValue(theVal, _) => not(theVal)
@@ -25,43 +19,42 @@ object UnaryExpression {
 
     unary.getOperator match {
       case `op_tilde` =>
-        state.stack.push(ValueInfo2(~state.stack.pop.asInstanceOf[Int], null))
-      case `op_not` => state.stack.push(ValueInfo2(not(state.stack.pop), one.theType))
+        state.stack.push(RValue(~state.stack.pop.asInstanceOf[Int], null))
+      case `op_not` => state.stack.push(RValue(not(state.stack.pop), one.theType))
       case `op_minus` =>
         state.stack.pop match {
-          case RValue(int: Int, theType)     => state.stack.push(ValueInfo2(-int, theType))
-          case RValue(doub: Double, theType)     => state.stack.push(ValueInfo2(-doub, theType))
+          case RValue(int: Int, theType)     => state.stack.push(RValue(-int, theType))
+          case RValue(doub: Double, theType)     => state.stack.push(RValue(-doub, theType))
           case info @ LValue(_, _) =>
-            val resolvedInfo = resolveVar(info)
 
-            val basicType = resolvedInfo.theType.asInstanceOf[IBasicType]
+            val basicType = info.theType.asInstanceOf[IBasicType]
             state.stack.push(basicType.getKind match {
-              case `eInt`    => ValueInfo2(-resolvedInfo.value.value.asInstanceOf[Int], basicType)
-              case `eDouble` => ValueInfo2(-resolvedInfo.value.value.asInstanceOf[Double], basicType)
+              case `eInt`    => RValue(-info.value.value.asInstanceOf[Int], basicType)
+              case `eDouble` => RValue(-info.value.value.asInstanceOf[Double], basicType)
             })
         }
       case `op_postFixIncr` =>
-        val info = resolveVar(state.stack.pop)
+        val info = state.stack.pop.asInstanceOf[LValue]
         val newVal = BinaryExpr.evaluate(info.value, one, IASTBinaryExpression.op_plus)
 
         state.stack.push(info.value)
         state.setValue(newVal.value, info.address)
       case `op_postFixDecr` =>
-        val info = resolveVar(state.stack.pop)
+        val info = state.stack.pop.asInstanceOf[LValue]
         val newVal = BinaryExpr.evaluate(info.value, one, IASTBinaryExpression.op_minus)
 
         // push then set
         state.stack.push(info.value)
         state.setValue(newVal.value, info.address)
       case `op_prefixIncr` =>
-        val info = resolveVar(state.stack.pop)
+        val info = state.stack.pop.asInstanceOf[LValue]
         val newVal = BinaryExpr.evaluate(info.value, one, IASTBinaryExpression.op_plus)
 
         // set then push
         state.setValue(newVal.value, info.address)
         state.stack.push(newVal)
       case `op_prefixDecr` =>
-        val info = resolveVar(state.stack.pop)
+        val info = state.stack.pop.asInstanceOf[LValue]
         val newVal = BinaryExpr.evaluate(info.value, one, IASTBinaryExpression.op_minus)
 
         // set then push
@@ -69,7 +62,7 @@ object UnaryExpression {
         state.stack.push(newVal)
       case `op_sizeof` =>
         state.stack.push(state.stack.pop match {
-          case info @ LValue(_, theType) => ValueInfo2(info.sizeof, TypeHelper.pointerType)
+          case info @ LValue(_, theType) => RValue(info.sizeof, TypeHelper.pointerType)
         })
       case `op_amper` =>
         state.stack.pop match {
