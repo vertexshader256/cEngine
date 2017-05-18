@@ -237,7 +237,7 @@ object Functions {
         var same = true
 
         for (i <- (0 until numBytes)) {
-          same &= state.readVal(memaddy + i, new CBasicType(IBasicType.Kind.eChar, 0)) == state.readVal(memaddy2 + i, new CBasicType(IBasicType.Kind.eChar, 0))
+          same &= state.readVal(memaddy + i, new CBasicType(IBasicType.Kind.eChar, 0)).value == state.readVal(memaddy2 + i, new CBasicType(IBasicType.Kind.eChar, 0)).value
         }
 
         Some((if (same) 0 else 1))
