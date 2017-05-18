@@ -2,6 +2,22 @@ package tests.scala
 
 import tests.scala.TestClasses._
 
+import scala.c_engine.State
+
+class FunctionStackTest extends StandardTest {
+  "ensure the stack gets popped after functions" should "print the correct results" in {
+    import scala.c_engine._
+    import scala.c_engine.cEngine._
+    implicit val state = new State
+
+    assert(state.stackInsertIndex == 0)
+
+//    c"""int x = 0;"""
+//
+//    assert(state.stackInsertIndex == 4)
+  }
+}
+
 class FunctionPointerTest extends StandardTest {
   "a function pointer test" should "print the correct results" in {
     val code = """
@@ -330,7 +346,7 @@ class FunctionTest extends StandardTest {
 
     checkResults(code)
   }
-  
+
   "returning a variable value" should "print the correct results" in {
     val code = """
 
