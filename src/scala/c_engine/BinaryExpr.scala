@@ -62,10 +62,10 @@ object BinaryExpr {
     val result: AnyVal = operator match {
       case `op_multiply` | `op_multiplyAssign` =>
         (op1, op2) match {
-          case (x: int, y: int) => x * y
-          case (x: int, y: float) => x * y
-          case (x: int, y: double) => x * y
-          case (x: int, y: Long) => x * y
+          case (x: Int, y: Int) => x * y
+          case (x: Int, y: Float) => x * y
+          case (x: Int, y: Double) => x * y
+          case (x: Int, y: Long) => x * y
 
           case (x: Float, y: Int) => x * y
           case (x: Float, y: Double) => x * y
@@ -185,16 +185,10 @@ object BinaryExpr {
       case `op_lessEqual` =>
         !evaluate(node, left, right, op_greaterThan).value.asInstanceOf[Boolean]
       case `op_modulo` =>
-
         (op1, op2) match {
-          case (x: Int, y: Short) => if (x % y >= 0) x % y else (x % y) + y
           case (x: Long, y: Long) => if (x % y >= 0) x % y else (x % y) + y
-          case (x: Long, y: Int) =>
-            println("-1----------")
-            if (x % y >= 0) x % y else (x % y) + y
-          case (x: Int, y: Int) =>
-            println("-----------")
-            if (x % y >= 0) x % y else (x % y) + y
+          case (x: Long, y: Int) => if (x % y >= 0) x % y else (x % y) + y
+          case (x: Int, y: Int) => if (x % y >= 0) x % y else (x % y) + y
           case (x: Double, y: Int) => if (x % y >= 0) x % y else (x % y) + y
           case (x: Int, y: Double) => if (x % y >= 0) x % y else (x % y) + y
           case (x: Double, y: Double) => if (x % y >= 0) x % y else (x % y) + y
@@ -203,7 +197,6 @@ object BinaryExpr {
         (op1, op2) match {
           case (x: Int, y: Int) => x | y
           case (x: Int, y: Long) => x | y
-
           case (x: Long, y: Int) => x | y
           case (x: Long, y: Long) => x | y
         }  
@@ -211,7 +204,6 @@ object BinaryExpr {
         (op1, op2) match {
           case (x: Int, y: Int) => x ^ y
           case (x: Int, y: Long) => x ^ y
-
           case (x: Long, y: Int) => x ^ y
           case (x: Long, y: Long) => x ^ y
         }   
@@ -219,7 +211,6 @@ object BinaryExpr {
         (op1, op2) match {
           case (x: Int, y: Int) => x & y
           case (x: Int, y: Long) => x & y
-
           case (x: Long, y: Int) => x & y
           case (x: Long, y: Long) => x & y
         }

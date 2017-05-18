@@ -3,27 +3,22 @@ package scala.c_engine
 import org.eclipse.cdt.core.dom.ast._
 
 import scala.collection.mutable.{ListBuffer, Stack}
-import scala.util.control.Exception.allCatch
-import java.util.Formatter
-import java.util.Locale
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-
 import org.eclipse.cdt.internal.core.dom.parser.c._
-import java.math.BigInteger
 
-import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
+trait ValueType {
+  def theType: IType
+}
 
-import scala.collection.mutable.Map
-import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
+case class StringLiteral(value: String) extends ValueType {
+  val theType = new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0)
+}
 
-import scala.annotation.switch
+case class TypeInfo(value: IType) extends ValueType {
+  val theType = value
+}
 
-trait ValueType
-
-case class StringLiteral(value: String) extends ValueType
-case class TypeInfo(value: IType) extends ValueType
 case class RValue(value: AnyVal, theType: IType) extends ValueType
+
 abstract class LValue(state: State) extends ValueType {
   val address: Int
   val theType: IType
