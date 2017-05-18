@@ -7,7 +7,7 @@ import scala.annotation.switch
 
 object Expressions {
 
-  def parse(expr: IASTExpression, direction: Direction)(implicit context: State): Seq[IASTNode] = (expr: @switch) match {
+  def parse(expr: IASTExpression, direction: Direction)(implicit context: State): Seq[IASTNode] = expr match {
     case exprList: IASTExpressionList =>
       if (direction == Entering) {
         exprList.getExpressions

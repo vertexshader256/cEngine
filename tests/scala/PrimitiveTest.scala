@@ -70,6 +70,25 @@ class RobustPrimitiveTest extends StandardTest {
   }
 }
 
+class IntegerPromotions extends StandardTest {
+  "Character promotion" should "print the correct results" in {
+    // https://www.tutorialspoint.com/c_standard_library/limits_h.htm
+    val code = """
+
+      int main() {
+         char cresult, c1, c2, c3;
+         c1 = 100;
+         c2 = 3;
+         c3 = 4;
+         cresult = c1 * c2 / c3;
+         printf("%d\n", cresult);
+         return(0);
+      }
+      """
+    checkResults(code)
+  }
+}
+
 class LimitsTest extends StandardTest {
   
   "A limits.h test" should "print the correct results" in {

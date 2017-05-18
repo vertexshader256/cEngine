@@ -205,7 +205,7 @@ object Executor {
 
   def step(current: IASTNode, direction: Direction)(implicit state: State): Seq[IASTNode] = {
 
-    (current: @switch) match {
+    current match {
       case statement: IASTStatement =>
         Statement.parse(statement, direction)
       case expression: IASTExpression =>
