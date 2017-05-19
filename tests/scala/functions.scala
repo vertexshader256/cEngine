@@ -10,11 +10,11 @@ class FunctionStackTest extends StandardTest {
     import scala.c_engine.cEngine._
     implicit val state = new State
 
-    assert(state.stackInsertIndex == 0)
+   val start = state.stackInsertIndex
 
-//    c"""int x = 0;"""
-//
-//    assert(state.stackInsertIndex == 4)
+    c"""isalpha('5');"""
+
+    assert(state.stackInsertIndex == start)
   }
 }
 

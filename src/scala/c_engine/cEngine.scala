@@ -14,7 +14,11 @@ object cEngine {
   implicit class CounterSC(val sc: StringContext) extends AnyVal {
     // Define functions that we want to use with string interpolation syntax
     def c(args: Any*)(implicit state: State): Unit = {
-      Gcc.runCode(sc.parts.iterator.next.asInstanceOf[String], state)
+      Gcc.runCode(sc.parts.iterator.next, state)
+    }
+
+    def func(args: Any*)(implicit state: State): Unit = {
+      Gcc.runGlobalCode(sc.parts.iterator.next, state)
     }
   }
 }

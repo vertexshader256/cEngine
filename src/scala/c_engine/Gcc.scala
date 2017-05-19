@@ -10,16 +10,26 @@ import java.io.InputStream
 object Gcc {
 
   def runCode(code: String, state: State) = {
-    
       val exeCode = s"""
         void main() {
            $code
         }
       """
+
       Executor.init(Seq(exeCode), state.isFirst, state)
       state.isFirst = false
       Executor.run(state)
-    }
+  }
+
+  def runGlobalCode(code: String, state: State) = {
+    val exeCode = s"""
+       $code
+    """
+
+    Executor.init(Seq(exeCode), state.isFirst, state)
+    state.isFirst = false
+    Executor.run(state)
+  }
   
   
   var count = 0
