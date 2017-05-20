@@ -136,12 +136,17 @@ class State {
     Seq()
   }
 
-  def callTheFunction(name: String, call: IASTFunctionCallExpression, args: Array[RValue]): Seq[IASTNode] = {
+  def callTheFunction(name: String, call: IASTFunctionCallExpression, args: Array[ValueType]): Seq[IASTNode] = {
 
     functionList.find(_.name == name).map{ fcn =>
       if (!fcn.isNative) {
+
+        val resolvedArgs = args.map{x =>
+          Utils.allocateString(x, false)(State.this)
+        }
+
         // this is a function simulated in scala
-        fcn.run(args.reverse, this).foreach{retVal => context.stack.push(RValue(retVal, null))}
+        fcn.run(resolvedArgs.reverse, this).foreach{retVal => context.stack.push(RValue(retVal, null))}
         Seq()
       } else {
         callFunction(fcn, call, args)
@@ -155,11 +160,15 @@ class State {
     }
   }
   
-  def callFunction(function: Function, call: IASTFunctionCallExpression, args: Array[RValue]): IASTNode = {
+  def callFunction(function: Function, call: IASTFunctionCallExpression, args: Array[ValueType]): IASTNode = {
     functionContexts.push(new ExecutionContext(function.staticVars, functionContexts.head.varMap.toList, call.getExpressionType, stackInsertIndex, this))
     context.pathStack.push(call)
-    
-    args.foreach{ arg => context.stack.push(arg)}
+
+    val resolvedArgs = args.map{x =>
+      Utils.allocateString(x, false)(State.this)
+    }
+
+    resolvedArgs.foreach{ arg => context.stack.push(arg)}
     context.stack.push(RValue(args.size, null))
 
     function.getNext

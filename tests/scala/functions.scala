@@ -16,6 +16,18 @@ class FunctionStackTest extends StandardTest {
 
     assert(state.stackInsertIndex == start)
   }
+
+  "ensure the stack gets popped after functions with string args" should "print the correct results" in {
+    import scala.c_engine._
+    import scala.c_engine.cEngine._
+    implicit val state = new State
+
+    val start = state.stackInsertIndex
+
+    c"""printf("%s\n", "whoaaaa");"""
+
+    assert(state.stackInsertIndex == start)
+  }
 }
 
 class FunctionPointerTest extends StandardTest {

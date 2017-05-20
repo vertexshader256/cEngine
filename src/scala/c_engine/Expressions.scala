@@ -170,13 +170,9 @@ object Expressions {
           }
         }
 
-        val arg = call.getArguments.map{x => context.stack.pop}
+        val args = call.getArguments.map{x => context.stack.pop}
 
-        val resolvedArgs = arg.map{x =>
-          Utils.allocateString(x, false)
-        }
-
-        context.callTheFunction(name, call, resolvedArgs)
+        context.callTheFunction(name, call, args)
 
       } else {
         call.getArguments.reverse ++ Seq(call.getFunctionNameExpression)
