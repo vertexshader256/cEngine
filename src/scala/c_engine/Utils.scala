@@ -106,11 +106,13 @@ object Utils {
 		  val linesWithInclude = lines.zipWithIndex.filter{case (line, index) => line.contains("#include")}
 		  val lastInclude = linesWithInclude.reverse.headOption.map{case (line, index) => index + 1}.getOrElse(-1)
 		  if (lastInclude != -1) {
-		    lines = lines.take(lastInclude) ++ 
+		    lines = lines.take(lastInclude) ++
+           // eclipse cdt cant handle function string args that aren't in quotes
 		       List("#define va_arg(x,y) va_arg(x, #y)\n") ++ 
 		       List("#define va_start(x,y) va_start(&x, &y)\n") ++ 
-		       List("#define va_end(x) va_end(x)\n") ++ 
-		       lines.drop(lastInclude)
+		       List("#define va_end(x) va_end(x)\n") ++
+           List("#define __builtin_offsetof(x, y) offsetof(#x, #y)") ++
+          lines.drop(lastInclude)
 		  }
 		  
 		  val code = lines.reduce{_ + "\n" + _}

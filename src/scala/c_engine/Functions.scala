@@ -2,11 +2,12 @@ package scala.c_engine
 
 import org.eclipse.cdt.core.dom.ast._
 import java.util.Formatter
-import java.util.Locale;
+import java.util.Locale
+
 import scala.collection.mutable.HashMap
-import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
+import org.eclipse.cdt.internal.core.dom.parser.c._
+
 import scala.collection.mutable.ListBuffer
-import org.eclipse.cdt.internal.core.dom.parser.c.CPointerType
 
 // 'isNative' implies the function is in C, not Scala
 abstract case class Function(name: String, isNative: Boolean) {
@@ -214,6 +215,23 @@ object Functions {
           Some(i)
         }
       },
+    new Function("offsetof", false) {
+      def run(formattedOutputParams: Array[RValue], state: State) = {
+        val straddy = formattedOutputParams(0).value.asInstanceOf[Int]
+        val straddy2 = formattedOutputParams(1).value.asInstanceOf[Int]
+
+        val memberName = Utils.readString(straddy)(state)
+        val stuctName = Utils.readString(straddy2)(state)
+
+        val structs = state.tUnit.getDeclarations.collect{case simp: CASTSimpleDeclaration => simp.getDeclSpecifier}
+                                   .collect{case comp: CASTCompositeTypeSpecifier => comp}
+                                   .map{x => x.getName.resolveBinding().asInstanceOf[CStructure]}
+
+        val struct = structs.find{x => ("struct " + x.getName) == stuctName}.get
+
+        Some(TypeHelper.offsetof(struct, memberName))
+      }
+    },
     new Function("strcmp", false) {
       def run(formattedOutputParams: Array[RValue], state: State) = {
         val straddy = formattedOutputParams(0).value.asInstanceOf[Int]

@@ -433,7 +433,13 @@ object Executor {
 
   def run(state: State) = {
     while (state.current != null) {
-      tick(state)
+      try {
+        tick(state)
+      } catch {
+        case e =>
+          println(state.current.getRawSignature)
+          throw e
+      }
     }
   }
 }

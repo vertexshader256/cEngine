@@ -164,6 +164,10 @@ object TypeHelper {
       case info @ LValue(_, _) => resolveBoolean(info.value)
   }
 
+  def offsetof(struct: CStructure, memberName: String): Int = {
+    struct.getFields.takeWhile{field => field.getName != memberName}.map{x => TypeHelper.sizeof(x.getType)}.sum
+  }
+
   def sizeof(theType: IType): Int = theType match {
     case fcn: IFunctionType => 4
     case ptr: IPointerType =>
