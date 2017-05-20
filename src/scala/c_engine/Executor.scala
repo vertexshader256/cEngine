@@ -345,27 +345,27 @@ object Executor {
     }
   }
 
-  def init(codes: Seq[String], reset: Boolean, state: State) = {
+  def preload(codes: Seq[String], state: State) = {
     state.tUnit = Utils.getTranslationUnit(codes)
     state.current = state.tUnit
 
     val fcns = state.tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
-    val (mainFcn, others) = fcns.partition{fcnDef => fcnDef.getDeclarator.getName.getRawSignature == "main"}
-    others.foreach{fcnDef => state.addFunctionDef(fcnDef)}
+    fcns.foreach{fcnDef => state.addFunctionDef(fcnDef)}
+  }
 
-    val mainFunction = new Function("main", true) {
-      def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = None
-      override def getNext: IASTNode = mainFcn.head
-    }
+  def init(codes: Seq[String], reset: Boolean, state: State) = {
+    preload(codes, state)
+
+    val main = state.getFunction("main")
 
     if (reset) {
-      state.functionContexts.push(new ExecutionContext(mainFunction, List(), null, 0, state)) // load initial stack
+      state.functionContexts.push(new ExecutionContext(main, List(), null, 0, state)) // load initial stack
     }
     
     run(state)
 
     state.context.pathStack.clear
-    state.context.pathStack.push(mainFcn.head)
+    state.context.pathStack.push(main.getNext)
     state.current = state.context.pathStack.head
   }
 

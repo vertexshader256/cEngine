@@ -18,4 +18,23 @@ class ApiTest extends StandardTest {
       """
       assert(state.stdout.toSeq == (Seq("1432", "what: 2.5")))
   }
+
+  "func interpolator" should "print the correct results" in {
+    import scala.c_engine._
+    import scala.c_engine.cEngine._
+    implicit val state = new State
+
+    val start = state.stackInsertIndex
+
+    func"""
+      int add(int x, int y) {
+          return x + y;
+      }"""
+
+    c"""
+       printf("%d\n", func(4,5));
+     """
+
+    assert(state.stackInsertIndex == start)
+  }
 }
