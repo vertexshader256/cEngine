@@ -16,8 +16,11 @@ object Gcc {
         }
       """
 
-      Executor.init(Seq(exeCode), state.isFirst, state)
+      Executor.preload(Seq(exeCode), state)
+      val main = state.getFunction("main")
+      state.functionList -= main
       state.isFirst = false
+      state.current = main.getNext
       Executor.run(state)
   }
 

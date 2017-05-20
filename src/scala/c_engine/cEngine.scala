@@ -23,9 +23,6 @@ object cEngine {
   }
 }
 
-//abstract case class FunctionInfo(name: String, index: Int) {
-//  def run: IASTNode
-//}
 
 class State {
 
@@ -49,7 +46,9 @@ class State {
   def stack = context.stack
 
   var isFirst = true
-  
+
+  functionContexts.push(new ExecutionContext(List(), List(), null, 0, this))
+
   def popFunctionContext = {
     stackInsertIndex = functionContexts.head.startingStackAddr
     functionContexts.pop
@@ -157,7 +156,7 @@ class State {
   }
   
   def callFunction(function: Function, call: IASTFunctionCallExpression, args: Array[RValue]): IASTNode = {
-    functionContexts.push(new ExecutionContext(function, functionContexts.head.varMap.toList, call.getExpressionType, stackInsertIndex, this))
+    functionContexts.push(new ExecutionContext(function.staticVars, functionContexts.head.varMap.toList, call.getExpressionType, stackInsertIndex, this))
     context.pathStack.push(call)
     
     args.foreach{ arg => context.stack.push(arg)}

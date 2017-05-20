@@ -147,9 +147,9 @@ class Variable(val name: String, val state: State, aType: IType) extends LValue(
   }
 }
 
-class ExecutionContext(fcn: Function, parentScopeVars: List[Variable], val returnType: IType, val startingStackAddr: Int, state: State) {
+class ExecutionContext(staticVars: List[Variable], parentScopeVars: List[Variable], val returnType: IType, val startingStackAddr: Int, state: State) {
   val visited = new ListBuffer[IASTNode]()
-  var varMap: List[Variable] = (fcn.staticVars.toSet ++ parentScopeVars.toSet).toList
+  var varMap: List[Variable] = (staticVars.toSet ++ parentScopeVars.toSet).toList
   val pathStack = new Stack[IASTNode]()
   val stack = new Stack[ValueType]()
 
@@ -157,23 +157,23 @@ class ExecutionContext(fcn: Function, parentScopeVars: List[Variable], val retur
 
   def addArrayVariable(name: String, theType: IArrayType, dimensions: Seq[Int]): ArrayVariable = {
 
-    if (!fcn.staticVars.exists{_.name == name}) {
+    if (!staticVars.exists{_.name == name}) {
       val newVar = new ArrayVariable(name, state, theType, dimensions)
       varMap = varMap.filter { theVar => theVar.name != name } :+ newVar
       newVar
     } else {
-      fcn.staticVars.find{_.name == name}.get.asInstanceOf[ArrayVariable]
+      staticVars.find{_.name == name}.get.asInstanceOf[ArrayVariable]
     }
   }
 
   def addVariable(name: String, theType: IType): Variable = {
 
-    if (!fcn.staticVars.exists{_.name == name}) {
+    if (!staticVars.exists{_.name == name}) {
       val newVar = new Variable(name, state, theType)
       varMap = varMap.filter { theVar => theVar.name != name } :+ newVar
       newVar
     } else {
-      fcn.staticVars.find{_.name == name}.get
+      staticVars.find{_.name == name}.get
     }
   }
 }
@@ -355,17 +355,10 @@ object Executor {
 
   def init(codes: Seq[String], reset: Boolean, state: State) = {
     preload(codes, state)
-
-    val main = state.getFunction("main")
-
-    if (reset) {
-      state.functionContexts.push(new ExecutionContext(main, List(), null, 0, state)) // load initial stack
-    }
-    
     run(state)
 
     state.context.pathStack.clear
-    state.context.pathStack.push(main.getNext)
+    state.context.pathStack.push(state.getFunction("main").getNext)
     state.current = state.context.pathStack.head
   }
 
