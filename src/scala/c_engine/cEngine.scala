@@ -141,12 +141,21 @@ class State {
     functionList.find(_.name == name).map{ fcn =>
       if (!fcn.isNative) {
 
+        functionContexts.push(new ExecutionContext(List(), functionContexts.head.varMap, call.getExpressionType, stackInsertIndex, this))
+
         val resolvedArgs = args.map{x =>
           Utils.allocateString(x, false)(State.this)
         }
 
         // this is a function simulated in scala
-        fcn.run(resolvedArgs.reverse, this).foreach{retVal => context.stack.push(RValue(retVal, null))}
+        val returnVal = fcn.run(resolvedArgs.reverse, this)
+
+        popFunctionContext
+
+        returnVal.foreach{ retVal =>
+          context.stack.push(RValue(retVal, null))
+        }
+
         Seq()
       } else {
         callFunction(fcn, call, args)
@@ -161,7 +170,7 @@ class State {
   }
   
   def callFunction(function: Function, call: IASTFunctionCallExpression, args: Array[ValueType]): IASTNode = {
-    functionContexts.push(new ExecutionContext(function.staticVars, functionContexts.head.varMap.toList, call.getExpressionType, stackInsertIndex, this))
+    functionContexts.push(new ExecutionContext(function.staticVars, functionContexts.head.varMap, call.getExpressionType, stackInsertIndex, this))
     context.pathStack.push(call)
 
     args.foreach{ arg => context.stack.push(arg)}

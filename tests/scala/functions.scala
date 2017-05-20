@@ -24,7 +24,7 @@ class FunctionStackTest extends StandardTest {
 
     val start = state.stackInsertIndex
 
-    c"""printf("%s\n", "whoaaaa");"""
+    c"""printf("%s\n", "whoaaa");"""
 
     assert(state.stackInsertIndex == start)
   }

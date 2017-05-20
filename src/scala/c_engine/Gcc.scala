@@ -20,6 +20,7 @@ object Gcc {
       val main = state.getFunction("main")
       state.functionList -= main
       state.isFirst = false
+      state.stackInsertIndex -= 4
       state.current = main.getNext
       Executor.run(state)
   }
