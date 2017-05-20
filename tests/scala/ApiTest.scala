@@ -54,12 +54,12 @@ class ApiTest extends StandardTest {
     import scala.c_engine.cEngine._
     implicit val state = new State
 
-    func"""
+    c"""
       float blah = 4.34;
       """
 
     c"""
-       printf("%f\n", blah);
+       printf("%.2f\n", blah);
      """
 
     assert(state.stdout.mkString == "4.34")
