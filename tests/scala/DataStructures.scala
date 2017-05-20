@@ -48,3 +48,27 @@ class HashMapTest extends StandardTest {
     checkResults2(allCode, false)
   }
 }
+
+//class AVLTreeTest extends StandardTest {
+//  "avl test" should "print the correct results" in {
+//
+//    val allCode =  Seq(
+//      File("tests\\scala\\libds-master\\avltree.c").contentAsString,
+//      File("tests\\scala\\libds-master\\avl_example.c").contentAsString)
+//
+//
+//    checkResults2(allCode, false)
+//  }
+//}
+//
+//class RegexTest extends StandardTest {
+//  "regex test" should "print the correct results" in {
+//
+//    val allCode =  Seq(
+//      File("tests\\scala\\libds-master\\slre.c").contentAsString,
+//      File("tests\\scala\\libds-master\\unit_test.c").contentAsString)
+//
+//
+//    checkResults2(allCode, false)
+//  }
+//}

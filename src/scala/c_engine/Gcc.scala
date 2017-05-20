@@ -29,9 +29,7 @@ object Gcc {
        $code
     """
 
-    Executor.init(Seq(exeCode), state.isFirst, state)
-    state.isFirst = false
-    Executor.run(state)
+    Executor.preload(Seq(exeCode), state)
   }
   
   

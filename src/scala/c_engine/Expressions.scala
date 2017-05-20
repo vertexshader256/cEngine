@@ -54,6 +54,8 @@ object Expressions {
         val struct = context.stack.pop.asInstanceOf[LValue]
         
         def resolve(theType: IType, addr: Int): CStructure = theType match {
+          case qual: CQualifierType =>
+            resolve(qual.getType, addr)
           case typedef: CTypedef => 
             resolve(typedef.getType, addr)
           case struct: CStructure => struct

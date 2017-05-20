@@ -24,17 +24,44 @@ class ApiTest extends StandardTest {
     import scala.c_engine.cEngine._
     implicit val state = new State
 
-    val start = state.stackInsertIndex
-
     func"""
       int add(int x, int y) {
           return x + y;
       }"""
 
     c"""
-       printf("%d\n", func(4,5));
+       printf("%d\n", add(4,5));
      """
 
-    assert(state.stackInsertIndex == start)
+    assert(state.stdout.mkString == "9")
+
+    state.stdout.clear
+
+    func"""
+      int mult(int x, int y) {
+          return x * y;
+      }"""
+
+    c"""
+       printf("%d\n", mult(add(1,2), add(5,4)));
+     """
+
+    assert(state.stdout.mkString == "27")
+  }
+
+  "func interpolator 2" should "print the correct results" in {
+    import scala.c_engine._
+    import scala.c_engine.cEngine._
+    implicit val state = new State
+
+    func"""
+      float blah = 4.34;
+      """
+
+    c"""
+       printf("%f\n", blah);
+     """
+
+    assert(state.stdout.mkString == "4.34")
   }
 }

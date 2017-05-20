@@ -19,7 +19,7 @@ object UnaryExpression {
 
     unary.getOperator match {
       case `op_tilde` =>
-        state.stack.push(RValue(~state.stack.pop.asInstanceOf[Int], null))
+        state.stack.push(RValue(~state.stack.pop.asInstanceOf[RValue].value.asInstanceOf[Int], null))
       case `op_not` => state.stack.push(RValue(not(state.stack.pop), one.theType))
       case `op_minus` =>
         state.stack.pop match {
