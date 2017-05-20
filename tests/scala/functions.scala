@@ -10,7 +10,7 @@ class FunctionStackTest extends StandardTest {
     import scala.c_engine.cEngine._
     implicit val state = new State
 
-   val start = state.stackInsertIndex
+    val start = state.stackInsertIndex
 
     c"""isalpha('5');"""
 
@@ -27,6 +27,36 @@ class FunctionStackTest extends StandardTest {
     c"""printf("%s\n", "whoaaaa");"""
 
     assert(state.stackInsertIndex == start)
+  }
+}
+
+class SpecialFunctions extends StandardTest {
+
+  "offsetof test" should "print the correct results" in {
+    val code = """
+      #include <stdio.h>
+      #include "stddef.h"
+      #include "stdint.h"
+
+      struct test {
+        int x;
+        int y;
+        int z;
+      };
+
+      struct test2 {
+         int x;
+         int* y;
+         int z;
+       };
+
+      int main()
+      {
+          printf("%d\n", offsetof(struct test, y));
+          printf("%d\n", offsetof(struct test2, z));
+      }"""
+
+    checkResults(code)
   }
 }
 
