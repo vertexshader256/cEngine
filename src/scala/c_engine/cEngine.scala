@@ -164,11 +164,7 @@ class State {
     functionContexts.push(new ExecutionContext(function.staticVars, functionContexts.head.varMap.toList, call.getExpressionType, stackInsertIndex, this))
     context.pathStack.push(call)
 
-    val resolvedArgs = args.map{x =>
-      Utils.allocateString(x, false)(State.this)
-    }
-
-    resolvedArgs.foreach{ arg => context.stack.push(arg)}
+    args.foreach{ arg => context.stack.push(arg)}
     context.stack.push(RValue(args.size, null))
 
     function.getNext

@@ -242,9 +242,13 @@ object Executor {
 
           if (!isInFunctionPrototype) {
             numArgs = state.stack.pop.asInstanceOf[RValue].value.asInstanceOf[Integer]
-            val args = (0 until numArgs).map{arg => state.stack.pop.asInstanceOf[RValue]}.reverse
+            val args = (0 until numArgs).map{arg => state.stack.pop}.reverse
 
-            args.foreach{ arg =>
+            val resolvedArgs = args.map{x =>
+              Utils.allocateString(x, false)(state)
+            }
+
+            resolvedArgs.foreach{ arg =>
               if (!isInFunctionPrototype && !paramDecls.isEmpty) {
 
                 val paramDecl = paramDecls.pop
