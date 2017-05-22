@@ -1,12 +1,16 @@
 package scala.c_engine
 
 import org.eclipse.cdt.core.dom.ast._
+
 import scala.collection.mutable.Stack
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.Map
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+
 import org.eclipse.cdt.internal.core.dom.parser.c._
+
+import scala.annotation.tailrec
 
 object cEngine {
   type JSONObject = Any
@@ -46,6 +50,11 @@ class State {
   def stack = context.stack
 
   var isFirst = true
+  // flags
+  var isReturning = false
+  var isBreaking = false
+  var isContinuing = false
+  var isGotoing = false
 
   functionContexts.push(new ExecutionContext(List(), List(), null, 0, this))
 
@@ -104,14 +113,33 @@ class State {
     
     val fcnType = fcnDef.getDeclarator.getName.resolveBinding().asInstanceOf[IFunction].getType
 
+
+//    def findLabels(node: IASTNode): List[IASTLabelStatement] = {
+//
+//      @tailrec
+//      def recurse(nodes: List[IASTNode], acc: List[IASTLabelStatement]): List[IASTLabelStatement] = {
+//        nodes match {
+//          case Nil => acc
+//          case x :: tail =>
+//            val label: Seq[IASTLabelStatement] = if (x.isInstanceOf[IASTLabelStatement]) {
+//              Seq(x.asInstanceOf[IASTLabelStatement])
+//            } else {
+//              Seq()
+//            }
+//            recurse(tail, acc ++ label)
+//        }
+//      }
+//
+//      recurse(List(node), List())
+//    }
+
     functionList += new Function(name.getRawSignature, true) {
       index = functionCount
 
       override val staticVars = addStaticFunctionVars(fcnDef, State.this)
-
       def parameters = fcnType.getParameterTypes.toList
       def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = {None}
-      override def getNext = fcnDef
+      override def node = fcnDef
     }
     
     val newVar = new Variable(name.getRawSignature, State.this, fcnType)
@@ -120,11 +148,6 @@ class State {
     functionPointers += name.getRawSignature -> newVar
     functionCount += 1
   }
-
-  // flags
-  var isReturning = false
-  var isBreaking = false
-  var isContinuing = false
 
   def callFunctionFromScala(name: String, args: Array[RValue]): Seq[IASTNode] = {
 
@@ -159,13 +182,13 @@ class State {
         Seq()
       } else {
         callFunction(fcn, call, args)
-        Seq(fcn.getNext)
+        Seq(fcn.node)
       }
     }.getOrElse{
       // function pointer case
       val fcnPointer = functionContexts.head.varMap.find{_.name == name}.get
       val fcn = getFunctionByIndex(fcnPointer.value.asInstanceOf[Int])
-      Seq(fcn.getNext)
+      Seq(fcn.node)
     }
   }
   
@@ -176,7 +199,7 @@ class State {
     args.foreach{ arg => context.stack.push(arg)}
     context.stack.push(RValue(args.size, null))
 
-    function.getNext
+    function.node
   }
 
   def clearVisited(parent: IASTNode) {

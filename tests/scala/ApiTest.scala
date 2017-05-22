@@ -59,7 +59,7 @@ class ApiTest extends StandardTest {
       """
 
     c"""
-       printf("%.2f\n", blah);
+      printf("%.2f\n", blah);
      """
 
     assert(state.stdout.mkString == "4.34")

@@ -72,7 +72,7 @@ static char *ee_number(char *str, long num, int base, int size, int precision, i
   if (type & UPPERCASE)  dig = upper_digits;
   if (type & LEFT) type &= ~ZEROPAD;
   if (base < 2 || base > 36) return 0;
-  
+
   c = (type & ZEROPAD) ? '0' : ' ';
   sign = 0;
   if (type & SIGN)
@@ -120,7 +120,7 @@ static char *ee_number(char *str, long num, int base, int size, int precision, i
   size -= precision;
   if (!(type & (ZEROPAD | LEFT))) while (size-- > 0) *str++ = ' ';
   if (sign) *str++ = sign;
-  
+
   if (type & HEX_PREP)
   {
     if (base == 8)
@@ -172,19 +172,19 @@ static char *iaddr(char *str, unsigned char *addr, int size, int precision, int 
   {
     if (i != 0) tmp[len++] = '.';
     n = addr[i];
-    
+
     if (n == 0)
       tmp[len++] = lower_digits[0];
     else
     {
-      if (n >= 100) 
+      if (n >= 100)
       {
         tmp[len++] = lower_digits[n / 100];
         n = n % 100;
         tmp[len++] = lower_digits[n / 10];
         n = n % 10;
       }
-      else if (n >= 10) 
+      else if (n >= 10)
       {
         tmp[len++] = lower_digits[n / 10];
         n = n % 10;
@@ -205,8 +205,8 @@ static char *iaddr(char *str, unsigned char *addr, int size, int precision, int 
 
 char *ecvtbuf(double arg, int ndigits, int *decpt, int *sign, char *buf);
 char *fcvtbuf(double arg, int ndigits, int *decpt, int *sign, char *buf);
-static void ee_bufcpy(char *d, char *s, int count); 
- 
+static void ee_bufcpy(char *d, char *s, int count);
+
 void ee_bufcpy(char *pd, char *ps, int count) {
 	char *pe=ps+count;
 	while (ps!=pe)
@@ -328,7 +328,7 @@ static void decimal_point(char *buffer)
   if (*buffer)
   {
     int n = strnlen(buffer,256);
-    while (n > 0) 
+    while (n > 0)
     {
       buffer[n + 1] = buffer[n];
       n--;
@@ -437,35 +437,19 @@ static int ee_vsprintf(char *buf, const char *fmt, va_list args)
       *str++ = *fmt;
       continue;
     }
-                  
+
     // Process flags
     flags = 0;
-//repeat:
-//    fmt++; // This also skips first '%'
-//    switch (*fmt)
-//    {
-//      case '-': flags |= LEFT; goto repeat;
-//      case '+': flags |= PLUS; goto repeat;
-//      case ' ': flags |= SPACE; goto repeat;
-//      case '#': flags |= HEX_PREP; goto repeat;
-//      case '0': flags |= ZEROPAD; goto repeat;
-//    }
-
-    int repeat = 1;
-    while(repeat) {
-        fmt++; // This also skips first '%'
-        switch (*fmt)
-        {
-          case '-': flags |= LEFT;
-          case '+': flags |= PLUS;
-          case ' ': flags |= SPACE;
-          case '#': flags |= HEX_PREP;
-          case '0': flags |= ZEROPAD;
-          default: repeat = 0;
-        }
+repeat:
+    fmt++; // This also skips first '%'
+    switch (*fmt)
+    {
+      case '-': flags |= LEFT; goto repeat;
+      case '+': flags |= PLUS; goto repeat;
+      case ' ': flags |= SPACE; goto repeat;
+      case '#': flags |= HEX_PREP; goto repeat;
+      case '0': flags |= ZEROPAD; goto repeat;
     }
-
-
 
     // Get field width
     field_width = -1;
@@ -486,7 +470,7 @@ static int ee_vsprintf(char *buf, const char *fmt, va_list args)
     precision = -1;
     if (*fmt == '.')
     {
-      ++fmt;    
+      ++fmt;
       if (is_digit(*fmt))
         precision = ee_skip_atoi(&fmt);
       else if (*fmt == '*')
@@ -511,18 +495,9 @@ static int ee_vsprintf(char *buf, const char *fmt, va_list args)
     switch (*fmt)
     {
       case 'c':
-        if (!(flags & LEFT)) {
-        	while (--field_width > 0) {
-
-        		*str++ = ' ';
-        	}
-        }
-        unsigned char theChar = (unsigned char) va_arg(args, int);
-
-        *str++ = theChar;
-        while (--field_width > 0) {
-        	*str++ = ' ';
-        }
+        if (!(flags & LEFT)) while (--field_width > 0) *str++ = ' ';
+        *str++ = (unsigned char) va_arg(args, int);
+        while (--field_width > 0) *str++ = ' ';
         continue;
 
       case 's':
@@ -625,4 +600,3 @@ int ee_printf(const char *fmt, ...)
 
   return n;
 }
-

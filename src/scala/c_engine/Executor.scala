@@ -151,6 +151,7 @@ class ExecutionContext(staticVars: List[Variable], parentScopeVars: List[Variabl
   val visited = new ListBuffer[IASTNode]()
   var varMap: List[Variable] = (staticVars.toSet ++ parentScopeVars.toSet).toList
   val pathStack = new Stack[IASTNode]()
+  val labels = new ListBuffer[(IASTLabelStatement, Stack[IASTNode], List[IASTNode])]()
   val stack = new Stack[ValueType]()
 
   def resolveId(id: String): Variable = varMap.find{_.name == id}.getOrElse(state.functionPointers(id))
@@ -362,7 +363,7 @@ object Executor {
     run(state)
 
     state.context.pathStack.clear
-    state.context.pathStack.push(state.getFunction("main").getNext)
+    state.context.pathStack.push(state.getFunction("main").node)
     state.current = state.context.pathStack.head
   }
 
@@ -388,7 +389,6 @@ object Executor {
       state.isBreaking = false
     }
 
-
     if (state.isContinuing) {
       // unroll the path stack until we meet the first parent which is a loop
 
@@ -407,6 +407,16 @@ object Executor {
       state.context.pathStack.push(forLoop.getIterationExpression)
 
       state.isContinuing = false
+    }
+
+    if (state.isGotoing) {
+      state.context.pathStack.clear()
+      state.context.pathStack.pushAll(state.context.labels.head._2.reverse :+ state.context.labels.head._1)
+
+      state.context.visited.clear()
+      state.context.visited ++= state.context.labels.head._3
+
+      state.isGotoing = false
     }
     
     if (state.isReturning) {

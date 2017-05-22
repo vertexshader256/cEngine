@@ -21,7 +21,7 @@ object Gcc {
       state.functionList -= main
       state.isFirst = false
       state.stackInsertIndex -= 4
-      state.current = main.getNext
+      state.current = main.node
       Executor.run(state)
   }
 

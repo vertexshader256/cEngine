@@ -4,6 +4,7 @@ import scala.c_engine.Executor.processSwitch
 import org.eclipse.cdt.core.dom.ast._
 
 import scala.annotation.switch
+import scala.collection.mutable.Stack
 
 object Statement {
 
@@ -16,8 +17,18 @@ object Statement {
     case continueStatement: IASTContinueStatement =>
       state.isContinuing = true
       Seq()
-    case label: IASTLabelStatement =>
+    case gotoStatement: IASTGotoStatement =>
+      state.isGotoing = true
       Seq()
+    case label: IASTLabelStatement =>
+      if (direction == Exiting) {
+        val backupPath = Stack[IASTNode]() ++ state.context.pathStack
+        val ok = (label, backupPath, state.context.visited.toList)
+        state.context.labels += ok
+        Seq(label.getNestedStatement)
+      } else {
+        Seq()
+      }
     case switch: IASTSwitchStatement =>
       val cases = switch.getBody.getChildren.collect { case x: IASTCaseStatement => x; case y: IASTDefaultStatement => y }
       if (direction == Entering) {
