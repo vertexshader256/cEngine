@@ -214,6 +214,22 @@ object Functions {
           Some(i)
         }
       },
+    new Function("strchr", false) {
+      def run(formattedOutputParams: Array[RValue], state: State) = {
+        val char = formattedOutputParams(0).value.asInstanceOf[Int]
+        val straddy = formattedOutputParams(1).value.asInstanceOf[Int]
+
+        val str = Utils.readString(straddy)(state)
+
+        val offset = str.indexOf(char.toChar)
+
+        if (offset != -1) {
+          Some(straddy + offset)
+        } else {
+          Some(0)
+        }
+      }
+    },
     new Function("offsetof", false) {
       def run(formattedOutputParams: Array[RValue], state: State) = {
         val straddy = formattedOutputParams(0).value.asInstanceOf[Int]
