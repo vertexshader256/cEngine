@@ -370,7 +370,7 @@ object Executor {
   def tick(state: State): Unit = {
     state.direction = if (state.context.visited.contains(state.current)) Exiting else Entering
 
-    //println(current.getClass.getSimpleName + ":" + direction)
+    //println(state.current.getClass.getSimpleName + ":" + state.direction)
     
     val paths: Seq[IASTNode] = Executor.step(state.current, state.direction)(state)
     
