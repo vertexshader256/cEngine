@@ -222,7 +222,28 @@ object Executor {
         tUnit.getChildren.filterNot{_.isInstanceOf[IASTFunctionDefinition]}
       case simple: IASTSimpleDeclaration =>
         if (direction == Entering) {
-          simple.getDeclarators
+          val declSpec = simple.getDeclSpecifier
+          if (declSpec.isInstanceOf[IASTEnumerationSpecifier]) {
+            simple.getDeclarators :+ simple.getDeclSpecifier
+          } else {
+            simple.getDeclarators
+          }
+
+        } else {
+          Seq()
+        }
+      case enumerator: CASTEnumerator =>
+        if (direction == Entering) {
+          Seq(enumerator.getValue)
+        } else {
+          val newVar = state.context.addVariable(enumerator.getName.getRawSignature, TypeHelper.pointerType)
+          val value = state.stack.pop.asInstanceOf[RValue]
+          state.setValue(value.value, newVar.address)
+          Seq()
+        }
+      case enum: IASTEnumerationSpecifier =>
+        if (direction == Exiting) {
+          enum.getEnumerators
         } else {
           Seq()
         }
