@@ -19,8 +19,8 @@ Supports:
 
 Efforts have been made to reduce dependencies as much as possible.  Reflection is not used.
 
-[Eclipse CDT](https://eclipse.org/cdt/)
-[JCPP](http://www.anarres.org/projects/jcpp/)
+* [Eclipse CDT](https://eclipse.org/cdt/)
+* [JCPP](http://www.anarres.org/projects/jcpp/)
 
 # Test approach:
 Standard output of CEngine must exactly match that of GCC.
