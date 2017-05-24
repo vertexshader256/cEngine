@@ -13,7 +13,7 @@ Supports:
 - Function pointers
 - Unsigned types
 - Memory allocation
-- Structures, enumerations, variable masking
+- Structures, enumerations
 
 # Dependencies
 
