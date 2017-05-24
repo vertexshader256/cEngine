@@ -2,7 +2,7 @@
 
 No bytecode, no JNI. Run C directly on the JVM.
 
-Similiar to [Nashorn](https://en.wikipedia.org/wiki/Nashorn)
+Similiar to [Nashorn](https://en.wikipedia.org/wiki/Nashorn_(JavaScript_engine))
 
 Supports:
 - Pointer aritmetic
