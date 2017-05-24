@@ -13,7 +13,7 @@ Supports:
 - Function pointers
 - Unsigned types
 - Memory allocation
-- Standard functions
+- Structures, enumerations, variable masking
 
 # Dependencies
 
@@ -23,7 +23,7 @@ Efforts have been made to reduce dependencies as much as possible.  Reflection i
 * [JCPP](http://www.anarres.org/projects/jcpp/)
 
 # Test approach:
-Standard output of CEngine must exactly match that of GCC.  [sbt-coverage](https://github.com/scoverage/sbt-scoverage) is used to find dead code paths.
+Standard output of CEngine must exactly match that of GCC.  [sbt-coverage](https://github.com/scoverage/sbt-scoverage) has helped extensively.
 
 CEngine was bootstrapped off of [java.util.Formatter](https://docs.oracle.com/javase/7/docs/api/java/util/Formatter.html) but it can now execute an embedded version of printf, ee_printf.
 
