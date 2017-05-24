@@ -1,5 +1,4 @@
 # CEngine
-Execute C code on the JVM
 
 No bytecode, no JNI. Run C directly on the JVM.
 
@@ -18,7 +17,7 @@ Supports:
 
 # Dependencies
 
-Efforts have been made to reduce dependancies as much as possible.  Reflection is not used.
+Efforts have been made to reduce dependencies as much as possible.  Reflection is not used.
 
 Eclipse CDT: https://eclipse.org/cdt/
 JCPP: http://www.anarres.org/projects/jcpp/
