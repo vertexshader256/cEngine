@@ -103,17 +103,22 @@ object Expressions {
           val arrayVarPtr = context.stack.pop.asInstanceOf[LValue]
           var aType = arrayVarPtr.theType
         
-          val offset = aType match {
-            case ptrVar: ArrayVariable =>
-              aType = ptrVar.theType
+          val offset =
+            if (arrayVarPtr.isInstanceOf[ArrayVariable]) {
+              aType = arrayVarPtr.asInstanceOf[ArrayVariable].theType.getType
               (arrayVarPtr.address + 4) + index * TypeHelper.sizeof(aType)
-            case array: IArrayType =>
-              aType = array.getType
-              context.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
-            case ptr: IPointerType =>
-              aType = ptr.getType
-              context.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
-          }
+            } else {
+              aType match {
+                case array: IArrayType =>
+                  aType = array.getType
+                  context.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
+                case ptr: IPointerType =>
+                  aType = ptr.getType
+                  context.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
+              }
+            }
+
+
 
         aType = TypeHelper.stripSyntheticTypeInfo(aType)
 
