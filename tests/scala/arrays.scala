@@ -159,8 +159,8 @@ class ArrayTest extends StandardTest {
     val code = """
       void main() {
         char s[100] = "hello";
-        if(s == &s[0]) printf("true. ");
-        if(s == &s) printf("true.");
+        if(s == &s[0]) printf("true.\n");
+        if(s == &s) printf("true.\n");
       }"""
 
     checkResults(code)
