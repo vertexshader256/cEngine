@@ -154,6 +154,18 @@ class HigherDimArrays extends StandardTest {
 }
 
 class ArrayTest extends StandardTest {
+
+  "Array sanity check" should "print the correct results" in {
+    val code = """
+      void main() {
+        char s[100] = "hello";
+        if(s == &s[0]) printf("true. ");
+        if(s == &s) printf("true.");
+      }"""
+
+    checkResults(code)
+  }
+
   "A trivial array assignment" should "print the correct results" in {
     val code = """
       void main() {

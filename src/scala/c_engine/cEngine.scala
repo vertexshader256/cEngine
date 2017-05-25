@@ -40,7 +40,8 @@ class State {
 
   var stackInsertIndex = 0
   var heapInsertIndex = 50000
-  
+
+  var standardOutBuffer = new ListBuffer[Char]
   val functionContexts = new Stack[ExecutionContext]()
   def context = functionContexts.head
   val functionList = new ListBuffer[Function]()
