@@ -2,12 +2,10 @@
 
 No bytecode generation, no [JNI](https://en.wikipedia.org/wiki/Java_Native_Interface). Run C directly during runtime on the JVM.
 
-Similiar to [Nashorn](https://en.wikipedia.org/wiki/Nashorn_(JavaScript_engine))
-
 Supports:
-- Pointer aritmetic
 - Multi-dimensional arrays
 - Variable arguments
+- Pointer aritmetic
 - Recursion
 - Multilevel pointers
 - Function pointers
