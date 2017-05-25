@@ -45,9 +45,9 @@ object LValue {
 class ArrayVariable(name: String, state: State, arrayType: IArrayType, dim: Seq[Int]) extends Variable(name, state, arrayType) {
 
   override val theType = arrayType
-  override val address = allocateSpace(state, theType, 1)
 
-  override def value: RValue = RValue(address + 4, theType)
+
+  override def value: RValue = RValue(address, theType)
 
   val allocate: Int = {
     // where we store the actual data
@@ -71,10 +71,10 @@ class ArrayVariable(name: String, state: State, arrayType: IArrayType, dim: Seq[
     recurse(theType, dim.reverse)
   }
 
-  state.setValue(address + 4, address)
+  override val address = allocate
 
   def setArray(array: Array[RValue]): Unit = {
-      state.setArray(array, address + 4, TypeHelper.sizeof(theType))
+      state.setArray(array, address, TypeHelper.sizeof(theType))
   }
 
   override def sizeof: Int = {

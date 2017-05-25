@@ -106,7 +106,7 @@ object Expressions {
           val offset =
             if (arrayVarPtr.isInstanceOf[ArrayVariable]) {
               aType = arrayVarPtr.asInstanceOf[ArrayVariable].theType.getType
-              (arrayVarPtr.address + 4) + index * TypeHelper.sizeof(aType)
+              arrayVarPtr.address + index * TypeHelper.sizeof(aType)
             } else {
               aType match {
                 case array: IArrayType =>
