@@ -248,7 +248,7 @@ class State {
     val withNull = (translateLineFeed.toCharArray() :+ 0.toChar).map{char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))} // terminating null char
     val strAddr = if (isHeap) allocateHeapSpace(withNull.size) else allocateSpace(withNull.size)
     
-    setArray(withNull, LValue(strAddr, new CBasicType(IBasicType.Kind.eChar, 0)))
+    setArray(withNull, strAddr, 1)
     RValue(strAddr, TypeHelper.pointerType)
   }
 
@@ -287,17 +287,15 @@ class State {
     TypeHelper.castSign(theType, result)
   }
 
-  def setArray(array: Array[RValue], info: LValue)(implicit state: State): Unit = {
+  def setArray(array: Array[RValue], address: Int, stride: Int): Unit = {
       var i = 0
-      val address = info.address
-      val size = TypeHelper.sizeof(info.theType)
       array.foreach { element =>
         element match {
           case RValue(newVal, _) =>
             setValue(newVal, address + i)
         }
 
-        i += size
+        i += stride
       }
   }
 

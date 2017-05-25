@@ -84,8 +84,8 @@ class ArrayVariable(name: String, state: State, arrayType: IArrayType, dim: Seq[
 
   state.setValue(address + 4, address)
 
-  def setArray(array: Array[RValue])(implicit state: State): Unit = {
-      state.setArray(array, LValue(address + 4, theType))
+  def setArray(array: Array[RValue]): Unit = {
+      state.setArray(array, address + 4, TypeHelper.sizeof(theType))
   }
 
   override def sizeof: Int = {

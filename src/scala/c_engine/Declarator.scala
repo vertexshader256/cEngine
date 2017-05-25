@@ -73,7 +73,7 @@ object Declarator {
               }
 
               val theArrayVar = state.context.addArrayVariable(name, theType.asInstanceOf[IArrayType], dimensions)
-              state.setArray(initialArray, LValue(theArrayVar.address + 4, theArrayVar.theType))
+              state.setArray(initialArray, theArrayVar.address + 4, TypeHelper.sizeof(theArrayVar.theType))
             } else {
               state.context.addArrayVariable(name, theType.asInstanceOf[IArrayType], dimensions)
             }

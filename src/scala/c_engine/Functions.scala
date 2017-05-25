@@ -365,7 +365,7 @@ object Functions {
 
           state.setValue(index, decpt)
 
-          state.setArray(array, LValue(buf, new CBasicType(IBasicType.Kind.eChar, 0))(state))(state)
+          state.setArray(array, buf, 1)
           Some(buf)
         }
       }
