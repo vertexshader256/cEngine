@@ -46,9 +46,6 @@ class ArrayVariable(name: String, state: State, arrayType: IArrayType, dim: Seq[
 
   override val theType = arrayType
 
-
-  override def value: RValue = RValue(address, theType)
-
   val allocate: Int = {
     // where we store the actual data
 
