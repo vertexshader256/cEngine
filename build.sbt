@@ -3,9 +3,9 @@ name := "c_engine"
 lazy val root = (project in file("."))
   .settings(
     name         := "c_engine",
-    organization := "org.c_engine",
+    organization := "com.github.bdwashbu",
     scalaVersion := "2.11.7",
-    version      := "0.1.0-SNAPSHOT",
+    version      := "0.0.1",
     test in assembly := {}
   )
 
@@ -31,5 +31,12 @@ artifact in (Compile, assembly) := {
 }
 
 addArtifact(artifact in (Compile, assembly), assembly)
+
+publishTo := Some(
+  if (isSnapshot.value)
+    Opts.resolver.sonatypeSnapshots
+  else
+    Opts.resolver.sonatypeStaging
+)
 
 //testOptions in Test += Tests.Argument("-P")
