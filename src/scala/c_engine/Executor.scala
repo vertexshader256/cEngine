@@ -23,13 +23,7 @@ abstract class LValue(state: State) extends ValueType {
   val address: Int
   val theType: IType
   def sizeof = TypeHelper.sizeof(theType)
-  def value: RValue = {
-    if (theType.isInstanceOf[IArrayType]) {
-      RValue(address + 4, theType)
-    } else {
-      state.readVal(address, theType)
-    }
-  }
+  def value: RValue
 
   override def toString = {
     "AddressInfo(" + address + ", " + theType + ")"
@@ -43,22 +37,17 @@ object LValue {
     new LValue(state) {
       val address = addr
       val theType = aType
+      def value = state.readVal(address, theType)
     }
   }
 }
-
-//object ValueInfo2 {
-//  def apply(value: AnyVal, theType: IType)(implicit state: State): LValue = {
-//    val addr = state.allocateSpace(TypeHelper.sizeof(TypeHelper.getType(value)))
-//    state.setValue(value, addr)
-//    LValue(addr, theType)
-//  }
-//}
 
 class ArrayVariable(name: String, state: State, arrayType: IArrayType, dim: Seq[Int]) extends Variable(name, state, arrayType) {
 
   override val theType = arrayType
   override val address = allocateSpace(state, theType, 1)
+
+  override def value: RValue = RValue(address + 4, theType)
 
   val allocate: Int = {
     // where we store the actual data
@@ -101,6 +90,8 @@ class Variable(val name: String, val state: State, aType: IType) extends LValue(
 
   // need this for function-scoped static vars
   var isInitialized = false
+
+  def value = state.readVal(address, theType)
 
   override def toString = {
     "Variable(" + name + ", " + address + ", " + theType + ")"
