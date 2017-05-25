@@ -1,6 +1,6 @@
 # CEngine
 
-No bytecode, no JNI. Run C directly on the JVM.
+No bytecode generation, no [JNI](https://en.wikipedia.org/wiki/Java_Native_Interface). Run C directly during runtime on the JVM.
 
 Similiar to [Nashorn](https://en.wikipedia.org/wiki/Nashorn_(JavaScript_engine))
 
