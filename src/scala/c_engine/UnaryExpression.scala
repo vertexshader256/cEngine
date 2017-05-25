@@ -83,14 +83,7 @@ object UnaryExpression {
             }
 
             if (!nestedType.isInstanceOf[IFunctionType]) {
-
-              if (info.theType.isInstanceOf[IArrayType]) {
-                state.stack.push(LValue(info.address, nestedType))
-              } else {
-                val value = info.value
-                state.stack.push(LValue(value.value.asInstanceOf[Int], nestedType))
-              }
-
+              state.stack.push(LValue(info.value.value.asInstanceOf[Int], nestedType))
             } else {
               // function pointers can ignore the star
               state.stack.push(info)
