@@ -1,4 +1,4 @@
-package scala.c_engine
+package scala.cEngine
 
 import java.io.File
 import java.util.HashMap

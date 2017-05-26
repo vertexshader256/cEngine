@@ -1,9 +1,7 @@
-package scala.c_engine
+package scala.cEngine
 
-import scala.c_engine.Executor.processSwitch
+import scala.cEngine.Executor.processSwitch
 import org.eclipse.cdt.core.dom.ast._
-
-import scala.annotation.switch
 import scala.collection.mutable.Stack
 
 object Statement {

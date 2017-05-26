@@ -1,4 +1,4 @@
-package scala.c_engine
+package scala.cEngine
 
 import org.eclipse.cdt.core.dom.ast._
 import java.util.Formatter

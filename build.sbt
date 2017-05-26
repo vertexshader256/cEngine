@@ -1,8 +1,8 @@
-name := "c_engine"
+name := "cEngine"
 
 lazy val root = (project in file("."))
   .settings(
-    name         := "c_engine",
+    name         := "cEngine",
     organization := "com.github.bdwashbu",
     scalaVersion := "2.11.7",
     version      := "0.0.1",

@@ -1,6 +1,6 @@
 package scala
 
-package object c_engine {
+package object cEngine {
   type char = Byte
   type int = Int
   type short = Short

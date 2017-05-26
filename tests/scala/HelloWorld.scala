@@ -1,8 +1,8 @@
 package tests.scala
 
 import tests.scala.TestClasses._
-import scala.c_engine._
-import scala.c_engine.cEngine._
+import scala.cEngine._
+import scala.cEngine.cEngine._
 
 class HelloWorld extends StandardTest {
   "hello world" should "print the correct results" in {

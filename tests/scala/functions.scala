@@ -2,12 +2,12 @@ package tests.scala
 
 import tests.scala.TestClasses._
 
-import scala.c_engine.State
+import scala.cEngine.State
 
 class FunctionStackTest extends StandardTest {
   "ensure the stack gets popped after functions" should "print the correct results" in {
-    import scala.c_engine._
-    import scala.c_engine.cEngine._
+    import scala.cEngine._
+    import scala.cEngine.cEngine._
     implicit val state = new State
 
     val start = state.stackInsertIndex
@@ -18,8 +18,8 @@ class FunctionStackTest extends StandardTest {
   }
 
   "ensure the stack gets popped after functions with string args" should "print the correct results" in {
-    import scala.c_engine._
-    import scala.c_engine.cEngine._
+    import scala.cEngine._
+    import scala.cEngine.cEngine._
     implicit val state = new State
 
     val start = state.stackInsertIndex

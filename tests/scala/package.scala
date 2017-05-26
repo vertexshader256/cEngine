@@ -3,7 +3,7 @@ package tests.scala
 import org.scalatest._
 import better.files._
 
-import scala.c_engine._
+import scala.cEngine._
 import scala.concurrent._
 import scala.concurrent.duration._
 import scala.util.{Success, Failure}
@@ -40,7 +40,7 @@ object TestClasses {
           if (shouldBootstrap) {
             Executor.init(codeInFiles, true, state)
           } else {
-            Executor.init(Seq("#define HAS_FLOAT\n" + File("src\\scala\\c_engine\\ee_printf.c").contentAsString) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }, true, state)
+            Executor.init(Seq("#define HAS_FLOAT\n" + File("src\\scala\\cEngine\\ee_printf.c").contentAsString) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }, true, state)
           }
 
           Executor.run(state)

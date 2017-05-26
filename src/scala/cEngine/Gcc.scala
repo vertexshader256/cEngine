@@ -1,7 +1,11 @@
-package scala.c_engine
+package scala.cEngine
 
+import scala.sys.process.ProcessIO
 import scala.sys.process._
 import better.files._
+import scala.collection.mutable.ListBuffer
+import java.io.OutputStream
+import java.io.InputStream
 
 object Gcc {
 
