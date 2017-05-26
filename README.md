@@ -19,9 +19,11 @@ Supports:
 * [JCPP](http://www.anarres.org/projects/jcpp/)
 
 # Test approach:
-Standard output of CEngine must exactly match that of GCC.  [sbt-coverage](https://github.com/scoverage/sbt-scoverage) has helped extensively.
+Standard output of CEngine must exactly match that of GCC.  Tested against gcc 5.3.0.
 
-CEngine was bootstrapped off of [java.util.Formatter](https://docs.oracle.com/javase/7/docs/api/java/util/Formatter.html) but it can now execute an embedded version of printf, ee_printf.
+[sbt-coverage](https://github.com/scoverage/sbt-scoverage) is very helpful.
+
+cEngine was bootstrapped off of [java.util.Formatter](https://docs.oracle.com/javase/7/docs/api/java/util/Formatter.html) but it can now execute an embedded version of printf, ee_printf.
 
 ee_printf is found here:
 https://github.com/bwalex/supermips/blob/master/software/coremark/supermips/ee_printf.c
