@@ -1,13 +1,11 @@
-# CEngine
+# cEngine
 
-No bytecode, no JNI. Run C directly on the JVM.
-
-Similiar to [Nashorn](https://en.wikipedia.org/wiki/Nashorn_(JavaScript_engine))
+No bytecode generation, no [JNI](https://en.wikipedia.org/wiki/Java_Native_Interface). Run C directly during runtime on the JVM.
 
 Supports:
-- Pointer aritmetic
 - Multi-dimensional arrays
 - Variable arguments
+- Pointer aritmetic
 - Recursion
 - Multilevel pointers
 - Function pointers
@@ -16,8 +14,6 @@ Supports:
 - Structures, enumerations
 
 # Dependencies
-
-Efforts have been made to reduce dependencies as much as possible.  Reflection is not used.
 
 * [Eclipse CDT](https://eclipse.org/cdt/)
 * [JCPP](http://www.anarres.org/projects/jcpp/)
@@ -29,9 +25,6 @@ CEngine was bootstrapped off of [java.util.Formatter](https://docs.oracle.com/ja
 
 ee_printf is found here:
 https://github.com/bwalex/supermips/blob/master/software/coremark/supermips/ee_printf.c
-
-# Basic use case:
-http://stackoverflow.com/questions/7865661/is-it-possible-to-run-c-source-code-from-java
 
 # Assumptions
 All code executed by CEngine can be succesfully compiled with gcc.  
