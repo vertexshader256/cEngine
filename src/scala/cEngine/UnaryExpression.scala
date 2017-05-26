@@ -12,7 +12,8 @@ object UnaryExpression {
     def not(theVal: Any): AnyVal = theVal match {
       case info @ LValue(_, _) => not(info.value)
       case RValue(theVal, _) => not(theVal)
-      case int: Int               => if (int == 0) 1 else 0
+      case int: Int => if (int == 0) 1 else 0
+      case long: Long => if (long == 0) 1 else 0
       case bool: Boolean => !bool
       case char: char => if (char == 0) 1 else 0
     }
