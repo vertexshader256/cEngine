@@ -5,7 +5,7 @@ lazy val root = (project in file("."))
     name         := "cEngine",
     organization := "com.github.bdwashbu",
     scalaVersion := "2.11.11",
-    version      := "0.0.3",
+    version      := "0.0.5",
     test in assembly := {}
   )
 

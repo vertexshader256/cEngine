@@ -135,6 +135,8 @@ object Functions {
         def run(formattedOutputParams: Array[RValue], state: State) = {
           val char = formattedOutputParams(0).value.asInstanceOf[char].toChar
 
+          printf(char.toString)
+
           if (char == 10) {
             if (state.standardOutBuffer.isEmpty) {
               state.stdout += ""

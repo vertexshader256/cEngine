@@ -13,9 +13,10 @@ import org.eclipse.cdt.internal.core.dom.parser.c._
 import scala.annotation.tailrec
 
 object Interpreter {
-  type JSONObject = Any
+  implicit val state = new State
   
   implicit class CounterSC(val sc: StringContext) extends AnyVal {
+
     // Define functions that we want to use with string interpolation syntax
     def c(args: Any*)(implicit state: State): Unit = {
       Gcc.runCode(sc.parts.iterator.next, state)
