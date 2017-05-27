@@ -29,5 +29,19 @@ cEngine was bootstrapped off of [java.util.Formatter](https://docs.oracle.com/ja
 ee_printf is found here:
 https://github.com/bwalex/supermips/blob/master/software/coremark/supermips/ee_printf.c
 
+# sbt
+```scala
+libraryDependencies += "com.github.bdwashbu" % "cengine_2.11" % "0.0.5"
+```
+
+# Hello world
+
+From the sbt console:
+```scala
+scala> import c.engine.Interpreter._
+scala> c"""printf("Hello world!");"""
+Hello world!
+```
+
 # Assumptions
 All code executed by CEngine can be succesfully compiled with gcc.  
