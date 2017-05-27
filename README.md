@@ -45,7 +45,7 @@ https://github.com/bwalex/supermips/blob/master/software/coremark/supermips/ee_p
 
 # Debugging
 
-Using d3.js to visualizing the AST is very helpful.  
+Using d3.js to visualize the AST is very helpful.  
 
 [cEngine Debugger](https://github.com/bdwashbu/cEngine_debugger)
 
