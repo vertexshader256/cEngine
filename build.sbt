@@ -16,7 +16,6 @@ scalaSource in Test := baseDirectory.value / "tests"
 scalaVersion := "2.11.11"
 
 libraryDependencies ++= Seq(
-  "com.github.pathikrit" %% "better-files" % "2.17.1",
   "org.scalatest" % "scalatest_2.11" % "3.0.1" % "test"
 )
 

@@ -2,10 +2,9 @@ package c.engine
 
 import scala.sys.process.ProcessIO
 import scala.sys.process._
-import better.files._
+import java.io.File
 import scala.collection.mutable.ListBuffer
-import java.io.OutputStream
-import java.io.InputStream
+import java.io.{InputStream, OutputStream, PrintWriter}
 
 object Gcc {
 
@@ -61,46 +60,48 @@ object Gcc {
     }
     
     val files = fileNames.map{ case (fileName, code) =>
-      val file = File(fileName + ".c")
-      file.overwrite(code)
+      val file = new File(fileName + ".c")
+      val pw = new PrintWriter(file)
+      pw.write(code)
+      pw.close
       file
     }
     
     val objectFiles = fileNames.map{ case (fileName, code) =>
-      val file = File(fileName + ".o")
+      val file = new File(fileName + ".o")
       file
     } 
     
-    val exeFile = File("temp" + myCount + ".exe")
+    val exeFile = new File("temp" + myCount + ".exe")
     
-    val sourceFileTokens = files.flatMap{file => Seq("-c", file.path.toString)}
+    val sourceFileTokens = files.flatMap{file => Seq("-c", file.getAbsolutePath)}
     val includeTokens = Seq("-I", Utils.mainPath, 
                             "-I", Utils.mainAdditionalPath)
 
     val processTokens =
         Seq("gcc") ++ sourceFileTokens ++ includeTokens ++ Seq("-D", "ALLOC_TESTING")
   
-    val builder = Process(processTokens, File("").toJava)
+    val builder = Process(processTokens, new File("."))
     val compile = builder.run(logger.process)
     compile.exitValue()
     
     val numErrors = logger.errors.length
 
     val result = if (numErrors == 0) {    
-      val linkTokens = Seq("gcc") ++ Seq("-o", exeFile.path.toString) ++ objectFiles.map(_.path.toString)
+      val linkTokens = Seq("gcc") ++ Seq("-o", exeFile.getAbsolutePath) ++ objectFiles.map(_.getAbsolutePath)
       
-      val linker = Process(linkTokens, File("").toJava)
+      val linker = Process(linkTokens, new File("."))
       val link = linker.run(linkerLogger.process)
       link.exitValue()
       
       var i = 0
-      while (!File(exeFile.path.toString).exists && i < 1000) {
+      while (!new File(exeFile.getAbsolutePath).exists && i < 1000) {
           Thread.sleep(50)
           i += 50
       }
       Thread.sleep(50)
 
-      val runner = Process(Seq(exeFile.path.toString), File("").toJava)
+      val runner = Process(Seq(exeFile.getAbsolutePath), new File("."))
       val run = runner.run(runLogger.process)
       run.exitValue()
 
@@ -109,9 +110,9 @@ object Gcc {
       logger.errors
     }
     
-    files.foreach{file => file.delete(true)}
-    objectFiles.foreach{file => file.delete(true)}
-    exeFile.delete(true)
+    files.foreach{file => file.delete()}
+    objectFiles.foreach{file => file.delete()}
+    exeFile.delete()
     
     result
   }
