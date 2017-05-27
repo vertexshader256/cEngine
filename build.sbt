@@ -30,7 +30,7 @@ artifact in (Compile, assembly) := {
   art.copy(`classifier` = Some("assembly"))
 }
 
-addArtifact(artifact in (Compile, assembly), assembly)
+addArtifact(artifact in (assembly), assembly)
 
 publishTo := Some(
   if (isSnapshot.value)
