@@ -1,6 +1,4 @@
-package tests.scala
-
-import tests.scala.TestClasses._
+package cEngine
 
 class ForLooptestStaging extends StandardTest {
   "A for loop with a continue and a loop in the second case" should "print the correct results" in {

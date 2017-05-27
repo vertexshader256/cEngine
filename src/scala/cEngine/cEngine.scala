@@ -1,4 +1,4 @@
-package scala.cEngine
+package cEngine
 
 import org.eclipse.cdt.core.dom.ast._
 
@@ -12,7 +12,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c._
 
 import scala.annotation.tailrec
 
-object cEngine {
+object Interpreter {
   type JSONObject = Any
   
   implicit class CounterSC(val sc: StringContext) extends AnyVal {

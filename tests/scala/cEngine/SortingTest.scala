@@ -1,6 +1,4 @@
-package scala.astViewer
-
-import tests.scala.TestClasses._
+package cEngine
 
   class RadixSort extends StandardTest {
     "radix sort test 1" should "print the correct results" in {

@@ -1,6 +1,6 @@
-package scala.cEngine
+package cEngine
 
-import scala.cEngine.Executor.processSwitch
+import Executor.processSwitch
 import org.eclipse.cdt.core.dom.ast._
 import scala.collection.mutable.Stack
 

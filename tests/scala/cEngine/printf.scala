@@ -1,6 +1,4 @@
-package tests.scala
-
-import tests.scala.TestClasses._
+package cEngine
 
 class printf extends StandardTest {   
   "Different basic prints" should "print the correct results" in {

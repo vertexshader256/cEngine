@@ -1,6 +1,4 @@
-package tests.scala
-
-import tests.scala.TestClasses._
+package cEngine
 
 class TypesTest extends StandardTest {
   "Simple type test" should "print the correct results" in {

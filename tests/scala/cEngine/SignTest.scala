@@ -1,6 +1,4 @@
-package tests.scala
-
-import tests.scala.TestClasses._
+package cEngine
 
 class SignTest extends StandardTest {
   "unsigned test 1" should "print the correct results" in {

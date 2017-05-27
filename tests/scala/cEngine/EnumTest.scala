@@ -1,6 +1,4 @@
-package tests.scala
-
-import tests.scala.TestClasses._
+package cEngine
 
 class EnumTest extends StandardTest {
 

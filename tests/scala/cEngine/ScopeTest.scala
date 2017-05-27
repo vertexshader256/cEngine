@@ -1,6 +1,4 @@
-package tests.scala
-
-import tests.scala.TestClasses._
+package cEngine
 
 class ScopeTest extends StandardTest {
   "Two variables of the same name but different scope" should "print the correct results" in {

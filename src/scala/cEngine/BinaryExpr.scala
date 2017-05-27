@@ -1,4 +1,4 @@
-package scala.cEngine
+package cEngine
 
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 import org.eclipse.cdt.core.dom.ast._

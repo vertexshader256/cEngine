@@ -1,4 +1,4 @@
-package scala.cEngine
+package cEngine
 
 import scala.sys.process.ProcessIO
 import scala.sys.process._
@@ -75,7 +75,7 @@ object Gcc {
     
     val sourceFileTokens = files.flatMap{file => Seq("-c", file.path.toString)}
     val includeTokens = Seq("-I", Utils.mainPath, 
-                            "-I", Utils.mainPath + "\\tests\\scala\\libds-master")
+                            "-I", Utils.mainAdditionalPath)
 
     val processTokens =
         Seq("gcc") ++ sourceFileTokens ++ includeTokens ++ Seq("-D", "ALLOC_TESTING")

@@ -1,4 +1,3 @@
-package scala
 
 package object cEngine {
   type char = Byte

@@ -1,6 +1,4 @@
-package tests.scala
-
-import tests.scala.TestClasses._
+package cEngine
 
 class LinkedListTest extends StandardTest {
   "Linked list test" should "print the correct results" in {

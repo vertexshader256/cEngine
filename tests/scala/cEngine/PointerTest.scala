@@ -1,6 +1,4 @@
-package tests.scala
-
-import tests.scala.TestClasses._
+package cEngine
 
 class StagingGround extends StandardTest {
   "assign then increment" should "print the correct results" in {

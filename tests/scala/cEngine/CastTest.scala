@@ -1,6 +1,4 @@
-package tests.scala
-
-import tests.scala.TestClasses._
+package cEngine
 
 class CastTest extends StandardTest {
   "A simple cast" should "print the correct results" in {

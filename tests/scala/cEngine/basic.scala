@@ -1,6 +1,4 @@
-package tests.scala
-
-import tests.scala.TestClasses._
+package cEngine
 
 class AssignmentTest extends StandardTest {
   "A simple math expression with double assigned to integer" should "print the correct results" in {

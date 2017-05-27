@@ -1,4 +1,4 @@
-package scala.cEngine
+package cEngine
 
 import java.io.File
 import java.util.HashMap
@@ -83,7 +83,7 @@ object Utils {
   }
 
   val mainPath = raw"C:\Scala\Git\cEngine"
-  val mainAdditionalPath = raw"C:\Scala\Git\cEngine\tests\scala\libds-master"
+  val mainAdditionalPath = raw"C:\Scala\Git\cEngine\tests\scala\cEngine\libds-master"
   val minGWIncludes = raw"C:\MinGW\include"
   val minGWAdditionalIncludes = raw"C:\MinGW\lib\gcc\mingw32\5.3.0\include"
   val minGWMoreIncludes = raw"C:\MinGW\include\GL"

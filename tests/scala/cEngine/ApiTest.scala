@@ -1,8 +1,6 @@
-package tests.scala
+package cEngine
 
-import tests.scala.TestClasses._
-import scala.cEngine._
-import scala.cEngine.cEngine._
+import Interpreter._
 
 class ApiTest extends StandardTest {
   "interp test one" should "print the correct results" in {
@@ -20,8 +18,7 @@ class ApiTest extends StandardTest {
   }
 
   "func interpolator" should "print the correct results" in {
-    import scala.cEngine._
-    import scala.cEngine.cEngine._
+    import Interpreter._
     implicit val state = new State
 
     func"""
@@ -50,8 +47,7 @@ class ApiTest extends StandardTest {
   }
 
   "func interpolator 2" should "print the correct results" in {
-    import scala.cEngine._
-    import scala.cEngine.cEngine._
+    import Interpreter._
     implicit val state = new State
 
     c"""

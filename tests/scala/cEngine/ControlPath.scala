@@ -1,6 +1,4 @@
-package tests.scala
-
-import tests.scala.TestClasses._
+package cEngine
 
 class SwitchStatement extends StandardTest {
   "A switch statement" should "print the correct results" in {

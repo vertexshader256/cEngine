@@ -1,6 +1,4 @@
-package tests.scala
-
-import tests.scala.TestClasses._
+package cEngine
 
 class FloatingPoint extends StandardTest {
   "A simple double initialized global reference" should "print the correct results" in {

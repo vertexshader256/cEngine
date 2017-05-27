@@ -1,4 +1,4 @@
-package scala.cEngine
+package cEngine
 
 import org.eclipse.cdt.internal.core.dom.parser.c._
 import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
