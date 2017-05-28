@@ -220,21 +220,6 @@ object Executor {
     //println(state.current.getClass.getSimpleName + ":" + state.direction)
     
     val paths: Seq[IASTNode] = Executor.step(state.current, state.direction)(state)
-    
-    if (state.isBreaking) {
-      // unroll the path stack until we meet the first parent which is a loop
-      
-      val breakStatement = state.context.pathStack.pop.asInstanceOf[CASTBreakStatement]
-      var reverse: IASTNode = breakStatement
-      while ((!reverse.isInstanceOf[IASTWhileStatement] &&
-          !reverse.isInstanceOf[IASTDoStatement] &&
-          !reverse.isInstanceOf[IASTForStatement] &&
-          !reverse.isInstanceOf[IASTSwitchStatement]) || !Utils.getAncestors(breakStatement).contains(reverse)) {
-        reverse = state.context.pathStack.pop
-      }
-
-      state.isBreaking = false
-    }
 
     if (state.isContinuing) {
       // unroll the path stack until we meet the first parent which is a loop

@@ -2,6 +2,8 @@ package c.engine
 
 import Executor.processSwitch
 import org.eclipse.cdt.core.dom.ast._
+import org.eclipse.cdt.internal.core.dom.parser.c.CASTBreakStatement
+
 import scala.collection.mutable.Stack
 
 object Statement {
@@ -10,7 +12,14 @@ object Statement {
     case breakStatement: IASTNullStatement =>
       Seq()
     case breakStatement: IASTBreakStatement =>
-      state.isBreaking = true
+      val breakStatement = state.context.pathStack.pop.asInstanceOf[CASTBreakStatement]
+      var reverse: IASTNode = breakStatement
+      while ((!reverse.isInstanceOf[IASTWhileStatement] &&
+        !reverse.isInstanceOf[IASTDoStatement] &&
+        !reverse.isInstanceOf[IASTForStatement] &&
+        !reverse.isInstanceOf[IASTSwitchStatement]) || !Utils.getAncestors(breakStatement).contains(reverse)) {
+        reverse = state.context.pathStack.pop
+      }
       Seq()
     case continueStatement: IASTContinueStatement =>
       state.isContinuing = true

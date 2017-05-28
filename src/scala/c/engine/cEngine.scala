@@ -53,7 +53,7 @@ class State {
   var isFirst = true
   // flags
   var isReturning = false
-  var isBreaking = false
+  //var isBreaking = false
   var isContinuing = false
   //var isGotoing = false
 
