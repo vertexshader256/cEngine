@@ -55,7 +55,7 @@ class State {
   var isReturning = false
   var isBreaking = false
   var isContinuing = false
-  var isGotoing = false
+  //var isGotoing = false
 
   functionContexts.push(new ExecutionContext(List(), List(), null, 0, this))
 

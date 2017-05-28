@@ -255,16 +255,6 @@ object Executor {
 
       state.isContinuing = false
     }
-
-    if (state.isGotoing) {
-      state.context.pathStack.clear()
-      state.context.pathStack.pushAll(state.context.labels.head._2.reverse :+ state.context.labels.head._1)
-
-      state.context.visited.clear()
-      state.context.visited ++= state.context.labels.head._3
-
-      state.isGotoing = false
-    }
     
     if (state.isReturning) {
       var last: IASTNode = null

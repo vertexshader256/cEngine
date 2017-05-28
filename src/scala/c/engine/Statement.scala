@@ -16,7 +16,11 @@ object Statement {
       state.isContinuing = true
       Seq()
     case gotoStatement: IASTGotoStatement =>
-      state.isGotoing = true
+      state.context.pathStack.clear()
+      state.context.pathStack.pushAll(state.context.labels.head._2.reverse :+ state.context.labels.head._1)
+
+      state.context.visited.clear()
+      state.context.visited ++= state.context.labels.head._3
       Seq()
     case label: IASTLabelStatement =>
       if (direction == Exiting) {
