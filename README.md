@@ -1,6 +1,6 @@
 # cEngine
 
-No bytecode generation, no [JNI](https://en.wikipedia.org/wiki/Java_Native_Interface). Run C directly during runtime on the JVM.
+Run C on the JVM.
 <img align="right" src="cEngineLogo.png" width="100">
 
 Supports:
