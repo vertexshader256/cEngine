@@ -2,7 +2,7 @@ package c.engine
 
 import Executor.processSwitch
 import org.eclipse.cdt.core.dom.ast._
-import org.eclipse.cdt.internal.core.dom.parser.c.CASTBreakStatement
+import org.eclipse.cdt.internal.core.dom.parser.c.{CASTBreakStatement, CASTContinueStatement}
 
 import scala.collection.mutable.Stack
 
@@ -22,7 +22,19 @@ object Statement {
       }
       Seq()
     case continueStatement: IASTContinueStatement =>
-      state.isContinuing = true
+      val continueStatement = state.context.pathStack.pop.asInstanceOf[CASTContinueStatement]
+      var last: IASTNode = continueStatement
+
+      // find the first for loop that is a direct ancestor
+      while (!last.isInstanceOf[IASTForStatement] || !Utils.getAncestors(continueStatement).contains(last)) {
+        last = state.context.pathStack.pop
+      }
+
+      val forLoop = last.asInstanceOf[IASTForStatement]
+
+      state.context.pathStack.push(forLoop)
+      state.context.pathStack.push(forLoop.getConditionExpression)
+      state.context.pathStack.push(forLoop.getIterationExpression)
       Seq()
     case gotoStatement: IASTGotoStatement =>
       state.context.pathStack.clear()

@@ -50,12 +50,8 @@ class State {
   var functionCount = 0
   def stack = context.stack
 
-  var isFirst = true
   // flags
   var isReturning = false
-  //var isBreaking = false
-  var isContinuing = false
-  //var isGotoing = false
 
   functionContexts.push(new ExecutionContext(List(), List(), null, 0, this))
 

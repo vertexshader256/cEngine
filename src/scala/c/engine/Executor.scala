@@ -221,26 +221,6 @@ object Executor {
     
     val paths: Seq[IASTNode] = Executor.step(state.current, state.direction)(state)
 
-    if (state.isContinuing) {
-      // unroll the path stack until we meet the first parent which is a loop
-
-      val continueStatement = state.context.pathStack.pop.asInstanceOf[CASTContinueStatement]
-      var last: IASTNode = continueStatement
-
-      // find the first for loop that is a direct ancestor
-      while (!last.isInstanceOf[IASTForStatement] || !Utils.getAncestors(continueStatement).contains(last)) {
-        last = state.context.pathStack.pop
-      }
-
-      val forLoop = last.asInstanceOf[IASTForStatement]
-
-      state.context.pathStack.push(forLoop)
-      state.context.pathStack.push(forLoop.getConditionExpression)
-      state.context.pathStack.push(forLoop.getIterationExpression)
-
-      state.isContinuing = false
-    }
-    
     if (state.isReturning) {
       var last: IASTNode = null
       while (state.context.pathStack.size > 1 && !last.isInstanceOf[IASTFunctionDefinition]) {

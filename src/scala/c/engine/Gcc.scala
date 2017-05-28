@@ -18,7 +18,6 @@ object Gcc {
       Executor.preload(Seq(exeCode), state)
       val main = state.getFunction("main")
       state.functionList -= main
-      state.isFirst = false
       state.stackInsertIndex -= 4
       state.current = main.node
       Executor.run(state)

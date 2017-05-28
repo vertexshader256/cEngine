@@ -423,3 +423,71 @@ class CaesarCipherTest extends StandardTest {
       checkResults(code, false)
     }
  }
+
+class DuffsTest extends StandardTest {
+  "Duff device test" should "print the correct results" in {
+    val code = """
+
+       distangled(short *to, short *from, int count)
+       {
+           int n = (count + 7) / 8;
+           switch (count % 8) {
+               case 0: *to++ = *from++;
+               case 7: *to++ = *from++;
+               case 6: *to++ = *from++;
+               case 5: *to++ = *from++;
+               case 4: *to++ = *from++;
+               case 3: *to++ = *from++;
+               case 2: *to++ = *from++;
+               case 1: *to++ = *from++;
+           }
+           while (--n > 0) {
+               *to++ = *from++;
+               *to++ = *from++;
+               *to++ = *from++;
+               *to++ = *from++;
+               *to++ = *from++;
+               *to++ = *from++;
+               *to++ = *from++;
+               *to++ = *from++;
+           }
+       }
+
+        send(short *to, short *from, int count)
+        {
+         	int n=(count+7)/8;
+         	switch(count%8){
+         	case 0:	do{	*to++ = *from++;
+         	case 7:		*to++ = *from++;
+         	case 6:		*to++ = *from++;
+         	case 5:		*to++ = *from++;
+         	case 4:		*to++ = *from++;
+         	case 3:		*to++ = *from++;
+         	case 2:		*to++ = *from++;
+         	case 1:		*to++ = *from++;
+         		}while( --n>0);
+         	}
+        }
+
+        void main()
+        {
+          int i = 0;
+          int j = 0;
+          for (j = 0; j < 10; j++) {
+            short test1[10] = {1,2,3,4,5,6,7,8,9,10};
+            short test2[10] = {0,0,0,0,0,0,0,0,0,0};
+            distangled(test2, test1, j);
+            for (i = 0; i < 10; i++) {
+               printf("%d\n", test1[i]);
+            }
+            for (i = 0; i < 10; i++) {
+              printf("%d\n", test2[i]);
+            }
+          }
+          return 0;
+        }
+        """
+
+    checkResults(code, false)
+  }
+}
