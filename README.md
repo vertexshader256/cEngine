@@ -1,6 +1,6 @@
 # cEngine
 
-Run C directly during runtime on the JVM.
+Run C during runtime on the JVM.
 <img align="right" src="cEngineLogo.png" width="100">
 
 Supports:
