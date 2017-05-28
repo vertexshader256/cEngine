@@ -16,7 +16,8 @@ scalaSource in Test := baseDirectory.value / "tests"
 scalaVersion := "2.11.11"
 
 libraryDependencies ++= Seq(
-  "org.scalatest" % "scalatest_2.11" % "3.0.1" % "test"
+  "org.scalatest" % "scalatest_2.11" % "3.0.1" % "test",
+  "com.github.pathikrit" %% "better-files" % "2.17.1"
 )
 
 assemblyMergeStrategy in assembly := {
