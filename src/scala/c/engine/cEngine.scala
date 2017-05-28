@@ -4,13 +4,12 @@ import org.eclipse.cdt.core.dom.ast._
 
 import scala.collection.mutable.Stack
 import scala.collection.mutable.ListBuffer
-import scala.collection.mutable.Map
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 import org.eclipse.cdt.internal.core.dom.parser.c._
 
-import scala.annotation.tailrec
+import scala.c.engine.ExecutionContext
 
 object Interpreter {
   implicit val state = new State
