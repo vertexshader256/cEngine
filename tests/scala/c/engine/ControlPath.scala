@@ -276,7 +276,7 @@ class TernaryTest extends StandardTest {
 }
 
 class GotoStatement extends StandardTest {
-  "A simple goto statement" should "print the correct results" in {
+  "A backward goto statement" should "print the correct results" in {
     val code =
       """
       void main() {
@@ -290,6 +290,24 @@ class GotoStatement extends StandardTest {
         if (x < 4) {
            goto whoa;
         }
+      }
+      """
+
+    checkResults(code)
+  }
+
+  "A forward goto statement" should "print the correct results" in {
+    val code =
+      """
+      void main() {
+        int x = 0;
+        printf("1\n");
+        printf("2\n");
+        goto whoa;
+        printf("%d\n", x);
+        printf("4\n");
+        whoa:
+        printf("5\n");
       }
       """
 

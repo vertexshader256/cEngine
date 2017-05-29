@@ -8,28 +8,24 @@ import scala.annotation.switch
 object Expressions {
 
   def parse(expr: IASTExpression, direction: Direction)(implicit context: State): Seq[IASTNode] = expr match {
-    case exprList: IASTExpressionList =>
-      if (direction == Entering) {
-        exprList.getExpressions
-      } else {
-        Seq()
-      }
-    case ternary: IASTConditionalExpression =>
-       if (direction == Entering) {
-        Seq(ternary.getLogicalConditionExpression)
-      } else {
-        val result = TypeHelper.resolveBoolean(context.stack.pop)
+    case exprList: IASTExpressionList => direction match {
+      case Entering => exprList.getExpressions
+      case Exiting => Seq ()
+    }
+    case ternary: IASTConditionalExpression => direction match {
+      case Entering => Seq (ternary.getLogicalConditionExpression)
+      case Exiting =>
+        val result = TypeHelper.resolveBoolean (context.stack.pop)
 
         if (result) {
-          Seq(ternary.getPositiveResultExpression)
+          Seq (ternary.getPositiveResultExpression)
         } else {
-          Seq(ternary.getNegativeResultExpression)
+          Seq (ternary.getNegativeResultExpression)
         }
-      }
-    case cast: IASTCastExpression =>
-      if (direction == Entering) {
-        Seq(cast.getOperand, cast.getTypeId)
-      } else {
+    }
+    case cast: IASTCastExpression => direction match {
+      case Entering => Seq(cast.getOperand, cast.getTypeId)
+      case Exiting =>
         val theType = context.stack.pop.asInstanceOf[TypeInfo].value
         val operand = context.stack.pop
 
@@ -43,20 +39,18 @@ object Expressions {
         })
 
         Seq()
-      }
-    case fieldRef: IASTFieldReference =>
-      if (direction == Entering) {
-        Seq(fieldRef.getFieldOwner)
-      } else {
-        
+    }
+    case fieldRef: IASTFieldReference => direction match {
+      case Entering => Seq(fieldRef.getFieldOwner)
+      case Exiting =>
         var baseAddr = -1
-        
+
         val struct = context.stack.pop.asInstanceOf[LValue]
-        
+
         def resolve(theType: IType, addr: Int): CStructure = theType match {
           case qual: CQualifierType =>
             resolve(qual.getType, addr)
-          case typedef: CTypedef => 
+          case typedef: CTypedef =>
             resolve(typedef.getType, addr)
           case struct: CStructure => struct
           case ptr: IPointerType =>
@@ -70,7 +64,7 @@ object Expressions {
         } else {
           struct.address
         }
-        
+
         var offset = 0
         var resultAddress: LValue = null
         structType.getFields.foreach{field =>
@@ -83,49 +77,45 @@ object Expressions {
         }
 
         context.stack.push(resultAddress)
-             
+
         Seq()
-      }
-    case subscript: IASTArraySubscriptExpression =>
-      if (direction == Entering) {
-        Seq(subscript.getArrayExpression, subscript.getArgument)
-      } else {
-
-          val index = context.stack.pop match {
-            case x @ RValue(_, _) => TypeHelper.cast(TypeHelper.pointerType, x.value).value.asInstanceOf[Int]
-            case info @ LValue(_, _) =>
-              info.value.value match {
-                case int: Int => int
-                case long: Long => long.toInt
-              }
-          }
-
-          val arrayVarPtr = context.stack.pop.asInstanceOf[LValue]
-          var aType = arrayVarPtr.theType
-        
-          val offset =
-            if (arrayVarPtr.isInstanceOf[ArrayVariable]) {
-              aType = arrayVarPtr.asInstanceOf[ArrayVariable].theType.getType
-              arrayVarPtr.address + index * TypeHelper.sizeof(aType)
-            } else {
-              aType match {
-                case array: IArrayType =>
-                  aType = array.getType
-                  context.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
-                case ptr: IPointerType =>
-                  aType = ptr.getType
-                  context.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
-              }
+    }
+    case subscript: IASTArraySubscriptExpression => direction match {
+      case Entering => Seq(subscript.getArrayExpression, subscript.getArgument)
+      case Exiting =>
+        val index = context.stack.pop match {
+          case x @ RValue(_, _) => TypeHelper.cast(TypeHelper.pointerType, x.value).value.asInstanceOf[Int]
+          case info @ LValue(_, _) =>
+            info.value.value match {
+              case int: Int => int
+              case long: Long => long.toInt
             }
+        }
 
+        val arrayVarPtr = context.stack.pop.asInstanceOf[LValue]
+        var aType = arrayVarPtr.theType
 
+        val offset =
+          if (arrayVarPtr.isInstanceOf[ArrayVariable]) {
+            aType = arrayVarPtr.asInstanceOf[ArrayVariable].theType.getType
+            arrayVarPtr.address + index * TypeHelper.sizeof(aType)
+          } else {
+            aType match {
+              case array: IArrayType =>
+                aType = array.getType
+                context.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
+              case ptr: IPointerType =>
+                aType = ptr.getType
+                context.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
+            }
+          }
 
         aType = TypeHelper.stripSyntheticTypeInfo(aType)
 
         context.stack.push(LValue(offset, aType))
 
         Seq()
-      }
+    }
     case unary: IASTUnaryExpression =>
       if (direction == Entering) {
         Seq(unary.getOperand)
