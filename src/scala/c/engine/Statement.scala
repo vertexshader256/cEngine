@@ -157,10 +157,9 @@ object Statement {
         }
       case Gotoing => Seq(ifStatement.getConditionExpression)
     }
-    case forLoop: IASTForStatement =>
-      if (direction == Entering) {
-        Seq(Option(forLoop.getInitializerStatement), Option(forLoop.getConditionExpression)).flatten
-      } else {
+    case forLoop: IASTForStatement => direction match {
+      case Entering => Seq(Option(forLoop.getInitializerStatement), Option(forLoop.getConditionExpression)).flatten
+      case Exiting =>
         val shouldKeepLooping = if (forLoop.getConditionExpression != null) {
 
           val result = TypeHelper.resolve(state.stack.pop).value
@@ -182,7 +181,11 @@ object Statement {
         } else {
           Seq()
         }
-      }
+      case Gotoing =>
+        state.nextGotoNode = Seq(Option(forLoop.getBody), Option(forLoop.getIterationExpression), Option(forLoop.getConditionExpression), Some(forLoop)).flatten
+        state.context.pathStack.pop
+        Seq(forLoop.getBody)
+    }
     case ret: IASTReturnStatement =>
       if (direction == Entering) {
         if (ret.getReturnValue != null) {

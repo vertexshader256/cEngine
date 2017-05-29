@@ -356,6 +356,26 @@ class GotoStatement extends StandardTest {
 
     checkResults(code)
   }
+
+  "A goto into a for loop" should "print the correct results" in {
+    val code =
+      """
+      void main() {
+        int x = 0;
+        int i = 0;
+        printf("1\n");
+        printf("2\n");
+        goto testLabel;
+        for (i = 0; i < 10; i++) {
+          x++;
+          testLabel:
+          printf("%d\n", x);
+        }
+      }
+      """
+
+    checkResults(code)
+  }
 }
 
 class IfStatement extends StandardTest {
