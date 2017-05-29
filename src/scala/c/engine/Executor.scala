@@ -219,7 +219,11 @@ object Executor {
 
     //println(state.current.getClass.getSimpleName + ":" + state.direction)
     
-    val paths: Seq[IASTNode] = Executor.step(state.current, state.direction)(state)
+    val paths: Seq[IASTNode] = if (state.isGotoing) {
+      Executor.step(state.current, Gotoing)(state)
+    } else {
+      Executor.step(state.current, state.direction)(state)
+    }
 
     if (state.isReturning) {
       var last: IASTNode = null

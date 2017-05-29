@@ -36,22 +36,36 @@ object Statement {
       state.context.pathStack.push(forLoop.getConditionExpression)
       state.context.pathStack.push(forLoop.getIterationExpression)
       Seq()
-    case gotoStatement: IASTGotoStatement =>
-      state.context.pathStack.clear()
-      state.context.pathStack.pushAll(state.context.labels.head._2.reverse :+ state.context.labels.head._1)
+    case goto: IASTGotoStatement =>
+      if (state.context.labels.exists{label => label._1.getName.getRawSignature == goto.getName.getRawSignature}) {
+        state.context.pathStack.clear()
+        state.context.pathStack.pushAll(state.context.labels.head._2.reverse :+ state.context.labels.head._1)
 
-      state.context.visited.clear()
-      state.context.visited ++= state.context.labels.head._3
-      Seq()
-    case label: IASTLabelStatement =>
-      if (direction == Exiting) {
+        state.context.visited.clear()
+        state.context.visited ++= state.context.labels.head._3
+        Seq()
+      } else {
+        state.isGotoing = true
+        state.gotoName = goto.getName.getRawSignature
+        Seq()
+      }
+    case label: IASTLabelStatement => direction match {
+      case Entering =>
+        Seq()
+      case Exiting =>
         val backupPath = Stack[IASTNode]() ++ state.context.pathStack
         val ok = (label, backupPath, state.context.visited.toList)
         state.context.labels += ok
         Seq(label.getNestedStatement)
-      } else {
-        Seq()
-      }
+      case Gotoing =>
+        if (label.getName.getRawSignature == state.gotoName) {
+          state.isGotoing = false
+          state.gotoName = ""
+          Seq(label.getNestedStatement) ++ state.nextGotoNode
+        } else {
+          Seq(label.getNestedStatement)
+        }
+    }
     case switch: IASTSwitchStatement =>
       val cases = switch.getBody.getChildren.collect { case x: IASTCaseStatement => x; case y: IASTDefaultStatement => y }
       if (direction == Entering) {
@@ -84,11 +98,9 @@ object Statement {
           Seq()
         }
       }
-    case doWhileLoop: IASTDoStatement =>
-
-      if (direction == Entering) {
-        Seq(doWhileLoop.getBody, doWhileLoop.getCondition)
-      } else {
+    case doWhileLoop: IASTDoStatement => direction match {
+      case Entering => Seq(doWhileLoop.getBody, doWhileLoop.getCondition)
+      case Exiting =>
         val shouldLoop = TypeHelper.resolveBoolean(state.stack.pop)
 
         if (shouldLoop) {
@@ -99,15 +111,15 @@ object Statement {
         } else {
           Seq()
         }
-      }
-    case whileLoop: IASTWhileStatement =>
-      if (direction == Entering) {
-        Seq(whileLoop.getCondition)
-      } else {
-
-        val cast = state.stack.pop match {
-          case x                => x
-        }
+      case Gotoing =>
+        state.nextGotoNode = Seq(doWhileLoop.getCondition, doWhileLoop)
+        state.context.pathStack.pop
+        Seq(doWhileLoop.getBody)
+    }
+    case whileLoop: IASTWhileStatement => direction match {
+      case Entering => Seq(whileLoop.getCondition)
+      case Exiting =>
+        val cast = state.stack.pop
 
         val shouldLoop = TypeHelper.resolveBoolean(cast)
 
@@ -119,11 +131,14 @@ object Statement {
         } else {
           Seq()
         }
-      }
-    case ifStatement: IASTIfStatement =>
-      if (direction == Entering) {
-        Seq(ifStatement.getConditionExpression)
-      } else {
+      case Gotoing =>
+        state.nextGotoNode = Seq(whileLoop.getCondition, whileLoop)
+        state.context.pathStack.pop
+        Seq(whileLoop.getBody)
+    }
+    case ifStatement: IASTIfStatement => direction match {
+      case Entering => Seq(ifStatement.getConditionExpression)
+      case Exiting =>
         val result = state.stack.pop
 
         val value = result match {
@@ -140,7 +155,8 @@ object Statement {
         } else {
           Seq()
         }
-      }
+      case Gotoing => Seq(ifStatement.getConditionExpression)
+    }
     case forLoop: IASTForStatement =>
       if (direction == Entering) {
         Seq(Option(forLoop.getInitializerStatement), Option(forLoop.getConditionExpression)).flatten
@@ -193,12 +209,11 @@ object Statement {
       } else {
         Seq()
       }
-    case compound: IASTCompoundStatement =>
-      if (direction == Entering) {
-        compound.getStatements
-      } else {
-        Seq()
-      }
+    case compound: IASTCompoundStatement => direction match {
+      case Entering => compound.getStatements
+      case Exiting => Seq()
+      case Gotoing => compound.getStatements
+    }
     case exprStatement: IASTExpressionStatement =>
       if (direction == Entering) {
         Seq(exprStatement.getExpression)

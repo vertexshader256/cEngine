@@ -19,7 +19,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
 sealed trait Direction
 object Entering extends Direction
 object Exiting extends Direction
-object Visiting extends Direction
+object Gotoing extends Direction
 
 case class Path(node: IASTNode, direction: Direction, index: Int)
 

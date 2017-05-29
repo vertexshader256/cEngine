@@ -283,12 +283,12 @@ class GotoStatement extends StandardTest {
         int x = 0;
         printf("1\n");
         printf("2\n");
-        whoa:
+        testLabel:
         x++;
         printf("%d\n", x);
         printf("4\n");
         if (x < 4) {
-           goto whoa;
+           goto testLabel;
         }
       }
       """
@@ -303,11 +303,54 @@ class GotoStatement extends StandardTest {
         int x = 0;
         printf("1\n");
         printf("2\n");
-        goto whoa;
+        goto testLabel;
         printf("%d\n", x);
         printf("4\n");
-        whoa:
+        if (x == 5) {
+           printf("WHAT\n");
+        } else {
+           printf("OK\n");
+        }
+        testLabel:
         printf("5\n");
+      }
+      """
+
+    checkResults(code)
+  }
+
+  "A goto into a do while loop" should "print the correct results" in {
+    val code =
+      """
+      void main() {
+        int x = 0;
+        printf("1\n");
+        printf("2\n");
+        goto testLabel;
+        do {
+          x++;
+          testLabel:
+          printf("%d\n", x);
+        } while (x < 5);
+      }
+      """
+
+    checkResults(code)
+  }
+
+  "A goto into a while loop" should "print the correct results" in {
+    val code =
+      """
+      void main() {
+        int x = 0;
+        printf("1\n");
+        printf("2\n");
+        goto testLabel;
+        while (x < 5) {
+          x++;
+          testLabel:
+          printf("%d\n", x);
+        }
       }
       """
 

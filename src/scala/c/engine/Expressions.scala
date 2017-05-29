@@ -149,9 +149,9 @@ object Expressions {
         context.stack.push(RValue(TypeHelper.sizeof(theType), TypeHelper.pointerType))
         Seq()
       }
-    case call: IASTFunctionCallExpression =>
-      if (direction == Exiting) {
-
+    case call: IASTFunctionCallExpression => direction match {
+      case Entering => call.getArguments.reverse ++ Seq(call.getFunctionNameExpression)
+      case Exiting =>
         val pop = context.stack.pop
 
         val name = if (context.hasFunction(call.getFunctionNameExpression.getRawSignature)) {
@@ -168,17 +168,15 @@ object Expressions {
         val args = call.getArguments.map{x => context.stack.pop}
 
         context.callTheFunction(name, call, args)
-
-      } else {
-        call.getArguments.reverse ++ Seq(call.getFunctionNameExpression)
-      }
-    case bin: IASTBinaryExpression =>
-      if (direction == Exiting) {
+    }
+    case bin: IASTBinaryExpression => direction match {
+      case Entering => Seq(bin.getOperand1)
+      case Exiting =>
         if (context.context.visited.contains(bin.getOperand2)) {
           val result = if (Utils.isAssignment(bin.getOperator)) {
-              val op2 = context.stack.pop
-              val op1 = context.stack.pop
-              BinaryExpr.parseAssign(bin, bin.getOperator, op1, op2)
+            val op2 = context.stack.pop
+            val op1 = context.stack.pop
+            BinaryExpr.parseAssign(bin, bin.getOperator, op1, op2)
           } else {
             val op2 = context.stack.pop
             val op1 = context.stack.pop
@@ -191,14 +189,14 @@ object Expressions {
         } else {
           // short circuiting
           if (bin.getOperator == IASTBinaryExpression.op_logicalOr) {
-            
+
             context.stack.head match {
               case RValue(x: Boolean, _) if x => Seq()
               case _ => Seq(bin.getOperand2, bin)
             }
 
           } else if (bin.getOperator == IASTBinaryExpression.op_logicalAnd) {
-            
+
             context.stack.head match {
               case RValue(x: Boolean, _) if !x => Seq()
               case _ => Seq(bin.getOperand2, bin)
@@ -208,8 +206,8 @@ object Expressions {
             Seq(bin.getOperand2, bin)
           }
         }
-      } else {
-        Seq(bin.getOperand1)
-      }
+      case Gotoing =>
+        Seq()
+    }
   }
 }

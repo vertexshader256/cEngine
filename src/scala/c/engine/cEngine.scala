@@ -52,6 +52,10 @@ class State {
 
   // flags
   var isReturning = false
+  var isGotoing = false
+  var gotoName = ""
+
+  var nextGotoNode: Seq[IASTNode] = Seq()
 
   functionContexts.push(new ExecutionContext(List(), List(), null, 0, this))
 
