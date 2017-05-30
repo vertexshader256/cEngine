@@ -17,7 +17,7 @@ object Statement {
       while ((!reverse.isInstanceOf[IASTWhileStatement] &&
         !reverse.isInstanceOf[IASTDoStatement] &&
         !reverse.isInstanceOf[IASTForStatement] &&
-        !reverse.isInstanceOf[IASTSwitchStatement]) || !Utils.getAncestors(breakStatement).contains(reverse)) {
+        !reverse.isInstanceOf[IASTSwitchStatement])) {
         reverse = state.context.pathStack.pop
       }
       Seq()
