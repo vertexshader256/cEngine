@@ -116,13 +116,13 @@ object Expressions {
 
         Seq()
     }
-    case unary: IASTUnaryExpression =>
-      if (direction == Entering) {
-        Seq(unary.getOperand)
-      } else {
+    case unary: IASTUnaryExpression => direction match {
+      case Entering => Seq(unary.getOperand)
+      case Exiting =>
         UnaryExpression.execute(unary)
         Seq()
-      }
+      case Gotoing => Seq()
+    }
     case lit: IASTLiteralExpression =>
       if (direction == Exiting) {
         //println("PUSHING LIT: " + castLiteral(lit))
@@ -168,6 +168,7 @@ object Expressions {
         val args = call.getArguments.map{x => context.stack.pop}
 
         context.callTheFunction(name, call, args)
+      case Gotoing => Seq()
     }
     case bin: IASTBinaryExpression => direction match {
       case Entering => Seq(bin.getOperand1)

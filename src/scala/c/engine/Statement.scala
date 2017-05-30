@@ -66,24 +66,19 @@ object Statement {
           Seq(label.getNestedStatement)
         }
     }
-    case switch: IASTSwitchStatement =>
-      val cases = switch.getBody.getChildren.collect { case x: IASTCaseStatement => x; case y: IASTDefaultStatement => y }
-      if (direction == Entering) {
+    case switch: IASTSwitchStatement => direction match {
+      case Entering =>
+        val cases = switch.getBody.getChildren.collect { case x: IASTCaseStatement => x; case y: IASTDefaultStatement => y }
         Seq(switch.getControllerExpression) ++ cases // only process case and default statements
-      } else {
-        Seq()
-      }
-    case default: IASTDefaultStatement =>
-      if (direction == Exiting) {
-        processSwitch(default)
-      } else {
-        Seq()
-      }
-    case caseStatement: IASTCaseStatement =>
-      if (direction == Entering) {
-        Seq(caseStatement.getExpression)
-      } else {
-
+      case Exiting => Seq()
+    }
+    case default: IASTDefaultStatement => direction match {
+      case Entering => Seq()
+      case Exiting => processSwitch(default)
+    }
+    case caseStatement: IASTCaseStatement => direction match {
+      case Entering => Seq(caseStatement.getExpression)
+      case Exiting =>
         val caseExpr = state.stack.pop.asInstanceOf[RValue].value
         val switchExpr = state.stack.head
 
@@ -97,7 +92,7 @@ object Statement {
         } else {
           Seq()
         }
-      }
+    }
     case doWhileLoop: IASTDoStatement => direction match {
       case Entering => Seq(doWhileLoop.getBody, doWhileLoop.getCondition)
       case Exiting =>
@@ -186,15 +181,14 @@ object Statement {
         state.context.pathStack.pop
         Seq(forLoop.getBody)
     }
-    case ret: IASTReturnStatement =>
-      if (direction == Entering) {
+    case ret: IASTReturnStatement => direction match {
+      case Entering =>
         if (ret.getReturnValue != null) {
           Seq(ret.getReturnValue)
         } else {
           Seq()
         }
-      } else {
-        // resolve everything before returning
+      case Exiting =>
         if (ret.getReturnValue != null) {
           val returnVal = state.stack.pop
           state.stack.push(returnVal match {
@@ -205,23 +199,20 @@ object Statement {
         state.isReturning = true
 
         Seq()
-      }
-    case decl: IASTDeclarationStatement =>
-      if (direction == Entering) {
-        Seq(decl.getDeclaration)
-      } else {
-        Seq()
-      }
+    }
+    case decl: IASTDeclarationStatement => direction match {
+      case Entering => Seq(decl.getDeclaration)
+      case Exiting => Seq()
+    }
     case compound: IASTCompoundStatement => direction match {
       case Entering => compound.getStatements
       case Exiting => Seq()
       case Gotoing => compound.getStatements
     }
-    case exprStatement: IASTExpressionStatement =>
-      if (direction == Entering) {
-        Seq(exprStatement.getExpression)
-      } else {
-        Seq()
-      }
+    case exprStatement: IASTExpressionStatement => direction match {
+      case Entering => Seq(exprStatement.getExpression)
+      case Exiting => Seq()
+      case Gotoing => Seq(exprStatement.getExpression)
+    }
   }
 }
