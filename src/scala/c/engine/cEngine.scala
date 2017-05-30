@@ -57,7 +57,7 @@ class State {
 
   var nextGotoNode: Seq[IASTNode] = Seq()
 
-  functionContexts.push(new ExecutionContext(List(), List(), null, 0, this))
+  functionContexts.push(new ExecutionContext(List(), List(), null, this))
 
   def popFunctionContext = {
     stackInsertIndex = functionContexts.head.startingStackAddr
@@ -165,7 +165,7 @@ class State {
     functionList.find(_.name == name).map{ fcn =>
       if (!fcn.isNative) {
 
-        functionContexts.push(new ExecutionContext(List(), functionContexts.head.varMap, call.getExpressionType, stackInsertIndex, this))
+        functionContexts.push(new ExecutionContext(List(), functionContexts.head.varMap, call.getExpressionType, this))
 
         val resolvedArgs = args.map{x =>
           Utils.allocateString(x, false)(State.this)
@@ -194,7 +194,7 @@ class State {
   }
   
   def callFunction(function: Function, call: IASTFunctionCallExpression, args: Array[ValueType]): IASTNode = {
-    functionContexts.push(new ExecutionContext(function.staticVars, functionContexts.head.varMap, call.getExpressionType, stackInsertIndex, this))
+    functionContexts.push(new ExecutionContext(function.staticVars, functionContexts.head.varMap, call.getExpressionType, this))
     context.pathStack.push(call)
 
     args.foreach{ arg => context.stack.push(arg)}

@@ -5,12 +5,14 @@ import org.eclipse.cdt.core.dom.ast.{IASTLabelStatement, IASTNode, IArrayType, I
 
 import scala.collection.mutable.{ListBuffer, Stack}
 
-class ExecutionContext(staticVars: List[Variable], parentScopeVars: List[Variable], val returnType: IType, val startingStackAddr: Int, state: State) {
+class ExecutionContext(staticVars: List[Variable], parentScopeVars: List[Variable], val returnType: IType, state: State) {
   val visited = new ListBuffer[IASTNode]()
   var varMap: List[Variable] = (staticVars.toSet ++ parentScopeVars.toSet).toList
   val pathStack = new Stack[IASTNode]()
   val labels = new ListBuffer[(IASTLabelStatement, Stack[IASTNode], List[IASTNode])]()
   val stack = new Stack[ValueType]()
+
+  val startingStackAddr = state.stackInsertIndex
 
   def resolveId(id: String): Variable = varMap.find{_.name == id}.getOrElse(state.functionPointers(id))
 
