@@ -164,16 +164,17 @@ class SwitchStatement extends StandardTest {
          int a = 300;
          int b = 200;
          int i = 0;
-         char *fmt = "- #0-+";
+         char *fmt = "- #0-++++++++";
 
          for (i = 0; i < 5; i++) {
            repeat:
+             fmt++;
              switch (*fmt)
              {
                case '-': printf("1\n"); goto repeat;
-               case '+': printf("2\n"); goto repeat;
+               case '+': printf("2\n"); break;
                case ' ': printf("3\n"); goto repeat;
-               case '#': printf("4\n"); goto repeat;
+               case '#': printf("4\n"); continue;
                case '0': printf("5\n"); goto repeat;
              }
          }

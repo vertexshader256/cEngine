@@ -12,13 +12,16 @@ object Statement {
     case breakStatement: IASTNullStatement =>
       Seq()
     case breakStatement: IASTBreakStatement =>
-      val breakStatement = state.context.pathStack.pop.asInstanceOf[CASTBreakStatement]
-      var reverse: IASTNode = breakStatement
-      while ((!reverse.isInstanceOf[IASTWhileStatement] &&
+      var reverse = state.context.pathStack.pop
+      var shouldBreak = false
+      while ((!shouldBreak && !reverse.isInstanceOf[IASTWhileStatement] &&
         !reverse.isInstanceOf[IASTDoStatement] &&
-        !reverse.isInstanceOf[IASTForStatement] &&
-        !reverse.isInstanceOf[IASTSwitchStatement])) {
-        reverse = state.context.pathStack.pop
+        !reverse.isInstanceOf[IASTForStatement])) {
+        if (state.context.pathStack.head.isInstanceOf[IASTSwitchStatement]) {
+          shouldBreak = true
+        } else {
+          reverse = state.context.pathStack.pop
+        }
       }
       Seq()
     case continueStatement: IASTContinueStatement =>
