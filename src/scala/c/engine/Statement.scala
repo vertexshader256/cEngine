@@ -11,34 +11,38 @@ object Statement {
   def parse(statement: IASTStatement, direction: Direction)(implicit state: State): Seq[IASTNode] = statement match {
     case breakStatement: IASTNullStatement =>
       Seq()
-    case breakStatement: IASTBreakStatement =>
-      var reverse = state.context.pathStack.pop
-      var shouldBreak = false
-      while ((!shouldBreak && !reverse.isInstanceOf[IASTWhileStatement] &&
-        !reverse.isInstanceOf[IASTDoStatement] &&
-        !reverse.isInstanceOf[IASTForStatement])) {
-        if (state.context.pathStack.head.isInstanceOf[IASTSwitchStatement]) {
-          shouldBreak = true
-        } else {
-          reverse = state.context.pathStack.pop
+    case breakStatement: IASTBreakStatement => direction match {
+      case Entering =>
+        var reverse = state.context.pathStack.pop
+        var shouldBreak = false
+        while ((!shouldBreak && !reverse.isInstanceOf[IASTWhileStatement] &&
+          !reverse.isInstanceOf[IASTDoStatement] &&
+          !reverse.isInstanceOf[IASTForStatement])) {
+          if (state.context.pathStack.head.isInstanceOf[IASTSwitchStatement]) {
+            shouldBreak = true
+          } else {
+            reverse = state.context.pathStack.pop
+          }
         }
-      }
-      Seq()
-    case continueStatement: IASTContinueStatement =>
-      val continueStatement = state.context.pathStack.pop.asInstanceOf[CASTContinueStatement]
-      var last: IASTNode = continueStatement
+        Seq()
+    }
+    case continueStatement: IASTContinueStatement => direction match {
+      case Entering =>
+        val continueStatement = state.context.pathStack.pop.asInstanceOf[CASTContinueStatement]
+        var last: IASTNode = continueStatement
 
-      // find the first for loop that is a direct ancestor
-      while (!last.isInstanceOf[IASTForStatement] || !Utils.getAncestors(continueStatement).contains(last)) {
-        last = state.context.pathStack.pop
-      }
+        // find the first for loop that is a direct ancestor
+        while (!last.isInstanceOf[IASTForStatement] || !Utils.getAncestors(continueStatement).contains(last)) {
+          last = state.context.pathStack.pop
+        }
 
-      val forLoop = last.asInstanceOf[IASTForStatement]
+        val forLoop = last.asInstanceOf[IASTForStatement]
 
-      state.context.pathStack.push(forLoop)
-      state.context.pathStack.push(forLoop.getConditionExpression)
-      state.context.pathStack.push(forLoop.getIterationExpression)
-      Seq()
+        state.context.pathStack.push(forLoop)
+        state.context.pathStack.push(forLoop.getConditionExpression)
+        state.context.pathStack.push(forLoop.getIterationExpression)
+        Seq()
+    }
     case goto: IASTGotoStatement =>
       if (state.context.labels.exists{label => label._1.getName.getRawSignature == goto.getName.getRawSignature}) {
         state.context.pathStack.clear()
