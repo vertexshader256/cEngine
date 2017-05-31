@@ -225,30 +225,26 @@ object Executor {
       Executor.step(state.current, state.direction)(state)
     }
 
+    if (state.direction == Entering) {
+      state.context.visited += state.current
+    }
+
+    if (state.direction == Exiting) {
+      state.context.pathStack.pop
+    }
+
+    state.context.pathStack.pushAll(paths.reverse)
+
     if (state.isReturning) {
       var last: IASTNode = null
       while (state.context.pathStack.size > 1 && !last.isInstanceOf[IASTFunctionDefinition]) {
         last = state.context.pathStack.pop
       }
 
-      state.current = state.context.pathStack.head
       state.isReturning = false
-    } else {
-
-      if (state.direction == Exiting) {
-        state.context.pathStack.pop
-      } else {
-        state.context.visited += state.current
-      }
-  
-      paths.reverse.foreach { path => state.context.pathStack.push(path) }
-  
-      if (!state.context.pathStack.isEmpty) {
-        state.current = state.context.pathStack.head
-      } else {
-        state.current = null
-      }
     }
+
+    state.current = state.context.pathStack.headOption.getOrElse(null)
   }
 
   def run(state: State) = {
