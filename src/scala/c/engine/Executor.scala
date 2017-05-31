@@ -218,15 +218,15 @@ object Executor {
     state.direction = if (state.context.visited.contains(state.current)) Exiting else Entering
 
     //println(state.current.getClass.getSimpleName + ":" + state.direction)
-    
+
+    if (state.direction == Entering) {
+      state.context.visited += state.current
+    }
+
     val paths: Seq[IASTNode] = if (state.isGotoing) {
       Executor.step(state.current, Gotoing)(state)
     } else {
       Executor.step(state.current, state.direction)(state)
-    }
-
-    if (state.direction == Entering) {
-      state.context.visited += state.current
     }
 
     if (state.direction == Exiting) {
