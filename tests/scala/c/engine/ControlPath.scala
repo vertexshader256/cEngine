@@ -136,6 +136,51 @@ class SwitchStatement extends StandardTest {
 
     checkResults(code)
   }
+
+  "A switch with a continue statement" should "print the correct results" in {
+    val code = """
+      void main() {
+         int a = 300;
+         int b = 200;
+         int i = 0;
+
+         for (i = 0; i < 5; i++) {
+           switch(a) {
+              case 100:
+                 a = 300;
+                 continue;
+              case 300:
+                printf("3\n");
+           }
+         }
+      }"""
+
+    checkResults(code)
+  }
+
+  "A switch with a goto statement" should "print the correct results" in {
+    val code = """
+      void main() {
+         int a = 300;
+         int b = 200;
+         int i = 0;
+         char *fmt = "- #0-+";
+
+         for (i = 0; i < 5; i++) {
+           repeat:
+             switch (*fmt)
+             {
+               case '-': printf("1\n"); goto repeat;
+               case '+': printf("2\n"); goto repeat;
+               case ' ': printf("3\n"); goto repeat;
+               case '#': printf("4\n"); goto repeat;
+               case '0': printf("5\n"); goto repeat;
+             }
+         }
+      }"""
+
+    checkResults(code)
+  }
 }
 
 class DoWhileStatement extends StandardTest {
