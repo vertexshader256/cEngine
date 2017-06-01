@@ -19,7 +19,7 @@ object Gcc {
       val main = state.getFunction("main")
       state.functionList -= main
       state.stackInsertIndex -= 4
-      state.current = main.node
+      state.context.pathStack.push(main.node)
       Executor.run(state)
   }
 

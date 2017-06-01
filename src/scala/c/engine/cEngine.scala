@@ -31,7 +31,6 @@ object Interpreter {
 class State {
 
   var tUnit: IASTTranslationUnit = null
-  var current: IASTNode = null
   var direction: Direction = Entering
 
   // turing tape 

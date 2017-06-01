@@ -201,7 +201,7 @@ object Executor {
 
   def preload(codes: Seq[String], state: State) = {
     state.tUnit = Utils.getTranslationUnit(codes)
-    state.current = state.tUnit
+    state.context.pathStack.push(state.tUnit)
 
     val fcns = state.tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
     fcns.foreach{fcnDef => state.addFunctionDef(fcnDef)}
@@ -213,49 +213,51 @@ object Executor {
 
     state.context.pathStack.clear
     state.context.pathStack.push(state.getFunction("main").node)
-    state.current = state.context.pathStack.head
   }
 
-  def tick(state: State): Unit = {
-    state.direction = if (state.context.visited.contains(state.current)) Exiting else Entering
+  def tick(state: State): Boolean = {
+    val current = state.context.pathStack.headOption.getOrElse(null)
+    if (current != null) {
+      state.direction = if (state.context.visited.contains(current)) Exiting else Entering
 
-    //println(state.current.getClass.getSimpleName + ":" + state.direction)
+      //println(state.current.getClass.getSimpleName + ":" + state.direction)
 
-    if (state.direction == Entering) {
-      state.context.visited += state.current
-    }
-
-    val paths: Seq[IASTNode] = if (state.isGotoing) {
-      Executor.step(state.current, Gotoing)(state)
-    } else {
-      Executor.step(state.current, state.direction)(state)
-    }
-
-    if (state.direction == Exiting) {
-      state.context.pathStack.pop
-    }
-
-    state.context.pathStack.pushAll(paths.reverse)
-
-    if (state.isReturning) {
-      var last: IASTNode = null
-      while (state.context.pathStack.size > 1 && !last.isInstanceOf[IASTFunctionDefinition]) {
-        last = state.context.pathStack.pop
+      if (state.direction == Entering) {
+        state.context.visited += current
       }
 
-      state.isReturning = false
+      val paths: Seq[IASTNode] = if (state.isGotoing) {
+        Executor.step(current, Gotoing)(state)
+      } else {
+        Executor.step(current, state.direction)(state)
+      }
+
+      if (state.direction == Exiting) {
+        state.context.pathStack.pop
+      }
+
+      state.context.pathStack.pushAll(paths.reverse)
+
+      if (state.isReturning) {
+        var last: IASTNode = null
+        while (state.context.pathStack.size > 1 && !last.isInstanceOf[IASTFunctionDefinition]) {
+          last = state.context.pathStack.pop
+        }
+
+        state.isReturning = false
+      }
     }
 
-    state.current = state.context.pathStack.headOption.getOrElse(null)
+    current != null
   }
 
   def run(state: State) = {
-    while (state.current != null) {
+    var keepRunning = true
+    while (keepRunning) {
       try {
-        tick(state)
+        keepRunning = tick(state)
       } catch {
         case e =>
-          println(state.current.getRawSignature)
           throw e
       }
     }
