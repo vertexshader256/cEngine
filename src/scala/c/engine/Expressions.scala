@@ -174,14 +174,13 @@ object Expressions {
       case Entering => Seq(bin.getOperand1)
       case Exiting =>
         if (context.context.visited.contains(bin.getOperand2)) {
+
+          val op2 = context.stack.pop
+          val op1 = context.stack.pop
+
           val result = if (Utils.isAssignment(bin.getOperator)) {
-            val op2 = context.stack.pop
-            val op1 = context.stack.pop
             BinaryExpr.parseAssign(bin, bin.getOperator, op1, op2)
           } else {
-            val op2 = context.stack.pop
-            val op1 = context.stack.pop
-
             BinaryExpr.evaluate(bin, op1, op2, bin.getOperator)
           }
 
@@ -189,22 +188,11 @@ object Expressions {
           Seq()
         } else {
           // short circuiting
-          if (bin.getOperator == IASTBinaryExpression.op_logicalOr) {
 
-            context.stack.head match {
-              case RValue(x: Boolean, _) if x => Seq()
-              case _ => Seq(bin.getOperand2, bin)
-            }
-
-          } else if (bin.getOperator == IASTBinaryExpression.op_logicalAnd) {
-
-            context.stack.head match {
-              case RValue(x: Boolean, _) if !x => Seq()
-              case _ => Seq(bin.getOperand2, bin)
-            }
-
-          } else {
-            Seq(bin.getOperand2, bin)
+          (bin.getOperator, context.stack.head) match {
+            case (IASTBinaryExpression.op_logicalOr, RValue(x: Boolean, _)) if x => Seq()
+            case (IASTBinaryExpression.op_logicalAnd, RValue(x: Boolean, _)) if !x => Seq()
+            case _ => Seq(bin.getOperand2, bin)
           }
         }
       case Gotoing =>
