@@ -77,10 +77,8 @@ object Statement {
       case Entering =>
         val cases = switch.getBody.getChildren.collect { case x: IASTCaseStatement => x; case y: IASTDefaultStatement => y }
         Seq(switch.getControllerExpression) ++ cases // only process case and default statements
-      case Exiting => Seq()
     }
     case default: IASTDefaultStatement => {
-      case Entering => Seq()
       case Exiting => processSwitch(default)
     }
     case caseStatement: IASTCaseStatement => {
@@ -209,16 +207,13 @@ object Statement {
     }
     case decl: IASTDeclarationStatement => {
       case Entering => Seq(decl.getDeclaration)
-      case Exiting => Seq()
     }
     case compound: IASTCompoundStatement => {
       case Entering => compound.getStatements
-      case Exiting => Seq()
       case Gotoing => compound.getStatements
     }
     case exprStatement: IASTExpressionStatement => {
       case Entering => Seq(exprStatement.getExpression)
-      case Exiting => Seq()
       case Gotoing => Seq(exprStatement.getExpression)
     }
   }
