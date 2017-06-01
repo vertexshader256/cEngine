@@ -25,11 +25,13 @@ object Executor {
     codeToRun
   }
 
+  val NoMatch: PartialFunction[Direction, Seq[IASTNode]] = { case x => Seq()}
+
   def step(current: IASTNode, direction: Direction)(implicit state: State): Seq[IASTNode] = {
 
     current match {
       case statement: IASTStatement =>
-        Statement.parse(statement, direction)
+        (Statement.parse(statement)(state) orElse NoMatch)(direction)
       case expression: IASTExpression =>
         Expressions.parse(expression, direction)
       case array: IASTArrayModifier =>
