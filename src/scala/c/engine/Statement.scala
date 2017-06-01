@@ -4,6 +4,7 @@ import Executor.processSwitch
 import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.internal.core.dom.parser.c.{CASTBreakStatement, CASTContinueStatement}
 
+import scala.c.engine.NodePath
 import scala.collection.mutable.Stack
 
 object Statement {
@@ -15,10 +16,10 @@ object Statement {
       case Entering =>
         var reverse = state.context.pathStack.pop
         var shouldBreak = false
-        while ((!shouldBreak && !reverse.isInstanceOf[IASTWhileStatement] &&
-          !reverse.isInstanceOf[IASTDoStatement] &&
-          !reverse.isInstanceOf[IASTForStatement])) {
-          if (state.context.pathStack.head.isInstanceOf[IASTSwitchStatement]) {
+        while ((!shouldBreak && !reverse.node.isInstanceOf[IASTWhileStatement] &&
+          !reverse.node.isInstanceOf[IASTDoStatement] &&
+          !reverse.node.isInstanceOf[IASTForStatement])) {
+          if (state.context.pathStack.head.node.isInstanceOf[IASTSwitchStatement]) {
             shouldBreak = true
           } else {
             reverse = state.context.pathStack.pop
@@ -28,26 +29,26 @@ object Statement {
     }
     case continueStatement: IASTContinueStatement => {
       case Entering =>
-        val continueStatement = state.context.pathStack.pop.asInstanceOf[CASTContinueStatement]
+        val continueStatement = state.context.pathStack.pop.node
         var last: IASTNode = continueStatement
 
         // find the first for loop that is a direct ancestor
         while (!last.isInstanceOf[IASTForStatement] || !Utils.getAncestors(continueStatement).contains(last)) {
-          last = state.context.pathStack.pop
+          last = state.context.pathStack.pop.node
         }
 
         val forLoop = last.asInstanceOf[IASTForStatement]
 
-        state.context.pathStack.push(forLoop)
-        state.context.pathStack.push(forLoop.getConditionExpression)
-        state.context.pathStack.push(forLoop.getIterationExpression)
+        state.context.pathStack.push(NodePath(forLoop, Entering))
+        state.context.pathStack.push(NodePath(forLoop.getConditionExpression, Entering))
+        state.context.pathStack.push(NodePath(forLoop.getIterationExpression, Entering))
         Seq()
     }
     case goto: IASTGotoStatement => {
       case Entering =>
         if (state.context.labels.exists { label => label._1.getName.getRawSignature == goto.getName.getRawSignature }) {
           state.context.pathStack.clear()
-          state.context.pathStack.pushAll(state.context.labels.head._2.reverse :+ state.context.labels.head._1)
+          state.context.pathStack.pushAll(state.context.labels.head._2.reverse :+ NodePath(state.context.labels.head._1, Entering))
 
           state.context.visited.clear()
           state.context.visited ++= state.context.labels.head._3
@@ -60,7 +61,7 @@ object Statement {
     }
     case label: IASTLabelStatement => {
       case Exiting =>
-        val backupPath = Stack[IASTNode]() ++ state.context.pathStack
+        val backupPath = Stack[NodePath]() ++ state.context.pathStack
         val ok = (label, backupPath, state.context.visited.toList)
         state.context.labels += ok
         Seq(label.getNestedStatement)

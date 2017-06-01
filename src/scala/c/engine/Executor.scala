@@ -5,6 +5,8 @@ import org.eclipse.cdt.core.dom.ast._
 import scala.collection.mutable.{ListBuffer, Stack}
 import org.eclipse.cdt.internal.core.dom.parser.c._
 
+import scala.c.engine.NodePath
+
 object Executor {
 
   // 'node' must be a IASTCaseStatement or a IASTDefaultStatement
@@ -27,9 +29,9 @@ object Executor {
 
   val NoMatch: PartialFunction[Direction, Seq[IASTNode]] = { case x => Seq()}
 
-  def step(current: IASTNode, direction: Direction)(implicit state: State): Seq[IASTNode] = {
+  def step(current: NodePath, direction: Direction)(implicit state: State): Seq[IASTNode] = {
 
-    current match {
+    current.node match {
       case statement: IASTStatement =>
         (Statement.parse(statement)(state) orElse NoMatch)(direction)
       case expression: IASTExpression =>
@@ -201,7 +203,7 @@ object Executor {
 
   def preload(codes: Seq[String], state: State) = {
     state.tUnit = Utils.getTranslationUnit(codes)
-    state.context.pathStack.push(state.tUnit)
+    state.context.pathStack.push(NodePath(state.tUnit, Entering))
 
     val fcns = state.tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
     fcns.foreach{fcnDef => state.addFunctionDef(fcnDef)}
@@ -212,24 +214,24 @@ object Executor {
     run(state)
 
     state.context.pathStack.clear
-    state.context.pathStack.push(state.getFunction("main").node)
+    state.context.pathStack.push(NodePath(state.getFunction("main").node, Entering))
   }
 
   def tick(state: State): Boolean = {
     val current = state.context.pathStack.headOption.getOrElse(null)
     if (current != null) {
-      state.direction = if (state.context.visited.contains(current)) Exiting else Entering
+      state.direction = if (state.context.visited.contains(current.node)) Exiting else Entering
 
       //println(state.current.getClass.getSimpleName + ":" + state.direction)
 
       if (state.direction == Entering) {
-        state.context.visited += current
+        state.context.visited += current.node
       }
 
-      val paths: Seq[IASTNode] = if (state.isGotoing) {
-        Executor.step(current, Gotoing)(state)
+      val paths: Seq[NodePath] = if (state.isGotoing) {
+        Executor.step(current, Gotoing)(state).map{x => NodePath(x, Entering)}
       } else {
-        Executor.step(current, state.direction)(state)
+        Executor.step(current, state.direction)(state).map{x => NodePath(x, Entering)}
       }
 
       if (state.direction == Exiting) {
@@ -239,8 +241,7 @@ object Executor {
       state.context.pathStack.pushAll(paths.reverse)
 
       if (state.isReturning) {
-        var last: IASTNode = null
-        while (state.context.pathStack.size > 1 && !last.isInstanceOf[IASTFunctionDefinition]) {
+        var last: NodePath = null
           last = state.context.pathStack.pop
         }
 

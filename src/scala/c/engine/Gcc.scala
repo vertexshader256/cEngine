@@ -3,8 +3,11 @@ package c.engine
 import scala.sys.process.ProcessIO
 import scala.sys.process._
 import java.io.File
+
 import scala.collection.mutable.ListBuffer
 import java.io.{InputStream, OutputStream, PrintWriter}
+
+import scala.c.engine.NodePath
 
 object Gcc {
 
@@ -19,7 +22,7 @@ object Gcc {
       val main = state.getFunction("main")
       state.functionList -= main
       state.stackInsertIndex -= 4
-      state.context.pathStack.push(main.node)
+      state.context.pathStack.push(NodePath(main.node, Entering))
       Executor.run(state)
   }
 

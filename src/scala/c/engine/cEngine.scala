@@ -9,7 +9,7 @@ import java.nio.ByteOrder
 
 import org.eclipse.cdt.internal.core.dom.parser.c._
 
-import scala.c.engine.ExecutionContext
+import scala.c.engine.{ExecutionContext, NodePath}
 
 object Interpreter {
   implicit val state = new State
@@ -194,7 +194,7 @@ class State {
   
   def callFunction(function: Function, call: IASTFunctionCallExpression, args: Array[ValueType]): IASTNode = {
     functionContexts.push(new ExecutionContext(function.staticVars, functionContexts.head.varMap, call.getExpressionType, this))
-    context.pathStack.push(call)
+    context.pathStack.push(NodePath(call, Entering))
 
     args.foreach{ arg => context.stack.push(arg)}
     context.stack.push(RValue(args.size, null))

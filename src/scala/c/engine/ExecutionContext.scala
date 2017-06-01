@@ -1,15 +1,17 @@
 package scala.c.engine
 
-import c.engine.{ArrayVariable, State, ValueType, Variable}
+import c.engine._
 import org.eclipse.cdt.core.dom.ast.{IASTLabelStatement, IASTNode, IArrayType, IType}
 
 import scala.collection.mutable.{ListBuffer, Stack}
 
+case class NodePath(node: IASTNode, direction: Direction)
+
 class ExecutionContext(staticVars: List[Variable], parentScopeVars: List[Variable], val returnType: IType, state: State) {
   val visited = new ListBuffer[IASTNode]()
   var varMap: List[Variable] = (staticVars.toSet ++ parentScopeVars.toSet).toList
-  val pathStack = new Stack[IASTNode]()
-  val labels = new ListBuffer[(IASTLabelStatement, Stack[IASTNode], List[IASTNode])]()
+  val pathStack = new Stack[NodePath]()
+  val labels = new ListBuffer[(IASTLabelStatement, Stack[NodePath], List[IASTNode])]()
   val stack = new Stack[ValueType]()
 
   val startingStackAddr = state.stackInsertIndex

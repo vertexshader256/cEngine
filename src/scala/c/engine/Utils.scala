@@ -21,8 +21,6 @@ object Entering extends Direction
 object Exiting extends Direction
 object Gotoing extends Direction
 
-case class Path(node: IASTNode, direction: Direction, index: Int)
-
 object Utils {
   
   def stripQuotes(str: String): String = {
