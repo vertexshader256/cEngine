@@ -220,21 +220,21 @@ object Executor {
   def tick(state: State): Boolean = {
     val current = state.context.pathStack.headOption.getOrElse(null)
     if (current != null) {
-      state.direction = if (state.context.visited.contains(current.node)) Exiting else Entering
+      val direction = if (state.context.visited.contains(current.node)) Exiting else Entering
 
       //println(state.current.getClass.getSimpleName + ":" + state.direction)
 
-      if (state.direction == Entering) {
+      if (direction == Entering) {
         state.context.visited += current.node
       }
 
       val paths: Seq[NodePath] = if (state.isGotoing) {
         Executor.step(current, Gotoing)(state).map{x => NodePath(x, Entering)}
       } else {
-        Executor.step(current, state.direction)(state).map{x => NodePath(x, Entering)}
+        Executor.step(current, direction)(state).map{x => NodePath(x, Entering)}
       }
 
-      if (state.direction == Exiting) {
+      if (direction == Exiting) {
         state.context.pathStack.pop
       }
 

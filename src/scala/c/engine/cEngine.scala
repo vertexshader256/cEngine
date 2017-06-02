@@ -31,7 +31,6 @@ object Interpreter {
 class State {
 
   var tUnit: IASTTranslationUnit = null
-  var direction: Direction = Entering
 
   // turing tape 
   private val tape = ByteBuffer.allocate(100000);
