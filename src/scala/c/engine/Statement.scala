@@ -204,7 +204,7 @@ object Statement {
           state.stack.push(returnVal match {
             case info @ LValue(addr, theType) =>
               val functionScope = state.getFunctionScope
-              TypeHelper.cast(functionScope.returnType, info.value.value)
+              TypeHelper.cast(functionScope.function.getReturnType, info.value.value)
             case value @ RValue(_, _) => value
           })
         }

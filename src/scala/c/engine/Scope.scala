@@ -1,18 +1,18 @@
 package scala.c.engine
 
 import c.engine._
-import org.eclipse.cdt.core.dom.ast.{IASTLabelStatement, IASTNode, IArrayType, IType}
+import org.eclipse.cdt.core.dom.ast._
 
 import scala.collection.mutable.{ListBuffer, Stack}
 
 case class NodePath(node: IASTNode, direction: Direction)
 
-class FunctionScope(theStaticVars: List[Variable], theParentScopeVars: List[Variable], val returnType: IType, theState: State)
-  extends ExecutionContext(theStaticVars, theParentScopeVars, theState) {
+class FunctionScope(theStaticVars: List[Variable], theParentScopeVars: List[Variable], val function: IFunctionType, theState: State)
+  extends Scope(theStaticVars, theParentScopeVars, theState) {
   val labels = new ListBuffer[(IASTLabelStatement, Stack[NodePath], List[IASTNode])]()
 }
 
-abstract class ExecutionContext(staticVars: List[Variable], parentScopeVars: List[Variable], state: State) {
+abstract class Scope(staticVars: List[Variable], parentScopeVars: List[Variable], state: State) {
   val visited = new ListBuffer[IASTNode]()
   var varMap: List[Variable] = (staticVars.toSet ++ parentScopeVars.toSet).toList
   val pathStack = new Stack[NodePath]()

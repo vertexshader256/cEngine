@@ -9,7 +9,7 @@ import java.nio.ByteOrder
 
 import org.eclipse.cdt.internal.core.dom.parser.c._
 
-import scala.c.engine.{ExecutionContext, FunctionScope, NodePath}
+import scala.c.engine.{Scope, FunctionScope, NodePath}
 
 object Interpreter {
   implicit val state = new State
@@ -40,7 +40,7 @@ class State {
   var heapInsertIndex = 50000
 
   var standardOutBuffer = new ListBuffer[Char]
-  val functionContexts = new Stack[ExecutionContext]()
+  val functionContexts = new Stack[Scope]()
   def context = functionContexts.head
   val functionList = new ListBuffer[Function]()
   val functionPointers = scala.collection.mutable.Map[String, Variable]()
@@ -167,7 +167,7 @@ class State {
     functionList.find(_.name == name).map{ fcn =>
       if (!fcn.isNative) {
 
-        functionContexts.push(new FunctionScope(List(), functionContexts.head.varMap, call.getExpressionType, this))
+        functionContexts.push(new FunctionScope(List(), functionContexts.head.varMap, new CFunctionType(call.getExpressionType, null), this))
 
         val resolvedArgs = args.map{x =>
           Utils.allocateString(x, false)(State.this)
@@ -196,7 +196,7 @@ class State {
   }
   
   def callFunction(function: Function, call: IASTFunctionCallExpression, args: Array[ValueType]): IASTNode = {
-    functionContexts.push(new FunctionScope(function.staticVars, functionContexts.head.varMap, call.getExpressionType, this))
+    functionContexts.push(new FunctionScope(function.staticVars, functionContexts.head.varMap, new CFunctionType(call.getExpressionType, null), this))
     context.pathStack.push(NodePath(call, Entering))
 
     args.foreach{ arg => context.stack.push(arg)}
