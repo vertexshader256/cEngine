@@ -248,9 +248,10 @@ object Executor {
 
         state.isReturning = false
       }
+      true
+    } else {
+      false
     }
-
-    current != null
   }
 
   def run(state: State) = {

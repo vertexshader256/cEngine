@@ -7,13 +7,17 @@ import scala.collection.mutable.{ListBuffer, Stack}
 
 case class NodePath(node: IASTNode, direction: Direction)
 
-class ExecutionContext(staticVars: List[Variable], parentScopeVars: List[Variable], val returnType: IType, state: State) {
+class FunctionScope(theStaticVars: List[Variable], theParentScopeVars: List[Variable], val returnType: IType, theState: State)
+  extends ExecutionContext(theStaticVars, theParentScopeVars, theState) {
+  val labels = new ListBuffer[(IASTLabelStatement, Stack[NodePath], List[IASTNode])]()
+}
+
+abstract class ExecutionContext(staticVars: List[Variable], parentScopeVars: List[Variable], state: State) {
   val visited = new ListBuffer[IASTNode]()
   var varMap: List[Variable] = (staticVars.toSet ++ parentScopeVars.toSet).toList
   val pathStack = new Stack[NodePath]()
-  val labels = new ListBuffer[(IASTLabelStatement, Stack[NodePath], List[IASTNode])]()
-  val stack = new Stack[ValueType]()
 
+  val stack = new Stack[ValueType]()
   val startingStackAddr = state.stackInsertIndex
 
   def resolveId(id: String): Variable = varMap.find{_.name == id}.getOrElse(state.functionPointers(id))

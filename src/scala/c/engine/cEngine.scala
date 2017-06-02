@@ -9,7 +9,7 @@ import java.nio.ByteOrder
 
 import org.eclipse.cdt.internal.core.dom.parser.c._
 
-import scala.c.engine.{ExecutionContext, NodePath}
+import scala.c.engine.{ExecutionContext, FunctionScope, NodePath}
 
 object Interpreter {
   implicit val state = new State
@@ -55,7 +55,11 @@ class State {
 
   var nextGotoNode: Seq[IASTNode] = Seq()
 
-  functionContexts.push(new ExecutionContext(List(), List(), null, this))
+  functionContexts.push(new FunctionScope(List(), List(), null, this))
+
+  def getFunctionScope = {
+    functionContexts.collect{case fcnScope: FunctionScope => fcnScope}.head
+  }
 
   def popFunctionContext = {
     stackInsertIndex = functionContexts.head.startingStackAddr
@@ -163,7 +167,7 @@ class State {
     functionList.find(_.name == name).map{ fcn =>
       if (!fcn.isNative) {
 
-        functionContexts.push(new ExecutionContext(List(), functionContexts.head.varMap, call.getExpressionType, this))
+        functionContexts.push(new FunctionScope(List(), functionContexts.head.varMap, call.getExpressionType, this))
 
         val resolvedArgs = args.map{x =>
           Utils.allocateString(x, false)(State.this)
@@ -192,7 +196,7 @@ class State {
   }
   
   def callFunction(function: Function, call: IASTFunctionCallExpression, args: Array[ValueType]): IASTNode = {
-    functionContexts.push(new ExecutionContext(function.staticVars, functionContexts.head.varMap, call.getExpressionType, this))
+    functionContexts.push(new FunctionScope(function.staticVars, functionContexts.head.varMap, call.getExpressionType, this))
     context.pathStack.push(NodePath(call, Entering))
 
     args.foreach{ arg => context.stack.push(arg)}

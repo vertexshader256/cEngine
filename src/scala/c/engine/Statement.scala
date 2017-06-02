@@ -4,7 +4,7 @@ import Executor.processSwitch
 import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.internal.core.dom.parser.c.{CASTBreakStatement, CASTContinueStatement}
 
-import scala.c.engine.NodePath
+import scala.c.engine.{FunctionScope, NodePath}
 import scala.collection.mutable.Stack
 
 object Statement {
@@ -46,12 +46,15 @@ object Statement {
     }
     case goto: IASTGotoStatement => {
       case Entering =>
-        if (state.context.labels.exists { label => label._1.getName.getRawSignature == goto.getName.getRawSignature }) {
+
+        val functionScope = state.getFunctionScope
+
+        if (functionScope.labels.exists { label => label._1.getName.getRawSignature == goto.getName.getRawSignature }) {
           state.context.pathStack.clear()
-          state.context.pathStack.pushAll(state.context.labels.head._2.reverse :+ NodePath(state.context.labels.head._1, Entering))
+          state.context.pathStack.pushAll(functionScope.labels.head._2.reverse :+ NodePath(functionScope.labels.head._1, Entering))
 
           state.context.visited.clear()
-          state.context.visited ++= state.context.labels.head._3
+          state.context.visited ++= functionScope.labels.head._3
           Seq()
         } else {
           state.isGotoing = true
@@ -61,9 +64,10 @@ object Statement {
     }
     case label: IASTLabelStatement => {
       case Exiting =>
+        val functionScope = state.getFunctionScope
         val backupPath = Stack[NodePath]() ++ state.context.pathStack
         val ok = (label, backupPath, state.context.visited.toList)
-        state.context.labels += ok
+        functionScope.labels += ok
         Seq(label.getNestedStatement)
       case Gotoing =>
         if (label.getName.getRawSignature == state.gotoName) {
@@ -198,7 +202,9 @@ object Statement {
         if (ret.getReturnValue != null) {
           val returnVal = state.stack.pop
           state.stack.push(returnVal match {
-            case info @ LValue(addr, theType) => TypeHelper.cast(state.context.returnType, info.value.value)
+            case info @ LValue(addr, theType) =>
+              val functionScope = state.getFunctionScope
+              TypeHelper.cast(functionScope.returnType, info.value.value)
             case value @ RValue(_, _) => value
           })
         }
