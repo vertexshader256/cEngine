@@ -224,14 +224,11 @@ object Executor {
         Exiting
       } else {
         current.direction = Entering
+        state.context.visited += current.node
         Entering
       }
 
-      //println(state.current.getClass.getSimpleName + ":" + state.direction)
-
-      if (current.direction == Entering) {
-        state.context.visited += current.node
-      }
+      //println(current.node.getClass.getSimpleName + ":" + direction)
 
       val paths: Seq[NodePath] = if (state.isGotoing && direction != Initial) {
         (Executor.step(current, Gotoing)(state) orElse NoMatch)(Gotoing).map{x => NodePath(x, Initial)}
