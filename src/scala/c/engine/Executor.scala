@@ -229,18 +229,24 @@ object Executor {
       //println(current.node.getClass.getSimpleName + ":" + direction)
 
       val paths: Seq[NodePath] = if (state.isGotoing && current.direction != Initial) {
-        (Executor.step(current, Gotoing)(state) orElse NoMatch)(Gotoing).map{x => NodePath(x, Initial)}
+        val result = (Executor.step(current, Gotoing)(state) orElse NoMatch)(Gotoing).map{x => NodePath(x, Initial)}
+        state.context.pathStack.pop
+        result
       } else {
-        (Executor.step(current, current.direction)(state) orElse NoMatch)(current.direction).map{x => NodePath(x, Initial)}
+        val result = (Executor.step(current, current.direction)(state) orElse NoMatch)(current.direction).map{x => NodePath(x, Initial)}
+
+        if (current.direction == Initial) {
+          current.direction = Entering
+        } else if (current.direction == Entering) {
+          current.direction = Exiting
+        } else if (current.direction == Exiting) {
+          state.context.pathStack.pop
+        }
+
+        result
       }
 
-      if (current.direction == Initial) {
-        current.direction = Entering
-      } else if (current.direction == Entering) {
-        current.direction = Exiting
-      } else if (current.direction == Exiting) {
-        state.context.pathStack.pop
-      }
+
 
       state.context.pathStack.pushAll(paths.reverse)
 
