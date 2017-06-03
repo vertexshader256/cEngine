@@ -220,8 +220,10 @@ object Executor {
       val direction = if (current.direction == Initial) {
         Initial
       } else if (state.context.visited.contains(current.node)) {
+        current.direction = Exiting
         Exiting
       } else {
+        current.direction = Entering
         Entering
       }
 
@@ -237,10 +239,10 @@ object Executor {
         (Executor.step(current, direction)(state) orElse NoMatch)(direction).map{x => NodePath(x, Initial)}
       }
 
-      if (direction == Initial) {
+      if (current.direction == Initial) {
         current.direction = Entering
       }
-      if (direction == Exiting) {
+      if (current.direction == Exiting) {
         state.context.pathStack.pop
       }
 
