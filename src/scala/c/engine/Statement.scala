@@ -9,7 +9,7 @@ import scala.collection.mutable.Stack
 
 object Statement {
 
-  def parse(statement: IASTStatement)(implicit state: State): PartialFunction[Direction, Seq[IASTNode]] = statement match {
+  def parse(statement: NodePath)(implicit state: State): PartialFunction[Direction, Seq[IASTNode]] = statement.node match {
     case breakStatement: IASTNullStatement =>
       PartialFunction.empty
     case breakStatement: IASTBreakStatement => {
@@ -30,16 +30,20 @@ object Statement {
     case continueStatement: IASTContinueStatement => {
       case Entering =>
         val continueStatement = state.context.pathStack.pop.node
-        var last: IASTNode = continueStatement
+        var last: NodePath = statement
 
         // find the first for loop that is a direct ancestor
-        while (!last.isInstanceOf[IASTForStatement] || !Utils.getAncestors(continueStatement).contains(last)) {
-          last = state.context.pathStack.pop.node
+        while (!last.node.isInstanceOf[IASTForStatement] || !Utils.getAncestors(continueStatement).contains(last.node)) {
+          last = state.context.pathStack.pop
         }
 
-        val forLoop = last.asInstanceOf[IASTForStatement]
+        val forLoop = last.node.asInstanceOf[IASTForStatement]
 
-        Seq(forLoop.getIterationExpression, forLoop.getConditionExpression, forLoop)
+        state.context.pathStack.push(last)
+        state.clearVisited(forLoop)
+        last.direction = Entering
+
+        Seq(Option(forLoop.getIterationExpression)).flatten
     }
     case goto: IASTGotoStatement => {
       case Entering =>
@@ -160,7 +164,8 @@ object Statement {
       case Gotoing => Seq(ifStatement.getConditionExpression)
     }
     case forLoop: IASTForStatement => {
-      case Entering => Seq(Option(forLoop.getInitializerStatement), Option(forLoop.getConditionExpression)).flatten
+      case Initial => Seq(Option(forLoop.getInitializerStatement)).flatten
+      case Entering => Seq(Option(forLoop.getConditionExpression)).flatten
       case Exiting =>
         val shouldKeepLooping = if (forLoop.getConditionExpression != null) {
 
@@ -172,14 +177,9 @@ object Statement {
         }
 
         if (shouldKeepLooping) {
-          state.clearVisited(forLoop.getBody)
-          state.clearVisited(forLoop.getIterationExpression)
-
-          if (forLoop.getConditionExpression != null) {
-            state.clearVisited(forLoop.getConditionExpression)
-          }
-
-          Seq(Option(forLoop.getBody), Option(forLoop.getIterationExpression), Option(forLoop.getConditionExpression), Some(forLoop)).flatten
+          state.clearVisited(forLoop)
+          statement.direction = Entering
+          Seq(Option(forLoop.getBody), Option(forLoop.getIterationExpression)).flatten
         } else {
           Seq()
         }
