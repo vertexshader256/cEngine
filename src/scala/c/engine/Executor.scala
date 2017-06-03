@@ -29,105 +29,107 @@ object Executor {
 
   val NoMatch: PartialFunction[Direction, Seq[IASTNode]] = { case _ => Seq()}
 
-  def step(current: NodePath, direction: Direction)(implicit state: State): Seq[IASTNode] = {
+  def step(current: NodePath, direction: Direction)(implicit state: State): PartialFunction[Direction, Seq[IASTNode]] = current.node match {
 
-    current.node match {
-      case statement: IASTStatement =>
-        (Statement.parse(statement)(state) orElse NoMatch)(direction)
-      case expression: IASTExpression =>
-        (Expressions.parse(expression, direction) orElse NoMatch)(direction)
-      case array: IASTArrayModifier =>
-        if (direction == Exiting) {
-          Seq()
+    case statement: IASTStatement =>
+      Statement.parse(statement)(state)
+    case expression: IASTExpression =>
+      Expressions.parse(expression, direction)
+    case array: IASTArrayModifier => {
+      case Entering =>
+        if (array.getConstantExpression != null) {
+          Seq(array.getConstantExpression)
         } else {
-          if (array.getConstantExpression != null) {
-            Seq(array.getConstantExpression)
-          } else {
-            Seq()
-          }
+          Seq()
         }
-      case ptr: IASTPointer =>
-        Seq()
-      case tUnit: IASTTranslationUnit =>
-        tUnit.getChildren.filterNot{_.isInstanceOf[IASTFunctionDefinition]}
-      case simple: IASTSimpleDeclaration =>
-        if (direction == Entering) {
+    }
+    case ptr: IASTPointer => {
+      case _ => Seq()
+    }
+    case tUnit: IASTTranslationUnit => {
+      case _ =>
+        tUnit.getChildren.filterNot {
+          _.isInstanceOf[IASTFunctionDefinition]
+        }
+    }
+      case simple: IASTSimpleDeclaration => {
+        case Entering =>
           val declSpec = simple.getDeclSpecifier
           if (declSpec.isInstanceOf[IASTEnumerationSpecifier]) {
             simple.getDeclarators :+ simple.getDeclSpecifier
           } else {
             simple.getDeclarators
           }
-
-        } else {
-          Seq()
-        }
-      case enumerator: CASTEnumerator =>
-        if (direction == Entering) {
+      }
+      case enumerator: CASTEnumerator => {
+        case Entering =>
           Seq(enumerator.getValue)
-        } else {
+        case Exiting =>
           val newVar = state.context.addVariable(enumerator.getName.getRawSignature, TypeHelper.pointerType)
           val value = state.stack.pop.asInstanceOf[RValue]
           state.setValue(value.value, newVar.address)
           Seq()
-        }
-      case enum: IASTEnumerationSpecifier =>
-        if (direction == Exiting) {
+      }
+      case enum: IASTEnumerationSpecifier => {
+        case Exiting =>
           enum.getEnumerators
-        } else {
-          Seq()
-        }
-      case fcnDec: IASTFunctionDeclarator =>
-        val isInFunctionPrototype = Utils.getAncestors(fcnDec).exists{_.isInstanceOf[IASTSimpleDeclaration]}
-
-        // ignore main's params for now
-        val isInMain = fcnDec.getName.getRawSignature == "main"
-        val fcnName = fcnDec.getName.getRawSignature
-
-        val paramDecls = new Stack[IASTParameterDeclaration]() ++ fcnDec.getChildren.collect{case x: IASTParameterDeclaration => x}
-
-        if (!paramDecls.isEmpty && direction == Entering && !isInMain) {
-
-          var numArgs = 0
-
-          val others = fcnDec.getChildren.filter{x => !x.isInstanceOf[IASTParameterDeclaration] && !x.isInstanceOf[IASTName]}
-
-          if (!isInFunctionPrototype) {
-            numArgs = state.stack.pop.asInstanceOf[RValue].value.asInstanceOf[Integer]
-            val args = (0 until numArgs).map{arg => state.stack.pop}.reverse
-
-            val resolvedArgs = args.map{x =>
-              Utils.allocateString(x, false)(state)
-            }
-
-            resolvedArgs.foreach{ arg =>
-              if (!isInFunctionPrototype && !paramDecls.isEmpty) {
-
-                val paramDecl = paramDecls.pop
-
-                val paramInfo = paramDecl.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
-
-                val name = paramDecl.getDeclarator.getName.getRawSignature
-                val newVar = state.context.addVariable(name, paramInfo.getType)
-                val casted = TypeHelper.cast(newVar.theType, arg.value).value
-                state.setValue(casted, newVar.address)
-              } else {
-                val theType = TypeHelper.getType(arg.value)
-                val sizeof = TypeHelper.sizeof(theType)
-                val space = state.allocateSpace(Math.max(sizeof, 4))
-                state.setValue(arg.value, space)
-              }
-            }
+      }
+      case fcnDec: IASTFunctionDeclarator => {
+        case _ =>
+          val isInFunctionPrototype = Utils.getAncestors(fcnDec).exists {
+            _.isInstanceOf[IASTSimpleDeclaration]
           }
 
-          others
-        } else {
-          Seq()
-        }
-      case decl: IASTDeclarator =>
-        Declarator.execute(decl, direction)
-      case fcnDef: IASTFunctionDefinition =>
-        if (direction == Exiting) {
+          // ignore main's params for now
+          val isInMain = fcnDec.getName.getRawSignature == "main"
+          val fcnName = fcnDec.getName.getRawSignature
+
+          val paramDecls = new Stack[IASTParameterDeclaration]() ++ fcnDec.getChildren.collect { case x: IASTParameterDeclaration => x }
+
+          if (!paramDecls.isEmpty && direction == Entering && !isInMain) {
+
+            var numArgs = 0
+
+            val others = fcnDec.getChildren.filter { x => !x.isInstanceOf[IASTParameterDeclaration] && !x.isInstanceOf[IASTName] }
+
+            if (!isInFunctionPrototype) {
+              numArgs = state.stack.pop.asInstanceOf[RValue].value.asInstanceOf[Integer]
+              val args = (0 until numArgs).map { arg => state.stack.pop }.reverse
+
+              val resolvedArgs = args.map { x =>
+                Utils.allocateString(x, false)(state)
+              }
+
+              resolvedArgs.foreach { arg =>
+                if (!isInFunctionPrototype && !paramDecls.isEmpty) {
+
+                  val paramDecl = paramDecls.pop
+
+                  val paramInfo = paramDecl.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
+
+                  val name = paramDecl.getDeclarator.getName.getRawSignature
+                  val newVar = state.context.addVariable(name, paramInfo.getType)
+                  val casted = TypeHelper.cast(newVar.theType, arg.value).value
+                  state.setValue(casted, newVar.address)
+                } else {
+                  val theType = TypeHelper.getType(arg.value)
+                  val sizeof = TypeHelper.sizeof(theType)
+                  val space = state.allocateSpace(Math.max(sizeof, 4))
+                  state.setValue(arg.value, space)
+                }
+              }
+            }
+
+            others
+          } else {
+            Seq()
+          }
+      }
+      case decl: IASTDeclarator => {
+        case _ => Declarator.execute(decl, direction)
+      }
+      case fcnDef: IASTFunctionDefinition => {
+        case Exiting =>
           if (!state.context.stack.isEmpty) {
             val retVal = state.context.stack.pop
             if (fcnDef.getDeclarator.getName.getRawSignature != "main") {
@@ -140,63 +142,58 @@ object Executor {
             }
           }
           Seq()
-        } else {
+        case Entering =>
           Seq(fcnDef.getDeclarator, fcnDef.getBody)
-        }
-      case eq: IASTEqualsInitializer =>
-        if (direction == Entering) {
+      }
+      case eq: IASTEqualsInitializer => {
+        case Entering =>
           Seq(eq.getInitializerClause)
-        } else {
-          Seq()
-        }
-      case initList: IASTInitializerList =>
-        if (direction == Entering) {
+      }
+      case initList: IASTInitializerList => {
+        case Entering =>
           initList.getClauses
-        } else {
-          Seq()
+      }
+    case typeId: IASTTypeId => {
+      case Exiting =>
+
+        val result: TypeInfo = typeId.getDeclSpecifier match {
+          case simple: IASTSimpleDeclSpecifier =>
+            import org.eclipse.cdt.core.dom.ast.IASTSimpleDeclSpecifier._
+
+            var config = 0
+
+            if (simple.isLong) {
+              config |= IBasicType.IS_LONG
+            }
+
+            if (simple.isUnsigned) {
+              config |= IBasicType.IS_UNSIGNED
+            } else {
+              config |= IBasicType.IS_SIGNED
+            }
+
+            var result: IType = simple.getType match {
+              case `t_unspecified` => new CBasicType(IBasicType.Kind.eInt, config)
+              case `t_int`    => new CBasicType(IBasicType.Kind.eInt, config)
+              case `t_float`  => new CBasicType(IBasicType.Kind.eFloat, config)
+              case `t_double` => new CBasicType(IBasicType.Kind.eDouble, config)
+              case `t_char`   => new CBasicType(IBasicType.Kind.eChar, config)
+              case `t_void`   => new CBasicType(IBasicType.Kind.eVoid, config)
+            }
+
+            for (ptr <- typeId.getAbstractDeclarator.getPointerOperators) {
+              result = new CPointerType(result, 0)
+            }
+
+            TypeInfo(result)
+
+          case typespec: CASTTypedefNameSpecifier =>
+            TypeInfo(typespec.getName.resolveBinding().asInstanceOf[IType])
+          case elab: CASTElaboratedTypeSpecifier =>
+            TypeInfo(elab.getName.resolveBinding().asInstanceOf[CStructure])
         }
-      case typeId: IASTTypeId =>
-        if (direction == Exiting) {
 
-          val result: TypeInfo = typeId.getDeclSpecifier match {
-            case simple: IASTSimpleDeclSpecifier =>
-              import org.eclipse.cdt.core.dom.ast.IASTSimpleDeclSpecifier._
-
-              var config = 0
-
-              if (simple.isLong) {
-                config |= IBasicType.IS_LONG
-              }
-
-              if (simple.isUnsigned) {
-                config |= IBasicType.IS_UNSIGNED
-              } else {
-                config |= IBasicType.IS_SIGNED
-              }
-
-              var result: IType = simple.getType match {
-                case `t_unspecified` => new CBasicType(IBasicType.Kind.eInt, config)
-                case `t_int`    => new CBasicType(IBasicType.Kind.eInt, config)
-                case `t_float`  => new CBasicType(IBasicType.Kind.eFloat, config)
-                case `t_double` => new CBasicType(IBasicType.Kind.eDouble, config)
-                case `t_char`   => new CBasicType(IBasicType.Kind.eChar, config)
-                case `t_void`   => new CBasicType(IBasicType.Kind.eVoid, config)
-              }
-
-              for (ptr <- typeId.getAbstractDeclarator.getPointerOperators) {
-                result = new CPointerType(result, 0)
-              }
-
-              TypeInfo(result)
-
-            case typespec: CASTTypedefNameSpecifier =>
-              TypeInfo(typespec.getName.resolveBinding().asInstanceOf[IType])
-            case elab: CASTElaboratedTypeSpecifier =>
-              TypeInfo(elab.getName.resolveBinding().asInstanceOf[CStructure])
-          }
-
-          state.stack.push(result)
-        }
+        state.stack.push(result)
         Seq()
     }
   }
@@ -229,9 +226,9 @@ object Executor {
       }
 
       val paths: Seq[NodePath] = if (state.isGotoing) {
-        Executor.step(current, Gotoing)(state).map{x => NodePath(x, Entering)}
+        (Executor.step(current, Gotoing)(state) orElse NoMatch)(Gotoing).map{x => NodePath(x, Entering)}
       } else {
-        Executor.step(current, direction)(state).map{x => NodePath(x, Entering)}
+        (Executor.step(current, direction)(state) orElse NoMatch)(direction).map{x => NodePath(x, Entering)}
       }
 
       if (direction == Exiting) {
