@@ -217,27 +217,27 @@ object Executor {
   def tick(state: State): Boolean = {
     val current = state.context.pathStack.headOption.getOrElse(null)
     if (current != null) {
-      val direction = if (current.direction == Initial) {
+      if (current.direction == Initial) {
         Initial
       } else if (state.context.visited.contains(current.node)) {
         current.direction = Exiting
-        Exiting
       } else {
         current.direction = Entering
         state.context.visited += current.node
-        Entering
       }
 
       //println(current.node.getClass.getSimpleName + ":" + direction)
 
-      val paths: Seq[NodePath] = if (state.isGotoing && direction != Initial) {
+      val paths: Seq[NodePath] = if (state.isGotoing && current.direction != Initial) {
         (Executor.step(current, Gotoing)(state) orElse NoMatch)(Gotoing).map{x => NodePath(x, Initial)}
       } else {
-        (Executor.step(current, direction)(state) orElse NoMatch)(direction).map{x => NodePath(x, Initial)}
+        (Executor.step(current, current.direction)(state) orElse NoMatch)(current.direction).map{x => NodePath(x, Initial)}
       }
 
       if (current.direction == Initial) {
         current.direction = Entering
+      } else if (current.direction == Entering) {
+        current.direction = Exiting
       } else if (current.direction == Exiting) {
         state.context.pathStack.pop
       }
