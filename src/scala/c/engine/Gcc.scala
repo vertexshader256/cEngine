@@ -22,7 +22,7 @@ object Gcc {
       val main = state.getFunction("main")
       state.functionList -= main
       state.stackInsertIndex -= 4
-      state.context.pathStack.push(NodePath(main.node, Entering))
+      state.context.pathStack.push(NodePath(main.node, Initial))
       Executor.run(state)
   }
 

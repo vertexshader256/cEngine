@@ -200,7 +200,7 @@ object Executor {
 
   def preload(codes: Seq[String], state: State) = {
     state.tUnit = Utils.getTranslationUnit(codes)
-    state.context.pathStack.push(NodePath(state.tUnit, Entering))
+    state.context.pathStack.push(NodePath(state.tUnit, Initial))
 
     val fcns = state.tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
     fcns.foreach{fcnDef => state.addFunctionDef(fcnDef)}
@@ -211,13 +211,19 @@ object Executor {
     run(state)
 
     state.context.pathStack.clear
-    state.context.pathStack.push(NodePath(state.getFunction("main").node, Entering))
+    state.context.pathStack.push(NodePath(state.getFunction("main").node, Initial))
   }
 
   def tick(state: State): Boolean = {
     val current = state.context.pathStack.headOption.getOrElse(null)
     if (current != null) {
-      val direction = if (state.context.visited.contains(current.node)) Exiting else Entering
+      val direction = if (current.direction == Initial) {
+        Initial
+      } else if (state.context.visited.contains(current.node)) {
+        Exiting
+      } else {
+        Entering
+      }
 
       //println(state.current.getClass.getSimpleName + ":" + state.direction)
 
@@ -225,12 +231,15 @@ object Executor {
         state.context.visited += current.node
       }
 
-      val paths: Seq[NodePath] = if (state.isGotoing) {
-        (Executor.step(current, Gotoing)(state) orElse NoMatch)(Gotoing).map{x => NodePath(x, Entering)}
+      val paths: Seq[NodePath] = if (state.isGotoing && direction != Initial) {
+        (Executor.step(current, Gotoing)(state) orElse NoMatch)(Gotoing).map{x => NodePath(x, Initial)}
       } else {
-        (Executor.step(current, direction)(state) orElse NoMatch)(direction).map{x => NodePath(x, Entering)}
+        (Executor.step(current, direction)(state) orElse NoMatch)(direction).map{x => NodePath(x, Initial)}
       }
 
+      if (direction == Initial) {
+        current.direction = Entering
+      }
       if (direction == Exiting) {
         state.context.pathStack.pop
       }

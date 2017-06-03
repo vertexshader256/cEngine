@@ -39,9 +39,9 @@ object Statement {
 
         val forLoop = last.asInstanceOf[IASTForStatement]
 
-        state.context.pathStack.push(NodePath(forLoop, Entering))
-        state.context.pathStack.push(NodePath(forLoop.getConditionExpression, Entering))
-        state.context.pathStack.push(NodePath(forLoop.getIterationExpression, Entering))
+        state.context.pathStack.push(NodePath(forLoop, Initial))
+        state.context.pathStack.push(NodePath(forLoop.getConditionExpression, Initial))
+        state.context.pathStack.push(NodePath(forLoop.getIterationExpression, Initial))
         Seq()
     }
     case goto: IASTGotoStatement => {
@@ -51,7 +51,7 @@ object Statement {
 
         if (functionScope.labels.exists { label => label._1.getName.getRawSignature == goto.getName.getRawSignature }) {
           state.context.pathStack.clear()
-          state.context.pathStack.pushAll(functionScope.labels.head._2.reverse :+ NodePath(functionScope.labels.head._1, Entering))
+          state.context.pathStack.pushAll(functionScope.labels.head._2.reverse :+ NodePath(functionScope.labels.head._1, Initial))
 
           state.context.visited.clear()
           state.context.visited ++= functionScope.labels.head._3
