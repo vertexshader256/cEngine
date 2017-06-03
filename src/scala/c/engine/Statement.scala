@@ -46,7 +46,7 @@ object Statement {
         Seq(Option(forLoop.getIterationExpression)).flatten
     }
     case goto: IASTGotoStatement => {
-      case Entering =>
+      case Initial =>
 
         val functionScope = state.getFunctionScope
 
@@ -112,8 +112,8 @@ object Statement {
         if (shouldLoop) {
           state.clearVisited(doWhileLoop.getBody)
           state.clearVisited(doWhileLoop.getCondition)
-
-          Seq(doWhileLoop.getBody, doWhileLoop.getCondition, doWhileLoop)
+          statement.direction = Entering
+          Seq(doWhileLoop.getBody, doWhileLoop.getCondition)
         } else {
           Seq()
         }
