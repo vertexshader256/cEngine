@@ -132,8 +132,8 @@ object Statement {
         if (shouldLoop) {
           state.clearVisited(whileLoop.getBody)
           state.clearVisited(whileLoop.getCondition)
-
-          Seq(whileLoop.getBody, whileLoop.getCondition, whileLoop)
+          statement.direction = Entering
+          Seq(whileLoop.getBody, whileLoop.getCondition)
         } else {
           Seq()
         }
