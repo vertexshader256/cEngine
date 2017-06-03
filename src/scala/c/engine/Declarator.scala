@@ -14,7 +14,7 @@ object Declarator {
         case _ =>
           Seq(Option(decl.getInitializer)).flatten
       }
-    } else {
+    } else if (direction == Exiting) {
       val nameBinding = decl.getName.resolveBinding()
 
       if (nameBinding.isInstanceOf[IVariable]) {
@@ -103,6 +103,8 @@ object Declarator {
       } else {
         Seq()
       }
+    } else {
+      Seq()
     }
   }
 }
