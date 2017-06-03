@@ -13,7 +13,7 @@ object Statement {
     case breakStatement: IASTNullStatement =>
       PartialFunction.empty
     case breakStatement: IASTBreakStatement => {
-      case Entering =>
+      case Initial =>
         var reverse = state.context.pathStack.pop
         var shouldBreak = false
         while ((!shouldBreak && !reverse.node.isInstanceOf[IASTWhileStatement] &&
@@ -28,7 +28,7 @@ object Statement {
         Seq()
     }
     case continueStatement: IASTContinueStatement => {
-      case Entering =>
+      case Initial =>
         val continueStatement = state.context.pathStack.pop.node
         var last: NodePath = statement
 
