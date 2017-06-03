@@ -39,10 +39,7 @@ object Statement {
 
         val forLoop = last.asInstanceOf[IASTForStatement]
 
-        state.context.pathStack.push(NodePath(forLoop, Initial))
-        state.context.pathStack.push(NodePath(forLoop.getConditionExpression, Initial))
-        state.context.pathStack.push(NodePath(forLoop.getIterationExpression, Initial))
-        Seq()
+        Seq(forLoop.getIterationExpression, forLoop.getConditionExpression, forLoop)
     }
     case goto: IASTGotoStatement => {
       case Entering =>
