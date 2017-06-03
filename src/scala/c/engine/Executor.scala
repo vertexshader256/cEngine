@@ -229,7 +229,7 @@ object Executor {
 
       //println(state.current.getClass.getSimpleName + ":" + state.direction)
 
-      if (direction == Entering) {
+      if (current.direction == Entering) {
         state.context.visited += current.node
       }
 
@@ -241,8 +241,7 @@ object Executor {
 
       if (current.direction == Initial) {
         current.direction = Entering
-      }
-      if (current.direction == Exiting) {
+      } else if (current.direction == Exiting) {
         state.context.pathStack.pop
       }
 
