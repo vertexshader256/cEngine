@@ -171,30 +171,25 @@ object Expressions {
       case Gotoing => Seq()
     }
     case bin: IASTBinaryExpression => {
-      case Entering => Seq(bin.getOperand1)
-      case Exiting =>
-        if (context.context.visited.contains(bin.getOperand2)) {
-
-          val op2 = context.stack.pop
-          val op1 = context.stack.pop
-
-          val result = if (Utils.isAssignment(bin.getOperator)) {
-            BinaryExpr.parseAssign(bin, bin.getOperator, op1, op2)
-          } else {
-            BinaryExpr.evaluate(bin, op1, op2, bin.getOperator)
-          }
-
-          context.stack.push(result)
-          Seq()
-        } else {
-          // short circuiting
-
-          (bin.getOperator, context.stack.head) match {
-            case (IASTBinaryExpression.op_logicalOr, RValue(x: Boolean, _)) if x => Seq()
-            case (IASTBinaryExpression.op_logicalAnd, RValue(x: Boolean, _)) if !x => Seq()
-            case _ => Seq(bin.getOperand2, bin)
-          }
+      case Initial => Seq(bin.getOperand1)
+      case Entering =>
+        (bin.getOperator, context.stack.head) match {
+          case (IASTBinaryExpression.op_logicalOr, RValue(x: Boolean, _)) if x => context.context.pathStack.pop; Seq()
+          case (IASTBinaryExpression.op_logicalAnd, RValue(x: Boolean, _)) if !x => context.context.pathStack.pop; Seq()
+          case _ => Seq(bin.getOperand2)
         }
+      case Exiting =>
+        val op2 = context.stack.pop
+        val op1 = context.stack.pop
+
+        val result = if (Utils.isAssignment(bin.getOperator)) {
+          BinaryExpr.parseAssign(bin, bin.getOperator, op1, op2)
+        } else {
+          BinaryExpr.evaluate(bin, op1, op2, bin.getOperator)
+        }
+
+        context.stack.push(result)
+        Seq()
       case Gotoing =>
         Seq()
     }
