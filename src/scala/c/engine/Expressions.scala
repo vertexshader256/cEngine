@@ -7,12 +7,12 @@ import scala.annotation.switch
 
 object Expressions {
 
-  def parse(expr: IASTExpression, direction: Direction)(implicit context: State): Seq[IASTNode] = expr match {
-    case exprList: IASTExpressionList => direction match {
+  def parse(expr: IASTExpression, direction: Direction)(implicit context: State): PartialFunction[Direction, Seq[IASTNode]] = expr match {
+    case exprList: IASTExpressionList => {
       case Entering => exprList.getExpressions
       case Exiting => Seq ()
     }
-    case ternary: IASTConditionalExpression => direction match {
+    case ternary: IASTConditionalExpression => {
       case Entering => Seq (ternary.getLogicalConditionExpression)
       case Exiting =>
         val result = TypeHelper.resolveBoolean (context.stack.pop)
@@ -23,7 +23,7 @@ object Expressions {
           Seq (ternary.getNegativeResultExpression)
         }
     }
-    case cast: IASTCastExpression => direction match {
+    case cast: IASTCastExpression => {
       case Entering => Seq(cast.getOperand, cast.getTypeId)
       case Exiting =>
         val theType = context.stack.pop.asInstanceOf[TypeInfo].value
@@ -40,7 +40,7 @@ object Expressions {
 
         Seq()
     }
-    case fieldRef: IASTFieldReference => direction match {
+    case fieldRef: IASTFieldReference => {
       case Entering => Seq(fieldRef.getFieldOwner)
       case Exiting =>
         var baseAddr = -1
@@ -80,7 +80,7 @@ object Expressions {
 
         Seq()
     }
-    case subscript: IASTArraySubscriptExpression => direction match {
+    case subscript: IASTArraySubscriptExpression => {
       case Entering => Seq(subscript.getArrayExpression, subscript.getArgument)
       case Exiting =>
         val index = context.stack.pop match {
@@ -116,15 +116,15 @@ object Expressions {
 
         Seq()
     }
-    case unary: IASTUnaryExpression => direction match {
+    case unary: IASTUnaryExpression => {
       case Entering => Seq(unary.getOperand)
       case Exiting =>
         UnaryExpression.execute(unary)
         Seq()
       case Gotoing => Seq()
     }
-    case lit: IASTLiteralExpression =>
-      if (direction == Exiting) {
+    case lit: IASTLiteralExpression => {
+      case Exiting =>
         //println("PUSHING LIT: " + castLiteral(lit))
 
         val litStr = lit.getRawSignature
@@ -133,23 +133,23 @@ object Expressions {
         } else {
           context.stack.push(Literal.cast(lit.getRawSignature))
         }
-      }
-      Seq()
-    case id: IASTIdExpression =>
-      if (direction == Exiting) {
+        Seq()
+    }
+    case id: IASTIdExpression => {
+      case Exiting =>
         context.stack.push(context.context.resolveId(id.getName.getRawSignature))
-      }
-      Seq()
-    case typeExpr: IASTTypeIdExpression =>
+        Seq()
+    }
+    case typeExpr: IASTTypeIdExpression => {
       // used for sizeof calls on a type
-      if (direction == Entering) {
+      case Entering =>
         Seq(typeExpr.getTypeId)
-      } else {
+      case Exiting =>
         val theType = context.stack.pop.asInstanceOf[TypeInfo].value
         context.stack.push(RValue(TypeHelper.sizeof(theType), TypeHelper.pointerType))
         Seq()
-      }
-    case call: IASTFunctionCallExpression => direction match {
+    }
+    case call: IASTFunctionCallExpression => {
       case Entering => call.getArguments.reverse ++ Seq(call.getFunctionNameExpression)
       case Exiting =>
         val pop = context.stack.pop
@@ -170,7 +170,7 @@ object Expressions {
         context.callTheFunction(name, call, args)
       case Gotoing => Seq()
     }
-    case bin: IASTBinaryExpression => direction match {
+    case bin: IASTBinaryExpression => {
       case Entering => Seq(bin.getOperand1)
       case Exiting =>
         if (context.context.visited.contains(bin.getOperand2)) {

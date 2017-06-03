@@ -27,7 +27,7 @@ object Executor {
     codeToRun
   }
 
-  val NoMatch: PartialFunction[Direction, Seq[IASTNode]] = { case x => Seq()}
+  val NoMatch: PartialFunction[Direction, Seq[IASTNode]] = { case _ => Seq()}
 
   def step(current: NodePath, direction: Direction)(implicit state: State): Seq[IASTNode] = {
 
@@ -35,7 +35,7 @@ object Executor {
       case statement: IASTStatement =>
         (Statement.parse(statement)(state) orElse NoMatch)(direction)
       case expression: IASTExpression =>
-        Expressions.parse(expression, direction)
+        (Expressions.parse(expression, direction) orElse NoMatch)(direction)
       case array: IASTArrayModifier =>
         if (direction == Exiting) {
           Seq()

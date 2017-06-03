@@ -5,7 +5,7 @@ import org.eclipse.cdt.core.dom.ast._
 
 import scala.collection.mutable.{ListBuffer, Stack}
 
-case class NodePath(node: IASTNode, direction: Direction)
+case class NodePath(node: IASTNode, var direction: Direction)
 
 class FunctionScope(theStaticVars: List[Variable], theParentScopeVars: List[Variable], val function: IFunctionType, theState: State)
   extends Scope(theStaticVars, theParentScopeVars, theState) {
