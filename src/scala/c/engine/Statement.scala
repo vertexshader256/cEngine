@@ -189,13 +189,13 @@ object Statement {
         Seq(forLoop.getBody)
     }
     case ret: IASTReturnStatement => {
-      case Entering =>
+      case Initial =>
         if (ret.getReturnValue != null) {
           Seq(ret.getReturnValue)
         } else {
           Seq()
         }
-      case Exiting =>
+      case Entering =>
         if (ret.getReturnValue != null) {
           val returnVal = state.stack.pop
           state.stack.push(returnVal match {
@@ -210,10 +210,10 @@ object Statement {
         Seq()
     }
     case decl: IASTDeclarationStatement => {
-      case Entering => Seq(decl.getDeclaration)
+      case Initial => Seq(decl.getDeclaration)
     }
     case compound: IASTCompoundStatement => {
-      case Entering => compound.getStatements
+      case Initial => compound.getStatements
       case Gotoing => compound.getStatements
     }
     case exprStatement: IASTExpressionStatement => {
