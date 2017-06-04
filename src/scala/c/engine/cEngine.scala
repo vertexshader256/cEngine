@@ -205,15 +205,6 @@ class State {
     function.node
   }
 
-  def clearVisited(parent: IASTNode) {
-    context.pathStack.find{x => x.node == parent}.foreach{ x =>
-      x.direction = Initial
-    }
-    parent.getChildren.foreach { node =>
-      clearVisited(node)
-    }
-  }
-
   def allocateSpace(numBytes: Int): Int = {
     if (numBytes > 0) {
       val result = stackInsertIndex

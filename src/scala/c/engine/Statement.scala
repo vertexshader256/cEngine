@@ -40,7 +40,6 @@ object Statement {
         val forLoop = last.node.asInstanceOf[IASTForStatement]
 
         state.context.pathStack.push(last)
-        state.clearVisited(forLoop)
         last.direction = Entering
 
         Seq(Option(forLoop.getIterationExpression)).flatten
@@ -107,8 +106,6 @@ object Statement {
         val shouldLoop = TypeHelper.resolveBoolean(state.stack.pop)
 
         if (shouldLoop) {
-          state.clearVisited(doWhileLoop.getBody)
-          state.clearVisited(doWhileLoop.getCondition)
           statement.direction = Entering
           Seq(doWhileLoop.getBody, doWhileLoop.getCondition)
         } else {
@@ -127,8 +124,6 @@ object Statement {
         val shouldLoop = TypeHelper.resolveBoolean(cast)
 
         if (shouldLoop) {
-          state.clearVisited(whileLoop.getBody)
-          state.clearVisited(whileLoop.getCondition)
           statement.direction = Entering
           Seq(whileLoop.getBody, whileLoop.getCondition)
         } else {
