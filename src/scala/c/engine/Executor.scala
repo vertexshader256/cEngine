@@ -192,14 +192,6 @@ object Executor {
 
       state.context.pathStack.pushAll(paths.reverse)
 
-      if (state.isReturning) {
-        var last: NodePath = null
-        while (state.context.pathStack.size > 1 && (last == null || !last.node.isInstanceOf[IASTFunctionDefinition])) {
-          last = state.context.pathStack.pop
-        }
-
-        state.isReturning = false
-      }
       true
     } else {
       false

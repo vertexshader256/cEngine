@@ -49,7 +49,6 @@ class State {
   def stack = context.stack
 
   // flags
-  var isReturning = false
   var isGotoing = false
   var gotoName = ""
 

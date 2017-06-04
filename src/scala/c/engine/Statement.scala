@@ -206,16 +206,28 @@ object Statement {
           Seq()
         }
       case Entering =>
+
+        var retVal: ValueType = null
+
         if (ret.getReturnValue != null) {
           val returnVal = state.stack.pop
-          state.stack.push(returnVal match {
+
+          retVal = returnVal match {
             case info @ LValue(addr, theType) =>
               val functionScope = state.getFunctionScope
               TypeHelper.cast(functionScope.function.getReturnType, info.value.value)
             case value @ RValue(_, _) => value
-          })
+          }
         }
-        state.isReturning = true
+
+        if (state.functionContexts.size > 1) {
+          state.popFunctionContext
+          state.context.pathStack.pop
+        }
+
+        if (retVal != null) {
+          state.context.stack.push(retVal)
+        }
 
         Seq()
     }
