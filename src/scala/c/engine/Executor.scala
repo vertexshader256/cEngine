@@ -35,6 +35,8 @@ object Executor {
       Statement.parse(current)
     case expression: IASTExpression =>
       Expressions.parse(expression)
+    case decl: IASTDeclarator =>
+      Declarator.execute(decl)
     case array: IASTArrayModifier => {
       case Entering =>
         if (array.getConstantExpression != null) {
@@ -73,60 +75,6 @@ object Executor {
       case enum: IASTEnumerationSpecifier => {
         case Exiting =>
           enum.getEnumerators
-      }
-      case fcnDec: IASTFunctionDeclarator => {
-        case Entering =>
-          val isInFunctionPrototype = Utils.getAncestors(fcnDec).exists {
-            _.isInstanceOf[IASTSimpleDeclaration]
-          }
-
-          // ignore main's params for now
-          val isInMain = fcnDec.getName.getRawSignature == "main"
-          val fcnName = fcnDec.getName.getRawSignature
-
-          val paramDecls = new Stack[IASTParameterDeclaration]() ++ fcnDec.getChildren.collect { case x: IASTParameterDeclaration => x }
-
-          if (!paramDecls.isEmpty && !isInMain) {
-
-            var numArgs = 0
-
-            val others = fcnDec.getChildren.filter { x => !x.isInstanceOf[IASTParameterDeclaration] && !x.isInstanceOf[IASTName] }
-
-            if (!isInFunctionPrototype) {
-              numArgs = state.stack.pop.asInstanceOf[RValue].value.asInstanceOf[Integer]
-              val args = (0 until numArgs).map { arg => state.stack.pop }.reverse
-
-              val resolvedArgs = args.map { x =>
-                Utils.allocateString(x, false)(state)
-              }
-
-              resolvedArgs.foreach { arg =>
-                if (!isInFunctionPrototype && !paramDecls.isEmpty) {
-
-                  val paramDecl = paramDecls.pop
-
-                  val paramInfo = paramDecl.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
-
-                  val name = paramDecl.getDeclarator.getName.getRawSignature
-                  val newVar = state.context.addVariable(name, paramInfo.getType)
-                  val casted = TypeHelper.cast(newVar.theType, arg.value).value
-                  state.setValue(casted, newVar.address)
-                } else {
-                  val theType = TypeHelper.getType(arg.value)
-                  val sizeof = TypeHelper.sizeof(theType)
-                  val space = state.allocateSpace(Math.max(sizeof, 4))
-                  state.setValue(arg.value, space)
-                }
-              }
-            }
-
-            others
-          } else {
-            Seq()
-          }
-      }
-      case decl: IASTDeclarator => {
-        case _ => (Declarator.execute(decl) orElse NoMatch)(direction)
       }
       case fcnDef: IASTFunctionDefinition => {
         case Exiting =>
