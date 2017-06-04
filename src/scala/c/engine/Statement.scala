@@ -53,9 +53,6 @@ object Statement {
         if (functionScope.labels.exists { label => label._1 == goto.getName.getRawSignature }) {
           state.context.pathStack.clear()
           state.context.pathStack.pushAll(functionScope.labels.head._2.reverse)
-
-          state.context.visited.clear()
-          state.context.visited ++= functionScope.labels.head._3
           Seq()
         } else {
           state.isGotoing = true
@@ -67,7 +64,7 @@ object Statement {
       case Exiting =>
         val functionScope = state.getFunctionScope
         val backupPath = Stack[NodePath]() ++ state.context.pathStack.clone
-        val ok = (label.getName.getRawSignature, backupPath, state.context.visited.toList)
+        val ok = (label.getName.getRawSignature, backupPath)
         functionScope.labels += ok
         Seq(label.getNestedStatement)
       case Gotoing =>
@@ -177,8 +174,8 @@ object Statement {
         }
 
         if (shouldKeepLooping) {
-          state.clearVisited(forLoop)
-          statement.direction = Entering
+          //state.clearVisited(forLoop)
+          statement.direction = Initial
           Seq(Option(forLoop.getBody), Option(forLoop.getIterationExpression)).flatten
         } else {
           Seq()

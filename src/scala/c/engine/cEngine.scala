@@ -206,7 +206,6 @@ class State {
   }
 
   def clearVisited(parent: IASTNode) {
-    context.visited -= parent
     context.pathStack.find{x => x.node == parent}.foreach{ x =>
       x.direction = Initial
     }

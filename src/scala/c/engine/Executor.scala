@@ -218,23 +218,13 @@ object Executor {
     val current = state.context.pathStack.headOption.getOrElse(null)
     if (current != null) {
       
-      //println(current.node.getClass.getSimpleName + ":" + direction)
+      //println(current.node.getClass.getSimpleName + ":" + current.direction)
 
       val paths: Seq[NodePath] = if (state.isGotoing && current.direction != Initial) {
         val result = (Executor.step(current, Gotoing)(state) orElse NoMatch)(Gotoing).map{x => NodePath(x, Initial)}
         state.context.pathStack.pop
-        state.context.visited += current.node
         result
       } else {
-
-        if (current.direction == Initial) {
-          Initial
-        } else if (state.context.visited.contains(current.node)) {
-          current.direction = Exiting
-        } else {
-          current.direction = Entering
-          state.context.visited += current.node
-        }
 
         val result = (Executor.step(current, current.direction)(state) orElse NoMatch)(current.direction).map{x => NodePath(x, Initial)}
 

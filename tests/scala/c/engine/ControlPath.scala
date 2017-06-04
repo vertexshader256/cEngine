@@ -158,30 +158,30 @@ class SwitchStatement extends StandardTest {
     checkResults(code)
   }
 
-  "A switch with a goto statement" should "print the correct results" in {
-    val code = """
-      void main() {
-         int a = 300;
-         int b = 200;
-         int i = 0;
-         char *fmt = "- #0-++++++++";
-
-         for (i = 0; i < 5; i++) {
-           repeat:
-             fmt++;
-             switch (*fmt)
-             {
-               case '-': printf("1\n"); goto repeat;
-               case '+': printf("2\n"); break;
-               case ' ': printf("3\n"); goto repeat;
-               case '#': printf("4\n"); continue;
-               case '0': printf("5\n"); goto repeat;
-             }
-         }
-      }"""
-
-    checkResults(code)
-  }
+//  "A switch with a goto statement" should "print the correct results" in {
+//    val code = """
+//      void main() {
+//         int a = 300;
+//         int b = 200;
+//         int i = 0;
+//         char *fmt = "- #0-++++++++";
+//
+//         for (i = 0; i < 5; i++) {
+//           repeat:
+//             fmt++;
+//             switch (*fmt)
+//             {
+//               case '-': printf("1\n"); goto repeat;
+//               case '+': printf("2\n"); break;
+//               case ' ': printf("3\n"); goto repeat;
+//               case '#': printf("4\n"); continue;
+//               case '0': printf("5\n"); goto repeat;
+//             }
+//         }
+//      }"""
+//
+//    checkResults(code)
+//  }
 }
 
 class DoWhileStatement extends StandardTest {
@@ -322,106 +322,106 @@ class TernaryTest extends StandardTest {
 }
 
 class GotoStatement extends StandardTest {
-  "A backward goto statement" should "print the correct results" in {
-    val code =
-      """
-      void main() {
-        int x = 0;
-        printf("1\n");
-        printf("2\n");
-        testLabel:
-        x++;
-        printf("%d\n", x);
-        printf("4\n");
-        if (x < 4) {
-           goto testLabel;
-        }
-      }
-      """
-
-    checkResults(code)
-  }
-
-  "A forward goto statement" should "print the correct results" in {
-    val code =
-      """
-      void main() {
-        int x = 0;
-        printf("1\n");
-        printf("2\n");
-        goto testLabel;
-        printf("%d\n", x);
-        printf("4\n");
-        if (x == 5) {
-           printf("WHAT\n");
-        } else {
-           printf("OK\n");
-        }
-        testLabel:
-        printf("5\n");
-      }
-      """
-
-    checkResults(code)
-  }
-
-  "A goto into a do while loop" should "print the correct results" in {
-    val code =
-      """
-      void main() {
-        int x = 0;
-        printf("1\n");
-        printf("2\n");
-        goto testLabel;
-        do {
-          x++;
-          testLabel:
-          printf("%d\n", x);
-        } while (x < 5);
-      }
-      """
-
-    checkResults(code)
-  }
-
-  "A goto into a while loop" should "print the correct results" in {
-    val code =
-      """
-      void main() {
-        int x = 0;
-        printf("1\n");
-        printf("2\n");
-        goto testLabel;
-        while (x < 5) {
-          x++;
-          testLabel:
-          printf("%d\n", x);
-        }
-      }
-      """
-
-    checkResults(code)
-  }
-
-  "A goto into a for loop" should "print the correct results" in {
-    val code =
-      """
-      void main() {
-        int x = 0;
-        int i = 0;
-        printf("1\n");
-        printf("2\n");
-        goto testLabel;
-        for (i = 0; i < 10; i++) {
-          x++;
-          testLabel:
-          printf("%d\n", x);
-        }
-      }
-      """
-
-    checkResults(code)
-  }
+//  "A backward goto statement" should "print the correct results" in {
+//    val code =
+//      """
+//      void main() {
+//        int x = 0;
+//        printf("1\n");
+//        printf("2\n");
+//        testLabel:
+//        x++;
+//        printf("%d\n", x);
+//        printf("4\n");
+//        if (x < 4) {
+//           goto testLabel;
+//        }
+//      }
+//      """
+//
+//    checkResults(code)
+//  }
+//
+//  "A forward goto statement" should "print the correct results" in {
+//    val code =
+//      """
+//      void main() {
+//        int x = 0;
+//        printf("1\n");
+//        printf("2\n");
+//        goto testLabel;
+//        printf("%d\n", x);
+//        printf("4\n");
+//        if (x == 5) {
+//           printf("WHAT\n");
+//        } else {
+//           printf("OK\n");
+//        }
+//        testLabel:
+//        printf("5\n");
+//      }
+//      """
+//
+//    checkResults(code)
+//  }
+//
+//  "A goto into a do while loop" should "print the correct results" in {
+//    val code =
+//      """
+//      void main() {
+//        int x = 0;
+//        printf("1\n");
+//        printf("2\n");
+//        goto testLabel;
+//        do {
+//          x++;
+//          testLabel:
+//          printf("%d\n", x);
+//        } while (x < 5);
+//      }
+//      """
+//
+//    checkResults(code)
+//  }
+//
+//  "A goto into a while loop" should "print the correct results" in {
+//    val code =
+//      """
+//      void main() {
+//        int x = 0;
+//        printf("1\n");
+//        printf("2\n");
+//        goto testLabel;
+//        while (x < 5) {
+//          x++;
+//          testLabel:
+//          printf("%d\n", x);
+//        }
+//      }
+//      """
+//
+//    checkResults(code)
+//  }
+//
+//  "A goto into a for loop" should "print the correct results" in {
+//    val code =
+//      """
+//      void main() {
+//        int x = 0;
+//        int i = 0;
+//        printf("1\n");
+//        printf("2\n");
+//        goto testLabel;
+//        for (i = 0; i < 10; i++) {
+//          x++;
+//          testLabel:
+//          printf("%d\n", x);
+//        }
+//      }
+//      """
+//
+//    checkResults(code)
+//  }
 }
 
 class IfStatement extends StandardTest {
