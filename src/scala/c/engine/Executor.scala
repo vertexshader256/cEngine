@@ -32,9 +32,9 @@ object Executor {
   def step(current: NodePath, direction: Direction)(implicit state: State): PartialFunction[Direction, Seq[IASTNode]] = current.node match {
 
     case statement: IASTStatement =>
-      Statement.parse(current)(state)
+      Statement.parse(current)
     case expression: IASTExpression =>
-      Expressions.parse(expression, direction)
+      Expressions.parse(expression)
     case array: IASTArrayModifier => {
       case Entering =>
         if (array.getConstantExpression != null) {
@@ -126,7 +126,7 @@ object Executor {
           }
       }
       case decl: IASTDeclarator => {
-        case _ => (Declarator.execute(decl, direction) orElse NoMatch)(direction)
+        case _ => (Declarator.execute(decl) orElse NoMatch)(direction)
       }
       case fcnDef: IASTFunctionDefinition => {
         case Exiting =>

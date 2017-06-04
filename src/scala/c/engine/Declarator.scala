@@ -6,7 +6,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c.{CASTDeclarator, CBasicType, C
 
 object Declarator {
 
-  def execute(decl: IASTDeclarator, direction: Direction)(implicit state: State): PartialFunction[Direction, Seq[IASTNode]] = decl match {
+  def execute(decl: IASTDeclarator)(implicit state: State): PartialFunction[Direction, Seq[IASTNode]] = decl match {
 
       case arrayDecl: IASTArrayDeclarator => {
         case Initial =>
