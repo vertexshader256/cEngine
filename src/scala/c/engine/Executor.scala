@@ -75,7 +75,7 @@ object Executor {
           enum.getEnumerators
       }
       case fcnDec: IASTFunctionDeclarator => {
-        case _ =>
+        case Entering =>
           val isInFunctionPrototype = Utils.getAncestors(fcnDec).exists {
             _.isInstanceOf[IASTSimpleDeclaration]
           }
@@ -86,7 +86,7 @@ object Executor {
 
           val paramDecls = new Stack[IASTParameterDeclaration]() ++ fcnDec.getChildren.collect { case x: IASTParameterDeclaration => x }
 
-          if (!paramDecls.isEmpty && direction == Entering && !isInMain) {
+          if (!paramDecls.isEmpty && !isInMain) {
 
             var numArgs = 0
 
