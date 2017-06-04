@@ -9,7 +9,7 @@ case class NodePath(node: IASTNode, var direction: Direction)
 
 class FunctionScope(theStaticVars: List[Variable], theParentScopeVars: List[Variable], val function: IFunctionType, theState: State)
   extends Scope(theStaticVars, theParentScopeVars, theState) {
-  val labels = new ListBuffer[(IASTLabelStatement, Stack[NodePath], List[IASTNode])]()
+  val labels = new ListBuffer[(String, Stack[NodePath], List[IASTNode])]()
 }
 
 abstract class Scope(staticVars: List[Variable], parentScopeVars: List[Variable], state: State) {
