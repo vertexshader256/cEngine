@@ -51,7 +51,7 @@ object Statement {
 
         if (functionScope.labels.exists { label => label._1 == goto.getName.getRawSignature }) {
           state.context.pathStack.clear()
-          state.context.pathStack.pushAll(functionScope.labels.head._2.reverse)
+          state.context.pathStack.pushAll(functionScope.labels.head._2.map{x => NodePath(x.node, x.direction)})
           Seq()
         } else {
           state.isGotoing = true
@@ -62,8 +62,15 @@ object Statement {
     case label: IASTLabelStatement => {
       case Exiting =>
         val functionScope = state.getFunctionScope
-        val backupPath = Stack[NodePath]() ++ state.context.pathStack.clone
-        val ok = (label.getName.getRawSignature, backupPath)
+        val backupPath = Stack[NodePath]()
+        backupPath.pushAll(state.context.pathStack.map{x => NodePath(x.node, x.direction)}.reverse)
+        backupPath.pop
+        backupPath.push(NodePath(label.getNestedStatement, Initial))
+
+        val backupPath2 = Stack[NodePath]()
+        backupPath2.pushAll(backupPath)
+
+        val ok = (label.getName.getRawSignature, backupPath2)
         functionScope.labels += ok
         Seq(label.getNestedStatement)
       case Gotoing =>
