@@ -235,18 +235,14 @@ object Executor {
       } else {
         val result = (Executor.step(current, current.direction)(state) orElse NoMatch)(current.direction).map{x => NodePath(x, Initial)}
 
-        if (current.direction == Initial) {
-          current.direction = Entering
-        } else if (current.direction == Entering) {
-          current.direction = Exiting
-        } else if (current.direction == Exiting) {
-          state.context.pathStack.pop
+        current.direction match {
+          case Initial => current.direction = Entering
+          case Entering => current.direction = Exiting
+          case Exiting => state.context.pathStack.pop
         }
 
         result
       }
-
-
 
       state.context.pathStack.pushAll(paths.reverse)
 
