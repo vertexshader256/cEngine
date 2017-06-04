@@ -170,7 +170,11 @@ object Executor {
 
       val paths: Seq[NodePath] = if (state.isGotoing && current.direction != Initial) {
         val result = (Executor.step(current, Gotoing)(state) orElse NoMatch)(Gotoing).map{x => NodePath(x, Initial)}
-        state.context.pathStack.pop
+
+        if (!current.node.isInstanceOf[IASTForStatement]) {
+          state.context.pathStack.pop
+        }
+
         result
       } else {
 

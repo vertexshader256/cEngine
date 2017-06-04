@@ -169,16 +169,15 @@ object Statement {
         }
 
         if (shouldKeepLooping) {
-          //state.clearVisited(forLoop)
           statement.direction = Initial
           Seq(Option(forLoop.getBody), Option(forLoop.getIterationExpression)).flatten
         } else {
           Seq()
         }
       case Gotoing =>
-        state.nextGotoNode = Seq(Option(forLoop.getBody), Option(forLoop.getIterationExpression), Option(forLoop.getConditionExpression), Some(forLoop)).flatten
-        state.context.pathStack.pop
-        Seq(forLoop.getBody)
+        state.nextGotoNode = Seq(Option(forLoop.getBody), Option(forLoop.getIterationExpression)).flatten
+        statement.direction = Entering
+        Seq(forLoop.getBody, forLoop.getIterationExpression)
     }
     case ret: IASTReturnStatement => {
       case Initial =>
