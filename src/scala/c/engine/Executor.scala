@@ -126,7 +126,7 @@ object Executor {
           }
       }
       case decl: IASTDeclarator => {
-        case _ => Declarator.execute(decl, direction)
+        case _ => (Declarator.execute(decl, direction) orElse NoMatch)(direction)
       }
       case fcnDef: IASTFunctionDefinition => {
         case Exiting =>
