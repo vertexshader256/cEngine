@@ -2,9 +2,9 @@ package c.engine
 
 import Executor.processSwitch
 import org.eclipse.cdt.core.dom.ast._
-import org.eclipse.cdt.internal.core.dom.parser.c.{CASTBreakStatement, CASTContinueStatement}
+import org.eclipse.cdt.internal.core.dom.parser.c.{CASTBreakStatement, CASTContinueStatement, CFunctionType}
 
-import scala.c.engine.{FunctionScope, NodePath}
+import scala.c.engine.{FunctionScope, NodePath, Scope}
 import scala.collection.mutable.Stack
 
 object Statement {
@@ -24,6 +24,11 @@ object Statement {
           } else {
             reverse = state.context.pathStack.pop
           }
+        }
+
+        if (reverse.node.isInstanceOf[IASTDoStatement]) {
+          state.popFunctionContext
+          state.context.pathStack.pop
         }
         Seq()
     }
@@ -108,8 +113,12 @@ object Statement {
         }
     }
     case doWhileLoop: IASTDoStatement => {
+      case Initial =>
+        state.functionContexts.push(new Scope(List(), state.functionContexts.head.varMap, state) {})
+        state.context.pathStack.push(NodePath(doWhileLoop, Entering))
+        Seq()
       case Entering => Seq(doWhileLoop.getBody, doWhileLoop.getCondition)
-      case Exiting =>
+      case PreExit =>
         val shouldLoop = TypeHelper.resolveBoolean(state.stack.pop)
 
         if (shouldLoop) {
@@ -118,6 +127,9 @@ object Statement {
         } else {
           Seq()
         }
+      case Exiting =>
+        state.popFunctionContext
+        Seq()
       case Gotoing =>
         state.nextGotoNode = Seq(doWhileLoop.getCondition, doWhileLoop)
         state.context.pathStack.pop

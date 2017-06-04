@@ -210,6 +210,22 @@ class DoWhileStatement extends StandardTest {
 
     checkResults(code)
   }
+
+  "An do..while with a break" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 0;
+        do {
+          x++;
+          if (x == 4) {
+            break;
+          }
+        } while (x < 5);
+        printf("%d\n", x);
+      }"""
+
+    checkResults(code)
+  }
 }
 
 class WhileStatement extends StandardTest {
