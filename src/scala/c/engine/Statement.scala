@@ -137,14 +137,14 @@ object Statement {
     }
     case whileLoop: IASTWhileStatement => {
       case Entering => Seq(whileLoop.getCondition)
-      case Exiting =>
+      case PreExit =>
         val cast = state.stack.pop
 
         val shouldLoop = TypeHelper.resolveBoolean(cast)
 
         if (shouldLoop) {
-          statement.direction = Entering
-          Seq(whileLoop.getBody, whileLoop.getCondition)
+          statement.direction = Initial
+          Seq(whileLoop.getBody)
         } else {
           Seq()
         }
