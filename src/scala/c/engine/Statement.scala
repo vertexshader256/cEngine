@@ -26,12 +26,12 @@ object Statement {
           }
         }
 
-        if (reverse.node.isInstanceOf[IASTDoStatement]) {
+        if (reverse.node.isInstanceOf[IASTDoStatement] || reverse.node.isInstanceOf[IASTWhileStatement]) {
           state.popFunctionContext
           state.context.pathStack.pop
         }
 
-        if (reverse.node.isInstanceOf[IASTWhileStatement]) {
+        if (reverse.node.isInstanceOf[IASTForStatement]) {
           state.popFunctionContext
           state.context.pathStack.pop
         }
@@ -187,9 +187,12 @@ object Statement {
       case Gotoing => Seq(ifStatement.getConditionExpression)
     }
     case forLoop: IASTForStatement => {
-      case Initial => Seq(Option(forLoop.getInitializerStatement)).flatten
+      case Initial =>
+        state.functionContexts.push(new Scope(List(), state.functionContexts.head.varMap, state) {})
+        state.context.pathStack.push(NodePath(forLoop, Entering))
+        Seq(Option(forLoop.getInitializerStatement)).flatten
       case Entering => Seq(Option(forLoop.getConditionExpression)).flatten
-      case Exiting =>
+      case PreExit =>
         val shouldKeepLooping = if (forLoop.getConditionExpression != null) {
 
           val result = TypeHelper.resolve(state.stack.pop).value
@@ -205,6 +208,9 @@ object Statement {
         } else {
           Seq()
         }
+      case Exiting =>
+        state.popFunctionContext
+        Seq()
       case Gotoing =>
         state.nextGotoNode = Seq(Option(forLoop.getBody), Option(forLoop.getIterationExpression)).flatten
         statement.direction = Entering
