@@ -30,6 +30,11 @@ object Statement {
           state.popFunctionContext
           state.context.pathStack.pop
         }
+
+        if (reverse.node.isInstanceOf[IASTWhileStatement]) {
+          state.popFunctionContext
+          state.context.pathStack.pop
+        }
         Seq()
     }
     case continueStatement: IASTContinueStatement => {
@@ -136,6 +141,10 @@ object Statement {
         Seq(doWhileLoop.getBody)
     }
     case whileLoop: IASTWhileStatement => {
+      case Initial =>
+        state.functionContexts.push(new Scope(List(), state.functionContexts.head.varMap, state) {})
+        state.context.pathStack.push(NodePath(whileLoop, Entering))
+        Seq()
       case Entering => Seq(whileLoop.getCondition)
       case PreExit =>
         val cast = state.stack.pop
@@ -148,6 +157,9 @@ object Statement {
         } else {
           Seq()
         }
+      case Exiting =>
+        state.popFunctionContext
+        Seq()
       case Gotoing =>
         state.nextGotoNode = Seq(whileLoop.getCondition, whileLoop)
         state.context.pathStack.pop
@@ -221,8 +233,13 @@ object Statement {
         }
 
         if (state.functionContexts.size > 1) {
-          state.popFunctionContext
-          state.context.pathStack.pop
+
+          var currentScope: Scope = null
+          do {
+            currentScope = state.functionContexts.head
+            state.popFunctionContext
+            state.context.pathStack.pop
+          } while (state.functionContexts.size > 1 && !currentScope.isInstanceOf[FunctionScope])
         }
 
         if (retVal != null) {
