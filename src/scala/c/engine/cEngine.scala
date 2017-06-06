@@ -196,7 +196,7 @@ class State {
   
   def callFunction(function: Function, call: IASTFunctionCallExpression, args: Array[ValueType]): IASTNode = {
     functionContexts.push(new FunctionScope(function.staticVars, functionContexts.head.varMap, new CFunctionType(call.getExpressionType, null), this))
-    context.pathStack.push(NodePath(call, Initial))
+    context.pathStack.push(NodePath(call, Stage1))
 
     args.foreach{ arg => context.stack.push(arg)}
     context.stack.push(RValue(args.size, null))

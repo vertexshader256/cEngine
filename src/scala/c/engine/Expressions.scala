@@ -9,12 +9,12 @@ object Expressions {
 
   def parse(expr: IASTExpression)(implicit context: State): PartialFunction[Direction, Seq[IASTNode]] = expr match {
     case exprList: IASTExpressionList => {
-      case Entering => exprList.getExpressions
-      case Exiting => Seq ()
+      case Stage2 => exprList.getExpressions
+      case Stage4 => Seq ()
     }
     case ternary: IASTConditionalExpression => {
-      case Entering => Seq (ternary.getLogicalConditionExpression)
-      case Exiting =>
+      case Stage2 => Seq (ternary.getLogicalConditionExpression)
+      case Stage4 =>
         val result = TypeHelper.resolveBoolean (context.stack.pop)
 
         if (result) {
@@ -24,8 +24,8 @@ object Expressions {
         }
     }
     case cast: IASTCastExpression => {
-      case Entering => Seq(cast.getOperand, cast.getTypeId)
-      case Exiting =>
+      case Stage2 => Seq(cast.getOperand, cast.getTypeId)
+      case Stage4 =>
         val theType = context.stack.pop.asInstanceOf[TypeInfo].value
         val operand = context.stack.pop
 
@@ -41,8 +41,8 @@ object Expressions {
         Seq()
     }
     case fieldRef: IASTFieldReference => {
-      case Entering => Seq(fieldRef.getFieldOwner)
-      case Exiting =>
+      case Stage2 => Seq(fieldRef.getFieldOwner)
+      case Stage4 =>
         var baseAddr = -1
 
         val struct = context.stack.pop.asInstanceOf[LValue]
@@ -81,8 +81,8 @@ object Expressions {
         Seq()
     }
     case subscript: IASTArraySubscriptExpression => {
-      case Entering => Seq(subscript.getArrayExpression, subscript.getArgument)
-      case Exiting =>
+      case Stage2 => Seq(subscript.getArrayExpression, subscript.getArgument)
+      case Stage4 =>
         val index = context.stack.pop match {
           case x @ RValue(_, _) => TypeHelper.cast(TypeHelper.pointerType, x.value).value.asInstanceOf[Int]
           case info @ LValue(_, _) =>
@@ -117,14 +117,14 @@ object Expressions {
         Seq()
     }
     case unary: IASTUnaryExpression => {
-      case Entering => Seq(unary.getOperand)
-      case Exiting =>
+      case Stage2 => Seq(unary.getOperand)
+      case Stage4 =>
         UnaryExpression.execute(unary)
         Seq()
       case Gotoing => Seq()
     }
     case lit: IASTLiteralExpression => {
-      case Exiting =>
+      case Stage4 =>
         //println("PUSHING LIT: " + castLiteral(lit))
 
         val litStr = lit.getRawSignature
@@ -136,22 +136,22 @@ object Expressions {
         Seq()
     }
     case id: IASTIdExpression => {
-      case Exiting =>
+      case Stage4 =>
         context.stack.push(context.context.resolveId(id.getName.getRawSignature))
         Seq()
     }
     case typeExpr: IASTTypeIdExpression => {
       // used for sizeof calls on a type
-      case Entering =>
+      case Stage2 =>
         Seq(typeExpr.getTypeId)
-      case Exiting =>
+      case Stage4 =>
         val theType = context.stack.pop.asInstanceOf[TypeInfo].value
         context.stack.push(RValue(TypeHelper.sizeof(theType), TypeHelper.pointerType))
         Seq()
     }
     case call: IASTFunctionCallExpression => {
-      case Entering => call.getArguments.reverse ++ Seq(call.getFunctionNameExpression)
-      case Exiting =>
+      case Stage2 => call.getArguments.reverse ++ Seq(call.getFunctionNameExpression)
+      case Stage4 =>
         val pop = context.stack.pop
 
         val name = if (context.hasFunction(call.getFunctionNameExpression.getRawSignature)) {
@@ -171,14 +171,14 @@ object Expressions {
       case Gotoing => Seq()
     }
     case bin: IASTBinaryExpression => {
-      case Initial => Seq(bin.getOperand1)
-      case Entering =>
+      case Stage1 => Seq(bin.getOperand1)
+      case Stage2 =>
         (bin.getOperator, context.stack.head) match {
           case (IASTBinaryExpression.op_logicalOr, RValue(x: Boolean, _)) if x => context.context.pathStack.pop; Seq()
           case (IASTBinaryExpression.op_logicalAnd, RValue(x: Boolean, _)) if !x => context.context.pathStack.pop; Seq()
           case _ => Seq(bin.getOperand2)
         }
-      case Exiting =>
+      case Stage4 =>
         val op2 = context.stack.pop
         val op1 = context.stack.pop
 

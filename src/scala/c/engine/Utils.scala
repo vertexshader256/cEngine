@@ -17,10 +17,10 @@ import better.files._
 import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
 
 sealed trait Direction
-object Initial extends Direction
-object Entering extends Direction
-object PreExit extends Direction
-object Exiting extends Direction
+object Stage1 extends Direction
+object Stage2 extends Direction
+object Stage3 extends Direction
+object Stage4 extends Direction
 object Gotoing extends Direction
 
 object Utils {

@@ -38,7 +38,7 @@ object Executor {
     case decl: IASTDeclarator =>
       Declarator.execute(decl)
     case array: IASTArrayModifier => {
-      case Entering =>
+      case Stage2 =>
         if (array.getConstantExpression != null) {
           Seq(array.getConstantExpression)
         } else {
@@ -55,7 +55,7 @@ object Executor {
         }
     }
       case simple: IASTSimpleDeclaration => {
-        case Entering =>
+        case Stage2 =>
           val declSpec = simple.getDeclSpecifier
           if (declSpec.isInstanceOf[IASTEnumerationSpecifier]) {
             simple.getDeclarators :+ simple.getDeclSpecifier
@@ -64,20 +64,20 @@ object Executor {
           }
       }
       case enumerator: CASTEnumerator => {
-        case Entering =>
+        case Stage2 =>
           Seq(enumerator.getValue)
-        case Exiting =>
+        case Stage4 =>
           val newVar = state.context.addVariable(enumerator.getName.getRawSignature, TypeHelper.pointerType)
           val value = state.stack.pop.asInstanceOf[RValue]
           state.setValue(value.value, newVar.address)
           Seq()
       }
       case enum: IASTEnumerationSpecifier => {
-        case Exiting =>
+        case Stage4 =>
           enum.getEnumerators
       }
       case fcnDef: IASTFunctionDefinition => {
-        case Exiting =>
+        case Stage4 =>
           if (!state.context.stack.isEmpty) {
             val retVal = state.context.stack.pop
             if (fcnDef.getDeclarator.getName.getRawSignature != "main") {
@@ -90,19 +90,19 @@ object Executor {
             }
           }
           Seq()
-        case Entering =>
+        case Stage2 =>
           Seq(fcnDef.getDeclarator, fcnDef.getBody)
       }
       case eq: IASTEqualsInitializer => {
-        case Entering =>
+        case Stage2 =>
           Seq(eq.getInitializerClause)
       }
       case initList: IASTInitializerList => {
-        case Entering =>
+        case Stage2 =>
           initList.getClauses
       }
     case typeId: IASTTypeId => {
-      case Exiting =>
+      case Stage4 =>
 
         val result: TypeInfo = typeId.getDeclSpecifier match {
           case simple: IASTSimpleDeclSpecifier =>
@@ -148,7 +148,7 @@ object Executor {
 
   def preload(codes: Seq[String], state: State) = {
     state.tUnit = Utils.getTranslationUnit(codes)
-    state.context.pathStack.push(NodePath(state.tUnit, Initial))
+    state.context.pathStack.push(NodePath(state.tUnit, Stage1))
 
     val fcns = state.tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
     fcns.foreach{fcnDef => state.addFunctionDef(fcnDef)}
@@ -159,7 +159,7 @@ object Executor {
     run(state)
 
     state.context.pathStack.clear
-    state.context.pathStack.push(NodePath(state.getFunction("main").node, Initial))
+    state.context.pathStack.push(NodePath(state.getFunction("main").node, Stage1))
   }
 
   def tick(state: State): Boolean = {
@@ -168,8 +168,8 @@ object Executor {
       
       //println(current.node.getClass.getSimpleName + ":" + current.direction)
 
-      val paths: Seq[NodePath] = if (state.isGotoing && current.direction != Initial) {
-        val result = (Executor.step(current, Gotoing)(state) orElse NoMatch)(Gotoing).map{x => NodePath(x, Initial)}
+      val paths: Seq[NodePath] = if (state.isGotoing && current.direction != Stage1) {
+        val result = (Executor.step(current, Gotoing)(state) orElse NoMatch)(Gotoing).map{ x => NodePath(x, Stage1)}
 
         if (!current.node.isInstanceOf[IASTForStatement] && !current.node.isInstanceOf[IASTDoStatement] && !current.node.isInstanceOf[IASTWhileStatement]
           && !current.node.isInstanceOf[IASTForStatement]) {
@@ -179,13 +179,13 @@ object Executor {
         result
       } else {
 
-        val result = (Executor.step(current, current.direction)(state) orElse NoMatch)(current.direction).map{x => NodePath(x, Initial)}
+        val result = (Executor.step(current, current.direction)(state) orElse NoMatch)(current.direction).map{x => NodePath(x, Stage1)}
 
         current.direction match {
-          case Initial => current.direction = Entering
-          case Entering => current.direction = PreExit
-          case PreExit => current.direction = Exiting
-          case Exiting => state.context.pathStack.pop
+          case Stage1 => current.direction = Stage2
+          case Stage2 => current.direction = Stage3
+          case Stage3 => current.direction = Stage4
+          case Stage4 => state.context.pathStack.pop
         }
 
         result

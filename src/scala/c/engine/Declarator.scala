@@ -11,7 +11,7 @@ object Declarator {
   def execute(decl: IASTDeclarator)(implicit state: State): PartialFunction[Direction, Seq[IASTNode]] = decl match {
 
     case fcnDec: IASTFunctionDeclarator => {
-      case Entering =>
+      case Stage2 =>
         val isInFunctionPrototype = Utils.getAncestors(fcnDec).exists {
           _.isInstanceOf[IASTSimpleDeclaration]
         }
@@ -62,9 +62,9 @@ object Declarator {
         }
     }
     case arrayDecl: IASTArrayDeclarator => {
-      case Initial =>
+      case Stage1 =>
         Seq(Option(decl.getInitializer)).flatten ++ arrayDecl.getArrayModifiers
-      case Entering =>
+      case Stage2 =>
         val nameBinding = decl.getName.resolveBinding()
         val name = decl.getName.getRawSignature
         val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
@@ -130,8 +130,8 @@ object Declarator {
         Seq()
     }
     case decl: CASTDeclarator => {
-      case Initial => Seq(Option(decl.getInitializer)).flatten
-      case Entering =>
+      case Stage1 => Seq(Option(decl.getInitializer)).flatten
+      case Stage2 =>
         val nameBinding = decl.getName.resolveBinding()
         val name = decl.getName.getRawSignature
         if (nameBinding.isInstanceOf[IVariable]) {

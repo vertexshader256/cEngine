@@ -13,7 +13,7 @@ object Statement {
     case breakStatement: IASTNullStatement =>
       PartialFunction.empty
     case breakStatement: IASTBreakStatement => {
-      case Initial =>
+      case Stage1 =>
         var reverse = state.context.pathStack.pop
         var shouldBreak = false
         while ((!shouldBreak && !reverse.node.isInstanceOf[IASTWhileStatement] &&
@@ -38,7 +38,7 @@ object Statement {
         Seq()
     }
     case continueStatement: IASTContinueStatement => {
-      case Initial =>
+      case Stage1 =>
         val continueStatement = state.context.pathStack.pop.node
         var last: NodePath = statement
 
@@ -50,12 +50,12 @@ object Statement {
         val forLoop = last.node.asInstanceOf[IASTForStatement]
 
         state.context.pathStack.push(last)
-        last.direction = Entering
+        last.direction = Stage2
 
         Seq(Option(forLoop.getIterationExpression)).flatten
     }
     case goto: IASTGotoStatement => {
-      case Initial =>
+      case Stage1 =>
 
         val functionScope = state.getFunctionScope
 
@@ -70,12 +70,12 @@ object Statement {
         }
     }
     case label: IASTLabelStatement => {
-      case Exiting =>
+      case Stage4 =>
         val functionScope = state.getFunctionScope
         val backupPath = Stack[NodePath]()
         backupPath.pushAll(state.context.pathStack.map{x => NodePath(x.node, x.direction)}.reverse)
         backupPath.pop
-        backupPath.push(NodePath(label.getNestedStatement, Initial))
+        backupPath.push(NodePath(label.getNestedStatement, Stage1))
 
         val backupPath2 = Stack[NodePath]()
         backupPath2.pushAll(backupPath)
@@ -93,16 +93,16 @@ object Statement {
         }
     }
     case switch: IASTSwitchStatement => {
-      case Entering =>
+      case Stage2 =>
         val cases = switch.getBody.getChildren.collect { case x: IASTCaseStatement => x; case y: IASTDefaultStatement => y }
         Seq(switch.getControllerExpression) ++ cases // only process case and default statements
     }
     case default: IASTDefaultStatement => {
-      case Exiting => processSwitch(default)
+      case Stage4 => processSwitch(default)
     }
     case caseStatement: IASTCaseStatement => {
-      case Entering => Seq(caseStatement.getExpression)
-      case Exiting =>
+      case Stage2 => Seq(caseStatement.getExpression)
+      case Stage4 =>
         val caseExpr = state.stack.pop.asInstanceOf[RValue].value
         val switchExpr = state.stack.head
 
@@ -118,21 +118,21 @@ object Statement {
         }
     }
     case doWhileLoop: IASTDoStatement => {
-      case Initial =>
+      case Stage1 =>
         state.functionContexts.push(new Scope(List(), state.functionContexts.head.varMap, state) {})
-        state.context.pathStack.push(NodePath(doWhileLoop, Entering))
+        state.context.pathStack.push(NodePath(doWhileLoop, Stage2))
         Seq()
-      case Entering => Seq(doWhileLoop.getBody, doWhileLoop.getCondition)
-      case PreExit =>
+      case Stage2 => Seq(doWhileLoop.getBody, doWhileLoop.getCondition)
+      case Stage3 =>
         val shouldLoop = TypeHelper.resolveBoolean(state.stack.pop)
 
         if (shouldLoop) {
-          statement.direction = Entering
+          statement.direction = Stage2
           Seq(doWhileLoop.getBody, doWhileLoop.getCondition)
         } else {
           Seq()
         }
-      case Exiting =>
+      case Stage4 =>
         state.popFunctionContext
         Seq()
       case Gotoing =>
@@ -141,23 +141,23 @@ object Statement {
         Seq(doWhileLoop.getBody)
     }
     case whileLoop: IASTWhileStatement => {
-      case Initial =>
+      case Stage1 =>
         state.functionContexts.push(new Scope(List(), state.functionContexts.head.varMap, state) {})
-        state.context.pathStack.push(NodePath(whileLoop, Entering))
+        state.context.pathStack.push(NodePath(whileLoop, Stage2))
         Seq()
-      case Entering => Seq(whileLoop.getCondition)
-      case PreExit =>
+      case Stage2 => Seq(whileLoop.getCondition)
+      case Stage3 =>
         val cast = state.stack.pop
 
         val shouldLoop = TypeHelper.resolveBoolean(cast)
 
         if (shouldLoop) {
-          statement.direction = Initial
+          statement.direction = Stage1
           Seq(whileLoop.getBody)
         } else {
           Seq()
         }
-      case Exiting =>
+      case Stage4 =>
         state.popFunctionContext
         Seq()
       case Gotoing =>
@@ -166,8 +166,8 @@ object Statement {
         Seq(whileLoop.getBody)
     }
     case ifStatement: IASTIfStatement => {
-      case Entering => Seq(ifStatement.getConditionExpression)
-      case Exiting =>
+      case Stage2 => Seq(ifStatement.getConditionExpression)
+      case Stage4 =>
         val result = state.stack.pop
 
         val value = result match {
@@ -187,12 +187,12 @@ object Statement {
       case Gotoing => Seq(ifStatement.getConditionExpression)
     }
     case forLoop: IASTForStatement => {
-      case Initial =>
+      case Stage1 =>
         state.functionContexts.push(new Scope(List(), state.functionContexts.head.varMap, state) {})
-        state.context.pathStack.push(NodePath(forLoop, Entering))
+        state.context.pathStack.push(NodePath(forLoop, Stage2))
         Seq(Option(forLoop.getInitializerStatement)).flatten
-      case Entering => Seq(Option(forLoop.getConditionExpression)).flatten
-      case PreExit =>
+      case Stage2 => Seq(Option(forLoop.getConditionExpression)).flatten
+      case Stage3 =>
         val shouldKeepLooping = if (forLoop.getConditionExpression != null) {
 
           val result = TypeHelper.resolve(state.stack.pop).value
@@ -203,27 +203,27 @@ object Statement {
         }
 
         if (shouldKeepLooping) {
-          statement.direction = Initial
+          statement.direction = Stage1
           Seq(Option(forLoop.getBody), Option(forLoop.getIterationExpression)).flatten
         } else {
           Seq()
         }
-      case Exiting =>
+      case Stage4 =>
         state.popFunctionContext
         Seq()
       case Gotoing =>
         state.nextGotoNode = Seq(Option(forLoop.getBody), Option(forLoop.getIterationExpression)).flatten
-        statement.direction = Entering
+        statement.direction = Stage2
         Seq(forLoop.getBody, forLoop.getIterationExpression)
     }
     case ret: IASTReturnStatement => {
-      case Initial =>
+      case Stage1 =>
         if (ret.getReturnValue != null) {
           Seq(ret.getReturnValue)
         } else {
           Seq()
         }
-      case Entering =>
+      case Stage2 =>
 
         var retVal: ValueType = null
 
@@ -255,14 +255,14 @@ object Statement {
         Seq()
     }
     case decl: IASTDeclarationStatement => {
-      case Initial => Seq(decl.getDeclaration)
+      case Stage1 => Seq(decl.getDeclaration)
     }
     case compound: IASTCompoundStatement => {
-      case Initial => compound.getStatements
+      case Stage1 => compound.getStatements
       case Gotoing => compound.getStatements
     }
     case exprStatement: IASTExpressionStatement => {
-      case Entering => Seq(exprStatement.getExpression)
+      case Stage2 => Seq(exprStatement.getExpression)
       case Gotoing => Seq(exprStatement.getExpression)
     }
   }

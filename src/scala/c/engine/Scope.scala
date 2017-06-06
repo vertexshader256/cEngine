@@ -12,6 +12,13 @@ class FunctionScope(theStaticVars: List[Variable], theParentScopeVars: List[Vari
   val labels = new ListBuffer[(String, Stack[NodePath])]()
 }
 
+trait ContinuableScope
+
+class LoopScope(theStaticVars: List[Variable], theParentScopeVars: List[Variable], theState: State)
+  extends Scope(theStaticVars, theParentScopeVars, theState) with ContinuableScope {
+  val labels = new ListBuffer[(String, Stack[NodePath])]()
+}
+
 abstract class Scope(staticVars: List[Variable], parentScopeVars: List[Variable], state: State) {
   var varMap: List[Variable] = (staticVars.toSet ++ parentScopeVars.toSet).toList
   val pathStack = new Stack[NodePath]()
