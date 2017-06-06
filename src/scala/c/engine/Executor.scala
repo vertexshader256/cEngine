@@ -184,8 +184,8 @@ object Executor {
         current.direction match {
           case Stage1 => current.direction = Stage2
           case Stage2 => current.direction = Stage3
-          case Stage3 => current.direction = Stage4
-          case Stage4 => current.direction = Exiting
+          case Stage3 => current.direction = PreLoop
+          case PreLoop => current.direction = Exiting
           case Exiting => state.context.pathStack.pop
         }
 

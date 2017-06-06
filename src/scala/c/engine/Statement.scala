@@ -123,7 +123,7 @@ object Statement {
         state.context.pathStack.push(NodePath(doWhileLoop, Stage2))
         Seq()
       case Stage2 => Seq(doWhileLoop.getBody, doWhileLoop.getCondition)
-      case Stage3 =>
+      case PreLoop =>
         val shouldLoop = TypeHelper.resolveBoolean(state.stack.pop)
 
         if (shouldLoop) {
@@ -146,7 +146,7 @@ object Statement {
         state.context.pathStack.push(NodePath(whileLoop, Stage2))
         Seq()
       case Stage2 => Seq(whileLoop.getCondition)
-      case Stage3 =>
+      case PreLoop =>
         val cast = state.stack.pop
 
         val shouldLoop = TypeHelper.resolveBoolean(cast)
@@ -202,17 +202,20 @@ object Statement {
           true
         }
 
-        if (shouldKeepLooping) {
-          statement.direction = Stage1
-          Seq(Option(forLoop.getBody), Option(forLoop.getIterationExpression)).flatten
-        } else {
+        if (!shouldKeepLooping) {
+          statement.direction = PreLoop
           Seq()
+        } else {
+          Seq(forLoop.getBody)
         }
+      case PreLoop =>
+        statement.direction = Stage1
+        Seq(forLoop.getIterationExpression)
       case Exiting =>
         state.popFunctionContext
         Seq()
       case Gotoing =>
-        state.nextGotoNode = Seq(Option(forLoop.getBody), Option(forLoop.getIterationExpression)).flatten
+        state.nextGotoNode = Seq(forLoop.getBody, forLoop.getIterationExpression)
         statement.direction = Stage2
         Seq(forLoop.getBody, forLoop.getIterationExpression)
     }

@@ -20,7 +20,7 @@ sealed trait Direction
 object Stage1 extends Direction
 object Stage2 extends Direction
 object Stage3 extends Direction
-object Stage4 extends Direction
+object PreLoop extends Direction
 object Exiting extends Direction
 object Gotoing extends Direction
 
