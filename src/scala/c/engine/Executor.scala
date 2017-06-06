@@ -66,18 +66,18 @@ object Executor {
       case enumerator: CASTEnumerator => {
         case Stage2 =>
           Seq(enumerator.getValue)
-        case Stage4 =>
+        case Exiting =>
           val newVar = state.context.addVariable(enumerator.getName.getRawSignature, TypeHelper.pointerType)
           val value = state.stack.pop.asInstanceOf[RValue]
           state.setValue(value.value, newVar.address)
           Seq()
       }
       case enum: IASTEnumerationSpecifier => {
-        case Stage4 =>
+        case Exiting =>
           enum.getEnumerators
       }
       case fcnDef: IASTFunctionDefinition => {
-        case Stage4 =>
+        case Exiting =>
           if (!state.context.stack.isEmpty) {
             val retVal = state.context.stack.pop
             if (fcnDef.getDeclarator.getName.getRawSignature != "main") {
@@ -102,7 +102,7 @@ object Executor {
           initList.getClauses
       }
     case typeId: IASTTypeId => {
-      case Stage4 =>
+      case Exiting =>
 
         val result: TypeInfo = typeId.getDeclSpecifier match {
           case simple: IASTSimpleDeclSpecifier =>
@@ -185,7 +185,8 @@ object Executor {
           case Stage1 => current.direction = Stage2
           case Stage2 => current.direction = Stage3
           case Stage3 => current.direction = Stage4
-          case Stage4 => state.context.pathStack.pop
+          case Stage4 => current.direction = Exiting
+          case Exiting => state.context.pathStack.pop
         }
 
         result

@@ -10,11 +10,11 @@ object Expressions {
   def parse(expr: IASTExpression)(implicit context: State): PartialFunction[Direction, Seq[IASTNode]] = expr match {
     case exprList: IASTExpressionList => {
       case Stage2 => exprList.getExpressions
-      case Stage4 => Seq ()
+      case Exiting => Seq ()
     }
     case ternary: IASTConditionalExpression => {
       case Stage2 => Seq (ternary.getLogicalConditionExpression)
-      case Stage4 =>
+      case Exiting =>
         val result = TypeHelper.resolveBoolean (context.stack.pop)
 
         if (result) {
@@ -25,7 +25,7 @@ object Expressions {
     }
     case cast: IASTCastExpression => {
       case Stage2 => Seq(cast.getOperand, cast.getTypeId)
-      case Stage4 =>
+      case Exiting =>
         val theType = context.stack.pop.asInstanceOf[TypeInfo].value
         val operand = context.stack.pop
 
@@ -42,7 +42,7 @@ object Expressions {
     }
     case fieldRef: IASTFieldReference => {
       case Stage2 => Seq(fieldRef.getFieldOwner)
-      case Stage4 =>
+      case Exiting =>
         var baseAddr = -1
 
         val struct = context.stack.pop.asInstanceOf[LValue]
@@ -82,7 +82,7 @@ object Expressions {
     }
     case subscript: IASTArraySubscriptExpression => {
       case Stage2 => Seq(subscript.getArrayExpression, subscript.getArgument)
-      case Stage4 =>
+      case Exiting =>
         val index = context.stack.pop match {
           case x @ RValue(_, _) => TypeHelper.cast(TypeHelper.pointerType, x.value).value.asInstanceOf[Int]
           case info @ LValue(_, _) =>
@@ -118,13 +118,13 @@ object Expressions {
     }
     case unary: IASTUnaryExpression => {
       case Stage2 => Seq(unary.getOperand)
-      case Stage4 =>
+      case Exiting =>
         UnaryExpression.execute(unary)
         Seq()
       case Gotoing => Seq()
     }
     case lit: IASTLiteralExpression => {
-      case Stage4 =>
+      case Exiting =>
         //println("PUSHING LIT: " + castLiteral(lit))
 
         val litStr = lit.getRawSignature
@@ -136,7 +136,7 @@ object Expressions {
         Seq()
     }
     case id: IASTIdExpression => {
-      case Stage4 =>
+      case Exiting =>
         context.stack.push(context.context.resolveId(id.getName.getRawSignature))
         Seq()
     }
@@ -144,14 +144,14 @@ object Expressions {
       // used for sizeof calls on a type
       case Stage2 =>
         Seq(typeExpr.getTypeId)
-      case Stage4 =>
+      case Exiting =>
         val theType = context.stack.pop.asInstanceOf[TypeInfo].value
         context.stack.push(RValue(TypeHelper.sizeof(theType), TypeHelper.pointerType))
         Seq()
     }
     case call: IASTFunctionCallExpression => {
       case Stage2 => call.getArguments.reverse ++ Seq(call.getFunctionNameExpression)
-      case Stage4 =>
+      case Exiting =>
         val pop = context.stack.pop
 
         val name = if (context.hasFunction(call.getFunctionNameExpression.getRawSignature)) {
@@ -178,7 +178,7 @@ object Expressions {
           case (IASTBinaryExpression.op_logicalAnd, RValue(x: Boolean, _)) if !x => context.context.pathStack.pop; Seq()
           case _ => Seq(bin.getOperand2)
         }
-      case Stage4 =>
+      case Exiting =>
         val op2 = context.stack.pop
         val op1 = context.stack.pop
 

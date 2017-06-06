@@ -70,7 +70,7 @@ object Statement {
         }
     }
     case label: IASTLabelStatement => {
-      case Stage4 =>
+      case Exiting =>
         val functionScope = state.getFunctionScope
         val backupPath = Stack[NodePath]()
         backupPath.pushAll(state.context.pathStack.map{x => NodePath(x.node, x.direction)}.reverse)
@@ -98,11 +98,11 @@ object Statement {
         Seq(switch.getControllerExpression) ++ cases // only process case and default statements
     }
     case default: IASTDefaultStatement => {
-      case Stage4 => processSwitch(default)
+      case Exiting => processSwitch(default)
     }
     case caseStatement: IASTCaseStatement => {
       case Stage2 => Seq(caseStatement.getExpression)
-      case Stage4 =>
+      case Exiting =>
         val caseExpr = state.stack.pop.asInstanceOf[RValue].value
         val switchExpr = state.stack.head
 
@@ -132,7 +132,7 @@ object Statement {
         } else {
           Seq()
         }
-      case Stage4 =>
+      case Exiting =>
         state.popFunctionContext
         Seq()
       case Gotoing =>
@@ -157,7 +157,7 @@ object Statement {
         } else {
           Seq()
         }
-      case Stage4 =>
+      case Exiting =>
         state.popFunctionContext
         Seq()
       case Gotoing =>
@@ -167,7 +167,7 @@ object Statement {
     }
     case ifStatement: IASTIfStatement => {
       case Stage2 => Seq(ifStatement.getConditionExpression)
-      case Stage4 =>
+      case Exiting =>
         val result = state.stack.pop
 
         val value = result match {
@@ -208,7 +208,7 @@ object Statement {
         } else {
           Seq()
         }
-      case Stage4 =>
+      case Exiting =>
         state.popFunctionContext
         Seq()
       case Gotoing =>
