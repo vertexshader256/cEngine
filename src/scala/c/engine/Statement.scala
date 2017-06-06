@@ -26,15 +26,11 @@ object Statement {
           }
         }
 
-        if (reverse.node.isInstanceOf[IASTDoStatement] || reverse.node.isInstanceOf[IASTWhileStatement]) {
+        if (reverse.node.isInstanceOf[IASTDoStatement] || reverse.node.isInstanceOf[IASTWhileStatement] || reverse.node.isInstanceOf[IASTForStatement]) {
           state.popFunctionContext
           state.context.pathStack.pop
         }
 
-        if (reverse.node.isInstanceOf[IASTForStatement]) {
-          state.popFunctionContext
-          state.context.pathStack.pop
-        }
         Seq()
     }
     case continueStatement: IASTContinueStatement => {
@@ -47,12 +43,10 @@ object Statement {
           last = state.context.pathStack.pop
         }
 
-        val forLoop = last.node.asInstanceOf[IASTForStatement]
-
         state.context.pathStack.push(last)
-        last.direction = Stage2
+        last.direction = PreLoop
 
-        Seq(Option(forLoop.getIterationExpression)).flatten
+        Seq()
     }
     case goto: IASTGotoStatement => {
       case Stage1 =>
