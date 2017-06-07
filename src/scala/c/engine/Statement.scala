@@ -4,7 +4,7 @@ import Executor.processSwitch
 import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.internal.core.dom.parser.c.{CASTBreakStatement, CASTContinueStatement, CFunctionType}
 
-import scala.c.engine.{FunctionScope, NodePath, Scope}
+import scala.c.engine._
 import scala.collection.mutable.Stack
 
 object Statement {
@@ -35,16 +35,16 @@ object Statement {
     }
     case continueStatement: IASTContinueStatement => {
       case Stage1 =>
-        val continueStatement = state.context.pathStack.pop.node
-        var last: NodePath = statement
-
-        // find the first for loop that is a direct ancestor
-        while (!last.node.isInstanceOf[IASTForStatement] || !Utils.getAncestors(continueStatement).contains(last.node)) {
-          last = state.context.pathStack.pop
+        if (state.functionContexts.size > 1) {
+          while (state.functionContexts.size > 1 && !state.functionContexts.head.isInstanceOf[ContinuableScope]) {
+            state.popFunctionContext
+          }
         }
 
-        state.context.pathStack.push(last)
-        last.direction = PreLoop
+        // skip everything, return to the first node
+        while (state.context.pathStack.size > 1) {
+          state.context.pathStack.pop
+        }
 
         Seq()
     }
@@ -113,7 +113,7 @@ object Statement {
     }
     case doWhileLoop: IASTDoStatement => {
       case Stage1 =>
-        state.functionContexts.push(new Scope(List(), state.functionContexts.head.varMap, state) {})
+        state.functionContexts.push(new LoopScope(List(), state.functionContexts.head.varMap, state) {})
         state.context.pathStack.push(NodePath(doWhileLoop, Stage2))
         Seq()
       case Stage2 => Seq(doWhileLoop.getBody, doWhileLoop.getCondition)
@@ -136,7 +136,7 @@ object Statement {
     }
     case whileLoop: IASTWhileStatement => {
       case Stage1 =>
-        state.functionContexts.push(new Scope(List(), state.functionContexts.head.varMap, state) {})
+        state.functionContexts.push(new LoopScope(List(), state.functionContexts.head.varMap, state) {})
         state.context.pathStack.push(NodePath(whileLoop, Stage2))
         Seq()
       case Stage2 => Seq(whileLoop.getCondition)
@@ -182,7 +182,7 @@ object Statement {
     }
     case forLoop: IASTForStatement => {
       case Stage1 =>
-        state.functionContexts.push(new Scope(List(), state.functionContexts.head.varMap, state) {})
+        state.functionContexts.push(new LoopScope(List(), state.functionContexts.head.varMap, state) {})
         state.context.pathStack.push(NodePath(forLoop, Stage2))
         Seq(Option(forLoop.getInitializerStatement)).flatten
       case Stage2 => Seq(Option(forLoop.getConditionExpression)).flatten

@@ -226,6 +226,23 @@ class DoWhileStatement extends StandardTest {
 
     checkResults(code)
   }
+
+  "An do..while with a continue" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 0;
+        do {
+          x++;
+          if (x == 3) {
+            continue;
+          }
+          printf("%d\n", x);
+        } while (x < 5);
+
+      }"""
+
+    checkResults(code)
+  }
 }
 
 class WhileStatement extends StandardTest {
@@ -297,6 +314,25 @@ class WhileStatement extends StandardTest {
         while (1) {
           break;
           x++;
+        }
+        printf("%d\n", x);
+      }"""
+
+    checkResults(code)
+  }
+
+  "A simple while statement with a continue" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 0;
+        while (1) {
+          x++;
+          if (x % 2 == 0) {
+            continue;
+          }
+          if (x == 11) {
+             break;
+          }
         }
         printf("%d\n", x);
       }"""
