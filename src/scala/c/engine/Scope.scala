@@ -13,10 +13,10 @@ class FunctionScope(theStaticVars: List[Variable], theParentScopeVars: List[Vari
 }
 
 trait ContinuableScope
+trait BreakableScope
 
 class LoopScope(theStaticVars: List[Variable], theParentScopeVars: List[Variable], theState: State)
-  extends Scope(theStaticVars, theParentScopeVars, theState) with ContinuableScope {
-  val labels = new ListBuffer[(String, Stack[NodePath])]()
+  extends Scope(theStaticVars, theParentScopeVars, theState) with ContinuableScope with BreakableScope {
 }
 
 abstract class Scope(staticVars: List[Variable], parentScopeVars: List[Variable], state: State) {
