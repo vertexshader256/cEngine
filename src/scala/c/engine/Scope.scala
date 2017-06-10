@@ -19,10 +19,6 @@ class LoopScope(theStaticVars: List[Variable], parent: Scope, theState: State)
   extends Scope(theStaticVars, parent, theState) with ContinuableScope with BreakableScope {
 }
 
-object Scope {
-  val varMap = scala.collection.mutable.HashMap[IBinding, Variable]()
-}
-
 abstract class Scope(staticVars: List[Variable], parent: Scope, state: State) {
   private var varMap: List[Variable] = if (parent != null) {
     (staticVars.toSet ++ parent.varMap.toSet).toList
@@ -43,7 +39,7 @@ abstract class Scope(staticVars: List[Variable], parent: Scope, state: State) {
     if (!staticVars.exists{_.name == name.getRawSignature}) {
       val newVar = new ArrayVariable(name, state, theType, dimensions)
       varMap = varMap.filter { theVar => theVar.name.getRawSignature != name.getRawSignature } :+ newVar
-      Scope.varMap += name.resolveBinding() -> newVar
+      state.varMap += name.resolveBinding() -> newVar
       newVar
     } else {
       staticVars.find{_.name.getRawSignature == name.getRawSignature}.get.asInstanceOf[ArrayVariable]
@@ -55,7 +51,7 @@ abstract class Scope(staticVars: List[Variable], parent: Scope, state: State) {
     if (!staticVars.exists{_.name.getRawSignature == name.getRawSignature}) {
       val newVar = new Variable(name, state, theType)
       varMap = varMap.filter { theVar => theVar.name.getRawSignature != name.getRawSignature } :+ newVar
-      Scope.varMap += name.resolveBinding() -> newVar
+      state.varMap += name.resolveBinding() -> newVar
       newVar
     } else {
       staticVars.find{_.name.getRawSignature == name.getRawSignature}.get
