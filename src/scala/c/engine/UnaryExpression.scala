@@ -70,7 +70,7 @@ object UnaryExpression {
           case info @ LValue(_, _) =>
             info.theType match {
               case fcn: CFunctionType => state.stack.push(LValue(info.address, fcn))
-              case x: IType => state.stack.push(RValue(info.address, x))
+              case x: IType => state.stack.push(RValue(info.address, TypeHelper.pointerType))
             }
         }
       case `op_star` =>

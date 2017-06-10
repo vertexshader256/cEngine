@@ -31,7 +31,7 @@ object Literal {
       pre
     }
 
-    val (resultValue, theType) = if (lit.head == '\"' && lit.last == '\"') {
+    val (resultValue, theType: IBasicType) = if (lit.head == '\"' && lit.last == '\"') {
       (StringLiteral(lit), new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0))
     } else if (lit.head == '\'' && lit.last == '\'' && (lit.size == 3 || lit == "'\\0'" || lit == "'\\\\'")) {
       if (lit == "'\\0'") {
