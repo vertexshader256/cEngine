@@ -36,31 +36,31 @@ object UnaryExpression {
         }
       case `op_postFixIncr` =>
         val info = state.stack.pop.asInstanceOf[LValue]
-        val newVal = BinaryExpr.evaluate(unary, info.value, one, IASTBinaryExpression.op_plus)
+        val newVal = BinaryExpr.evaluate(unary, info.value, one, IASTBinaryExpression.op_plus).value
 
-        state.stack.push(info.value)
-        state.setValue(newVal.value, info.address)
+        state.stack.push(RValue(info.value.value, info.theType))
+        state.setValue(newVal, info.address)
       case `op_postFixDecr` =>
         val info = state.stack.pop.asInstanceOf[LValue]
-        val newVal = BinaryExpr.evaluate(unary, info.value, one, IASTBinaryExpression.op_minus)
+        val newVal = BinaryExpr.evaluate(unary, info.value, one, IASTBinaryExpression.op_minus).value
 
         // push then set
-        state.stack.push(info.value)
-        state.setValue(newVal.value, info.address)
+        state.stack.push(RValue(info.value.value, info.theType))
+        state.setValue(newVal, info.address)
       case `op_prefixIncr` =>
         val info = state.stack.pop.asInstanceOf[LValue]
-        val newVal = BinaryExpr.evaluate(unary, info.value, one, IASTBinaryExpression.op_plus)
+        val newVal = BinaryExpr.evaluate(unary, info.value, one, IASTBinaryExpression.op_plus).value
 
         // set then push
-        state.setValue(newVal.value, info.address)
-        state.stack.push(newVal)
+        state.setValue(newVal, info.address)
+        state.stack.push(RValue(newVal, info.theType))
       case `op_prefixDecr` =>
         val info = state.stack.pop.asInstanceOf[LValue]
-        val newVal = BinaryExpr.evaluate(unary, info.value, one, IASTBinaryExpression.op_minus)
+        val newVal = BinaryExpr.evaluate(unary, info.value, one, IASTBinaryExpression.op_minus).value
 
         // set then push
-        state.setValue(newVal.value, info.address)
-        state.stack.push(newVal)
+        state.setValue(newVal, info.address)
+        state.stack.push(RValue(newVal, info.theType))
       case `op_sizeof` =>
         state.stack.push(state.stack.pop match {
           case info @ LValue(_, theType) => RValue(info.sizeof, TypeHelper.pointerType)
