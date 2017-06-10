@@ -30,6 +30,13 @@ object BinaryExpr {
         state.createStringVariable(str, false)
     }
 
+    val initialRight = if ((x.theType.isInstanceOf[IPointerType] || x.theType.isInstanceOf[IArrayType]) && (operator == `op_minus` || operator == `op_plus`)) {
+      // increment by the size of the left arg
+      right.value.asInstanceOf[Int] * TypeHelper.sizeof(TypeHelper.resolve(x.theType))
+    } else {
+      right.value
+    }
+
     val left = x match {
       case info @ LValue(_, _) => info.value
       case value @ RValue(_, _) => value
@@ -37,17 +44,9 @@ object BinaryExpr {
         state.createStringVariable(str, false)
     }
 
-    val initialLeft = left.value
-    val initialRight = if ((left.theType.isInstanceOf[IPointerType] || left.theType.isInstanceOf[IArrayType]) && (operator == `op_minus` || operator == `op_plus`)) {
-      // increment by the size of the left arg
-      right.value.asInstanceOf[Int] * TypeHelper.sizeof(TypeHelper.resolve(left.theType))
-    } else {
-      right.value
-    }
-
     // Because of integer promotion, C never does math on anything less than int's
 
-    val op1 = initialLeft match {
+    val op1 = left.value match {
       case theChar: char => theChar.toInt
       case theShort: short => theShort.toInt
       case x => x
