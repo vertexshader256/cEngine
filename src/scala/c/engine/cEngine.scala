@@ -41,6 +41,10 @@ class State {
 
   val varMap = scala.collection.mutable.HashMap[IBinding, Variable]()
 
+  def addVariable(variable: Variable) = {
+    varMap += variable.name.resolveBinding() -> variable
+  }
+
   var standardOutBuffer = new ListBuffer[Char]
   val functionContexts = new Stack[Scope]()
   def context = functionContexts.head
