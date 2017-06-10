@@ -28,32 +28,32 @@ object UnaryExpression {
         val newVal = BinaryExpr.evaluate(unary, valueType, negativeOne, IASTBinaryExpression.op_multiply).value
         state.stack.push(RValue(newVal, valueType.theType))
       case `op_postFixIncr` =>
-        val info = state.stack.pop.asInstanceOf[LValue]
-        val newVal = BinaryExpr.evaluate(unary, info.value, one, IASTBinaryExpression.op_plus).value
+        val lValue = state.stack.pop.asInstanceOf[LValue]
+        val newVal = BinaryExpr.evaluate(unary, lValue, one, IASTBinaryExpression.op_plus).value
 
-        state.stack.push(RValue(info.value.value, info.theType))
-        state.setValue(newVal, info.address)
+        state.stack.push(RValue(lValue.value.value, lValue.theType))
+        state.setValue(newVal, lValue.address)
       case `op_postFixDecr` =>
-        val info = state.stack.pop.asInstanceOf[LValue]
-        val newVal = BinaryExpr.evaluate(unary, info.value, one, IASTBinaryExpression.op_minus).value
+        val lValue = state.stack.pop.asInstanceOf[LValue]
+        val newVal = BinaryExpr.evaluate(unary, lValue, one, IASTBinaryExpression.op_minus).value
 
         // push then set
-        state.stack.push(RValue(info.value.value, info.theType))
-        state.setValue(newVal, info.address)
+        state.stack.push(RValue(lValue.value.value, lValue.theType))
+        state.setValue(newVal, lValue.address)
       case `op_prefixIncr` =>
-        val info = state.stack.pop.asInstanceOf[LValue]
-        val newVal = BinaryExpr.evaluate(unary, info.value, one, IASTBinaryExpression.op_plus).value
+        val lValue = state.stack.pop.asInstanceOf[LValue]
+        val newVal = BinaryExpr.evaluate(unary, lValue, one, IASTBinaryExpression.op_plus).value
 
         // set then push
-        state.setValue(newVal, info.address)
-        state.stack.push(RValue(newVal, info.theType))
+        state.setValue(newVal, lValue.address)
+        state.stack.push(RValue(newVal, lValue.theType))
       case `op_prefixDecr` =>
-        val info = state.stack.pop.asInstanceOf[LValue]
-        val newVal = BinaryExpr.evaluate(unary, info.value, one, IASTBinaryExpression.op_minus).value
+        val lValue = state.stack.pop.asInstanceOf[LValue]
+        val newVal = BinaryExpr.evaluate(unary, lValue, one, IASTBinaryExpression.op_minus).value
 
         // set then push
-        state.setValue(newVal, info.address)
-        state.stack.push(RValue(newVal, info.theType))
+        state.setValue(newVal, lValue.address)
+        state.stack.push(RValue(newVal, lValue.theType))
       case `op_sizeof` =>
         state.stack.push(state.stack.pop match {
           case info @ LValue(_, theType) => RValue(info.sizeof, TypeHelper.pointerType)
