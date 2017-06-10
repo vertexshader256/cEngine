@@ -24,6 +24,18 @@ object Executor {
     state.context.pathStack.push(NodePath(state.getFunction("main").node, Stage1))
   }
 
+  def run(state: State) = {
+    var keepRunning = true
+    while (keepRunning) {
+      try {
+        keepRunning = tick(state)
+      } catch {
+        case e =>
+          throw e
+      }
+    }
+  }
+
   def tick(state: State): Boolean = {
     val current = state.context.pathStack.headOption.getOrElse(null)
     if (current != null) {
@@ -59,18 +71,6 @@ object Executor {
       true
     } else {
       false
-    }
-  }
-
-  def run(state: State) = {
-    var keepRunning = true
-    while (keepRunning) {
-      try {
-        keepRunning = tick(state)
-      } catch {
-        case e =>
-          throw e
-      }
     }
   }
 }
