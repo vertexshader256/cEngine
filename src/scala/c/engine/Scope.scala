@@ -20,7 +20,7 @@ class LoopScope(theStaticVars: List[Variable], parent: Scope, theState: State)
 }
 
 object Scope {
-  val varMap = scala.collection.mutable.HashMap[IVariable, Variable]()
+  val varMap = scala.collection.mutable.HashMap[IBinding, Variable]()
 }
 
 abstract class Scope(staticVars: List[Variable], parent: Scope, state: State) {
@@ -34,7 +34,7 @@ abstract class Scope(staticVars: List[Variable], parent: Scope, state: State) {
   val stack = new Stack[ValueType]()
   val startingStackAddr = state.stackInsertIndex
 
-  def resolveId(name: IASTNode): Variable = {
+  def resolveId(name: IASTName): Variable = {
     varMap.find{_.name == name.getRawSignature}.getOrElse(state.functionPointers(name.getRawSignature))
   }
 
@@ -42,22 +42,24 @@ abstract class Scope(staticVars: List[Variable], parent: Scope, state: State) {
     varMap.find{_.name == name}.getOrElse(state.functionPointers(name))
   }
 
-  def addArrayVariable(name: IASTNode, theType: IArrayType, dimensions: Seq[Int]): ArrayVariable = {
+  def addArrayVariable(name: IASTName, theType: IArrayType, dimensions: Seq[Int]): ArrayVariable = {
 
     if (!staticVars.exists{_.name == name.getRawSignature}) {
       val newVar = new ArrayVariable(name.getRawSignature, state, theType, dimensions)
       varMap = varMap.filter { theVar => theVar.name != name.getRawSignature } :+ newVar
+      Scope.varMap += name.resolveBinding() -> newVar
       newVar
     } else {
       staticVars.find{_.name == name.getRawSignature}.get.asInstanceOf[ArrayVariable]
     }
   }
 
-  def addVariable(name: IASTNode, theType: IType): Variable = {
+  def addVariable(name: IASTName, theType: IType): Variable = {
 
     if (!staticVars.exists{_.name == name.getRawSignature}) {
       val newVar = new Variable(name.getRawSignature, state, theType)
       varMap = varMap.filter { theVar => theVar.name != name.getRawSignature } :+ newVar
+      Scope.varMap += name.resolveBinding() -> newVar
       newVar
     } else {
       staticVars.find{_.name == name.getRawSignature}.get
