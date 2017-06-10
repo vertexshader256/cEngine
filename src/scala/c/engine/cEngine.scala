@@ -54,7 +54,7 @@ class State {
 
   var nextGotoNode: Seq[IASTNode] = Seq()
 
-  functionContexts.push(new FunctionScope(List(), List(), null, this))
+  functionContexts.push(new FunctionScope(List(), null, null, this))
 
   def getFunctionScope = {
     functionContexts.collect{case fcnScope: FunctionScope => fcnScope}.head
@@ -166,7 +166,7 @@ class State {
     functionList.find(_.name == name).map{ fcn =>
       if (!fcn.isNative) {
 
-        functionContexts.push(new FunctionScope(List(), functionContexts.head.varMap, new CFunctionType(call.getExpressionType, null), this))
+        functionContexts.push(new FunctionScope(List(), functionContexts.head, new CFunctionType(call.getExpressionType, null), this))
 
         val resolvedArgs = args.map{x =>
           Utils.allocateString(x, false)(State.this)
@@ -188,14 +188,14 @@ class State {
       }
     }.getOrElse{
       // function pointer case
-      val fcnPointer = functionContexts.head.varMap.find{_.name == name}.get
+      val fcnPointer = functionContexts.head.resolveId(name)
       val fcn = getFunctionByIndex(fcnPointer.value.asInstanceOf[Int])
       Seq(fcn.node)
     }
   }
   
   def callFunction(function: Function, call: IASTFunctionCallExpression, args: Array[ValueType]): IASTNode = {
-    functionContexts.push(new FunctionScope(function.staticVars, functionContexts.head.varMap, new CFunctionType(call.getExpressionType, null), this))
+    functionContexts.push(new FunctionScope(function.staticVars, functionContexts.head, new CFunctionType(call.getExpressionType, null), this))
     context.pathStack.push(NodePath(call, Stage1))
 
     args.foreach{ arg => context.stack.push(arg)}
