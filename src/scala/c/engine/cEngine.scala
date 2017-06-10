@@ -81,7 +81,7 @@ class State {
     
     val fcnType = new CFunctionType(new CBasicType(IBasicType.Kind.eVoid, 0), null)
     
-    val newVar = new Variable(fcn.name, State.this, fcnType)
+    val newVar = new Variable(new CASTName(fcn.name.toCharArray), State.this, fcnType)
     setValue(functionCount, newVar.address)
     
     functionPointers += fcn.name -> newVar
@@ -96,10 +96,9 @@ class State {
         if (nameBinding.isInstanceOf[IVariable]) {
           val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
 
-          val name = decl.getName.getRawSignature
           if (decl.getParent.isInstanceOf[IASTSimpleDeclaration] &&
             decl.getParent.asInstanceOf[IASTSimpleDeclaration].getDeclSpecifier.getStorageClass == IASTDeclSpecifier.sc_static) {
-            List(new Variable(name, state, theType))
+            List(new Variable(decl.getName, state, theType))
           } else {
             List()
           }
@@ -144,7 +143,7 @@ class State {
       override def node = fcnDef
     }
     
-    val newVar = new Variable(name.getRawSignature, State.this, fcnType)
+    val newVar = new Variable(name, State.this, fcnType)
     setValue(functionCount, newVar.address)
     
     functionPointers += name.getRawSignature -> newVar
@@ -188,7 +187,7 @@ class State {
       }
     }.getOrElse{
       // function pointer case
-      val fcnPointer = functionContexts.head.resolveId(name)
+      val fcnPointer = functionContexts.head.resolveId(new CASTName(name.toCharArray))
       val fcn = getFunctionByIndex(fcnPointer.value.asInstanceOf[Int])
       Seq(fcn.node)
     }

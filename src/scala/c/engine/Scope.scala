@@ -35,34 +35,30 @@ abstract class Scope(staticVars: List[Variable], parent: Scope, state: State) {
   val startingStackAddr = state.stackInsertIndex
 
   def resolveId(name: IASTName): Variable = {
-    varMap.find{_.name == name.getRawSignature}.getOrElse(state.functionPointers(name.getRawSignature))
-  }
-
-  def resolveId(name: String): Variable = {
-    Scope.varMap.find{case (_, theVar) => theVar.name == name}.map{_._2}.getOrElse(state.functionPointers(name))
+    varMap.find{_.name.getRawSignature == name.getRawSignature}.getOrElse(state.functionPointers(name.getRawSignature))
   }
 
   def addArrayVariable(name: IASTName, theType: IArrayType, dimensions: Seq[Int]): ArrayVariable = {
 
     if (!staticVars.exists{_.name == name.getRawSignature}) {
-      val newVar = new ArrayVariable(name.getRawSignature, state, theType, dimensions)
-      varMap = varMap.filter { theVar => theVar.name != name.getRawSignature } :+ newVar
+      val newVar = new ArrayVariable(name, state, theType, dimensions)
+      varMap = varMap.filter { theVar => theVar.name.getRawSignature != name.getRawSignature } :+ newVar
       Scope.varMap += name.resolveBinding() -> newVar
       newVar
     } else {
-      staticVars.find{_.name == name.getRawSignature}.get.asInstanceOf[ArrayVariable]
+      staticVars.find{_.name.getRawSignature == name.getRawSignature}.get.asInstanceOf[ArrayVariable]
     }
   }
 
   def addVariable(name: IASTName, theType: IType): Variable = {
 
-    if (!staticVars.exists{_.name == name.getRawSignature}) {
-      val newVar = new Variable(name.getRawSignature, state, theType)
-      varMap = varMap.filter { theVar => theVar.name != name.getRawSignature } :+ newVar
+    if (!staticVars.exists{_.name.getRawSignature == name.getRawSignature}) {
+      val newVar = new Variable(name, state, theType)
+      varMap = varMap.filter { theVar => theVar.name.getRawSignature != name.getRawSignature } :+ newVar
       Scope.varMap += name.resolveBinding() -> newVar
       newVar
     } else {
-      staticVars.find{_.name == name.getRawSignature}.get
+      staticVars.find{_.name.getRawSignature == name.getRawSignature}.get
     }
   }
 }

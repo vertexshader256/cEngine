@@ -44,7 +44,7 @@ object LValue {
   }
 }
 
-class ArrayVariable(name: String, state: State, arrayType: IArrayType, dim: Seq[Int]) extends Variable(name, state, arrayType) {
+class ArrayVariable(name: IASTName, state: State, arrayType: IArrayType, dim: Seq[Int]) extends Variable(name, state, arrayType) {
 
   override val theType = arrayType
 
@@ -84,7 +84,7 @@ class ArrayVariable(name: String, state: State, arrayType: IArrayType, dim: Seq[
   }
 }
 
-class Variable(val name: String, val state: State, aType: IType) extends LValue(state) {
+class Variable(val name: IASTName, val state: State, aType: IType) extends LValue(state) {
   val theType = aType
   val size = TypeHelper.sizeof(aType)
   val address = allocateSpace(state, aType, 1)
