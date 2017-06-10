@@ -356,19 +356,23 @@ object Functions {
           val formatString = "%." + ndigits + "f"
           
           val args = Array[Object](arg.asInstanceOf[Object])
-          
+
           formatter.format(formatString, args: _*)
           
           val result1 = buffer.toString
           val index = result1.indexOf('.')
-          val result = result1.replace(".", "")
+          val resultString = result1.replace(".", "")
 
-          val array = result.toCharArray.map{ char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))}
+          val array = resultString.toCharArray.map{ char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))}
 
           state.setValue(index, decpt)
 
-          state.setArray(array, buf, 1)
-          Some(buf)
+          // to-do: find a way to do this without allocating?
+          val result = state.allocateHeapSpace(20)
+
+          state.setArray(array, result, 1)
+          println(result)
+          Some(result)
         }
       }
 }

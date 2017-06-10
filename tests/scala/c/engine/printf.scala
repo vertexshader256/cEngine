@@ -39,8 +39,10 @@ class printfCustom extends StandardTest {
         printf("%c\n", 'a');
         printf("%s\n", "Just a test!");
         printf("%s\n", 0);
-        //printf("%.2f\n", 1.47453);
-        //printf("%.1f\n", 1.47453);
+        printf("%.2f\n", 1.47453);
+        printf("%.1f\n", 1.47453);
+        printf("%f\n", 0.0005);
+        printf("%f\n", -345.2783);
         printf("%s %c %d\n", "Just a test!", 'K', 378437);
       }"""
 
