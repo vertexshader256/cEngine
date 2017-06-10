@@ -15,7 +15,11 @@ case class TypeInfo(value: IType) extends ValueType {
   val theType = value
 }
 
-case class RValue(value: AnyVal, theType: IType) extends ValueType
+case class RValue(value: AnyVal, theType: IType) extends ValueType {
+  override def toString = {
+    "RValue(" + value + ", " + theType + ")"
+  }
+}
 
 abstract class LValue(state: State) extends ValueType {
   val address: Int

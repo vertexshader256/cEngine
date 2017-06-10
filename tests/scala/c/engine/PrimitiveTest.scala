@@ -304,8 +304,32 @@ class PrimitiveTest extends StandardTest {
       """
 
     checkResults(code)
-  } 
-  
+  }
+
+  "unsigned char array" should "print the correct results" in {
+    val code = """
+
+      void main()
+      {
+        unsigned char *y = calloc(12, 1);
+        unsigned char *x = y;
+        *x = 100;
+        ++*x;
+        ++*x;
+        ++*x;
+        ++x;
+        *x = 100;
+        ++*x;
+        ++*x;
+
+        putchar(*x);
+        return 0;
+      }
+      """
+
+    checkResults(code, false)
+  }
+
   "char ptr initialized to string" should "print the correct results" in {
     val code = """
       void main()
