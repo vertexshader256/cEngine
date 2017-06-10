@@ -1,4 +1,5 @@
 package c.engine
+package ast
 
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 import org.eclipse.cdt.core.dom.ast._
@@ -38,6 +39,7 @@ object BinaryExpr {
     }
 
     val left = x match {
+      case info @ LValue(_, ptr: IArrayType) => RValue(info.address, TypeHelper.pointerType)
       case info @ LValue(_, _) => info.value
       case value @ RValue(_, _) => value
       case StringLiteral(str) =>

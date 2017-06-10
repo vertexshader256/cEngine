@@ -1,4 +1,5 @@
 package c.engine
+package ast
 
 import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.internal.core.dom.parser.c.{CBasicType, CFunctionType}
