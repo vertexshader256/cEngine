@@ -39,7 +39,7 @@ abstract class Scope(staticVars: List[Variable], parent: Scope, state: State) {
   }
 
   def resolveId(name: String): Variable = {
-    varMap.find{_.name == name}.getOrElse(state.functionPointers(name))
+    Scope.varMap.find{case (_, theVar) => theVar.name == name}.map{_._2}.getOrElse(state.functionPointers(name))
   }
 
   def addArrayVariable(name: IASTName, theType: IArrayType, dimensions: Seq[Int]): ArrayVariable = {
