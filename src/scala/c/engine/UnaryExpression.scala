@@ -8,6 +8,7 @@ import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 object UnaryExpression {
   def execute(unary: IASTUnaryExpression)(implicit state: State) = {
     val one = RValue(1, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))
+    val negativeOne = RValue(-1, new CBasicType(IBasicType.Kind.eInt, 0))
 
     def not(theVal: Any): AnyVal = theVal match {
       case info @ LValue(_, _) => not(info.value)
@@ -23,17 +24,9 @@ object UnaryExpression {
         state.stack.push(RValue(~state.stack.pop.asInstanceOf[RValue].value.asInstanceOf[Int], null))
       case `op_not` => state.stack.push(RValue(not(state.stack.pop), one.theType))
       case `op_minus` =>
-        state.stack.pop match {
-          case RValue(int: Int, theType)     => state.stack.push(RValue(-int, theType))
-          case RValue(doub: Double, theType)     => state.stack.push(RValue(-doub, theType))
-          case info @ LValue(_, _) =>
-
-            val basicType = info.theType.asInstanceOf[IBasicType]
-            state.stack.push(basicType.getKind match {
-              case `eInt`    => RValue(-info.value.value.asInstanceOf[Int], basicType)
-              case `eDouble` => RValue(-info.value.value.asInstanceOf[Double], basicType)
-            })
-        }
+        val valueType = state.stack.pop
+        val newVal = BinaryExpr.evaluate(unary, valueType, negativeOne, IASTBinaryExpression.op_multiply).value
+        state.stack.push(RValue(newVal, valueType.theType))
       case `op_postFixIncr` =>
         val info = state.stack.pop.asInstanceOf[LValue]
         val newVal = BinaryExpr.evaluate(unary, info.value, one, IASTBinaryExpression.op_plus).value
