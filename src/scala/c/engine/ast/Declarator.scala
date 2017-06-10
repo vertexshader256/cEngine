@@ -44,7 +44,7 @@ object Declarator {
 
                 val paramInfo = paramDecl.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
 
-                val name = paramDecl.getDeclarator.getName.getRawSignature
+                val name = paramDecl.getDeclarator.getName
                 val newVar = state.context.addVariable(name, paramInfo.getType)
                 val casted = TypeHelper.cast(newVar.theType, arg.value).value
                 state.setValue(casted, newVar.address)
@@ -67,7 +67,7 @@ object Declarator {
         Seq(Option(decl.getInitializer)).flatten ++ arrayDecl.getArrayModifiers
       case Stage2 =>
         val nameBinding = decl.getName.resolveBinding()
-        val name = decl.getName.getRawSignature
+        val name = decl.getName
         val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
         val dimensions = arrayDecl.getArrayModifiers.filter {
           _.getConstantExpression != null
@@ -134,7 +134,7 @@ object Declarator {
       case Stage1 => Seq(Option(decl.getInitializer)).flatten
       case Stage2 =>
         val nameBinding = decl.getName.resolveBinding()
-        val name = decl.getName.getRawSignature
+        val name = decl.getName
         if (nameBinding.isInstanceOf[IVariable]) {
           val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
           val stripped = TypeHelper.stripSyntheticTypeInfo(theType)

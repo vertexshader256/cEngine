@@ -49,7 +49,7 @@ object Ast {
       case Stage2 =>
         Seq(enumerator.getValue)
       case Exiting =>
-        val newVar = state.context.addVariable(enumerator.getName.getRawSignature, TypeHelper.pointerType)
+        val newVar = state.context.addVariable(enumerator.getName, TypeHelper.pointerType)
         val value = state.stack.pop.asInstanceOf[RValue]
         state.setValue(value.value, newVar.address)
         Seq()
