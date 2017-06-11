@@ -187,7 +187,12 @@ class State {
         functionContexts.push(new FunctionScope(List(), functionContexts.head, new CFunctionType(call.getExpressionType, null), this))
 
         val resolvedArgs = args.map{x =>
-          Utils.allocateString(x, false)(State.this)
+          x match {
+            case StringLiteral(str) =>
+              createStringVariable(str, false)(this)
+            case info @ LValue(_, _) => info.value
+            case value @ RValue(_, _) => value
+          }
         }
 
         // this is a function simulated in scala

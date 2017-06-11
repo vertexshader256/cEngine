@@ -29,16 +29,7 @@ object Utils {
   def stripQuotes(str: String): String = {
     str.tail.reverse.tail.reverse
   }
-  
-  def allocateString(arg: ValueType, isHeap: Boolean)(implicit state: State): RValue = {
-    arg match {
-        case StringLiteral(str) => 
-          state.createStringVariable(str, isHeap)
-        case info @ LValue(_, _) => info.value
-        case value @ RValue(_, _) => value
-      }
-  }
-  
+
   def getAncestors(node: IASTNode): Seq[IASTNode] = {
     var current = node.getParent
     val results = new ListBuffer[IASTNode]()

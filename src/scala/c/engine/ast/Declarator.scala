@@ -33,9 +33,12 @@ object Declarator {
             numArgs = state.stack.pop.asInstanceOf[RValue].value.asInstanceOf[Integer]
             val args = (0 until numArgs).map { arg => state.stack.pop }.reverse
 
-            val resolvedArgs = args.map { x =>
-              Utils.allocateString(x, false)(state)
-            }
+            val resolvedArgs = args.map { arg => arg match {
+              case StringLiteral(str) =>
+                state.createStringVariable(str, false)
+              case info @ LValue(_, _) => info.value
+              case value @ RValue(_, _) => value
+            }}
 
             resolvedArgs.foreach { arg =>
               if (!isInFunctionPrototype && !paramDecls.isEmpty) {
