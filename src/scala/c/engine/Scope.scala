@@ -42,24 +42,18 @@ abstract class Scope(staticVars: List[Variable], parent: Scope, state: State) {
   }
 
   def addArrayVariable(name: IASTName, theType: IArrayType, dimensions: Seq[Int]): ArrayVariable = {
-
-    if (!staticVars.exists{_.name == name.getRawSignature}) {
+    staticVars.find{_.name.getRawSignature == name.getRawSignature}.getOrElse {
       val newVar = new ArrayVariable(name, state, theType, dimensions)
       varMap = varMap.filter { theVar => theVar.name.getRawSignature != name.getRawSignature } :+ newVar
       newVar
-    } else {
-      staticVars.find{_.name.getRawSignature == name.getRawSignature}.get.asInstanceOf[ArrayVariable]
-    }
+    }.asInstanceOf[ArrayVariable]
   }
 
   def addVariable(name: IASTName, theType: IType): Variable = {
-
-    if (!staticVars.exists{_.name.getRawSignature == name.getRawSignature}) {
+    staticVars.find{_.name.getRawSignature == name.getRawSignature}.getOrElse {
       val newVar = new Variable(name, state, theType)
       varMap = varMap.filter { theVar => theVar.name.getRawSignature != name.getRawSignature } :+ newVar
       newVar
-    } else {
-      staticVars.find{_.name.getRawSignature == name.getRawSignature}.get
     }
   }
 }
