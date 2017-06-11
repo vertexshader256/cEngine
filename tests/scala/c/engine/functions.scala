@@ -6,22 +6,22 @@ class FunctionStackTest extends StandardTest {
 
     implicit val state = new State
 
-    val start = state.stackInsertIndex
+    val start = state.Stack.insertIndex
 
     c"""isalpha('5');"""
 
-    assert(state.stackInsertIndex == start)
+    assert(state.Stack.insertIndex == start)
   }
 
   "ensure the stack gets popped after functions with string args" should "print the correct results" in {
     import Interpreter._
     implicit val state = new State
 
-    val start = state.stackInsertIndex
+    val start = state.Stack.insertIndex
 
     c"""printf("%s\n", "whoaaa");"""
 
-    assert(state.stackInsertIndex == start)
+    assert(state.Stack.insertIndex == start)
   }
 }
 

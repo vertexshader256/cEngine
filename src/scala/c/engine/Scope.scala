@@ -39,7 +39,7 @@ abstract class Scope(staticVars: List[Variable], parent: Scope, state: State) {
     varMap ++= staticVars.toSet.toList
     pathStack.clear
     stack.clear
-    startingStackAddr = state.stackInsertIndex
+    startingStackAddr = state.Stack.insertIndex
   }
 
   def addArrayVariable(name: IASTName, theType: IArrayType, dimensions: Seq[Int]): ArrayVariable = {

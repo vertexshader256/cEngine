@@ -27,16 +27,19 @@ object Interpreter {
   }
 }
 
+class Memory(size: Int) {
+  var insertIndex = 0
+  // turing tape
+  val tape = ByteBuffer.allocate(size)
+  tape.order(ByteOrder.LITTLE_ENDIAN)
+}
 
 class State {
 
   var tUnit: IASTTranslationUnit = null
 
-  // turing tape 
-  private val tape = ByteBuffer.allocate(100000);
-  tape.order(ByteOrder.LITTLE_ENDIAN)
+  object Stack extends Memory(100000)
 
-  var stackInsertIndex = 0
   var heapInsertIndex = 50000
 
   var standardOutBuffer = new ListBuffer[Char]
@@ -77,7 +80,7 @@ class State {
   }
 
   def popFunctionContext = {
-    stackInsertIndex = functionContexts.head.startingStackAddr
+    Stack.insertIndex = functionContexts.head.startingStackAddr
     functionContexts.pop
   }
   
@@ -221,8 +224,8 @@ class State {
 
   def allocateSpace(numBytes: Int): Int = {
     if (numBytes > 0) {
-      val result = stackInsertIndex
-      stackInsertIndex += numBytes
+      val result = Stack.insertIndex
+      Stack.insertIndex += numBytes
       result
     } else {
       0
@@ -242,7 +245,7 @@ class State {
   def copy(dst: Int, src: Int, numBytes: Int) = {
     if (numBytes != 0) {
       for (i <- (0 until numBytes)) {
-         tape.put(dst + i, tape.get(src + i))
+         Stack.tape.put(dst + i, Stack.tape.get(src + i))
       }   
     }
   }
@@ -264,6 +267,8 @@ class State {
   def readVal(address: Int, theType: IType): RValue = {
 
     import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
+
+    val tape = Stack.tape
     
     val result: AnyVal = theType match {
       case basic: IBasicType =>
@@ -309,13 +314,16 @@ class State {
   }
 
   // use Address type to prevent messing up argument order
-  def setValue(newVal: AnyVal, address: Int): Unit = newVal match {
-    case char: char    => tape.put(address, char)
-    case long: Long => tape.putInt(address, long.toInt)
-    case short: Short  => tape.putShort(address, short)
-    case bool: Boolean => tape.putInt(address, if (bool) 1 else 0)
-    case int: Int => tape.putInt(address, int)
-    case float: Float   => tape.putFloat(address, float)
-    case double: Double  => tape.putDouble(address, double)
+  def setValue(newVal: AnyVal, address: Int): Unit = {
+    val tape = Stack.tape
+    newVal match {
+      case char: char => tape.put(address, char)
+      case long: Long => tape.putInt(address, long.toInt)
+      case short: Short => tape.putShort(address, short)
+      case bool: Boolean => tape.putInt(address, if (bool) 1 else 0)
+      case int: Int => tape.putInt(address, int)
+      case float: Float => tape.putFloat(address, float)
+      case double: Double => tape.putDouble(address, double)
+    }
   }
 }
