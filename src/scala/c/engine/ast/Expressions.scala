@@ -138,7 +138,7 @@ object Expressions {
     }
     case id: IASTIdExpression => {
       case Exiting =>
-        context.stack.push(context.context.resolveId(id.getName))
+        context.stack.push(context.context.resolveId(id.getName).get)
         Seq()
     }
     case typeExpr: IASTTypeIdExpression => {

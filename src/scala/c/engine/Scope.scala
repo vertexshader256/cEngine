@@ -27,13 +27,15 @@ abstract class Scope(staticVars: List[Variable], parent: Scope, state: State) {
 
   reset
 
-  def resolveId(name: IASTName): Variable = {
-    varMap.find{_.name.getRawSignature == name.getRawSignature}.getOrElse(state.functionPointers(name.getRawSignature))
+  def resolveId(name: IASTName): Option[Variable] = {
+    varMap.find{_.name.getRawSignature == name.getRawSignature}
+      .orElse(if (parent != null) parent.resolveId(name) else None)
+      .orElse(Some(state.functionPointers(name.getRawSignature)))
   }
 
   def reset = {
     varMap = if (parent != null) {
-      (staticVars.toSet ++ parent.varMap.toSet).toList
+      (staticVars.toSet).toList
     } else {
       staticVars.toSet.toList
     }

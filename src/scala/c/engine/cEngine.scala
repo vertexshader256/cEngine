@@ -213,7 +213,7 @@ class State {
       }
     }.getOrElse{
       // function pointer case
-      val fcnPointer = functionContexts.head.resolveId(new CASTName(name.toCharArray))
+      val fcnPointer = functionContexts.head.resolveId(new CASTName(name.toCharArray)).get
       val fcn = getFunctionByIndex(fcnPointer.value.asInstanceOf[Int])
       Seq(fcn.node)
     }
