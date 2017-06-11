@@ -39,16 +39,6 @@ class State {
   var stackInsertIndex = 0
   var heapInsertIndex = 50000
 
-  val varMap = scala.collection.mutable.HashMap[IScope, scala.collection.mutable.HashMap[IBinding, Variable]]()
-
-  def addVariable(variable: Variable) = {
-    val scope = variable.name.resolveBinding().getScope
-    if (!varMap.contains(scope)) {
-      varMap += scope -> new scala.collection.mutable.HashMap[IBinding, Variable]()
-    }
-    varMap(scope) += variable.name.resolveBinding() -> variable
-  }
-
   var standardOutBuffer = new ListBuffer[Char]
   private val functionContexts = new Stack[Scope]()
   def context = functionContexts.head

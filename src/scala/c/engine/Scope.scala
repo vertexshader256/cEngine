@@ -20,10 +20,10 @@ class LoopScope(theStaticVars: List[Variable], parent: Scope, theState: State)
 }
 
 abstract class Scope(staticVars: List[Variable], parent: Scope, state: State) {
-  private var varMap = List[Variable]()
+  private var varMap = new ListBuffer[Variable]()
   val pathStack = new Stack[NodePath]()
   val stack = new Stack[ValueType]()
-  var startingStackAddr = state.stackInsertIndex
+  var startingStackAddr = 0
 
   reset
 
@@ -34,11 +34,8 @@ abstract class Scope(staticVars: List[Variable], parent: Scope, state: State) {
   }
 
   def reset = {
-    varMap = if (parent != null) {
-      (staticVars.toSet).toList
-    } else {
-      staticVars.toSet.toList
-    }
+    varMap.clear
+    varMap ++= staticVars.toSet.toList
     pathStack.clear
     stack.clear
     startingStackAddr = state.stackInsertIndex
@@ -49,7 +46,6 @@ abstract class Scope(staticVars: List[Variable], parent: Scope, state: State) {
     if (!staticVars.exists{_.name == name.getRawSignature}) {
       val newVar = new ArrayVariable(name, state, theType, dimensions)
       varMap = varMap.filter { theVar => theVar.name.getRawSignature != name.getRawSignature } :+ newVar
-      state.addVariable(newVar)
       newVar
     } else {
       staticVars.find{_.name.getRawSignature == name.getRawSignature}.get.asInstanceOf[ArrayVariable]
@@ -61,7 +57,6 @@ abstract class Scope(staticVars: List[Variable], parent: Scope, state: State) {
     if (!staticVars.exists{_.name.getRawSignature == name.getRawSignature}) {
       val newVar = new Variable(name, state, theType)
       varMap = varMap.filter { theVar => theVar.name.getRawSignature != name.getRawSignature } :+ newVar
-      state.addVariable(newVar)
       newVar
     } else {
       staticVars.find{_.name.getRawSignature == name.getRawSignature}.get
