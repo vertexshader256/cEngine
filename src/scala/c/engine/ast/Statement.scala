@@ -52,8 +52,8 @@ object Statement {
     }
     case continueStatement: IASTContinueStatement => {
       case Stage1 =>
-        if (state.functionContexts.size > 1) {
-          while (state.functionContexts.size > 1 && !state.functionContexts.head.isInstanceOf[ContinuableScope]) {
+        if (state.numScopes > 1) {
+          while (state.numScopes > 1 && !state.context.isInstanceOf[ContinuableScope]) {
             state.popFunctionContext
           }
         }
@@ -130,7 +130,7 @@ object Statement {
     }
     case doWhileLoop: IASTDoStatement => {
       case Stage1 =>
-        state.functionContexts.push(new LoopScope(List(), state.functionContexts.head, state) {})
+        state.pushScope(new LoopScope(List(), state.context, state) {}, doWhileLoop)
         state.context.pathStack.push(NodePath(doWhileLoop, Stage2))
         Seq()
       case Stage2 => Seq(doWhileLoop.getBody, doWhileLoop.getCondition)
@@ -153,7 +153,7 @@ object Statement {
     }
     case whileLoop: IASTWhileStatement => {
       case Stage1 =>
-        state.functionContexts.push(new LoopScope(List(), state.functionContexts.head, state) {})
+        state.pushScope(new LoopScope(List(), state.context, state) {}, whileLoop)
         state.context.pathStack.push(NodePath(whileLoop, Stage2))
         Seq()
       case Stage2 => Seq(whileLoop.getCondition)
@@ -199,7 +199,7 @@ object Statement {
     }
     case forLoop: IASTForStatement => {
       case Stage1 =>
-        state.functionContexts.push(new LoopScope(List(), state.functionContexts.head, state) {})
+        state.pushScope(new LoopScope(List(), state.context, state) {}, forLoop)
         state.context.pathStack.push(NodePath(forLoop, Stage2))
         Seq(Option(forLoop.getInitializerStatement)).flatten
       case Stage2 => Seq(Option(forLoop.getConditionExpression)).flatten
@@ -252,14 +252,14 @@ object Statement {
           }
         }
 
-        if (state.functionContexts.size > 1) {
+        if (state.numScopes > 1) {
 
           var currentScope: Scope = null
           do {
-            currentScope = state.functionContexts.head
+            currentScope = state.context
             state.popFunctionContext
             state.context.pathStack.pop
-          } while (state.functionContexts.size > 1 && !currentScope.isInstanceOf[FunctionScope])
+          } while (state.numScopes > 1 && !currentScope.isInstanceOf[FunctionScope])
         }
 
         if (retVal != null) {

@@ -50,7 +50,7 @@ class State {
   }
 
   var standardOutBuffer = new ListBuffer[Char]
-  val functionContexts = new Stack[Scope]()
+  private val functionContexts = new Stack[Scope]()
   def context = functionContexts.head
   val functionList = new ListBuffer[Function]()
   val functionPointers = scala.collection.mutable.Map[String, Variable]()
@@ -65,6 +65,22 @@ class State {
   var nextGotoNode: Seq[IASTNode] = Seq()
 
   functionContexts.push(new FunctionScope(List(), null, null, this))
+
+  private val scopeCache = new scala.collection.mutable.HashMap[IASTNode, Scope]()
+
+  def numScopes = functionContexts.size
+
+  def pushScope(scope: Scope, node: IASTNode): Unit = {
+
+//    if (scopeCache.contains(node)) {
+//      val scope = scopeCache(node)
+//      scope.reset
+//      functionContexts.push(scope)
+//    } else {
+//      scopeCache += node -> scope
+      functionContexts.push(scope)
+ //   }
+  }
 
   def getFunctionScope = {
     functionContexts.collect{case fcnScope: FunctionScope => fcnScope}.head

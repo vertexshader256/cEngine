@@ -20,18 +20,26 @@ class LoopScope(theStaticVars: List[Variable], parent: Scope, theState: State)
 }
 
 abstract class Scope(staticVars: List[Variable], parent: Scope, state: State) {
-  private var varMap: List[Variable] = if (parent != null) {
-    (staticVars.toSet ++ parent.varMap.toSet).toList
-  } else {
-    staticVars.toSet.toList
-  }
+  private var varMap = List[Variable]()
   val pathStack = new Stack[NodePath]()
-
   val stack = new Stack[ValueType]()
-  val startingStackAddr = state.stackInsertIndex
+  var startingStackAddr = state.stackInsertIndex
+
+  reset
 
   def resolveId(name: IASTName): Variable = {
     varMap.find{_.name.getRawSignature == name.getRawSignature}.getOrElse(state.functionPointers(name.getRawSignature))
+  }
+
+  def reset = {
+    varMap = if (parent != null) {
+      (staticVars.toSet ++ parent.varMap.toSet).toList
+    } else {
+      staticVars.toSet.toList
+    }
+    pathStack.clear
+    stack.clear
+    startingStackAddr = state.stackInsertIndex
   }
 
   def addArrayVariable(name: IASTName, theType: IArrayType, dimensions: Seq[Int]): ArrayVariable = {
