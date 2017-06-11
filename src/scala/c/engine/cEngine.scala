@@ -181,22 +181,22 @@ class State {
 
   def callTheFunction(name: String, call: IASTFunctionCallExpression, args: Array[ValueType]): Seq[IASTNode] = {
 
-    functionList.find(_.name == name).map{ fcn =>
-      if (!fcn.isNative) {
+    functionList.find(_.name == name).map{ function =>
 
-        functionContexts.push(new FunctionScope(List(), functionContexts.head, new CFunctionType(call.getExpressionType, null), this))
+      functionContexts.push(new FunctionScope(function.staticVars, functionContexts.head, new CFunctionType(call.getExpressionType, null), this))
 
-        val resolvedArgs = args.map{x =>
-          x match {
-            case StringLiteral(str) =>
-              createStringVariable(str, false)(this)
-            case info @ LValue(_, _) => info.value
-            case value @ RValue(_, _) => value
-          }
+      val resolvedArgs: Array[RValue] = args.map{x =>
+        x match {
+          case StringLiteral(str) =>
+            createStringVariable(str, false)(this)
+          case info @ LValue(_, _) => info.value
+          case value @ RValue(_, _) => value
         }
+      }
 
+      if (!function.isNative) {
         // this is a function simulated in scala
-        val returnVal = fcn.run(resolvedArgs.reverse, this)
+        val returnVal = function.run(resolvedArgs.reverse, this)
 
         popFunctionContext
 
@@ -206,8 +206,11 @@ class State {
 
         Seq()
       } else {
-        callFunction(fcn, call, args)
-        Seq(fcn.node)
+        context.pathStack.push(NodePath(call, Stage1))
+
+        resolvedArgs.foreach{ arg => context.stack.push(arg)}
+        context.stack.push(RValue(resolvedArgs.size, null))
+        Seq(function.node)
       }
     }.getOrElse{
       // function pointer case
@@ -215,16 +218,6 @@ class State {
       val fcn = getFunctionByIndex(fcnPointer.value.asInstanceOf[Int])
       Seq(fcn.node)
     }
-  }
-  
-  def callFunction(function: Function, call: IASTFunctionCallExpression, args: Array[ValueType]): IASTNode = {
-    functionContexts.push(new FunctionScope(function.staticVars, functionContexts.head, new CFunctionType(call.getExpressionType, null), this))
-    context.pathStack.push(NodePath(call, Stage1))
-
-    args.foreach{ arg => context.stack.push(arg)}
-    context.stack.push(RValue(args.size, null))
-
-    function.node
   }
 
   def allocateSpace(numBytes: Int): Int = {
