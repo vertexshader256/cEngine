@@ -89,6 +89,17 @@ class Variable(val name: IASTName, val state: State, aType: IType) extends LValu
   val size = TypeHelper.sizeof(aType)
   val address = allocateSpace(state, aType, 1)
 
+  override def hashCode: Int = {
+    name.getRawSignature.hashCode
+  }
+
+  override def equals(obj: Any): Boolean = {
+    obj match {
+      case aVar: Variable => aVar.name.getRawSignature == name.getRawSignature
+      case x => x.equals(this)
+    }
+  }
+
   // need this for function-scoped static vars
   var isInitialized = false
 

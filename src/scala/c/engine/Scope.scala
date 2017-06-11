@@ -3,6 +3,7 @@ package scala.c.engine
 import c.engine._
 import org.eclipse.cdt.core.dom.ast._
 
+import scala.collection.mutable
 import scala.collection.mutable.{ListBuffer, Stack}
 
 case class NodePath(node: IASTNode, var direction: Direction)
@@ -20,7 +21,7 @@ class LoopScope(theStaticVars: List[Variable], parent: Scope, theState: State)
 }
 
 abstract class Scope(staticVars: List[Variable], parent: Scope, state: State) {
-  private var varMap = new ListBuffer[Variable]()
+  private var varMap = new mutable.HashSet[Variable]()
   val pathStack = new Stack[NodePath]()
   val stack = new Stack[ValueType]()
   var startingStackAddr = 0
@@ -44,7 +45,8 @@ abstract class Scope(staticVars: List[Variable], parent: Scope, state: State) {
   def addArrayVariable(name: IASTName, theType: IArrayType, dimensions: Seq[Int]): ArrayVariable = {
     staticVars.find{_.name.getRawSignature == name.getRawSignature}.getOrElse {
       val newVar = new ArrayVariable(name, state, theType, dimensions)
-      varMap = varMap.filter { theVar => theVar.name.getRawSignature != name.getRawSignature } :+ newVar
+      varMap.remove(newVar)
+      varMap += newVar
       newVar
     }.asInstanceOf[ArrayVariable]
   }
@@ -52,7 +54,8 @@ abstract class Scope(staticVars: List[Variable], parent: Scope, state: State) {
   def addVariable(name: IASTName, theType: IType): Variable = {
     staticVars.find{_.name.getRawSignature == name.getRawSignature}.getOrElse {
       val newVar = new Variable(name, state, theType)
-      varMap = varMap.filter { theVar => theVar.name.getRawSignature != name.getRawSignature } :+ newVar
+      varMap.remove(newVar)
+      varMap += newVar
       newVar
     }
   }
