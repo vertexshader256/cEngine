@@ -231,6 +231,21 @@ class FunctionTest extends StandardTest {
     checkResults(code)
   }
 
+  "A function prototype which provides conversion information" should "print the correct results" in {
+    val code = """
+      int x = 0x0F0F0F0F;
+      void test(char x);
+
+      void main() {
+        test(x);
+      }
+      void test(char x) {
+         printf("%c\n", x);
+      }"""
+
+    checkResults(code)
+  }
+
   "A simple function call testing return point" should "print the correct results" in {
     val code = """
       int x = 5;
