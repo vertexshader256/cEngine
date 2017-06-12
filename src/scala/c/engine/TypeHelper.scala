@@ -49,8 +49,6 @@ object TypeHelper {
        }
 
        basic.getKind match {
-         case `eChar` if newVal.isInstanceOf[Int] && basic.isUnsigned =>
-           newVal.asInstanceOf[Int] & 0xff
          case `eChar`    =>
             newVal match {
               case int: Int => int.toChar.toByte
