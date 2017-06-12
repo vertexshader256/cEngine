@@ -196,6 +196,22 @@ class State {
         }
       }
 
+      val convertedArgs = functionPrototypes.find{_.getName.getRawSignature == name}.map{ proto =>
+        val params = proto.getChildren.collect{case param: CASTParameterDeclaration => param}
+        var i = -1
+        params.map{ p =>
+          i += 1
+          if (p.getDeclSpecifier.isInstanceOf[CASTSimpleDeclSpecifier]) {
+            val param = p.getDeclarator.getName.resolveBinding().asInstanceOf[IParameter]
+            TypeHelper.cast(param.getType, resolvedArgs(i).value)
+          } else {
+            resolvedArgs(i)
+          }
+        } ++ resolvedArgs.drop(i + 1)
+      }.getOrElse {
+        resolvedArgs
+      }
+
       if (!function.isNative) {
         // this is a function simulated in scala
         val returnVal = function.run(resolvedArgs.reverse, this)
@@ -209,49 +225,6 @@ class State {
         Seq()
       } else {
         context.pathStack.push(NodePath(call, Stage1))
-
-        val convertedArgs = functionPrototypes.find{_.getName.getRawSignature == function.name}.map{ proto =>
-          val params = proto.getChildren.collect{case param: CASTParameterDeclaration => param}
-          var i = -1
-          params.map{ p =>
-            i += 1
-            if (p.getDeclSpecifier.isInstanceOf[CASTSimpleDeclSpecifier]) {
-              val spec = p.getDeclSpecifier.asInstanceOf[CASTSimpleDeclSpecifier]
-
-              if (p.getDeclarator.getPointerOperators.size > 0) {
-                val result = TypeHelper.cast(new CBasicType(IBasicType.Kind.eInt, 0), resolvedArgs(i).value)
-                result
-              } else {
-                spec.getType match {
-                  case 1 =>
-                    resolvedArgs(i)
-                  case 2 =>
-
-                    var config = 0
-
-                    if (spec.isUnsigned) {
-                      config |= IBasicType.IS_UNSIGNED
-                    }
-
-                    if (spec.isShort) {
-                      config |= IBasicType.IS_SHORT
-                    }
-
-                    val result = TypeHelper.cast(new CBasicType(IBasicType.Kind.eChar, config), resolvedArgs(i).value)
-                    result
-
-                  case 3 =>
-                    resolvedArgs(i)
-                }
-              }
-            } else {
-              resolvedArgs(i)
-            }
-          } ++ resolvedArgs.drop(i + 1)
-        }.getOrElse {
-          resolvedArgs
-        }
-
         convertedArgs.foreach{ arg => context.stack.push(arg)}
         context.stack.push(RValue(resolvedArgs.size, null))
         Seq(function.node)

@@ -17,6 +17,10 @@ object Declarator {
           _.isInstanceOf[IASTSimpleDeclaration]
         }
 
+        if (isInFunctionPrototype) {
+          state.functionPrototypes += fcnDec
+        }
+
         // ignore main's params for now
         val isInMain = fcnDec.getName.getRawSignature == "main"
         val fcnName = fcnDec.getName.getRawSignature
