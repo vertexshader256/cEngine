@@ -14,7 +14,7 @@ class ApiTest extends StandardTest {
       printf("what: %.1f\n", x);
       
       """
-      assert(state.stdout.toSeq == (Seq("1432", "what: 2.5")))
+      assert(getResults(state.stdout.toList) == (Seq("1432", "what: 2.5")))
   }
 
   "func interpolator" should "print the correct results" in {
@@ -30,7 +30,7 @@ class ApiTest extends StandardTest {
        printf("%d\n", add(4,5));
      """
 
-    assert(state.stdout.mkString == "9")
+    assert(getResults(state.stdout.toList).mkString == "9")
 
     state.stdout.clear
 
@@ -43,7 +43,7 @@ class ApiTest extends StandardTest {
        printf("%d\n", mult(add(1,2), add(5,4)));
      """
 
-    assert(state.stdout.mkString == "27")
+    assert(getResults(state.stdout.toList).mkString == "27")
   }
 
   "func interpolator 2" should "print the correct results" in {
@@ -58,6 +58,6 @@ class ApiTest extends StandardTest {
       printf("%.2f\n", blah);
      """
 
-    assert(state.stdout.mkString == "4.34")
+    assert(getResults(state.stdout.toList).mkString == "4.34")
   }
 }

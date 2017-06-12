@@ -10,6 +10,14 @@ import ExecutionContext.Implicits.global
 
 class StandardTest extends FlatSpec {
 
+  def getResults(stdout: List[Char]): List[String] = {
+    if (!stdout.isEmpty) {
+      stdout.mkString.split("\\n").toList ++ (if (stdout.reverse.take(2) == List('\n', '\n')) List("") else List())
+    } else {
+      List()
+    }
+  }
+
   def checkResults(code: String, shouldBootstrap: Boolean = true): Unit = checkResults2(Seq(code), shouldBootstrap)
 
   def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = true) = {
@@ -40,7 +48,8 @@ class StandardTest extends FlatSpec {
 
         Executor.run(state)
         //totalTime += (System.nanoTime - start) / 1000000000.0
-        result = state.stdout.toList
+        result = getResults(state.stdout.toList)
+
       } catch {
         case e: Exception => except = e
       }

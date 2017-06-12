@@ -137,16 +137,7 @@ object Functions {
 
           printf(char.toString)
 
-          if (char == 10) {
-            if (state.standardOutBuffer.isEmpty) {
-              state.stdout += ""
-            } else {
-              state.stdout += state.standardOutBuffer.mkString
-              state.standardOutBuffer.clear
-            }
-          } else {
-            state.standardOutBuffer += char
-          }
+          state.stdout += char
 
           None
         }
