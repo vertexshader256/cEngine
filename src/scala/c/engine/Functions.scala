@@ -67,6 +67,11 @@ object Functions {
           val numBlocks = formattedOutputParams(0).value.asInstanceOf[Int]
           val blockSize = formattedOutputParams(1).value.asInstanceOf[Int]
           val addr = state.allocateHeapSpace(numBlocks * blockSize)
+
+          // clear to zero
+          for (i <- (0 until (numBlocks * blockSize))) {
+            state.setValue(0.toByte, addr + i)
+          }
           Some(addr)
         }
       }
@@ -133,9 +138,13 @@ object Functions {
    
    scalaFunctions += new Function("putchar", false) {
         def run(formattedOutputParams: Array[RValue], state: State) = {
-          val char = formattedOutputParams(0).value.asInstanceOf[char].toChar
+          val char = formattedOutputParams(0).value match {
+            case int: Int => int.toChar
+            case char: char => char.toChar
+          }
 
           printf(char.toString)
+          println(char.toInt)
 
           state.stdout += char
 
@@ -198,7 +207,7 @@ object Functions {
           formatter.format(formatString, resolved: _*)
 
           buffer.toString.getBytes.foreach{char =>
-            state.callFunctionFromScala("putchar", Array(new RValue(char, new CBasicType(IBasicType.Kind.eChar, 0))))
+            state.callFunctionFromScala("putchar", Array(new RValue(char.toInt, new CBasicType(IBasicType.Kind.eInt, 0))))
           }
 
           None

@@ -65,8 +65,8 @@ class StandardTest extends FlatSpec {
 
     result match {
       case Success((gccOutput, cEngineOutput)) =>
-        //info("C_Engine output: " + cEngineOutput)
-        //info("Gcc output: " + gccOutput)
+        info("C_Engine output: " + cEngineOutput)
+        info("Gcc output: " + gccOutput)
 
         if (except != null) {
           throw except

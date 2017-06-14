@@ -114,13 +114,18 @@ class PointerTest extends StandardTest {
   "some basic pointer arithmetic/indexing" should "print the correct results" in {
     val code = """
       void main() {
-        char str[] = "Hello!\n";
+        unsigned char *str = calloc(12,1);
+        memcpy(str, "Hello!\n", 6);
         char *x = str + 2;
         char y = str[2];
         printf("%d\n", *x == y);
         printf("%s\n", x);
         *x++;
-        printf("%s\n", x);
+        str++;
+        str++;
+        ++str;
+        str--;
+        printf("%s\n", str);
         printf("%s\n", x);
       }"""
 
