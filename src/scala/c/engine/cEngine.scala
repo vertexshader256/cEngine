@@ -32,6 +32,54 @@ class Memory(size: Int) {
   // turing tape
   val tape = ByteBuffer.allocate(size)
   tape.order(ByteOrder.LITTLE_ENDIAN)
+
+  // use Address type to prevent messing up argument order
+  def writeToMemory(newVal: AnyVal, address: Int): Unit = {
+    newVal match {
+      case char: char => tape.put(address, char)
+      case long: Long => tape.putInt(address, long.toInt)
+      case short: Short => tape.putShort(address, short)
+      case bool: Boolean => tape.putInt(address, if (bool) 1 else 0)
+      case int: Int => tape.putInt(address, int)
+      case float: Float => tape.putFloat(address, float)
+      case double: Double => tape.putDouble(address, double)
+    }
+  }
+
+  def readFromMemory(address: Int, theType: IType): RValue = {
+
+    import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
+
+    val result: AnyVal = theType match {
+      case basic: IBasicType =>
+        if (basic.getKind == eInt && basic.isShort) {
+          tape.getShort(address)
+        }  else if (basic.getKind == eInt && basic.isLong) {
+          tape.getInt(address)
+        } else if (basic.getKind == eInt) {
+          tape.getInt(address)
+        } else if (basic.getKind == eBoolean) {
+          tape.getInt(address)
+        } else if (basic.getKind == eDouble) {
+          tape.getDouble(address)
+        } else if (basic.getKind == eFloat) {
+          tape.getFloat(address)
+        } else if (basic.getKind == eChar) {
+          tape.get(address) // a C 'char' is a Java 'byte'
+        } else if (basic.getKind == eVoid) {
+          tape.getInt(address)
+        } else {
+          throw new Exception("Bad read val: " + basic.getKind)
+        }
+      case ptr: IPointerType => tape.getInt(address)
+      case fcn: IFunctionType => tape.getInt(address)
+      case struct: CStructure => tape.getInt(address)
+      case qual: IQualifierType => readFromMemory(address, qual.getType).value
+      case typedef: CTypedef => readFromMemory(address, typedef.getType).value
+    }
+
+    TypeHelper.castSign(theType, result)
+  }
 }
 
 class State {
@@ -84,26 +132,26 @@ class State {
     Stack.insertIndex = functionContexts.head.startingStackAddr
     functionContexts.pop
   }
-  
+
   def hasFunction(name: String): Boolean = functionList.exists{fcn => fcn.name == name}
   def getFunction(name: String): Function = functionList.find{fcn => fcn.name == name}.get
   def getFunctionByIndex(index: Int): Function = functionList.find{fcn => fcn.index == index}.get
-  
+
   Functions.scalaFunctions.foreach{fcn =>
     addScalaFunctionDef(fcn)
   }
-  
+
   def addScalaFunctionDef(fcn: Function) = {
-    
+
     fcn.index = functionCount
 
     functionList += fcn
-    
+
     val fcnType = new CFunctionType(new CBasicType(IBasicType.Kind.eVoid, 0), null)
-    
+
     val newVar = new Variable(new CASTName(fcn.name.toCharArray), State.this, fcnType)
-    setValue(functionCount, newVar.address)
-    
+    Stack.writeToMemory(functionCount, newVar.address)
+
     functionPointers += fcn.name -> newVar
     functionCount += 1
   }
@@ -128,10 +176,10 @@ class State {
       case x => x.getChildren.toList.flatMap{x => addStaticFunctionVars(x, state)}
     }
   }
-  
+
   def addFunctionDef(fcnDef: IASTFunctionDefinition) = {
     val name = fcnDef.getDeclarator.getName
-    
+
     val fcnType = fcnDef.getDeclarator.getName.resolveBinding().asInstanceOf[IFunction].getType
 
 
@@ -162,10 +210,10 @@ class State {
       def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = {None}
       override def node = fcnDef
     }
-    
+
     val newVar = new Variable(name, State.this, fcnType)
-    setValue(functionCount, newVar.address)
-    
+    Stack.writeToMemory(functionCount, newVar.address)
+
     functionPointers += name.getRawSignature -> newVar
     functionCount += 1
   }
@@ -245,7 +293,7 @@ class State {
       0
     }
   }
-  
+
   def allocateHeapSpace(numBytes: Int): Int = {
     if (numBytes > 0) {
       val result = heapInsertIndex
@@ -255,64 +303,27 @@ class State {
       0
     }
   }
-  
+
   def copy(dst: Int, src: Int, numBytes: Int) = {
     if (numBytes != 0) {
       for (i <- (0 until numBytes)) {
          Stack.tape.put(dst + i, Stack.tape.get(src + i))
-      }   
+      }
     }
   }
-  
+
   def readPtrVal(address: Int): Int = {
-    readVal(address, TypeHelper.pointerType).value.asInstanceOf[Int]
+    Stack.readFromMemory(address, TypeHelper.pointerType).value.asInstanceOf[Int]
   }
-  
+
   def createStringVariable(str: String, isHeap: Boolean)(implicit state: State): RValue = {
     val theStr = Utils.stripQuotes(str)
     val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
     val withNull = (translateLineFeed.toCharArray() :+ 0.toChar).map{char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))} // terminating null char
     val strAddr = if (isHeap) allocateHeapSpace(withNull.size) else allocateSpace(withNull.size)
-    
+
     setArray(withNull, strAddr, 1)
     RValue(strAddr, TypeHelper.pointerType)
-  }
-
-  def readVal(address: Int, theType: IType): RValue = {
-
-    import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
-
-    val tape = Stack.tape
-    
-    val result: AnyVal = theType match {
-      case basic: IBasicType =>
-        if (basic.getKind == eInt && basic.isShort) {
-          tape.getShort(address)
-        }  else if (basic.getKind == eInt && basic.isLong) {
-          tape.getInt(address)
-        } else if (basic.getKind == eInt) {
-          tape.getInt(address)
-        } else if (basic.getKind == eBoolean) {
-          tape.getInt(address)
-        } else if (basic.getKind == eDouble) {
-          tape.getDouble(address)
-        } else if (basic.getKind == eFloat) {
-          tape.getFloat(address)
-        } else if (basic.getKind == eChar) {
-          tape.get(address) // a C 'char' is a Java 'byte'
-        } else if (basic.getKind == eVoid) {
-          tape.getInt(address)
-        } else {
-          throw new Exception("Bad read val: " + basic.getKind)
-        }
-      case ptr: IPointerType => tape.getInt(address)
-      case fcn: IFunctionType => tape.getInt(address)
-      case struct: CStructure => tape.getInt(address)
-      case qual: IQualifierType => readVal(address, qual.getType).value
-      case typedef: CTypedef => readVal(address, typedef.getType).value
-    }
-    
-    TypeHelper.castSign(theType, result)
   }
 
   def setArray(array: Array[RValue], address: Int, stride: Int): Unit = {
@@ -320,24 +331,10 @@ class State {
       array.foreach { element =>
         element match {
           case RValue(newVal, _) =>
-            setValue(newVal, address + i)
+            Stack.writeToMemory(newVal, address + i)
         }
 
         i += stride
       }
-  }
-
-  // use Address type to prevent messing up argument order
-  def setValue(newVal: AnyVal, address: Int): Unit = {
-    val tape = Stack.tape
-    newVal match {
-      case char: char => tape.put(address, char)
-      case long: Long => tape.putInt(address, long.toInt)
-      case short: Short => tape.putShort(address, short)
-      case bool: Boolean => tape.putInt(address, if (bool) 1 else 0)
-      case int: Int => tape.putInt(address, int)
-      case float: Float => tape.putFloat(address, float)
-      case double: Double => tape.putDouble(address, double)
-    }
   }
 }

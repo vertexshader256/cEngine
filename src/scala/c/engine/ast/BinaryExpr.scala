@@ -17,7 +17,7 @@ object BinaryExpr {
     val result = evaluate(node, op1, op2, op)
 
     val casted = TypeHelper.cast(dst.theType, result.value).value
-    state.setValue(casted, dst.address)
+    state.Stack.writeToMemory(casted, dst.address)
     
     dst
   }

@@ -33,27 +33,27 @@ object UnaryExpression {
         val newVal = BinaryExpr.evaluate(unary, lValue, one, IASTBinaryExpression.op_plus).value
 
         state.stack.push(RValue(lValue.value.value, lValue.theType))
-        state.setValue(newVal, lValue.address)
+        state.Stack.writeToMemory(newVal, lValue.address)
       case `op_postFixDecr` =>
         val lValue = state.stack.pop.asInstanceOf[LValue]
         val newVal = BinaryExpr.evaluate(unary, lValue, one, IASTBinaryExpression.op_minus).value
 
         // push then set
         state.stack.push(RValue(lValue.value.value, lValue.theType))
-        state.setValue(newVal, lValue.address)
+        state.Stack.writeToMemory(newVal, lValue.address)
       case `op_prefixIncr` =>
         val lValue = state.stack.pop.asInstanceOf[LValue]
         val newVal = BinaryExpr.evaluate(unary, lValue, one, IASTBinaryExpression.op_plus).value
 
         // set then push
-        state.setValue(newVal, lValue.address)
+        state.Stack.writeToMemory(newVal, lValue.address)
         state.stack.push(RValue(newVal, lValue.theType))
       case `op_prefixDecr` =>
         val lValue = state.stack.pop.asInstanceOf[LValue]
         val newVal = BinaryExpr.evaluate(unary, lValue, one, IASTBinaryExpression.op_minus).value
 
         // set then push
-        state.setValue(newVal, lValue.address)
+        state.Stack.writeToMemory(newVal, lValue.address)
         state.stack.push(RValue(newVal, lValue.theType))
       case `op_sizeof` =>
         state.stack.push(state.stack.pop match {

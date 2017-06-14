@@ -45,7 +45,7 @@ object Utils {
       var stringBuilder = new ListBuffer[Char]()
       var i = 0
       do {
-        current = state.readVal(address + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[Byte].toChar
+        current = state.Stack.readFromMemory(address + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[Byte].toChar
         if (current != 0) {
           stringBuilder += current
           i += 1

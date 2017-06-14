@@ -70,7 +70,7 @@ object Functions {
 
           // clear to zero
           for (i <- (0 until (numBlocks * blockSize))) {
-            state.setValue(0.toByte, addr + i)
+            state.Stack.writeToMemory(0.toByte, addr + i)
           }
           Some(addr)
         }
@@ -130,7 +130,7 @@ object Functions {
           val fraction = formattedOutputParams(0).value.asInstanceOf[Double]
           val intPart = formattedOutputParams(1).value.asInstanceOf[Int]
           
-          state.setValue(fraction.toInt, intPart)
+          state.Stack.writeToMemory(fraction.toInt, intPart)
           
           Some(fraction % 1.0)
         }
@@ -223,7 +223,7 @@ object Functions {
           var current: char = 0
           var i = 0
           do {
-            current = state.readVal(straddy + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[char]
+            current = state.Stack.readFromMemory(straddy + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[char]
             if (current != 0) {
               i += 1
             }
@@ -291,7 +291,7 @@ object Functions {
         var same = true
 
         for (i <- (0 until numBytes)) {
-          same &= state.readVal(memaddy + i, new CBasicType(IBasicType.Kind.eChar, 0)).value == state.readVal(memaddy2 + i, new CBasicType(IBasicType.Kind.eChar, 0)).value
+          same &= state.Stack.readFromMemory(memaddy + i, new CBasicType(IBasicType.Kind.eChar, 0)).value == state.Stack.readFromMemory(memaddy2 + i, new CBasicType(IBasicType.Kind.eChar, 0)).value
         }
 
         Some((if (same) 0 else 1))
@@ -318,7 +318,7 @@ object Functions {
             case "char *" => (4, new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0))
           })
           
-          val result = state.readVal(varArgStartingAddr, theType).value
+          val result = state.Stack.readFromMemory(varArgStartingAddr, theType).value
 
           varArgStartingAddr += offset
           Some(result)
@@ -348,7 +348,7 @@ object Functions {
           val ndigits = formattedOutputParams(3).value.asInstanceOf[Int]
           val arg = formattedOutputParams(4).value.asInstanceOf[Double]
           
-          state.setValue(1, decpt)
+          state.Stack.writeToMemory(1, decpt)
           
           val buffer = new StringBuffer();
           val formatter = new Formatter(buffer, Locale.US);
@@ -365,7 +365,7 @@ object Functions {
 
           val array = resultString.toCharArray.map{ char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))}
 
-          state.setValue(index, decpt)
+          state.Stack.writeToMemory(index, decpt)
 
           // to-do: find a way to do this without allocating?
           val result = state.allocateHeapSpace(20)

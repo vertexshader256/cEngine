@@ -39,7 +39,7 @@ object LValue {
     new LValue(state) {
       val address = addr
       val theType = aType
-      def value = state.readVal(address, theType)
+      def value = state.Stack.readFromMemory(address, theType)
     }
   }
 }
@@ -60,7 +60,7 @@ class ArrayVariable(name: IASTName, state: State, arrayType: IArrayType, dim: Se
         for (i <- (0 until dimensions.head)) {
           if (dimensions.size > 1) {
             val subaddr = recurse(subType.getType.asInstanceOf[IArrayType], dimensions.tail)
-            state.setValue(subaddr, addr + i * 4)
+            state.Stack.writeToMemory(subaddr, addr + i * 4)
           }
         }
         addr
@@ -103,7 +103,7 @@ class Variable(val name: IASTName, val state: State, aType: IType) extends LValu
   // need this for function-scoped static vars
   var isInitialized = false
 
-  def value = state.readVal(address, theType)
+  def value = state.Stack.readFromMemory(address, theType)
 
   override def toString = {
     "Variable(" + name + ", " + address + ", " + theType + ")"
@@ -144,7 +144,7 @@ class Variable(val name: IASTName, val state: State, aType: IType) extends LValu
     var offset = 0
     values.foreach {
       case RValue(value, theType) =>
-        state.setValue(value, address + offset)
+        state.Stack.writeToMemory(value, address + offset)
         offset += TypeHelper.sizeof(theType)
     }
   }

@@ -51,7 +51,7 @@ object Ast {
       case Exiting =>
         val newVar = state.context.addVariable(enumerator.getName, TypeHelper.pointerType)
         val value = state.stack.pop.asInstanceOf[RValue]
-        state.setValue(value.value, newVar.address)
+        state.Stack.writeToMemory(value.value, newVar.address)
         Seq()
     }
     case enum: IASTEnumerationSpecifier => {
