@@ -306,15 +306,20 @@ class PrimitiveTest extends StandardTest {
     checkResults(code)
   }
 
-  "unsigned char array" should "print the correct results" in {
+  "unsigned char array and clobbering test on unsigned types using unary expressions" should "print the correct results" in {
     val code = """
 
       void main()
       {
+        int i = 0;
         unsigned char *y = calloc(12, 1);
         unsigned char *x = y;
+        y[2] = 'a';
+        y[3] = 'b';
+        y[11] = 'z';
         *x = 100;
         ++*x;
+        ++x;
         ++*x;
         ++*x;
         ++x;
@@ -322,7 +327,11 @@ class PrimitiveTest extends StandardTest {
         ++*x;
         ++*x;
 
-        putchar(*x);
+        for (i = 0; i < 12; i++) {
+           putchar(*x);
+           x++;
+        }
+
         return 0;
       }
       """
