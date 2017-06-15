@@ -49,7 +49,7 @@ class Memory(size: Int) {
         newVal match {
           case long: Long => tape.putInt(address, long.toInt)
         }
-      case basic: IBasicType if basic.getKind == eInt =>
+      case basic: IBasicType if basic.getKind == eInt || basic.getKind == eVoid =>
         newVal match {
           case int: Int => tape.putInt(address, int)
         }
@@ -66,7 +66,16 @@ class Memory(size: Int) {
           case char: char => tape.put(address, char)
           case int: Int => tape.putInt(address, int)
         }
+      case basic: IBasicType if basic.getKind == eBoolean =>
+        newVal match {
+          case char: char => tape.put(address, char)
+          case int: Int => tape.putInt(address, int)
+        }
       case basic: IFunctionType =>
+        newVal match {
+          case int: Int => tape.putInt(address, int)
+        }
+      case basic: CStructure =>
         newVal match {
           case int: Int => tape.putInt(address, int)
         }
@@ -75,10 +84,6 @@ class Memory(size: Int) {
           case int: Int => tape.putInt(address, int)
           case long: Long => tape.putInt(address, long.toInt)
         }
-      case _ =>
-          newVal match {
-            case int: Int => println("INT: " + theType); tape.putInt(address, int)
-          }
     }
   }
 
