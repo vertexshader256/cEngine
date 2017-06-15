@@ -45,6 +45,14 @@ class Memory(size: Int) {
             case int: Int => tape.putShort(address, int.asInstanceOf[Short])
             case short: Short => tape.putShort(address, short)
           }
+      case basic: IBasicType if basic.getKind == eInt && basic.isLong =>
+        newVal match {
+          case long: Long => tape.putInt(address, long.toInt)
+        }
+      case basic: IBasicType if basic.getKind == eInt =>
+        newVal match {
+          case int: Int => tape.putInt(address, int)
+        }
       case basic: IBasicType if basic.getKind == eDouble =>
         newVal match {
           case double: Double => tape.putDouble(address, double)
@@ -56,10 +64,8 @@ class Memory(size: Int) {
       case _ =>
           newVal match {
             case char: char => tape.put(address, char)
-            case long: Long => tape.putInt(address, long.toInt)
-            case short: Short => tape.putShort(address, short)
-            case bool: Boolean => tape.putInt(address, if (bool) 1 else 0)
             case int: Int => tape.putInt(address, int)
+            case long: Long => tape.putInt(address, long.toInt)
           }
     }
   }
