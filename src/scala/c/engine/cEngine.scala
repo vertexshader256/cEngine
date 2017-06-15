@@ -49,6 +49,10 @@ class Memory(size: Int) {
         newVal match {
           case double: Double => tape.putDouble(address, double)
         }
+      case basic: IBasicType if basic.getKind == eFloat =>
+        newVal match {
+          case float: Float => tape.putFloat(address, float)
+        }
       case _ =>
           newVal match {
             case char: char => tape.put(address, char)
@@ -56,7 +60,6 @@ class Memory(size: Int) {
             case short: Short => tape.putShort(address, short)
             case bool: Boolean => tape.putInt(address, if (bool) 1 else 0)
             case int: Int => tape.putInt(address, int)
-            case float: Float => tape.putFloat(address, float)
           }
     }
   }
