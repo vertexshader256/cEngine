@@ -28,6 +28,9 @@ object Interpreter {
 }
 
 class Memory(size: Int) {
+
+  import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
+
   var insertIndex = 0
   // turing tape
   val tape = ByteBuffer.allocate(size)
@@ -35,21 +38,27 @@ class Memory(size: Int) {
 
   // use Address type to prevent messing up argument order
   def writeToMemory(newVal: AnyVal, address: Int, theType: IType): Unit = {
-    newVal match {
-      case char: char => tape.put(address, char)
-      case long: Long => tape.putInt(address, long.toInt)
-      case short: Short => tape.putShort(address, short)
-      case bool: Boolean => tape.putInt(address, if (bool) 1 else 0)
-      case int: Int => tape.putInt(address, int)
-      case float: Float => tape.putFloat(address, float)
-      case double: Double => tape.putDouble(address, double)
+
+    theType match {
+      case basic: IBasicType if basic.getKind == eInt && basic.isShort =>
+          newVal match {
+            case int: Int => tape.putShort(address, int.asInstanceOf[Short])
+            case short: Short => tape.putShort(address, short)
+          }
+      case _ =>
+          newVal match {
+            case char: char => tape.put(address, char)
+            case long: Long => tape.putInt(address, long.toInt)
+            case short: Short => tape.putShort(address, short)
+            case bool: Boolean => tape.putInt(address, if (bool) 1 else 0)
+            case int: Int => tape.putInt(address, int)
+            case float: Float => tape.putFloat(address, float)
+            case double: Double => tape.putDouble(address, double)
+          }
     }
   }
 
   def readFromMemory(address: Int, theType: IType): RValue = {
-
-    import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
-
     val result: AnyVal = theType match {
       case basic: IBasicType =>
         if (basic.getKind == eInt && basic.isShort) {
