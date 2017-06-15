@@ -144,7 +144,7 @@ class Variable(val name: IASTName, val state: State, aType: IType) extends LValu
     var offset = 0
     values.foreach {
       case RValue(value, theType) =>
-        state.Stack.writeToMemory(value, address + offset, new CBasicType(IBasicType.Kind.eChar, 0))
+        state.Stack.writeToMemory(value, address + offset, theType)
         offset += TypeHelper.sizeof(theType)
     }
   }
