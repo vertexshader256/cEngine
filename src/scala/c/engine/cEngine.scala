@@ -39,7 +39,7 @@ class Memory(size: Int) {
   // use Address type to prevent messing up argument order
   def writeToMemory(newVal: AnyVal, address: Int, theType: IType): Unit = {
 
-    theType match {
+    TypeHelper.stripSyntheticTypeInfo(theType) match {
       case basic: IBasicType if basic.getKind == eInt && basic.isShort =>
           newVal match {
             case int: Int => tape.putShort(address, int.asInstanceOf[Short])
@@ -78,7 +78,6 @@ class Memory(size: Int) {
       case _ =>
           newVal match {
             case int: Int => println("INT: " + theType); tape.putInt(address, int)
-            case long: Long => tape.putInt(address, long.toInt)
           }
     }
   }
