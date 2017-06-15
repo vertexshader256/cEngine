@@ -5,7 +5,7 @@ import java.util.Formatter
 import java.util.Locale
 
 import scala.collection.mutable.HashMap
-import org.eclipse.cdt.internal.core.dom.parser.c._
+import org.eclipse.cdt.internal.core.dom.parser.c.{CBasicType, _}
 
 import scala.collection.mutable.ListBuffer
 
@@ -70,7 +70,7 @@ object Functions {
 
           // clear to zero
           for (i <- (0 until (numBlocks * blockSize))) {
-            state.Stack.writeToMemory(0.toByte, addr + i)
+            state.Stack.writeToMemory(0.toByte, addr + i, new CBasicType(IBasicType.Kind.eChar, 0))
           }
           Some(addr)
         }
@@ -130,7 +130,7 @@ object Functions {
           val fraction = formattedOutputParams(0).value.asInstanceOf[Double]
           val intPart = formattedOutputParams(1).value.asInstanceOf[Int]
           
-          state.Stack.writeToMemory(fraction.toInt, intPart)
+          state.Stack.writeToMemory(fraction.toInt, intPart, new CBasicType(IBasicType.Kind.eInt, 0))
           
           Some(fraction % 1.0)
         }
@@ -348,7 +348,7 @@ object Functions {
           val ndigits = formattedOutputParams(3).value.asInstanceOf[Int]
           val arg = formattedOutputParams(4).value.asInstanceOf[Double]
           
-          state.Stack.writeToMemory(1, decpt)
+          state.Stack.writeToMemory(1, decpt, new CBasicType(IBasicType.Kind.eInt, 0))
           
           val buffer = new StringBuffer();
           val formatter = new Formatter(buffer, Locale.US);
@@ -365,7 +365,7 @@ object Functions {
 
           val array = resultString.toCharArray.map{ char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))}
 
-          state.Stack.writeToMemory(index, decpt)
+          state.Stack.writeToMemory(index, decpt, new CBasicType(IBasicType.Kind.eInt, 0))
 
           // to-do: find a way to do this without allocating?
           val result = state.allocateHeapSpace(20)

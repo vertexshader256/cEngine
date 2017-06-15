@@ -34,7 +34,7 @@ class Memory(size: Int) {
   tape.order(ByteOrder.LITTLE_ENDIAN)
 
   // use Address type to prevent messing up argument order
-  def writeToMemory(newVal: AnyVal, address: Int): Unit = {
+  def writeToMemory(newVal: AnyVal, address: Int, theType: IType): Unit = {
     newVal match {
       case char: char => tape.put(address, char)
       case long: Long => tape.putInt(address, long.toInt)
@@ -150,7 +150,7 @@ class State {
     val fcnType = new CFunctionType(new CBasicType(IBasicType.Kind.eVoid, 0), null)
 
     val newVar = new Variable(new CASTName(fcn.name.toCharArray), State.this, fcnType)
-    Stack.writeToMemory(functionCount, newVar.address)
+    Stack.writeToMemory(functionCount, newVar.address, fcnType)
 
     functionPointers += fcn.name -> newVar
     functionCount += 1
@@ -212,7 +212,7 @@ class State {
     }
 
     val newVar = new Variable(name, State.this, fcnType)
-    Stack.writeToMemory(functionCount, newVar.address)
+    Stack.writeToMemory(functionCount, newVar.address, fcnType)
 
     functionPointers += name.getRawSignature -> newVar
     functionCount += 1
@@ -330,8 +330,8 @@ class State {
       var i = 0
       array.foreach { element =>
         element match {
-          case RValue(newVal, _) =>
-            Stack.writeToMemory(newVal, address + i)
+          case RValue(newVal, theType) =>
+            Stack.writeToMemory(newVal, address + i, theType)
         }
 
         i += stride

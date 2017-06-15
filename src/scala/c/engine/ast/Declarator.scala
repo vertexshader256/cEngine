@@ -54,12 +54,12 @@ object Declarator {
                 val name = paramDecl.getDeclarator.getName
                 val newVar = state.context.addVariable(name, paramInfo.getType)
                 val casted = TypeHelper.cast(newVar.theType, arg.value).value
-                state.Stack.writeToMemory(casted, newVar.address)
+                state.Stack.writeToMemory(casted, newVar.address, newVar.theType)
               } else {
                 val theType = TypeHelper.getType(arg.value)
                 val sizeof = TypeHelper.sizeof(theType)
                 val space = state.allocateSpace(Math.max(sizeof, 4))
-                state.Stack.writeToMemory(arg.value, space)
+                state.Stack.writeToMemory(arg.value, space, theType)
               }
             }
           }

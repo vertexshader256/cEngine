@@ -60,7 +60,7 @@ class ArrayVariable(name: IASTName, state: State, arrayType: IArrayType, dim: Se
         for (i <- (0 until dimensions.head)) {
           if (dimensions.size > 1) {
             val subaddr = recurse(subType.getType.asInstanceOf[IArrayType], dimensions.tail)
-            state.Stack.writeToMemory(subaddr, addr + i * 4)
+            state.Stack.writeToMemory(subaddr, addr + i * 4, new CBasicType(IBasicType.Kind.eChar, 0))
           }
         }
         addr
@@ -144,7 +144,7 @@ class Variable(val name: IASTName, val state: State, aType: IType) extends LValu
     var offset = 0
     values.foreach {
       case RValue(value, theType) =>
-        state.Stack.writeToMemory(value, address + offset)
+        state.Stack.writeToMemory(value, address + offset, new CBasicType(IBasicType.Kind.eChar, 0))
         offset += TypeHelper.sizeof(theType)
     }
   }

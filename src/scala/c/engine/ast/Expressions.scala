@@ -35,7 +35,7 @@ object Expressions {
           case LValue(addr, _) => LValue(addr, theType)
           case RValue(value, _) =>
             val newAddr = context.allocateSpace(TypeHelper.sizeof(theType))
-            context.Stack.writeToMemory(TypeHelper.cast(theType, value).value, newAddr)
+            context.Stack.writeToMemory(TypeHelper.cast(theType, value).value, newAddr, theType)
             LValue(newAddr, theType)
         })
 
