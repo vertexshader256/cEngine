@@ -61,10 +61,23 @@ class Memory(size: Int) {
         newVal match {
           case float: Float => tape.putFloat(address, float)
         }
+      case basic: IBasicType if basic.getKind == eChar =>
+        newVal match {
+          case char: char => tape.put(address, char)
+          case int: Int => tape.putInt(address, int)
+        }
+      case basic: IFunctionType =>
+        newVal match {
+          case int: Int => tape.putInt(address, int)
+        }
+      case ptr: IPointerType =>
+        newVal match {
+          case int: Int => tape.putInt(address, int)
+          case long: Long => tape.putInt(address, long.toInt)
+        }
       case _ =>
           newVal match {
-            case char: char => tape.put(address, char)
-            case int: Int => tape.putInt(address, int)
+            case int: Int => println("INT: " + theType); tape.putInt(address, int)
             case long: Long => tape.putInt(address, long.toInt)
           }
     }
