@@ -64,7 +64,7 @@ class Memory(size: Int) {
       case basic: IBasicType if basic.getKind == eChar =>
         newVal match {
           case char: char => tape.put(address, char)
-          case int: Int => tape.putInt(address, int)
+          case int: Int => tape.put(address, int.toByte)
         }
       case basic: IBasicType if basic.getKind == eBoolean =>
         newVal match {

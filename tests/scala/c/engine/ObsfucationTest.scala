@@ -1,6 +1,4 @@
-package scala.c.engine
-
-import c.engine.StandardTest
+package c.engine
 
 class ObsfucationTest extends StandardTest {
 //  "obsfucation 1" should "print the correct results" in {
