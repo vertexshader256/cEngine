@@ -148,7 +148,8 @@ class SizeOfTest extends StandardTest {
       void main() {
         int x[5];
         char y[5];
-        printf("%d %d\n", sizeof(x), sizeof(y));
+        long long z[5];
+        printf("%d %d\n", sizeof(x), sizeof(y), sizeof(z));
       }"""
 
     checkResults(code)
@@ -163,8 +164,9 @@ class SizeOfTest extends StandardTest {
         short d[5];
         float e[5];
         double f[5];
+        long long g[5];
         
-        printf("%d %d\n", sizeof(a[3]), sizeof(b[3]), sizeof(c[3]), sizeof(d[3]), sizeof(e[3]), sizeof(f[3]));
+        printf("%d %d %d %d %d %d %d\n", sizeof(a[3]), sizeof(b[3]), sizeof(c[3]), sizeof(d[3]), sizeof(e[3]), sizeof(f[3]), sizeof(g[3]));
       }"""
 
     checkResults(code)
@@ -179,8 +181,9 @@ class SizeOfTest extends StandardTest {
         short *d;
         float *e;
         double *f;
+        long long *g;
         
-        printf("%d %d\n", sizeof(a[3]), sizeof(b[3]), sizeof(c[3]), sizeof(d[3]), sizeof(e[3]), sizeof(f[3]));
+        printf("%d %d %d %d %d %d %d\n", sizeof(a[3]), sizeof(b[3]), sizeof(c[3]), sizeof(d[3]), sizeof(e[3]), sizeof(f[3]), sizeof(g[3]));
       }"""
 
     checkResults(code)

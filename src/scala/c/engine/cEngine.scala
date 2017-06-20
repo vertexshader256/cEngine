@@ -45,6 +45,10 @@ class Memory(size: Int) {
             case int: Int => tape.putShort(address, int.asInstanceOf[Short])
             case short: Short => tape.putShort(address, short)
           }
+      case basic: IBasicType if basic.getKind == eInt && basic.isLongLong =>
+        newVal match {
+          case long: Long => tape.putLong(address, long)
+        }
       case basic: IBasicType if basic.getKind == eInt && basic.isLong =>
         newVal match {
           case long: Long => tape.putInt(address, long.toInt)
@@ -52,6 +56,7 @@ class Memory(size: Int) {
       case basic: IBasicType if basic.getKind == eInt || basic.getKind == eVoid =>
         newVal match {
           case int: Int => tape.putInt(address, int)
+          case long: Long => tape.putInt(address, long.toInt)
         }
       case basic: IBasicType if basic.getKind == eDouble =>
         newVal match {
@@ -92,7 +97,9 @@ class Memory(size: Int) {
       case basic: IBasicType =>
         if (basic.getKind == eInt && basic.isShort) {
           tape.getShort(address)
-        }  else if (basic.getKind == eInt && basic.isLong) {
+        } else if (basic.getKind == eInt && basic.isLongLong) {
+          tape.getLong(address)
+        } else if (basic.getKind == eInt && basic.isLong) {
           tape.getInt(address)
         } else if (basic.getKind == eInt) {
           tape.getInt(address)

@@ -56,6 +56,13 @@ object TypeHelper {
               case char: char => char
               case char: Char => char.toByte
             }
+         case `eInt` if basic.isLongLong =>
+           newVal match {
+             case int: Int => int.toLong
+             case long: Long => long
+             case double: Double => double.toLong
+             case float: Float => float.toLong
+           }
          case `eInt` if basic.isLong =>
             newVal match {
               case int: Int => int.toLong
@@ -184,8 +191,9 @@ object TypeHelper {
       sizeof(qual.getType)
     case basic: IBasicType =>
       basic.getKind match {
-        //case `eInt` if basic.isLongLong => 8
+        case `eInt` if basic.isLongLong => 8
         case `eInt` if basic.isLong     => 4
+        case `eInt` if basic.isShort    => 2
         case `eInt`                     => 4
         case `eFloat`                   => 4
         case `eChar16`                  => 2

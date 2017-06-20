@@ -92,6 +92,10 @@ object Ast {
 
             var config = 0
 
+            if (simple.isLongLong) {
+              config |= IBasicType.IS_LONG_LONG
+            }
+
             if (simple.isLong) {
               config |= IBasicType.IS_LONG
             }
