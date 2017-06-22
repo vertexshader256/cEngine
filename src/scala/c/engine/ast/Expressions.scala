@@ -168,7 +168,6 @@ object Expressions {
           val info = pop.asInstanceOf[LValue]
           val resolved = TypeHelper.stripSyntheticTypeInfo(info.theType)
           resolved match {
-            case fcn: IFunctionType => context.getFunctionByIndex(info.address).name
             case ptr: IPointerType => context.getFunctionByIndex(info.value.value.asInstanceOf[Int]).name
           }
         }
