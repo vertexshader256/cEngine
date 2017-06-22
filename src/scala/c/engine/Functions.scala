@@ -135,6 +135,13 @@ object Functions {
           Some(fraction % 1.0)
         }
       }
+
+  scalaFunctions += new Function("sqrt", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      val num = formattedOutputParams(0).value.asInstanceOf[Double]
+      Some(Math.sqrt(num))
+    }
+  }
    
    scalaFunctions += new Function("putchar", false) {
         def run(formattedOutputParams: Array[RValue], state: State) = {

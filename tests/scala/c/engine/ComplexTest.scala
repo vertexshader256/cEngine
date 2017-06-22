@@ -490,4 +490,156 @@ class DuffsTest extends StandardTest {
 
     checkResults(code, false)
   }
+
+
+}
+
+class CarmichaelTest extends StandardTest {
+  "Carmichael test" should "print the correct results" in {
+    val code = """
+    #include <stdio.h>
+
+      /* C's % operator actually calculates the remainder of a / b so we need a
+      * small adjustment so it works as expected for negative values */
+      #define mod(n,m) ((((n) % (m)) + (m)) % (m))
+
+      int is_prime(unsigned int n)
+      {
+      if (n <= 3) {
+        return n > 1;
+      }
+      else if (!(n % 2) || !(n % 3)) {
+        return 0;
+      }
+      else {
+        unsigned int i;
+        for (i = 5; i*i <= n; i += 6)
+        if (!(n % i) || !(n % (i + 2)))
+          return 0;
+        return 1;
+      }
+      }
+
+      void carmichael3(int p1)
+      {
+      if (!is_prime(p1)) return;
+
+      int h3, d, p2, p3;
+    for (h3 = 1; h3 < p1; ++h3) {
+      for (d = 1; d < h3 + p1; ++d) {
+        if ((h3 + p1)*(p1 - 1) % d == 0 && mod(-p1 * p1, h3) == d % h3) {
+          p2 = 1 + ((p1 - 1) * (h3 + p1)/d);
+          if (!is_prime(p2)) continue;
+          p3 = 1 + (p1 * p2 / h3);
+          if (!is_prime(p3) || (p2 * p3) % (p1 - 1) != 1) continue;
+          printf("%d %d %d\n", p1, p2, p3);
+        }
+      }
+    }
+    }
+
+    int main(void)
+    {
+    int p1;
+    for (p1 = 2; p1 < 62; ++p1)
+    carmichael3(p1);
+    return 0;
+    }"""
+
+    checkResults(code, false)
+  }
+}
+
+class PerniciousTest extends StandardTest {
+  "Pernicious test" should "print the correct results" in {
+    val code = """
+        #include <stdio.h>
+
+          typedef unsigned uint;
+          uint is_pern(uint n)
+          {
+          uint c = 2693408940u; // int with all prime-th bits set
+          while (n) c >>= 1, n &= (n - 1); // take out lowerest set bit one by one
+          return c & 1;
+        }
+
+        int main(void)
+        {
+          uint i, c;
+          for (i = c = 0; c < 25; i++)
+          if (is_pern(i))
+            printf("%u ", i), ++c;
+          putchar('\n');
+
+          for (i = 888888877u; i <= 888888888u; i++)
+          if (is_pern(i))
+            printf("%u ", i);
+          putchar('\n');
+
+          return 0;
+        }"""
+
+    checkResults(code, false)
+  }
+}
+
+class CholskeyTest extends StandardTest {
+  "Cholskey decomp test test" should "print the correct results" in {
+    val code =
+      """
+
+      #include <stdio.h>
+        #include <stdlib.h>
+          #include <math.h>
+
+            double *cholesky(double *A, int n) {
+            double *L = (double*)calloc(n * n, sizeof(double));
+            if (L == NULL)
+              exit(EXIT_FAILURE);
+
+            for (int i = 0; i < n; i++)
+      for (int j = 0; j < (i+1); j++) {
+        double s = 0;
+        for (int k = 0; k < j; k++)
+        s += L[i * n + k] * L[j * n + k];
+        L[i * n + j] = (i == j) ?
+          sqrt(A[i * n + i] - s) :
+          (1.0 / L[j * n + j] * (A[i * n + j] - s));
+      }
+
+      return L;
+      }
+
+      void show_matrix(double *A, int n) {
+      for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++)
+        printf("%2.5f ", A[i * n + j]);
+        printf("\n");
+      }
+      }
+
+      int main() {
+      int n = 3;
+      double m1[] = {25, 15, -5,
+        15, 18,  0,
+        -5,  0, 11};
+      double *c1 = cholesky(m1, n);
+      show_matrix(c1, n);
+      printf("\n");
+      free(c1);
+
+      n = 4;
+      double m2[] = {18, 22,  54,  42,
+        22, 70,  86,  62,
+        54, 86, 174, 134,
+        42, 62, 134, 106};
+      double *c2 = cholesky(m2, n);
+      show_matrix(c2, n);
+      free(c2);
+
+      return 0;
+      }"""
+
+    checkResults(code, false)
+  }
 }

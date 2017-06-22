@@ -16,9 +16,12 @@ object Literal {
     def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
     
     val isLong = litStr.endsWith("L")
+    val isUnsigned = litStr.endsWith("u")
     val isUnsignedLong = litStr.endsWith("UL")
     
     val pre: String = if (litStr.endsWith("L")) {
+      litStr.take(litStr.size - 1).mkString
+    } else if (litStr.endsWith("u")) {
       litStr.take(litStr.size - 1).mkString
     } else {
       litStr
@@ -33,7 +36,7 @@ object Literal {
 
     val (resultValue, theType: IBasicType) = if (lit.head == '\"' && lit.last == '\"') {
       (StringLiteral(lit), new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0))
-    } else if (lit.head == '\'' && lit.last == '\'' && (lit.size == 3 || lit == "'\\0'" || lit == "'\\\\'")) {
+    } else if (lit.head == '\'' && lit.last == '\'' && (lit.size == 3 || lit == "'\\0'" || lit == "'\\n'" || lit == "'\\\\'")) {
       if (lit == "'\\0'") {
         (0, new CBasicType(IBasicType.Kind.eFloat, 0))
       } else {

@@ -51,6 +51,7 @@ class Memory(size: Int) {
         }
       case basic: IBasicType if basic.getKind == eInt && basic.isLong =>
         newVal match {
+          case int: Int => tape.putInt(address, int)
           case long: Long => tape.putInt(address, long.toInt)
         }
       case basic: IBasicType if basic.getKind == eInt || basic.getKind == eVoid =>
@@ -60,6 +61,7 @@ class Memory(size: Int) {
         }
       case basic: IBasicType if basic.getKind == eDouble =>
         newVal match {
+          case int: Int => tape.putDouble(address, int.toDouble)
           case double: Double => tape.putDouble(address, double)
         }
       case basic: IBasicType if basic.getKind == eFloat =>

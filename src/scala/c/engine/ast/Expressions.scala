@@ -32,7 +32,14 @@ object Expressions {
 
         context.stack.push(operand match {
           case str @ StringLiteral(_) => str
-          case LValue(addr, _) => LValue(addr, theType)
+          case LValue(addr, aType) =>
+            theType match {
+              case ptr: IPointerType if aType.isInstanceOf[IArrayType] =>
+                val newAddr = context.allocateSpace(4)
+                context.Stack.writeToMemory(addr, newAddr, theType)
+                LValue(newAddr, theType)
+              case _ => LValue(addr, theType)
+            }
           case RValue(value, _) =>
             val newAddr = context.allocateSpace(TypeHelper.sizeof(theType))
             context.Stack.writeToMemory(TypeHelper.cast(theType, value).value, newAddr, theType)
