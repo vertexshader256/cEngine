@@ -3,7 +3,7 @@ package c.engine
 import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.internal.core.dom.parser.c._
 
-trait ValueType {
+abstract class ValueType {
   def theType: IType
 }
 

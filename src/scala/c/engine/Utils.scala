@@ -16,7 +16,7 @@ import org.anarres.cpp.Token
 import better.files._
 import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
 
-sealed trait Direction
+sealed abstract class Direction
 object Stage1 extends Direction
 object Stage2 extends Direction
 object Stage3 extends Direction
