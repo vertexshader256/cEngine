@@ -39,6 +39,8 @@ object Literal {
     } else if (lit.head == '\'' && lit.last == '\'' && (lit.size == 3 || lit == "'\\0'" || lit == "'\\n'" || lit == "'\\\\'")) {
       if (lit == "'\\0'") {
         (0, new CBasicType(IBasicType.Kind.eFloat, 0))
+      } else if (lit == "'\\n'") {
+        ('\n'.toByte, new CBasicType(IBasicType.Kind.eChar, 0))
       } else {
         (lit.toCharArray.apply(1).toByte, new CBasicType(IBasicType.Kind.eChar, 0))
       }

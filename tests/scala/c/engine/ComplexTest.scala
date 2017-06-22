@@ -555,9 +555,9 @@ class PerniciousTest extends StandardTest {
     val code = """
         #include <stdio.h>
 
-          typedef unsigned uint;
-          uint is_pern(uint n)
-          {
+        typedef unsigned uint;
+        uint is_pern(uint n)
+        {
           uint c = 2693408940u; // int with all prime-th bits set
           while (n) c >>= 1, n &= (n - 1); // take out lowerest set bit one by one
           return c & 1;
