@@ -1,25 +1,45 @@
 package c.engine
 
 class ObsfucationTest extends StandardTest {
-//  "obsfucation 1" should "print the correct results" in {
-//    val code = """
-//
-//      #include <stdio.h>
-// main() {
-//   long long P = 1,
-//             E = 2,
-//             T = 5,
-//             A = 61,
-//             L = 251,
-//             N = 3659,
-//             R = 271173410,
-//             G = 1479296389,
-//             x[] = { G * R * E * E * T , P * L * A * N * E * T };
-//   putchar((char*)x);
-// }"""
-//
-//    checkResults(code)
-//  }
+  "obsfucation 1" should "print the correct results" in {
+    val code = """
+
+      #include <stdio.h>
+ main() {
+   long long P = 1,
+             E = 2,
+             T = 5,
+             A = 61,
+             L = 251,
+             N = 3659,
+             R = 271173410,
+             G = 1479296389,
+             //x[] = { G * R * E * E * T , P * L * A * N * E * T };
+             x[] = { G * R * E * E * T , P * L * A * N * E * T };
+     printf("%d\n", G);
+     printf("%d\n", G * R * E * E * T);
+     printf("%d\n", P * L * A * N * E * T);
+     printf("%d\n", x[0]);
+     printf("%d\n", x[1]);
+     char *y = x;
+     printf("%c\n", y[0]);
+     printf("%c\n", y[1]);
+     printf("%c\n", y[2]);
+     printf("%c\n", y[3]);
+     printf("%c\n", y[4]);
+     printf("%c\n", y[5]);
+     printf("%c\n", y[6]);
+     printf("%c\n", y[7]);
+     printf("%c\n", y[8]);
+     printf("%c\n", y[9]);
+     printf("%c\n", y[10]);
+     printf("%c\n", y[11]);
+   //  printf("%c\n", y[12]);
+  //   printf("%s\n", (char*)x);
+ }"""
+
+    checkResults(code, false)
+  }
 
   "obsfucation 2" should "print the correct results" in {
     val code = """

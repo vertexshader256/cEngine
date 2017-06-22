@@ -112,7 +112,7 @@ object Declarator {
                 case value@RValue(_, _) => value
                 case info@LValue(_, _) => info.value
               }
-            }.reverse.toArray
+            }.reverse.toArray.map{x => RValue(x.value, theType.asInstanceOf[IArrayType].getType)}
 
             val theArrayPtr = state.context.addArrayVariable(name, theType.asInstanceOf[IArrayType], Array(size))
             theArrayPtr.setArray(values)
@@ -131,6 +131,7 @@ object Declarator {
           }
 
           val theArrayVar = state.context.addArrayVariable(name, theType.asInstanceOf[IArrayType], dimensions)
+
           state.setArray(initialArray, theArrayVar.address, TypeHelper.sizeof(theArrayVar.theType))
         } else {
           state.context.addArrayVariable(name, theType.asInstanceOf[IArrayType], dimensions)
