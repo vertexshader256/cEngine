@@ -20,72 +20,75 @@ object UnaryExpression {
       case char: char => if (char == 0) 1 else 0
     }
 
-    unary.getOperator match {
-      case `op_tilde` =>
-        state.stack.push(RValue(~state.stack.pop.asInstanceOf[RValue].value.asInstanceOf[Int], null))
-      case `op_not` => state.stack.push(RValue(not(state.stack.pop), one.theType))
-      case `op_minus` =>
-        val valueType = state.stack.pop
-        val newVal = BinaryExpr.evaluate(unary, valueType, negativeOne, IASTBinaryExpression.op_multiply).value
-        state.stack.push(RValue(newVal, valueType.theType))
-      case `op_postFixIncr` =>
-        val lValue = state.stack.pop.asInstanceOf[LValue]
-        val newVal = BinaryExpr.evaluate(unary, lValue, one, IASTBinaryExpression.op_plus).value
+    if (unary.getOperator != op_bracketedPrimary) {
+      state.stack.push(unary.getOperator match {
+        case `op_tilde` =>
+          RValue(~state.stack.pop.asInstanceOf[RValue].value.asInstanceOf[Int], null)
+        case `op_not` => RValue(not(state.stack.pop), one.theType)
+        case `op_minus` =>
+          val valueType = state.stack.pop
+          val newVal = BinaryExpr.evaluate(unary, valueType, negativeOne, IASTBinaryExpression.op_multiply).value
+          RValue(newVal, valueType.theType)
+        case `op_postFixIncr` =>
+          val lValue = state.stack.pop.asInstanceOf[LValue]
+          val newVal = BinaryExpr.evaluate(unary, lValue, one, IASTBinaryExpression.op_plus).value
 
-        state.stack.push(RValue(lValue.value.value, lValue.theType))
-        state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
-      case `op_postFixDecr` =>
-        val lValue = state.stack.pop.asInstanceOf[LValue]
-        val newVal = BinaryExpr.evaluate(unary, lValue, one, IASTBinaryExpression.op_minus).value
+          val returnVal = RValue(lValue.value.value, lValue.theType)
+          state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
+          returnVal
+        case `op_postFixDecr` =>
+          val lValue = state.stack.pop.asInstanceOf[LValue]
+          val newVal = BinaryExpr.evaluate(unary, lValue, one, IASTBinaryExpression.op_minus).value
 
-        // push then set
-        state.stack.push(RValue(lValue.value.value, lValue.theType))
-        state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
-      case `op_prefixIncr` =>
-        val lValue = state.stack.pop.asInstanceOf[LValue]
-        val newVal = BinaryExpr.evaluate(unary, lValue, one, IASTBinaryExpression.op_plus).value
+          // push then set
+          val returnVal = RValue(lValue.value.value, lValue.theType)
+          state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
+          returnVal
+        case `op_prefixIncr` =>
+          val lValue = state.stack.pop.asInstanceOf[LValue]
+          val newVal = BinaryExpr.evaluate(unary, lValue, one, IASTBinaryExpression.op_plus).value
 
-        // set then push
-        state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
-        state.stack.push(RValue(newVal, lValue.theType))
-      case `op_prefixDecr` =>
-        val lValue = state.stack.pop.asInstanceOf[LValue]
-        val newVal = BinaryExpr.evaluate(unary, lValue, one, IASTBinaryExpression.op_minus).value
+          // set then push
+          state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
+          RValue(newVal, lValue.theType)
+        case `op_prefixDecr` =>
+          val lValue = state.stack.pop.asInstanceOf[LValue]
+          val newVal = BinaryExpr.evaluate(unary, lValue, one, IASTBinaryExpression.op_minus).value
 
-        // set then push
-        state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
-        state.stack.push(RValue(newVal, lValue.theType))
-      case `op_sizeof` =>
-        state.stack.push(state.stack.pop match {
-          case info @ LValue(_, theType) => RValue(info.sizeof, TypeHelper.pointerType)
-        })
-      case `op_amper` =>
-        state.stack.pop match {
-          case info @ LValue(_, _) =>
-            info.theType match {
-              case fcn: CFunctionType => state.stack.push(LValue(info.address, fcn))
-              case x: IType => state.stack.push(RValue(info.address, TypeHelper.pointerType))
-            }
-        }
-      case `op_star` =>
-        state.stack.pop match {
-          case RValue(int: Int, theType) =>
-            state.stack.push(LValue(int, TypeHelper.resolve(theType)))
-          case info @ LValue(_,_) =>
-            val nestedType = info.theType match {
-              case ptr: IPointerType => ptr.getType
-              case array: IArrayType => array.getType
-            }
+          // set then push
+          state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
+          RValue(newVal, lValue.theType)
+        case `op_sizeof` =>
+          state.stack.pop match {
+            case info@LValue(_, theType) => RValue(info.sizeof, TypeHelper.pointerType)
+          }
+        case `op_amper` =>
+          state.stack.pop match {
+            case info@LValue(_, _) =>
+              info.theType match {
+                case fcn: CFunctionType => LValue(info.address, fcn)
+                case x: IType => RValue(info.address, TypeHelper.pointerType)
+              }
+          }
+        case `op_star` =>
+          state.stack.pop match {
+            case RValue(int: Int, theType) =>
+              LValue(int, TypeHelper.resolve(theType))
+            case info@LValue(_, _) =>
+              val nestedType = info.theType match {
+                case ptr: IPointerType => ptr.getType
+                case array: IArrayType => array.getType
+              }
 
-            if (!nestedType.isInstanceOf[IFunctionType]) {
-              state.stack.push(LValue(info.value.value.asInstanceOf[Int], nestedType))
-            } else {
-              // function pointers can ignore the star
-              state.stack.push(info)
-            }
+              if (!nestedType.isInstanceOf[IFunctionType]) {
+                LValue(info.value.value.asInstanceOf[Int], nestedType)
+              } else {
+                // function pointers can ignore the star
+                info
+              }
 
-        }
-      case `op_bracketedPrimary` => // not sure what this is for but I need it for weird stuff like (k*)++
+          }
+      })
     }
   }
 }
