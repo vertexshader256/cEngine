@@ -5,16 +5,25 @@ import org.eclipse.cdt.core.dom.ast._
 import scala.c.engine.NodePath
 import ast._
 import ast.Ast.NoMatch
+import org.eclipse.cdt.internal.core.dom.parser.c.{CASTCompositeTypeSpecifier, CASTSimpleDeclaration, CStructure}
+
+import scala.collection.mutable.ListBuffer
 
 object Executor {
 
-  def init(codes: Seq[String], state: State) = {
-    state.tUnit = Utils.getTranslationUnit(codes)
+  val declarations = new ListBuffer[CStructure]()
 
-    val fcns = state.tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
+  def init(codes: Seq[String], state: State) = {
+    val tUnit = Utils.getTranslationUnit(codes)
+
+    val fcns = tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
     fcns.foreach{fcnDef => state.addFunctionDef(fcnDef)}
 
-    run(state.tUnit, state)
+    declarations ++= tUnit.getDeclarations.collect{case simp: CASTSimpleDeclaration => simp.getDeclSpecifier}
+      .collect{case comp: CASTCompositeTypeSpecifier => comp}
+      .map{x => x.getName.resolveBinding().asInstanceOf[CStructure]}
+
+    run(tUnit, state)
   }
 
   def run(node: IASTNode, state: State) = {

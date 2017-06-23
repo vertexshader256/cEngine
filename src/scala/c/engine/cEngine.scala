@@ -131,8 +131,6 @@ class Memory(size: Int) {
 
 class State {
 
-  var tUnit: IASTTranslationUnit = null
-
   object Stack extends Memory(100000)
 
   var heapInsertIndex = 50000
