@@ -16,7 +16,6 @@ object Executor {
     fcns.foreach{fcnDef => state.addFunctionDef(fcnDef)}
 
     run(state)
-    state.context.pathStack.clear
   }
 
   def run(state: State) = {
