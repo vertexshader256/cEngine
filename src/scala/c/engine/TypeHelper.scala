@@ -5,6 +5,9 @@ import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 import org.eclipse.cdt.core.dom.ast._
 
 object TypeHelper {
+
+  val one = RValue(1, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))
+  val negativeOne = RValue(-1, new CBasicType(IBasicType.Kind.eInt, 0))
   
   // 32-bit pointers
   val pointerType = new CBasicType(IBasicType.Kind.eInt , 0)
@@ -139,6 +142,15 @@ object TypeHelper {
       case info @ LValue(_, _) => info.value
       case value @ RValue(theVal, _) => value
     }
+  }
+
+  def not(theVal: Any): AnyVal = theVal match {
+    case info @ LValue(_, _) => not(info.value)
+    case RValue(theVal, _) => not(theVal)
+    case int: Int => if (int == 0) 1 else 0
+    case long: Long => if (long == 0) 1 else 0
+    case bool: Boolean => !bool
+    case char: char => if (char == 0) 1 else 0
   }
 
   // Some standard cases of needing to know what a type resolves to
