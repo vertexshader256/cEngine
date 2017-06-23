@@ -16,12 +16,13 @@ object Executor {
     fcns.foreach{fcnDef => state.addFunctionDef(fcnDef)}
 
     run(state)
+    state.context.pathStack.clear
   }
 
   def init(codes: Seq[String], reset: Boolean, state: State) = {
     preload(codes, state)
 
-    state.context.pathStack.clear
+
     state.context.pathStack.push(NodePath(state.getFunction("main").node, Stage1))
   }
 
