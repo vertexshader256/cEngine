@@ -5,8 +5,9 @@ import better.files._
 
 import scala.concurrent._
 import scala.concurrent.duration._
-import scala.util.{Success, Failure}
+import scala.util.{Failure, Success}
 import ExecutionContext.Implicits.global
+import scala.c.engine.NodePath
 
 class StandardTest extends FlatSpec {
 
@@ -45,6 +46,8 @@ class StandardTest extends FlatSpec {
         } else {
           Executor.init(Seq("#define HAS_FLOAT\n" + File("src\\scala\\c\\engine\\ee_printf.c").contentAsString) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }, true, state)
         }
+
+        state.context.pathStack.push(NodePath(state.getFunction("main").node, Stage1))
 
         Executor.run(state)
         //totalTime += (System.nanoTime - start) / 1000000000.0

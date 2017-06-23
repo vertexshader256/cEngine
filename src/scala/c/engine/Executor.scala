@@ -21,9 +21,6 @@ object Executor {
 
   def init(codes: Seq[String], reset: Boolean, state: State) = {
     preload(codes, state)
-
-
-    state.context.pathStack.push(NodePath(state.getFunction("main").node, Stage1))
   }
 
   def run(state: State) = {
