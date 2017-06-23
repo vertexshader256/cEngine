@@ -8,7 +8,7 @@ import ast.Ast.NoMatch
 
 object Executor {
 
-  def preload(codes: Seq[String], state: State) = {
+  def init(codes: Seq[String], state: State) = {
     state.tUnit = Utils.getTranslationUnit(codes)
     state.context.pathStack.push(NodePath(state.tUnit, Stage1))
 
@@ -17,10 +17,6 @@ object Executor {
 
     run(state)
     state.context.pathStack.clear
-  }
-
-  def init(codes: Seq[String], reset: Boolean, state: State) = {
-    preload(codes, state)
   }
 
   def run(state: State) = {

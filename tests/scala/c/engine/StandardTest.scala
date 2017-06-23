@@ -42,9 +42,9 @@ class StandardTest extends FlatSpec {
         val start = System.nanoTime
         val state = new State
         if (shouldBootstrap) {
-          Executor.init(codeInFiles, true, state)
+          Executor.init(codeInFiles, state)
         } else {
-          Executor.init(Seq("#define HAS_FLOAT\n" + File("src\\scala\\c\\engine\\ee_printf.c").contentAsString) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }, true, state)
+          Executor.init(Seq("#define HAS_FLOAT\n" + File("src\\scala\\c\\engine\\ee_printf.c").contentAsString) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }, state)
         }
 
         state.context.pathStack.push(NodePath(state.getFunction("main").node, Stage1))
