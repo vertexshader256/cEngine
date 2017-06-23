@@ -10,15 +10,17 @@ object Executor {
 
   def init(codes: Seq[String], state: State) = {
     state.tUnit = Utils.getTranslationUnit(codes)
-    state.context.pathStack.push(NodePath(state.tUnit, Stage1))
 
     val fcns = state.tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
     fcns.foreach{fcnDef => state.addFunctionDef(fcnDef)}
 
-    run(state)
+    run(state.tUnit, state)
   }
 
-  def run(state: State) = {
+  def run(node: IASTNode, state: State) = {
+
+    state.context.pathStack.push(NodePath(node, Stage1))
+
     var keepRunning = true
     while (keepRunning) {
       try {

@@ -47,9 +47,7 @@ class StandardTest extends FlatSpec {
           Executor.init(Seq("#define HAS_FLOAT\n" + File("src\\scala\\c\\engine\\ee_printf.c").contentAsString) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }, state)
         }
 
-        state.context.pathStack.push(NodePath(state.getFunction("main").node, Stage1))
-
-        Executor.run(state)
+        Executor.run(state.getFunction("main").node, state)
         //totalTime += (System.nanoTime - start) / 1000000000.0
         result = getResults(state.stdout.toList)
 

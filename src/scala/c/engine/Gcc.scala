@@ -22,8 +22,8 @@ object Gcc {
       val main = state.getFunction("main")
       state.functionList -= main
       state.Stack.insertIndex -= 4
-      state.context.pathStack.push(NodePath(main.node, Stage1))
-      Executor.run(state)
+
+      Executor.run(main.node, state)
   }
 
   def runGlobalCode(code: String, state: State) = {
