@@ -14,11 +14,12 @@ object Executor {
 
     val fcns = state.tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
     fcns.foreach{fcnDef => state.addFunctionDef(fcnDef)}
+
+    run(state)
   }
 
   def init(codes: Seq[String], reset: Boolean, state: State) = {
     preload(codes, state)
-    run(state)
 
     state.context.pathStack.clear
     state.context.pathStack.push(NodePath(state.getFunction("main").node, Stage1))
