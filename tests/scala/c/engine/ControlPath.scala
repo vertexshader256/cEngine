@@ -158,6 +158,24 @@ class SwitchStatement extends StandardTest {
     checkResults(code)
   }
 
+  "A switch that doesnt match" should "print the correct results" in {
+    val code = """
+      void main() {
+         int a = 500;
+
+         switch(a) {
+           case 100:
+             printf("2\n");
+             break;
+           case 200:
+             printf("3\n");
+             break;
+         }
+      }"""
+
+    checkResults(code)
+  }
+
 //  "A switch with a goto statement" should "print the correct results" in {
 //    val code = """
 //      void main() {
