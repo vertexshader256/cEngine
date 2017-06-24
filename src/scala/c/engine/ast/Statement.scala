@@ -31,19 +31,12 @@ object Statement {
       PartialFunction.empty
     case breakStatement: IASTBreakStatement => {
       case Stage1 =>
-        var reverse = state.context.pathStack.pop
-        var shouldBreak = false
-        while ((!shouldBreak && !reverse.node.isInstanceOf[IASTWhileStatement] &&
-          !reverse.node.isInstanceOf[IASTDoStatement] &&
-          !reverse.node.isInstanceOf[IASTForStatement] &&
-          !reverse.node.isInstanceOf[IASTSwitchStatement])) {
-            reverse = state.context.pathStack.pop
-        }
 
-        if (state.context.node.isInstanceOf[IASTDoStatement] || state.context.node.isInstanceOf[IASTWhileStatement] || reverse.node.isInstanceOf[IASTForStatement]) {
-          state.popFunctionContext
+        while (state.context.pathStack.size > 1 && !state.context.pathStack.head.node.isInstanceOf[IASTSwitchStatement]) {
           state.context.pathStack.pop
         }
+
+        state.context.pathStack.head.direction = Exiting
 
         Seq()
     }
@@ -101,9 +94,16 @@ object Statement {
         }
     }
     case switch: IASTSwitchStatement => {
+//      case Stage1 =>
+//        state.pushScope(new LoopScope(List(), switch, state.context, state) {})
+//        state.context.pathStack.push(NodePath(switch, Stage2))
+//        Seq()
       case Stage2 =>
         val cases = switch.getBody.getChildren.collect { case x: IASTCaseStatement => x; case y: IASTDefaultStatement => y }
         Seq(switch.getControllerExpression) ++ cases // only process case and default statements
+//      case Exiting =>
+//        state.popFunctionContext
+//        Seq()
     }
     case default: IASTDefaultStatement => {
       case Exiting => processSwitch(default)
