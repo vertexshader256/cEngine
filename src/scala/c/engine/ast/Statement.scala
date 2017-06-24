@@ -32,11 +32,14 @@ object Statement {
     case breakStatement: IASTBreakStatement => {
       case Stage1 =>
 
-        while (state.context.pathStack.size > 1 && !state.context.pathStack.head.node.isInstanceOf[IASTSwitchStatement]) {
+        if (!breakStatement.getParent.getParent.isInstanceOf[IASTSwitchStatement]) {
+          state.popFunctionContext
           state.context.pathStack.pop
+        } else {
+          while (!state.context.pathStack.head.node.isInstanceOf[IASTSwitchStatement]) {
+            state.context.pathStack.pop
+          }
         }
-
-        state.context.pathStack.head.direction = Exiting
 
         Seq()
     }
