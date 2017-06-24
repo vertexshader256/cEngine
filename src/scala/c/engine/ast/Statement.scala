@@ -115,10 +115,15 @@ object Statement {
           case value @ RValue(_, _) => value
         }).value
 
-        val scope = state.context.asInstanceOf[SwitchScope]
 
-        if (caseExpr == resolved || scope.isCaseFound) {
-          scope.isCaseFound = true
+        var scope = state.context
+
+        while (!scope.isInstanceOf[SwitchScope]) {
+          scope = scope.parent
+        }
+
+        if (caseExpr == resolved || scope.asInstanceOf[SwitchScope].isCaseFound) {
+          scope.asInstanceOf[SwitchScope].isCaseFound = true
           Seq() // match found, proceed
         } else {
           val cases = caseStatement.getParent.getChildren.collect{case c: IASTCaseStatement => c

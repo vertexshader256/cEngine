@@ -32,7 +32,7 @@ class SwitchScope(theStaticVars: List[Variable], node: IASTNode, parent: Scope, 
   val isContinuable = false
 }
 
-abstract class Scope(staticVars: List[Variable], val node: IASTNode, parent: Scope, state: State) {
+abstract class Scope(staticVars: List[Variable], val node: IASTNode, val parent: Scope, state: State) {
   private var varMap = new mutable.HashSet[Variable]()
   val pathStack = new Stack[NodePath]()
   val stack = new Stack[ValueType]()
