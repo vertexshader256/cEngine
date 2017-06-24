@@ -43,7 +43,7 @@ object Statement {
           }
         }
 
-        if (reverse.node.isInstanceOf[IASTDoStatement] || reverse.node.isInstanceOf[IASTWhileStatement] || reverse.node.isInstanceOf[IASTForStatement]) {
+        if (state.context.node.isInstanceOf[IASTDoStatement] || state.context.node.isInstanceOf[IASTWhileStatement] || reverse.node.isInstanceOf[IASTForStatement]) {
           state.popFunctionContext
           state.context.pathStack.pop
         }
