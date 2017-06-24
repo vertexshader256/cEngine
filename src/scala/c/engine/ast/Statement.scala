@@ -96,14 +96,13 @@ object Statement {
         state.context.pathStack.push(NodePath(switch, Stage2))
         Seq()
       case Stage2 =>
-        val cases = switch.getBody.getChildren.collect { case x: IASTCaseStatement => x; case y: IASTDefaultStatement => y }
-        Seq(switch.getControllerExpression) ++ cases // only process case and default statements
+        Seq(switch.getControllerExpression, switch.getBody) // only process case and default statements
       case Exiting =>
         state.popFunctionContext
         Seq()
     }
     case default: IASTDefaultStatement => {
-      case Exiting => processSwitch(default)
+      case _ => Seq()
     }
     case caseStatement: IASTCaseStatement => {
       case Stage2 => Seq(caseStatement.getExpression)
@@ -116,9 +115,24 @@ object Statement {
           case value @ RValue(_, _) => value
         }).value
 
-        if (caseExpr == resolved) {
-          processSwitch(caseStatement)
+        val scope = state.context.asInstanceOf[SwitchScope]
+
+        if (caseExpr == resolved || scope.isCaseFound) {
+          scope.isCaseFound = true
+          Seq() // match found, proceed
         } else {
+          val cases = caseStatement.getParent.getChildren.collect{case c: IASTCaseStatement => c
+                                                                  case d: IASTDefaultStatement => d}
+          if (cases.last != caseStatement) {
+            state.context.pathStack.pop
+            var popped: NodePath = null
+            while (!state.context.pathStack.head.node.isInstanceOf[IASTCaseStatement] && !state.context.pathStack.head.node.isInstanceOf[IASTDefaultStatement]) {
+              popped = state.context.pathStack.pop
+            }
+            state.context.pathStack.push(popped)
+          } else {
+            state.popFunctionContext
+          }
           Seq()
         }
     }

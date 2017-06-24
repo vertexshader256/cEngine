@@ -26,6 +26,8 @@ class LoopScope(theStaticVars: List[Variable], node: IASTNode, parent: Scope, th
 class SwitchScope(theStaticVars: List[Variable], node: IASTNode, parent: Scope, theState: State)
   extends Scope(theStaticVars, node, parent, theState) {
 
+  var isCaseFound = false
+
   val isBreakable = true
   val isContinuable = false
 }
