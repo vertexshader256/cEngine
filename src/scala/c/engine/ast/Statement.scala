@@ -35,12 +35,9 @@ object Statement {
         var shouldBreak = false
         while ((!shouldBreak && !reverse.node.isInstanceOf[IASTWhileStatement] &&
           !reverse.node.isInstanceOf[IASTDoStatement] &&
-          !reverse.node.isInstanceOf[IASTForStatement])) {
-          if (state.context.pathStack.head.node.isInstanceOf[IASTSwitchStatement]) {
-            shouldBreak = true
-          } else {
+          !reverse.node.isInstanceOf[IASTForStatement] &&
+          !reverse.node.isInstanceOf[IASTSwitchStatement])) {
             reverse = state.context.pathStack.pop
-          }
         }
 
         if (state.context.node.isInstanceOf[IASTDoStatement] || state.context.node.isInstanceOf[IASTWhileStatement] || reverse.node.isInstanceOf[IASTForStatement]) {
