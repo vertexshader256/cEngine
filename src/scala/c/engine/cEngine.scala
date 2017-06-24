@@ -138,7 +138,7 @@ class State {
   val functionPrototypes = scala.collection.mutable.HashSet[IASTFunctionDeclarator]()
 
   private val functionContexts = new Stack[Scope]()
-  def context = functionContexts.head
+  def context: Scope = functionContexts.head
   val functionList = new ListBuffer[Function]()
   val functionPointers = scala.collection.mutable.Map[String, Variable]()
   val stdout = new ListBuffer[Char]()

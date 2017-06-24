@@ -11,13 +11,16 @@ case class NodePath(node: IASTNode, var direction: Direction)
 class FunctionScope(theStaticVars: List[Variable], node: IASTNode, parent: Scope, val function: IFunctionType, theState: State)
   extends Scope(theStaticVars, node, parent, theState) {
   val labels = new ListBuffer[(String, Stack[NodePath])]()
+
+  val isBreakable = false
+  val isContinuable = false
 }
 
-trait ContinuableScope
-trait BreakableScope
-
 class LoopScope(theStaticVars: List[Variable], node: IASTNode, parent: Scope, theState: State)
-  extends Scope(theStaticVars, node, parent, theState) with ContinuableScope with BreakableScope {
+  extends Scope(theStaticVars, node, parent, theState) {
+
+  val isBreakable = true
+  val isContinuable = true
 }
 
 abstract class Scope(staticVars: List[Variable], val node: IASTNode, parent: Scope, state: State) {
@@ -27,6 +30,9 @@ abstract class Scope(staticVars: List[Variable], val node: IASTNode, parent: Sco
   var startingStackAddr = 0
 
   reset
+
+  val isBreakable: Boolean
+  val isContinuable: Boolean
 
   def resolveId(name: IASTName): Option[Variable] = {
     varMap.find{_.name.getRawSignature == name.getRawSignature}

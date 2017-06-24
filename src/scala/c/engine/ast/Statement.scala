@@ -46,17 +46,9 @@ object Statement {
     case continueStatement: IASTContinueStatement => {
       case Stage1 =>
 
-        if (!continueStatement.getParent.getParent.isInstanceOf[IASTSwitchStatement]) {
-          while (!state.context.isInstanceOf[ContinuableScope]) {
-            state.popFunctionContext
-          }
-
-          // skip everything, return to the first node
-          while (state.context.pathStack.size > 1) {
-            state.context.pathStack.pop
-          }
+        if (!state.context.isContinuable) {
+          state.popFunctionContext
         } else {
-          // skip everything, return to the first node
           while (state.context.pathStack.size > 1) {
             state.context.pathStack.pop
           }
