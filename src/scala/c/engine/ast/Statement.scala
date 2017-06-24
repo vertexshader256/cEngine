@@ -46,9 +46,8 @@ object Statement {
     case continueStatement: IASTContinueStatement => {
       case Stage1 =>
 
-
         if (!continueStatement.getParent.getParent.isInstanceOf[IASTSwitchStatement]) {
-          while (state.numScopes > 1 && !state.context.isInstanceOf[ContinuableScope]) {
+          while (!state.context.isInstanceOf[ContinuableScope]) {
             state.popFunctionContext
           }
 
@@ -62,8 +61,6 @@ object Statement {
             state.context.pathStack.pop
           }
         }
-
-
 
         Seq()
     }
