@@ -20,7 +20,7 @@ class LoopScope(theStaticVars: List[Variable], node: IASTNode, parent: Scope, th
   extends Scope(theStaticVars, node, parent, theState) with ContinuableScope with BreakableScope {
 }
 
-abstract class Scope(staticVars: List[Variable], node: IASTNode, parent: Scope, state: State) {
+abstract class Scope(staticVars: List[Variable], val node: IASTNode, parent: Scope, state: State) {
   private var varMap = new mutable.HashSet[Variable]()
   val pathStack = new Stack[NodePath]()
   val stack = new Stack[ValueType]()
