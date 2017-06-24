@@ -46,12 +46,8 @@ object Statement {
     case continueStatement: IASTContinueStatement => {
       case Stage1 =>
 
-        if (!state.context.isContinuable) {
-          state.popFunctionContext
-        } else {
-          while (state.context.pathStack.size > 1) {
-            state.context.pathStack.pop
-          }
+        while (state.context.pathStack.size > 1) {
+          state.context.pathStack.pop
         }
 
         Seq()
