@@ -130,7 +130,7 @@ object Statement {
     }
     case doWhileLoop: IASTDoStatement => {
       case Stage1 =>
-        state.pushScope(new LoopScope(List(), state.context, state) {}, doWhileLoop)
+        state.pushScope(new LoopScope(List(), state.context, state) {})
         state.context.pathStack.push(NodePath(doWhileLoop, Stage2))
         Seq()
       case Stage2 => Seq(doWhileLoop.getBody, doWhileLoop.getCondition)
@@ -153,7 +153,7 @@ object Statement {
     }
     case whileLoop: IASTWhileStatement => {
       case Stage1 =>
-        state.pushScope(new LoopScope(List(), state.context, state) {}, whileLoop)
+        state.pushScope(new LoopScope(List(), state.context, state) {})
         state.context.pathStack.push(NodePath(whileLoop, Stage2))
         Seq()
       case Stage2 => Seq(whileLoop.getCondition)
@@ -199,7 +199,7 @@ object Statement {
     }
     case forLoop: IASTForStatement => {
       case Stage1 =>
-        state.pushScope(new LoopScope(List(), state.context, state) {}, forLoop)
+        state.pushScope(new LoopScope(List(), state.context, state) {})
         state.context.pathStack.push(NodePath(forLoop, Stage2))
         Seq(Option(forLoop.getInitializerStatement)).flatten
       case Stage2 => Seq(Option(forLoop.getConditionExpression)).flatten

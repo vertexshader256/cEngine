@@ -157,16 +157,8 @@ class State {
 
   def numScopes = functionContexts.size
 
-  def pushScope(scope: Scope, node: IASTNode): Unit = {
-
-//    if (scopeCache.contains(node)) {
-//      val scope = scopeCache(node)
-//      scope.reset
-//      functionContexts.push(scope)
-//    } else {
-//      scopeCache += node -> scope
-      functionContexts.push(scope)
- //   }
+  def pushScope(scope: Scope): Unit = {
+    functionContexts.push(scope)
   }
 
   def getFunctionScope = {
