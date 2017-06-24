@@ -50,8 +50,7 @@ object Executor {
       val paths: Seq[NodePath] = if (state.isGotoing && current.direction != Stage1) {
         val result = (Ast.step(current, Gotoing)(state) orElse NoMatch)(Gotoing).map{ x => NodePath(x, Stage1)}
 
-        if (!current.node.isInstanceOf[IASTForStatement] && !current.node.isInstanceOf[IASTDoStatement] && !current.node.isInstanceOf[IASTWhileStatement]
-          && !current.node.isInstanceOf[IASTSwitchStatement]) {
+        if (state.context.node != current.node) {
           state.context.pathStack.pop
         }
 
