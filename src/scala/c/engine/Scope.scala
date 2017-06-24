@@ -8,19 +8,19 @@ import scala.collection.mutable.{ListBuffer, Stack}
 
 case class NodePath(node: IASTNode, var direction: Direction)
 
-class FunctionScope(theStaticVars: List[Variable], parent: Scope, val function: IFunctionType, theState: State)
-  extends Scope(theStaticVars, parent, theState) {
+class FunctionScope(theStaticVars: List[Variable], node: IASTNode, parent: Scope, val function: IFunctionType, theState: State)
+  extends Scope(theStaticVars, node, parent, theState) {
   val labels = new ListBuffer[(String, Stack[NodePath])]()
 }
 
 trait ContinuableScope
 trait BreakableScope
 
-class LoopScope(theStaticVars: List[Variable], parent: Scope, theState: State)
-  extends Scope(theStaticVars, parent, theState) with ContinuableScope with BreakableScope {
+class LoopScope(theStaticVars: List[Variable], node: IASTNode, parent: Scope, theState: State)
+  extends Scope(theStaticVars, node, parent, theState) with ContinuableScope with BreakableScope {
 }
 
-abstract class Scope(staticVars: List[Variable], parent: Scope, state: State) {
+abstract class Scope(staticVars: List[Variable], node: IASTNode, parent: Scope, state: State) {
   private var varMap = new mutable.HashSet[Variable]()
   val pathStack = new Stack[NodePath]()
   val stack = new Stack[ValueType]()

@@ -151,7 +151,7 @@ class State {
 
   var nextGotoNode: Seq[IASTNode] = Seq()
 
-  functionContexts.push(new FunctionScope(List(), null, null, this))
+  functionContexts.push(new FunctionScope(List(), null, null, null, this))
 
   private val scopeCache = new scala.collection.mutable.HashMap[IASTNode, Scope]()
 
@@ -269,7 +269,7 @@ class State {
 
     functionList.find(_.name == name).map{ function =>
 
-      functionContexts.push(new FunctionScope(function.staticVars, functionContexts.head, new CFunctionType(call.getExpressionType, null), this))
+      functionContexts.push(new FunctionScope(function.staticVars, call, functionContexts.head, new CFunctionType(call.getExpressionType, null), this))
 
       val resolvedArgs: Array[RValue] = args.map{x =>
         x match {
