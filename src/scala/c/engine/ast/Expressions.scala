@@ -165,9 +165,8 @@ object Expressions {
       case Exiting => Seq ()
     }
     case ternary: IASTConditionalExpression => {
-      case Stage2 => Seq (ternary.getLogicalConditionExpression)
       case Exiting =>
-        val result = TypeHelper.resolveBoolean (context.stack.pop)
+        val result = TypeHelper.resolveBoolean (recurse(ternary.getLogicalConditionExpression).head)
 
         if (result) {
           Seq (ternary.getPositiveResultExpression)
@@ -200,11 +199,10 @@ object Expressions {
         Seq()
     }
     case fieldRef: IASTFieldReference => {
-      case Stage2 => Seq(fieldRef.getFieldOwner)
       case Exiting =>
         var baseAddr = -1
 
-        val struct = context.stack.pop.asInstanceOf[LValue]
+        val struct = recurse(fieldRef.getFieldOwner).head.asInstanceOf[LValue]
 
         def resolve(theType: IType, addr: Int): CStructure = theType match {
           case qual: CQualifierType =>
