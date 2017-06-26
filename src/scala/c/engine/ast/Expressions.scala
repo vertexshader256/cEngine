@@ -238,9 +238,9 @@ object Expressions {
         Seq()
     }
     case subscript: IASTArraySubscriptExpression => {
-      case Stage2 => Seq(subscript.getArrayExpression, subscript.getArgument)
+      case Stage2 => Seq(subscript.getArrayExpression)
       case Exiting =>
-        val index = context.stack.pop match {
+        val index = recurse(subscript.getArgument).head match {
           case x @ RValue(_, _) => TypeHelper.cast(TypeHelper.pointerType, x.value).value.asInstanceOf[Int]
           case info @ LValue(_, _) =>
             info.value.value match {
@@ -305,9 +305,9 @@ object Expressions {
         Seq()
     }
     case call: IASTFunctionCallExpression => {
-      case Stage2 => call.getArguments.reverse ++ Seq(call.getFunctionNameExpression)
+      case Stage2 => call.getArguments.reverse
       case Exiting =>
-        val pop = context.stack.pop
+        val pop = recurse(call.getFunctionNameExpression).head
 
         val name = if (context.hasFunction(call.getFunctionNameExpression.getRawSignature)) {
           call.getFunctionNameExpression.getRawSignature
