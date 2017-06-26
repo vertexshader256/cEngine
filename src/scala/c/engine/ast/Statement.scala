@@ -148,13 +148,13 @@ object Statement {
         state.pushScope(new LoopScope(List(), doWhileLoop, state.context, state) {})
         state.context.pathStack.push(NodePath(doWhileLoop, Stage2))
         Seq()
-      case Stage2 => Seq(doWhileLoop.getBody, doWhileLoop.getCondition)
+      case Stage2 => doWhileLoop.getChildren
       case PreLoop =>
         val shouldLoop = TypeHelper.resolveBoolean(state.stack.pop)
 
         if (shouldLoop) {
           statement.direction = Stage2
-          Seq(doWhileLoop.getBody, doWhileLoop.getCondition)
+          doWhileLoop.getChildren
         } else {
           Seq()
         }

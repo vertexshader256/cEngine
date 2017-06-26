@@ -113,6 +113,47 @@ object TypeHelper {
     RValue(casted, theType)
   }
 
+  def getType(idExpr: IASTTypeId) = idExpr.getDeclSpecifier match {
+    case simple: IASTSimpleDeclSpecifier =>
+      import org.eclipse.cdt.core.dom.ast.IASTSimpleDeclSpecifier._
+
+      var config = 0
+
+      if (simple.isLongLong) {
+        config |= IBasicType.IS_LONG_LONG
+      }
+
+      if (simple.isLong) {
+        config |= IBasicType.IS_LONG
+      }
+
+      if (simple.isUnsigned) {
+        config |= IBasicType.IS_UNSIGNED
+      } else {
+        config |= IBasicType.IS_SIGNED
+      }
+
+      var result: IType = simple.getType match {
+        case `t_unspecified` => new CBasicType(IBasicType.Kind.eInt, config)
+        case `t_int`    => new CBasicType(IBasicType.Kind.eInt, config)
+        case `t_float`  => new CBasicType(IBasicType.Kind.eFloat, config)
+        case `t_double` => new CBasicType(IBasicType.Kind.eDouble, config)
+        case `t_char`   => new CBasicType(IBasicType.Kind.eChar, config)
+        case `t_void`   => new CBasicType(IBasicType.Kind.eVoid, config)
+      }
+
+      for (ptr <- idExpr.getAbstractDeclarator.getPointerOperators) {
+        result = new CPointerType(result, 0)
+      }
+
+      TypeInfo(result)
+
+    case typespec: CASTTypedefNameSpecifier =>
+      TypeInfo(typespec.getName.resolveBinding().asInstanceOf[IType])
+    case elab: CASTElaboratedTypeSpecifier =>
+      TypeInfo(elab.getName.resolveBinding().asInstanceOf[CStructure])
+  }
+
   def getType(value: AnyVal): IBasicType = {
     var config = 0
               

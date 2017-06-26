@@ -25,9 +25,9 @@ object Expressions {
         }
     }
     case cast: IASTCastExpression => {
-      case Stage2 => Seq(cast.getOperand, cast.getTypeId)
+      case Stage2 => Seq(cast.getOperand)
       case Exiting =>
-        val theType = context.stack.pop.asInstanceOf[TypeInfo].value
+        val theType = TypeHelper.getType(cast.getTypeId).theType
         val operand = context.stack.pop
 
         context.stack.push(operand match {
@@ -150,10 +150,8 @@ object Expressions {
     }
     case typeExpr: IASTTypeIdExpression => {
       // used for sizeof calls on a type
-      case Stage2 =>
-        Seq(typeExpr.getTypeId)
       case Exiting =>
-        val theType = context.stack.pop.asInstanceOf[TypeInfo].value
+        val theType = TypeHelper.getType(typeExpr.getTypeId).theType
         context.stack.push(RValue(TypeHelper.sizeof(theType), TypeHelper.pointerType))
         Seq()
     }
