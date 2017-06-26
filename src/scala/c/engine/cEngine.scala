@@ -306,11 +306,9 @@ class State {
           Seq(RValue(retVal, null))
         }.getOrElse(Seq())
       } else {
-        convertedArgs.foreach{ arg => context.stack.push(arg)}
-        context.stack.push(RValue(resolvedArgs.size, null))
         context.pathStack.push(NodePath(function.node, Stage1))
         context.pathStack.push(NodePath(call, Stage1))
-        Seq()
+        (convertedArgs :+ RValue(resolvedArgs.size, null)).toSeq
       }
     }.getOrElse{
       // function pointer case

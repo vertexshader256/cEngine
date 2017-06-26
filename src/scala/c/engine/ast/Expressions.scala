@@ -172,7 +172,8 @@ object Expressions {
 
         val args = call.getArguments.map{x => context.stack.pop}
 
-        context.stack.pushAll(context.callTheFunction(name, call, args))
+        val pushing = context.callTheFunction(name, call, args)
+        context.stack.pushAll(pushing)
         Seq()
       case Gotoing => Seq()
     }
