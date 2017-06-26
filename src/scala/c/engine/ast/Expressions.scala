@@ -173,6 +173,7 @@ object Expressions {
         val args = call.getArguments.map{x => context.stack.pop}
 
         context.callTheFunction(name, call, args)
+        Seq()
       case Gotoing => Seq()
     }
     case bin: IASTBinaryExpression => {
