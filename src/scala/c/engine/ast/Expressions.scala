@@ -127,7 +127,7 @@ object Expressions {
     case unary: IASTUnaryExpression => {
       case Stage2 => Seq(unary.getOperand)
       case Exiting =>
-        UnaryExpression.execute(unary)
+        context.stack.push(UnaryExpression.execute(context.stack.pop, unary))
         Seq()
       case Gotoing => Seq()
     }

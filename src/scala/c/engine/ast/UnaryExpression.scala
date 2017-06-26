@@ -7,13 +7,10 @@ import org.eclipse.cdt.core.dom.ast.IASTUnaryExpression._
 import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 
 object UnaryExpression {
-  def execute(unary: IASTUnaryExpression)(implicit state: State) = {
+  def execute(value: ValueType, unary: IASTUnaryExpression)(implicit state: State): ValueType = {
 
-    if (unary.getOperator != op_bracketedPrimary) {
-
-      val value = state.stack.pop
-
-      state.stack.push(unary.getOperator match {
+      unary.getOperator match {
+        case `op_bracketedPrimary` => value
         case `op_tilde` =>
           RValue(~value.asInstanceOf[RValue].value.asInstanceOf[Int], null)
         case `op_not` => RValue(TypeHelper.not(value), TypeHelper.one.theType)
@@ -80,7 +77,6 @@ object UnaryExpression {
                 info
               }
           }
-      })
-    }
+      }
   }
 }
