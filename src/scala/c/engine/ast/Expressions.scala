@@ -103,11 +103,9 @@ object Expressions {
 
         aType = TypeHelper.stripSyntheticTypeInfo(aType)
 
-        context.stack.push(LValue(offset, aType))
-
-        Seq()
+        Seq(LValue(offset, aType))
     case unary: IASTUnaryExpression =>
-      context.stack.push(UnaryExpression.execute(recurse(unary.getOperand).head, unary))
+      Seq(UnaryExpression.execute(recurse(unary.getOperand).head, unary))
     case lit: IASTLiteralExpression =>
         val litStr = lit.getRawSignature
         Seq(if (litStr.head == '\"' && litStr.last == '\"') {
@@ -137,8 +135,7 @@ object Expressions {
         val args = call.getArguments.reverse.map{x => recurse(x).head}
 
         val pushing = context.callTheFunction(name, call, args)
-        context.stack.pushAll(pushing)
-        Seq()
+        pushing
     case bin: IASTBinaryExpression =>
         val op2 = recurse(bin.getOperand2).head
         val op1 = recurse(bin.getOperand1).head
