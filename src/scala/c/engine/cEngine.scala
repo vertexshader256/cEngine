@@ -265,7 +265,7 @@ class State {
     Seq()
   }
 
-  def callTheFunction(name: String, call: IASTFunctionCallExpression, args: Array[ValueType]) = {
+  def callTheFunction(name: String, call: IASTFunctionCallExpression, args: Array[ValueType]): Seq[ValueType] = {
 
     functionList.find(_.name == name).map{ function =>
 
@@ -302,22 +302,22 @@ class State {
 
         popFunctionContext
 
-        returnVal.foreach{ retVal =>
-          context.stack.push(RValue(retVal, null))
-        }
-
-        Seq()
+        returnVal.map{ retVal =>
+          Seq(RValue(retVal, null))
+        }.getOrElse(Seq())
       } else {
         convertedArgs.foreach{ arg => context.stack.push(arg)}
         context.stack.push(RValue(resolvedArgs.size, null))
         context.pathStack.push(NodePath(function.node, Stage1))
         context.pathStack.push(NodePath(call, Stage1))
+        Seq()
       }
     }.getOrElse{
       // function pointer case
       val fcnPointer = functionContexts.head.resolveId(new CASTName(name.toCharArray)).get
       val function = getFunctionByIndex(fcnPointer.value.asInstanceOf[Int])
       context.pathStack.push(NodePath(function.node, Stage1))
+      Seq()
     }
   }
 
