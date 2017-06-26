@@ -136,7 +136,9 @@ object Statement {
             }
             state.context.pathStack.push(popped)
           } else {
-            state.popFunctionContext
+            while (state.context.pathStack.size > 2) {
+              state.context.pathStack.pop
+            }
           }
           Seq()
         }
