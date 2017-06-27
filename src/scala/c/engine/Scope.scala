@@ -1,6 +1,5 @@
-package scala.c.engine
+package c.engine
 
-import c.engine._
 import org.eclipse.cdt.core.dom.ast._
 
 import scala.collection.mutable
@@ -42,6 +41,58 @@ abstract class Scope(staticVars: List[Variable], val node: IASTNode, val parent:
 
   val isBreakable: Boolean
   val isContinuable: Boolean
+
+  def run(node: IASTNode, state: State) = {
+
+    state.context.pathStack.push(NodePath(node, Stage1))
+
+    var keepRunning = true
+    while (keepRunning) {
+      try {
+        keepRunning = tick(state)
+      } catch {
+        case e =>
+          throw e
+      }
+    }
+  }
+
+  def tick(state: State): Boolean = {
+    val current = state.context.pathStack.headOption.getOrElse(null)
+    if (current != null) {
+
+      //println(current.node.getClass.getSimpleName + ":" + current.direction)
+
+      val paths: Seq[NodePath] = if (state.isGotoing && current.direction != Stage1) {
+        val result = (ast.Ast.step(current, Gotoing)(state) orElse ast.Ast.NoMatch)(Gotoing).map{ x => NodePath(x, Stage1)}
+
+        if (state.context.pathStack.size > 1) {
+          state.context.pathStack.pop
+        }
+
+        result
+      } else {
+
+        val result = (ast.Ast.step(current, current.direction)(state) orElse ast.Ast.NoMatch)(current.direction).map{x => NodePath(x, Stage1)}
+
+        current.direction match {
+          case Stage1 => current.direction = Stage2
+          case Stage2 => current.direction = Stage3
+          case Stage3 => current.direction = PreLoop
+          case PreLoop => current.direction = Exiting
+          case Exiting => state.context.pathStack.pop
+        }
+
+        result
+      }
+
+      state.context.pathStack.pushAll(paths.reverse)
+
+      true
+    } else {
+      false
+    }
+  }
 
   def resolveId(name: IASTName): Option[Variable] = {
     varMap.find{_.name.getRawSignature == name.getRawSignature}

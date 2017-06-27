@@ -4,9 +4,6 @@ package ast
 import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.internal.core.dom.parser.c._
 
-import scala.c.engine.NodePath
-import scala.collection.mutable.ListBuffer
-
 object Ast {
 
   val NoMatch: PartialFunction[Direction, Seq[IASTNode]] = { case _ => Seq()}

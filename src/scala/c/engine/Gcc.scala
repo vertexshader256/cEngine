@@ -7,8 +7,6 @@ import java.io.File
 import scala.collection.mutable.ListBuffer
 import java.io.{InputStream, OutputStream, PrintWriter}
 
-import scala.c.engine.NodePath
-
 object Gcc {
 
   def runCode(code: String, state: State) = {
@@ -23,7 +21,7 @@ object Gcc {
       state.functionList -= main
       state.Stack.insertIndex -= 4
 
-      Executor.run(main.node, state)
+      state.context.run(main.node, state)
   }
 
   def runGlobalCode(code: String, state: State) = {

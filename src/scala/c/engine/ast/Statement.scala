@@ -2,8 +2,6 @@ package c.engine
 package ast
 
 import org.eclipse.cdt.core.dom.ast._
-
-import scala.c.engine._
 import scala.collection.mutable.{ListBuffer, Stack}
 
 object Statement {

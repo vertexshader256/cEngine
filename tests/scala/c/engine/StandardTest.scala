@@ -7,7 +7,6 @@ import scala.concurrent._
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 import ExecutionContext.Implicits.global
-import scala.c.engine.NodePath
 
 class StandardTest extends FlatSpec {
 
@@ -47,7 +46,7 @@ class StandardTest extends FlatSpec {
           state.init(Seq("#define HAS_FLOAT\n" + File("src\\scala\\c\\engine\\ee_printf.c").contentAsString) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }, state)
         }
 
-        Executor.run(state.getFunction("main").node, state)
+        state.context.run(state.getFunction("main").node, state)
         //totalTime += (System.nanoTime - start) / 1000000000.0
         result = getResults(state.stdout.toList)
 

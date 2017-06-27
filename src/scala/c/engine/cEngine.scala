@@ -9,7 +9,6 @@ import java.nio.ByteOrder
 
 import org.eclipse.cdt.internal.core.dom.parser.c._
 
-import scala.c.engine.{FunctionScope, NodePath, Scope}
 
 object Interpreter {
   implicit val state = new State
@@ -190,7 +189,7 @@ class State {
       .collect{case comp: CASTCompositeTypeSpecifier => comp}
       .map{x => x.getName.resolveBinding().asInstanceOf[CStructure]}
 
-    Executor.run(tUnit, state)
+    state.context.run(tUnit, state)
   }
 
   def addScalaFunctionDef(fcn: Function) = {
