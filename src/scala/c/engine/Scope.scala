@@ -42,9 +42,7 @@ abstract class Scope(staticVars: List[Variable], val node: IASTNode, val parent:
   val isBreakable: Boolean
   val isContinuable: Boolean
 
-  def run(node: IASTNode, state: State) = {
-
-    state.context.pathStack.push(NodePath(node, Stage1))
+  def run = {
 
     var keepRunning = true
     while (keepRunning) {

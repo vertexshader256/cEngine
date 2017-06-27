@@ -189,7 +189,8 @@ class State {
       .collect{case comp: CASTCompositeTypeSpecifier => comp}
       .map{x => x.getName.resolveBinding().asInstanceOf[CStructure]}
 
-    state.context.run(tUnit, state)
+    state.context.pathStack.push(NodePath(tUnit, Stage1))
+    state.context.run
   }
 
   def addScalaFunctionDef(fcn: Function) = {
