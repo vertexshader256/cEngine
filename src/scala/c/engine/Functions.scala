@@ -264,7 +264,7 @@ object Functions {
         val memberName = Utils.readString(straddy)(state)
         val stuctName = Utils.readString(straddy2)(state)
 
-        val structs = Executor.declarations
+        val structs = state.declarations
 
         val struct = structs.find{x => ("struct " + x.getName) == stuctName}.get
 

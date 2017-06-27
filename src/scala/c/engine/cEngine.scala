@@ -9,7 +9,7 @@ import java.nio.ByteOrder
 
 import org.eclipse.cdt.internal.core.dom.parser.c._
 
-import scala.c.engine.{Scope, FunctionScope, NodePath}
+import scala.c.engine.{FunctionScope, NodePath, Scope}
 
 object Interpreter {
   implicit val state = new State
@@ -151,6 +151,8 @@ class State {
 
   var nextGotoNode: Seq[IASTNode] = Seq()
 
+  val declarations = new ListBuffer[CStructure]()
+
   functionContexts.push(new FunctionScope(List(), null, null, null, this))
 
   private val scopeCache = new scala.collection.mutable.HashMap[IASTNode, Scope]()
@@ -176,6 +178,19 @@ class State {
 
   Functions.scalaFunctions.foreach{fcn =>
     addScalaFunctionDef(fcn)
+  }
+
+  def init(codes: Seq[String], state: State) = {
+    val tUnit = Utils.getTranslationUnit(codes)
+
+    val fcns = tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
+    fcns.foreach{fcnDef => state.addFunctionDef(fcnDef)}
+
+    declarations ++= tUnit.getDeclarations.collect{case simp: CASTSimpleDeclaration => simp.getDeclSpecifier}
+      .collect{case comp: CASTCompositeTypeSpecifier => comp}
+      .map{x => x.getName.resolveBinding().asInstanceOf[CStructure]}
+
+    Executor.run(tUnit, state)
   }
 
   def addScalaFunctionDef(fcn: Function) = {

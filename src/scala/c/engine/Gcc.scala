@@ -18,7 +18,7 @@ object Gcc {
         }
       """
 
-      Executor.init(Seq(exeCode), state)
+      state.init(Seq(exeCode), state)
       val main = state.getFunction("main")
       state.functionList -= main
       state.Stack.insertIndex -= 4
@@ -31,7 +31,7 @@ object Gcc {
        $code
     """
 
-    Executor.init(Seq(exeCode), state)
+    state.init(Seq(exeCode), state)
   }
   
   
