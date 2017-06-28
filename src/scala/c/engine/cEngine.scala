@@ -333,6 +333,8 @@ class State {
       val fcnPointer = functionContexts.head.resolveId(new CASTName(name.toCharArray)).get
       val function = getFunctionByIndex(fcnPointer.value.asInstanceOf[Int])
       context.pathStack.push(NodePath(function.node, Stage1))
+      context.run
+      popFunctionContext
       None
     }
   }
