@@ -321,8 +321,16 @@ class State {
         }.getOrElse(Seq())
       } else {
         context.pathStack.push(NodePath(function.node, Stage1))
-        context.pathStack.push(NodePath(call, Stage1))
-        (convertedArgs :+ RValue(resolvedArgs.size, null)).toSeq
+        context.stack.pushAll(convertedArgs :+ RValue(resolvedArgs.size, null))
+        context.run
+        if (!context.stack.isEmpty) {
+          val returnVal = context.stack.pop
+          popFunctionContext
+          context.stack.push(returnVal)
+        } else {
+          popFunctionContext
+        }
+        Seq()
       }
     }.getOrElse{
       // function pointer case

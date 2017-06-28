@@ -59,14 +59,7 @@ object Ast {
       case Exiting =>
         if (!state.context.stack.isEmpty) {
           val retVal = state.context.stack.pop
-          if (fcnDef.getDeclarator.getName.getRawSignature != "main") {
-            state.popFunctionContext
-          }
           state.context.stack.push(retVal)
-        } else {
-          if (fcnDef.getDeclarator.getName.getRawSignature != "main") {
-            state.popFunctionContext
-          }
         }
         Seq()
       case Stage2 =>
