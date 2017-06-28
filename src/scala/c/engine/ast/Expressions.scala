@@ -221,8 +221,8 @@ object Expressions {
       case Gotoing => Seq()
     }
     case bin: IASTBinaryExpression => {
-      case Stage1 => Seq(bin.getOperand1)
       case Stage2 =>
+        state.context.stack.push(recurse(bin.getOperand1).head)
         (bin.getOperator, state.context.stack.head) match {
           case (IASTBinaryExpression.op_logicalOr, RValue(x: Boolean, _)) if x => state.context.pathStack.pop; Seq()
           case (IASTBinaryExpression.op_logicalAnd, RValue(x: Boolean, _)) if !x => state.context.pathStack.pop; Seq()
