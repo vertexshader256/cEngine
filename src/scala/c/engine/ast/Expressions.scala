@@ -201,8 +201,8 @@ object Expressions {
         Seq()
     }
     case subscript: IASTArraySubscriptExpression => {
-      case Stage2 => Seq(subscript.getArrayExpression)
       case Exiting =>
+        val arrayVarPtr = recurse(subscript.getArrayExpression).head.asInstanceOf[LValue]
         val index = recurse(subscript.getArgument).head match {
           case x @ RValue(_, _) => TypeHelper.cast(TypeHelper.pointerType, x.value).value.asInstanceOf[Int]
           case info @ LValue(_, _) =>
@@ -211,8 +211,7 @@ object Expressions {
               case long: Long => long.toInt
             }
         }
-
-        val arrayVarPtr = state.context.stack.pop.asInstanceOf[LValue]
+        
         var aType = arrayVarPtr.theType
 
         val offset =
