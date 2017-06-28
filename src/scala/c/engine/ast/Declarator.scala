@@ -34,8 +34,8 @@ object Declarator {
           val others = fcnDec.getChildren.filter { x => !x.isInstanceOf[IASTParameterDeclaration] && !x.isInstanceOf[IASTName] }
 
           if (!isInFunctionPrototype) {
-            numArgs = state.stack.pop.asInstanceOf[RValue].value.asInstanceOf[Integer]
-            val args = (0 until numArgs).map { arg => state.stack.pop }.reverse
+            numArgs = state.context.stack.pop.asInstanceOf[RValue].value.asInstanceOf[Integer]
+            val args = (0 until numArgs).map { arg => state.context.stack.pop }.reverse
 
             val resolvedArgs = args.map { arg => arg match {
               case StringLiteral(str) =>
@@ -79,7 +79,7 @@ object Declarator {
         val dimensions = arrayDecl.getArrayModifiers.filter {
           _.getConstantExpression != null
         }.map { dim =>
-          state.stack.pop match {
+          state.context.stack.pop match {
             // can we can assume dimensions are integers
             case RValue(value, _) => value.asInstanceOf[Int]
             case info@LValue(_, _) => info.value.value.asInstanceOf[Int]
@@ -95,7 +95,7 @@ object Declarator {
 
           if (TypeHelper.resolve(theType).getKind == IBasicType.Kind.eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
             // e.g. char str[] = "Hello!\n";
-            val initString = state.stack.pop.asInstanceOf[StringLiteral].value
+            val initString = state.context.stack.pop.asInstanceOf[StringLiteral].value
 
             val theStr = Utils.stripQuotes(initString)
             val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
@@ -108,7 +108,7 @@ object Declarator {
             val size = list.getSize
 
             val values: Array[RValue] = (0 until size).map { x =>
-              state.stack.pop match {
+              state.context.stack.pop match {
                 case value@RValue(_, _) => value
                 case info@LValue(_, _) => info.value
               }
@@ -119,7 +119,7 @@ object Declarator {
           }
           Seq()
         } else if (initializer != null) {
-          val initVals: Array[Any] = (0 until initializer.getInitializerClause.getChildren.size).map { x => state.stack.pop }.reverse.toArray
+          val initVals: Array[Any] = (0 until initializer.getInitializerClause.getChildren.size).map { x => state.context.stack.pop }.reverse.toArray
 
           val initialArray = initVals.map { newInit =>
             newInit match {
@@ -151,13 +151,13 @@ object Declarator {
 
           if (!variable.isInitialized) {
             if (!stripped.isInstanceOf[CStructure]) {
-              val initVal = Option(decl.getInitializer).map(x => state.stack.pop).getOrElse(RValue(0, null))
+              val initVal = Option(decl.getInitializer).map(x => state.context.stack.pop).getOrElse(RValue(0, null))
               BinaryExpr.parseAssign(decl, op_assign, variable, initVal)
             } else if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
               && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
 
               val clause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
-              val values = clause.asInstanceOf[IASTInitializerList].getClauses.map { x => state.stack.pop }.reverse.toList
+              val values = clause.asInstanceOf[IASTInitializerList].getClauses.map { x => state.context.stack.pop }.reverse.toList
               variable.setValues(values)
             }
 

@@ -105,8 +105,8 @@ object Statement {
     case caseStatement: IASTCaseStatement => {
       case Stage2 => Seq(caseStatement.getExpression)
       case Exiting =>
-        val caseExpr = state.stack.pop.asInstanceOf[RValue].value
-        val switchExpr = state.stack.head
+        val caseExpr = state.context.stack.pop.asInstanceOf[RValue].value
+        val switchExpr = state.context.stack.head
 
         val resolved = (switchExpr match {
           case info @ LValue(_, _) => info.value
@@ -148,7 +148,7 @@ object Statement {
         Seq()
       case Stage2 => doWhileLoop.getChildren
       case PreLoop =>
-        val shouldLoop = TypeHelper.resolveBoolean(state.stack.pop)
+        val shouldLoop = TypeHelper.resolveBoolean(state.context.stack.pop)
 
         if (shouldLoop) {
           statement.direction = Stage2
@@ -171,7 +171,7 @@ object Statement {
         Seq()
       case Stage2 => Seq(whileLoop.getCondition)
       case PreLoop =>
-        val cast = state.stack.pop
+        val cast = state.context.stack.pop
 
         val shouldLoop = TypeHelper.resolveBoolean(cast)
 
@@ -192,7 +192,7 @@ object Statement {
     case ifStatement: IASTIfStatement => {
       case Stage2 => Seq(ifStatement.getConditionExpression)
       case Exiting =>
-        val result = state.stack.pop
+        val result = state.context.stack.pop
 
         val value = result match {
           case info @ LValue(_,_) => info.value
@@ -219,7 +219,7 @@ object Statement {
       case Stage3 =>
         val shouldKeepLooping = if (forLoop.getConditionExpression != null) {
 
-          val result = TypeHelper.resolve(state.stack.pop).value
+          val result = TypeHelper.resolve(state.context.stack.pop).value
 
           TypeHelper.resolveBoolean(result)
         } else {
@@ -255,7 +255,7 @@ object Statement {
         var retVal: ValueType = null
 
         if (ret.getReturnValue != null) {
-          val returnVal = state.stack.pop
+          val returnVal = state.context.stack.pop
 
           retVal = returnVal match {
             case info @ LValue(addr, theType) =>

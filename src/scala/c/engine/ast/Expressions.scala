@@ -159,7 +159,7 @@ object Expressions {
         Seq(result)
   }
 
-  def parse(expr: IASTExpression)(implicit context: State): PartialFunction[Direction, Seq[IASTNode]] = expr match {
+  def parse(expr: IASTExpression)(implicit state: State): PartialFunction[Direction, Seq[IASTNode]] = expr match {
     case exprList: IASTExpressionList => {
       case Stage2 => exprList.getExpressions
       case Exiting => Seq ()
@@ -178,21 +178,21 @@ object Expressions {
       case Stage2 => Seq(cast.getOperand)
       case Exiting =>
         val theType = TypeHelper.getType(cast.getTypeId).theType
-        val operand = context.stack.pop
+        val operand = state.context.stack.pop
 
-        context.stack.push(operand match {
+        state.context.stack.push(operand match {
           case str @ StringLiteral(_) => str
           case LValue(addr, aType) =>
             theType match {
               case ptr: IPointerType if aType.isInstanceOf[IArrayType] =>
-                val newAddr = context.allocateSpace(4)
-                context.Stack.writeToMemory(addr, newAddr, theType)
+                val newAddr = state.allocateSpace(4)
+                state.Stack.writeToMemory(addr, newAddr, theType)
                 LValue(newAddr, theType)
               case _ => LValue(addr, theType)
             }
           case RValue(value, _) =>
-            val newAddr = context.allocateSpace(TypeHelper.sizeof(theType))
-            context.Stack.writeToMemory(TypeHelper.cast(theType, value).value, newAddr, theType)
+            val newAddr = state.allocateSpace(TypeHelper.sizeof(theType))
+            state.Stack.writeToMemory(TypeHelper.cast(theType, value).value, newAddr, theType)
             LValue(newAddr, theType)
         })
 
@@ -217,7 +217,7 @@ object Expressions {
         val structType = resolve(struct.theType, struct.address)
 
         baseAddr = if (fieldRef.isPointerDereference) {
-          context.readPtrVal(struct.address)
+          state.readPtrVal(struct.address)
         } else {
           struct.address
         }
@@ -233,7 +233,7 @@ object Expressions {
           }
         }
 
-        context.stack.push(resultAddress)
+        state.context.stack.push(resultAddress)
 
         Seq()
     }
@@ -249,7 +249,7 @@ object Expressions {
             }
         }
 
-        val arrayVarPtr = context.stack.pop.asInstanceOf[LValue]
+        val arrayVarPtr = state.context.stack.pop.asInstanceOf[LValue]
         var aType = arrayVarPtr.theType
 
         val offset =
@@ -260,23 +260,23 @@ object Expressions {
             aType match {
               case array: IArrayType =>
                 aType = array.getType
-                context.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
+                state.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
               case ptr: IPointerType =>
                 aType = ptr.getType
-                context.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
+                state.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
             }
           }
 
         aType = TypeHelper.stripSyntheticTypeInfo(aType)
 
-        context.stack.push(LValue(offset, aType))
+        state.context.stack.push(LValue(offset, aType))
 
         Seq()
     }
     case unary: IASTUnaryExpression => {
       case Stage2 => Seq(unary.getOperand)
       case Exiting =>
-        context.stack.push(UnaryExpression.execute(context.stack.pop, unary))
+        state.context.stack.push(UnaryExpression.execute(state.context.stack.pop, unary))
         Seq()
       case Gotoing => Seq()
     }
@@ -286,22 +286,22 @@ object Expressions {
 
         val litStr = lit.getRawSignature
         if (litStr.head == '\"' && litStr.last == '\"') {
-          context.stack.push(StringLiteral(litStr))
+          state.context.stack.push(StringLiteral(litStr))
         } else {
-          context.stack.push(Literal.cast(lit.getRawSignature))
+          state.context.stack.push(Literal.cast(lit.getRawSignature))
         }
         Seq()
     }
     case id: IASTIdExpression => {
       case Exiting =>
-        context.stack.push(context.context.resolveId(id.getName).get)
+        state.context.stack.push(state.context.resolveId(id.getName).get)
         Seq()
     }
     case typeExpr: IASTTypeIdExpression => {
       // used for sizeof calls on a type
       case Exiting =>
         val theType = TypeHelper.getType(typeExpr.getTypeId).theType
-        context.stack.push(RValue(TypeHelper.sizeof(theType), TypeHelper.pointerType))
+        state.context.stack.push(RValue(TypeHelper.sizeof(theType), TypeHelper.pointerType))
         Seq()
     }
     case call: IASTFunctionCallExpression => {
@@ -309,34 +309,34 @@ object Expressions {
       case Exiting =>
         val pop = recurse(call.getFunctionNameExpression).head
 
-        val name = if (context.hasFunction(call.getFunctionNameExpression.getRawSignature)) {
+        val name = if (state.hasFunction(call.getFunctionNameExpression.getRawSignature)) {
           call.getFunctionNameExpression.getRawSignature
         } else {
           val info = pop.asInstanceOf[LValue]
           val resolved = TypeHelper.stripSyntheticTypeInfo(info.theType)
           resolved match {
-            case ptr: IPointerType => context.getFunctionByIndex(info.value.value.asInstanceOf[Int]).name
+            case ptr: IPointerType => state.getFunctionByIndex(info.value.value.asInstanceOf[Int]).name
           }
         }
 
-        val args = call.getArguments.map{x => context.stack.pop}
+        val args = call.getArguments.map{x => state.context.stack.pop}
 
-        val pushing = context.callTheFunction(name, call, args)
-        context.stack.pushAll(pushing)
+        val pushing = state.callTheFunction(name, call, args)
+        state.context.stack.pushAll(pushing)
         Seq()
       case Gotoing => Seq()
     }
     case bin: IASTBinaryExpression => {
       case Stage1 => Seq(bin.getOperand1)
       case Stage2 =>
-        (bin.getOperator, context.stack.head) match {
-          case (IASTBinaryExpression.op_logicalOr, RValue(x: Boolean, _)) if x => context.context.pathStack.pop; Seq()
-          case (IASTBinaryExpression.op_logicalAnd, RValue(x: Boolean, _)) if !x => context.context.pathStack.pop; Seq()
+        (bin.getOperator, state.context.stack.head) match {
+          case (IASTBinaryExpression.op_logicalOr, RValue(x: Boolean, _)) if x => state.context.pathStack.pop; Seq()
+          case (IASTBinaryExpression.op_logicalAnd, RValue(x: Boolean, _)) if !x => state.context.pathStack.pop; Seq()
           case _ => Seq(bin.getOperand2)
         }
       case Exiting =>
-        val op2 = context.stack.pop
-        val op1 = context.stack.pop
+        val op2 = state.context.stack.pop
+        val op1 = state.context.stack.pop
 
         val result = if (Utils.isAssignment(bin.getOperator)) {
           BinaryExpr.parseAssign(bin, bin.getOperator, op1, op2)
@@ -344,7 +344,7 @@ object Expressions {
           BinaryExpr.evaluate(bin, op1, op2, bin.getOperator)
         }
 
-        context.stack.push(result)
+        state.context.stack.push(result)
         Seq()
       case Gotoing =>
         Seq()

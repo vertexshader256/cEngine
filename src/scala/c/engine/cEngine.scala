@@ -142,7 +142,6 @@ class State {
   val functionPointers = scala.collection.mutable.Map[String, Variable]()
   val stdout = new ListBuffer[Char]()
   var functionCount = 0
-  def stack = context.stack
 
   // flags
   var isGotoing = false
