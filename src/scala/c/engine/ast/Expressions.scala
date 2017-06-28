@@ -133,8 +133,9 @@ object Expressions {
           }
         }
 
-        val args = call.getArguments.map{x => recurse(x).head}.reverse
+        val args = call.getArguments.map{x => recurse(x).head}
 
+        println(args.toList)
         state.callTheFunction(name, call, args).map{ x => Seq(x)}.getOrElse(Seq())
     case bin: IASTBinaryExpression =>
         val op2 = recurse(bin.getOperand2).head
@@ -170,7 +171,9 @@ object Expressions {
         Seq()
     }
     case cast: IASTCastExpression => {
-      case Stage2 => Seq(cast.getOperand)
+      case Stage2 =>
+        println(cast.getOperand.getRawSignature)
+        state.context.stack.push(recurse(cast.getOperand).head); Seq()
       case Exiting =>
         val theType = TypeHelper.getType(cast.getTypeId).theType
         val operand = state.context.stack.pop
