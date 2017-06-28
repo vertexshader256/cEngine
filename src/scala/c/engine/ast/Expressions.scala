@@ -75,36 +75,36 @@ object Expressions {
 
         Seq(resultAddress)
     case subscript: IASTArraySubscriptExpression =>
-        val index = recurse(subscript.getArgument).head match {
-          case x @ RValue(_, _) => TypeHelper.cast(TypeHelper.pointerType, x.value).value.asInstanceOf[Int]
-          case info @ LValue(_, _) =>
-            info.value.value match {
-              case int: Int => int
-              case long: Long => long.toInt
-            }
+      val arrayVarPtr = recurse(subscript.getArrayExpression).head.asInstanceOf[LValue]
+      val index = recurse(subscript.getArgument).head match {
+        case x @ RValue(_, _) => TypeHelper.cast(TypeHelper.pointerType, x.value).value.asInstanceOf[Int]
+        case info @ LValue(_, _) =>
+          info.value.value match {
+            case int: Int => int
+            case long: Long => long.toInt
+          }
+      }
+
+      var aType = arrayVarPtr.theType
+
+      val offset =
+        if (arrayVarPtr.isInstanceOf[ArrayVariable]) {
+          aType = arrayVarPtr.asInstanceOf[ArrayVariable].theType.getType
+          arrayVarPtr.address + index * TypeHelper.sizeof(aType)
+        } else {
+          aType match {
+            case array: IArrayType =>
+              aType = array.getType
+              state.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
+            case ptr: IPointerType =>
+              aType = ptr.getType
+              state.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
+          }
         }
 
-        val arrayVarPtr = recurse(subscript.getArrayExpression).head.asInstanceOf[LValue]
-        var aType = arrayVarPtr.theType
+      aType = TypeHelper.stripSyntheticTypeInfo(aType)
 
-        val offset =
-          if (arrayVarPtr.isInstanceOf[ArrayVariable]) {
-            aType = arrayVarPtr.asInstanceOf[ArrayVariable].theType.getType
-            arrayVarPtr.address + index * TypeHelper.sizeof(aType)
-          } else {
-            aType match {
-              case array: IArrayType =>
-                aType = array.getType
-                state.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
-              case ptr: IPointerType =>
-                aType = ptr.getType
-                state.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
-            }
-          }
-
-        aType = TypeHelper.stripSyntheticTypeInfo(aType)
-
-        Seq(LValue(offset, aType))
+      Seq(LValue(offset, aType))
     case unary: IASTUnaryExpression =>
       Seq(UnaryExpression.execute(recurse(unary.getOperand).head, unary))
     case lit: IASTLiteralExpression =>
@@ -202,37 +202,7 @@ object Expressions {
     }
     case subscript: IASTArraySubscriptExpression => {
       case Exiting =>
-        val arrayVarPtr = recurse(subscript.getArrayExpression).head.asInstanceOf[LValue]
-        val index = recurse(subscript.getArgument).head match {
-          case x @ RValue(_, _) => TypeHelper.cast(TypeHelper.pointerType, x.value).value.asInstanceOf[Int]
-          case info @ LValue(_, _) =>
-            info.value.value match {
-              case int: Int => int
-              case long: Long => long.toInt
-            }
-        }
-        
-        var aType = arrayVarPtr.theType
-
-        val offset =
-          if (arrayVarPtr.isInstanceOf[ArrayVariable]) {
-            aType = arrayVarPtr.asInstanceOf[ArrayVariable].theType.getType
-            arrayVarPtr.address + index * TypeHelper.sizeof(aType)
-          } else {
-            aType match {
-              case array: IArrayType =>
-                aType = array.getType
-                state.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
-              case ptr: IPointerType =>
-                aType = ptr.getType
-                state.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
-            }
-          }
-
-        aType = TypeHelper.stripSyntheticTypeInfo(aType)
-
-        state.context.stack.push(LValue(offset, aType))
-
+        state.context.stack.push(recurse(subscript).head)
         Seq()
     }
     case unary: IASTUnaryExpression => {
