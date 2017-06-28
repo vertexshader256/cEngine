@@ -265,15 +265,11 @@ object Statement {
           }
         }
 
-        if (state.numScopes > 1) {
-
-          var currentScope: Scope = null
-          while (state.numScopes > 1 && !state.context.isInstanceOf[FunctionScope]) {
-            state.popFunctionContext
-          }
-          while (state.context.pathStack.size > 1) {
-            state.context.pathStack.pop
-          }
+        while (state.numScopes > 1 && !state.context.isInstanceOf[FunctionScope]) {
+          state.popFunctionContext
+        }
+        while (state.context.pathStack.size > 1) {
+          state.context.pathStack.pop
         }
 
         if (retVal != null) {
