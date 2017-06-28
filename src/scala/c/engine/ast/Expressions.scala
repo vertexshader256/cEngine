@@ -245,14 +245,7 @@ object Expressions {
     }
     case lit: IASTLiteralExpression => {
       case Exiting =>
-        //println("PUSHING LIT: " + castLiteral(lit))
-
-        val litStr = lit.getRawSignature
-        if (litStr.head == '\"' && litStr.last == '\"') {
-          state.context.stack.push(StringLiteral(litStr))
-        } else {
-          state.context.stack.push(Literal.cast(lit.getRawSignature))
-        }
+        state.context.stack.push(recurse(lit).head)
         Seq()
     }
     case id: IASTIdExpression => {
