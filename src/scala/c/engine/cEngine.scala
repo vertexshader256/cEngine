@@ -332,6 +332,7 @@ class State {
       // function pointer case
       val fcnPointer = functionContexts.head.resolveId(new CASTName(name.toCharArray)).get
       val function = getFunctionByIndex(fcnPointer.value.asInstanceOf[Int])
+      functionContexts.push(new FunctionScope(function.staticVars, call, functionContexts.head, new CFunctionType(call.getExpressionType, null), this))
       context.pathStack.push(NodePath(function.node, Stage1))
       context.run
       popFunctionContext
