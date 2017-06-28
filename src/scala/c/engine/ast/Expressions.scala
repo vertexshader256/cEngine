@@ -171,29 +171,8 @@ object Expressions {
         Seq()
     }
     case cast: IASTCastExpression => {
-      case Stage2 =>
-        println(cast.getOperand.getRawSignature)
-        state.context.stack.push(recurse(cast.getOperand).head); Seq()
       case Exiting =>
-        val theType = TypeHelper.getType(cast.getTypeId).theType
-        val operand = state.context.stack.pop
-
-        state.context.stack.push(operand match {
-          case str @ StringLiteral(_) => str
-          case LValue(addr, aType) =>
-            theType match {
-              case ptr: IPointerType if aType.isInstanceOf[IArrayType] =>
-                val newAddr = state.allocateSpace(4)
-                state.Stack.writeToMemory(addr, newAddr, theType)
-                LValue(newAddr, theType)
-              case _ => LValue(addr, theType)
-            }
-          case RValue(value, _) =>
-            val newAddr = state.allocateSpace(TypeHelper.sizeof(theType))
-            state.Stack.writeToMemory(TypeHelper.cast(theType, value).value, newAddr, theType)
-            LValue(newAddr, theType)
-        })
-
+        state.context.stack.push(recurse(cast).head)
         Seq()
     }
     case fieldRef: IASTFieldReference => {
