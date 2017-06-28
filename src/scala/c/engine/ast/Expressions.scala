@@ -8,17 +8,18 @@ import scala.annotation.switch
 
 object Expressions {
 
-  def recurse(expr: IASTInitializerClause)(implicit context: State): Seq[ValueType] = expr match {
+  def recurse(expr: IASTInitializerClause)(implicit state: State): Seq[ValueType] = expr match {
     case exprList: IASTExpressionList =>
       exprList.getExpressions.flatMap{x => recurse(x)}
     case ternary: IASTConditionalExpression =>
       val result = TypeHelper.resolveBoolean (recurse(ternary.getLogicalConditionExpression).head)
 
       if (result) {
-        recurse(ternary.getPositiveResultExpression)
+        state.context.stack.push(recurse(ternary.getPositiveResultExpression).head)
       } else {
-        recurse(ternary.getNegativeResultExpression)
+        state.context.stack.push(recurse(ternary.getNegativeResultExpression).head)
       }
+      Seq()
     case cast: IASTCastExpression =>
         val theType = TypeHelper.getType(cast.getTypeId).theType
         val operand = recurse(cast.getOperand).head
@@ -28,14 +29,14 @@ object Expressions {
           case LValue(addr, aType) =>
             theType match {
               case ptr: IPointerType if aType.isInstanceOf[IArrayType] =>
-                val newAddr = context.allocateSpace(4)
-                context.Stack.writeToMemory(addr, newAddr, theType)
+                val newAddr = state.allocateSpace(4)
+                state.Stack.writeToMemory(addr, newAddr, theType)
                 LValue(newAddr, theType)
               case _ => LValue(addr, theType)
             }
           case RValue(value, _) =>
-            val newAddr = context.allocateSpace(TypeHelper.sizeof(theType))
-            context.Stack.writeToMemory(TypeHelper.cast(theType, value).value, newAddr, theType)
+            val newAddr = state.allocateSpace(TypeHelper.sizeof(theType))
+            state.Stack.writeToMemory(TypeHelper.cast(theType, value).value, newAddr, theType)
             LValue(newAddr, theType)
         })
     case fieldRef: IASTFieldReference =>
@@ -56,7 +57,7 @@ object Expressions {
         val structType = resolve(struct.theType, struct.address)
 
         baseAddr = if (fieldRef.isPointerDereference) {
-          context.readPtrVal(struct.address)
+          state.readPtrVal(struct.address)
         } else {
           struct.address
         }
@@ -94,10 +95,10 @@ object Expressions {
             aType match {
               case array: IArrayType =>
                 aType = array.getType
-                context.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
+                state.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
               case ptr: IPointerType =>
                 aType = ptr.getType
-                context.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
+                state.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
             }
           }
 
@@ -114,7 +115,7 @@ object Expressions {
           Literal.cast(lit.getRawSignature)
         })
     case id: IASTIdExpression =>
-        Seq(context.context.resolveId(id.getName).get)
+        Seq(state.context.resolveId(id.getName).get)
     case typeExpr: IASTTypeIdExpression =>
       // used for sizeof calls on a type
         val theType = TypeHelper.getType(typeExpr.getTypeId).theType
@@ -122,19 +123,19 @@ object Expressions {
     case call: IASTFunctionCallExpression =>
         val pop = recurse(call.getFunctionNameExpression).head
 
-        val name = if (context.hasFunction(call.getFunctionNameExpression.getRawSignature)) {
+        val name = if (state.hasFunction(call.getFunctionNameExpression.getRawSignature)) {
           call.getFunctionNameExpression.getRawSignature
         } else {
           val info = pop.asInstanceOf[LValue]
           val resolved = TypeHelper.stripSyntheticTypeInfo(info.theType)
           resolved match {
-            case ptr: IPointerType => context.getFunctionByIndex(info.value.value.asInstanceOf[Int]).name
+            case ptr: IPointerType => state.getFunctionByIndex(info.value.value.asInstanceOf[Int]).name
           }
         }
 
         val args = call.getArguments.reverse.map{x => recurse(x).head}
 
-        context.callTheFunction(name, call, args).map{x => Seq(x)}.getOrElse(Seq())
+        state.callTheFunction(name, call, args).map{ x => Seq(x)}.getOrElse(Seq())
     case bin: IASTBinaryExpression =>
         val op2 = recurse(bin.getOperand2).head
         val op1 = recurse(bin.getOperand1).head
@@ -165,13 +166,8 @@ object Expressions {
     }
     case ternary: IASTConditionalExpression => {
       case Exiting =>
-        val result = TypeHelper.resolveBoolean (recurse(ternary.getLogicalConditionExpression).head)
-
-        if (result) {
-          Seq (ternary.getPositiveResultExpression)
-        } else {
-          Seq (ternary.getNegativeResultExpression)
-        }
+        recurse(ternary)
+        Seq()
     }
     case cast: IASTCastExpression => {
       case Stage2 => Seq(cast.getOperand)
