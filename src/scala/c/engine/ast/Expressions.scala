@@ -133,7 +133,7 @@ object Expressions {
           }
         }
 
-        val args = call.getArguments.reverse.map{x => recurse(x).head}
+        val args = call.getArguments.map{x => recurse(x).head}.reverse
 
         state.callTheFunction(name, call, args).map{ x => Seq(x)}.getOrElse(Seq())
     case bin: IASTBinaryExpression =>
