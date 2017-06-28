@@ -134,8 +134,7 @@ object Expressions {
 
         val args = call.getArguments.reverse.map{x => recurse(x).head}
 
-        val pushing = context.callTheFunction(name, call, args)
-        pushing
+        context.callTheFunction(name, call, args).map{x => Seq(x)}.getOrElse(Seq())
     case bin: IASTBinaryExpression =>
         val op2 = recurse(bin.getOperand2).head
         val op1 = recurse(bin.getOperand1).head
@@ -321,8 +320,7 @@ object Expressions {
 
         val args = call.getArguments.map{x => state.context.stack.pop}
 
-        val pushing = state.callTheFunction(name, call, args)
-        state.context.stack.pushAll(pushing)
+        state.callTheFunction(name, call, args).foreach{x => state.context.stack.push(x)}
         Seq()
       case Gotoing => Seq()
     }

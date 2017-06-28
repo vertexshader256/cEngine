@@ -279,7 +279,7 @@ class State {
     Seq()
   }
 
-  def callTheFunction(name: String, call: IASTFunctionCallExpression, args: Array[ValueType]): Seq[ValueType] = {
+  def callTheFunction(name: String, call: IASTFunctionCallExpression, args: Array[ValueType]): Option[ValueType] = {
 
     functionList.find(_.name == name).map{ function =>
 
@@ -313,12 +313,8 @@ class State {
       if (!function.isNative) {
         // this is a function simulated in scala
         val returnVal = function.run(resolvedArgs.reverse, this)
-
         popFunctionContext
-
-        returnVal.map{ retVal =>
-          Seq(RValue(retVal, null))
-        }.getOrElse(Seq())
+        returnVal.map{theVal => RValue(theVal, null)}
       } else {
         context.pathStack.push(NodePath(function.node, Stage1))
         context.stack.pushAll(convertedArgs :+ RValue(resolvedArgs.size, null))
@@ -326,18 +322,18 @@ class State {
         if (!context.stack.isEmpty) {
           val returnVal = context.stack.pop
           popFunctionContext
-          context.stack.push(returnVal)
+          Some(returnVal)
         } else {
           popFunctionContext
+          None
         }
-        Seq()
       }
     }.getOrElse{
       // function pointer case
       val fcnPointer = functionContexts.head.resolveId(new CASTName(name.toCharArray)).get
       val function = getFunctionByIndex(fcnPointer.value.asInstanceOf[Int])
       context.pathStack.push(NodePath(function.node, Stage1))
-      Seq()
+      None
     }
   }
 
