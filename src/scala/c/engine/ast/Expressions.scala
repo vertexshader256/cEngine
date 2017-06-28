@@ -212,23 +212,11 @@ object Expressions {
         Seq()
     }
     case call: IASTFunctionCallExpression => {
-      case Stage2 => call.getArguments.reverse
       case Exiting =>
-        val pop = recurse(call.getFunctionNameExpression).head
-
-        val name = if (state.hasFunction(call.getFunctionNameExpression.getRawSignature)) {
-          call.getFunctionNameExpression.getRawSignature
-        } else {
-          val info = pop.asInstanceOf[LValue]
-          val resolved = TypeHelper.stripSyntheticTypeInfo(info.theType)
-          resolved match {
-            case ptr: IPointerType => state.getFunctionByIndex(info.value.value.asInstanceOf[Int]).name
-          }
+        val result = recurse(call)
+        if (!result.isEmpty) {
+          state.context.stack.push(result.head)
         }
-
-        val args = call.getArguments.map{x => state.context.stack.pop}
-
-        state.callTheFunction(name, call, args).foreach{x => state.context.stack.push(x)}
         Seq()
       case Gotoing => Seq()
     }
