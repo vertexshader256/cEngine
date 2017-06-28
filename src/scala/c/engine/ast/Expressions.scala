@@ -195,40 +195,8 @@ object Expressions {
     }
     case fieldRef: IASTFieldReference => {
       case Exiting =>
-        var baseAddr = -1
 
-        val struct = recurse(fieldRef.getFieldOwner).head.asInstanceOf[LValue]
-
-        def resolve(theType: IType, addr: Int): CStructure = theType match {
-          case qual: CQualifierType =>
-            resolve(qual.getType, addr)
-          case typedef: CTypedef =>
-            resolve(typedef.getType, addr)
-          case struct: CStructure => struct
-          case ptr: IPointerType =>
-            resolve(ptr.getType, baseAddr)
-        }
-
-        val structType = resolve(struct.theType, struct.address)
-
-        baseAddr = if (fieldRef.isPointerDereference) {
-          state.readPtrVal(struct.address)
-        } else {
-          struct.address
-        }
-
-        var offset = 0
-        var resultAddress: LValue = null
-        structType.getFields.foreach{field =>
-          if (field.getName == fieldRef.getFieldName.getRawSignature) {
-            // can assume names are unique
-            resultAddress = LValue(baseAddr + offset, field.getType)
-          } else {
-            offset += TypeHelper.sizeof(field.getType)
-          }
-        }
-
-        state.context.stack.push(resultAddress)
+        state.context.stack.push(recurse(fieldRef).head)
 
         Seq()
     }
