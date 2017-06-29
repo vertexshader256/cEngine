@@ -177,13 +177,13 @@ object Expressions {
     case fieldRef: IASTFieldReference => {
       case Exiting =>
 
-        state.context.stack.push(recurse(fieldRef).head)
+        state.context.stack.pushAll(recurse(fieldRef))
 
         Seq()
     }
     case subscript: IASTArraySubscriptExpression => {
       case Exiting =>
-        state.context.stack.push(recurse(subscript).head)
+        state.context.stack.pushAll(recurse(subscript))
         Seq()
     }
     case unary: IASTUnaryExpression => {
@@ -195,12 +195,12 @@ object Expressions {
     }
     case lit: IASTLiteralExpression => {
       case Exiting =>
-        state.context.stack.push(recurse(lit).head)
+        state.context.stack.pushAll(recurse(lit))
         Seq()
     }
     case id: IASTIdExpression => {
       case Exiting =>
-        state.context.stack.push(state.context.resolveId(id.getName).get)
+        state.context.stack.pushAll(state.context.resolveId(id.getName))
         Seq()
     }
     case typeExpr: IASTTypeIdExpression => {
@@ -212,12 +212,8 @@ object Expressions {
     }
     case call: IASTFunctionCallExpression => {
       case Exiting =>
-        val result = recurse(call)
-        if (!result.isEmpty) {
-          state.context.stack.push(result.head)
-        }
+        state.context.stack.pushAll(recurse(call))
         Seq()
-      case Gotoing => Seq()
     }
     case bin: IASTBinaryExpression => {
       case Stage2 =>
