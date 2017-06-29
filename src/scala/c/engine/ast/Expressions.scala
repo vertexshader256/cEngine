@@ -15,11 +15,10 @@ object Expressions {
       val result = TypeHelper.resolveBoolean (recurse(ternary.getLogicalConditionExpression).head)
 
       if (result) {
-        state.context.stack.push(recurse(ternary.getPositiveResultExpression).head)
+        recurse(ternary.getPositiveResultExpression)
       } else {
-        state.context.stack.push(recurse(ternary.getNegativeResultExpression).head)
+        recurse(ternary.getNegativeResultExpression)
       }
-      Seq()
     case cast: IASTCastExpression =>
         val theType = TypeHelper.getType(cast.getTypeId).theType
         val operand = recurse(cast.getOperand).head
@@ -167,12 +166,12 @@ object Expressions {
     }
     case ternary: IASTConditionalExpression => {
       case Exiting =>
-        recurse(ternary)
+        state.context.stack.pushAll(recurse(ternary))
         Seq()
     }
     case cast: IASTCastExpression => {
       case Exiting =>
-        state.context.stack.push(recurse(cast).head)
+        state.context.stack.pushAll(recurse(cast))
         Seq()
     }
     case fieldRef: IASTFieldReference => {
