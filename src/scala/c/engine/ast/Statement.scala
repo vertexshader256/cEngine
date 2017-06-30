@@ -6,24 +6,6 @@ import scala.collection.mutable.{ListBuffer, Stack}
 
 object Statement {
 
-  // 'node' must be a IASTCaseStatement or a IASTDefaultStatement
-  def processSwitch(node: IASTNode): Seq[IASTNode] = {
-    val codeToRun = new ListBuffer[IASTNode]()
-
-    val siblings = node.getParent.getChildren
-
-    var isSelfFound = false
-    siblings.foreach { sib =>
-      if (sib == node) {
-        isSelfFound = true
-      } else if (isSelfFound && !sib.isInstanceOf[IASTCaseStatement]) {
-        codeToRun += sib
-      }
-    }
-
-    codeToRun
-  }
-
   def parse(statement: NodePath)(implicit state: State): PartialFunction[Direction, Seq[IASTNode]] = statement.node match {
     case breakStatement: IASTNullStatement =>
       PartialFunction.empty
