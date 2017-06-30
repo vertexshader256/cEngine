@@ -137,7 +137,6 @@ object Expressions {
         println(args.toList)
         state.callTheFunction(name, call, args).map{ x => Seq(x)}.getOrElse(Seq())
     case bin: IASTBinaryExpression =>
-        val op2 = recurse(bin.getOperand2).head
         val op1 = recurse(bin.getOperand1).head
 
         val shouldShortCircuit = (bin.getOperator, op1) match {
@@ -149,8 +148,10 @@ object Expressions {
         val result = if (shouldShortCircuit) {
           op1
         } else {
+          val op2 = recurse(bin.getOperand2).head
+
           if (Utils.isAssignment(bin.getOperator)) {
-            BinaryExpr.parseAssign(bin, bin.getOperator, op1, op2)
+            BinaryExpr.parseAssign(bin, bin.getOperator, op1.asInstanceOf[LValue], op2)
           } else {
             BinaryExpr.evaluate(bin, op1, op2, bin.getOperator)
           }
@@ -228,7 +229,7 @@ object Expressions {
         val op1 = state.context.stack.pop
 
         val result = if (Utils.isAssignment(bin.getOperator)) {
-          BinaryExpr.parseAssign(bin, bin.getOperator, op1, op2)
+          BinaryExpr.parseAssign(bin, bin.getOperator, op1.asInstanceOf[LValue], op2)
         } else {
           BinaryExpr.evaluate(bin, op1, op2, bin.getOperator)
         }

@@ -8,13 +8,9 @@ import IBasicType.Kind._
 
 object BinaryExpr {
   
-  def parseAssign(node: IASTNode, op: Int, op1: ValueType, op2: ValueType)(implicit state: State): LValue = {
+  def parseAssign(node: IASTNode, op: Int, dst: LValue, op2: ValueType)(implicit state: State): LValue = {
 
-    val dst: LValue = op1 match {
-      case info @ LValue(_, _) => info
-    }
-
-    val result = evaluate(node, op1, op2, op)
+    val result = evaluate(node, dst, op2, op)
 
     val casted = TypeHelper.cast(dst.theType, result.value).value
     state.Stack.writeToMemory(casted, dst.address, dst.theType)
