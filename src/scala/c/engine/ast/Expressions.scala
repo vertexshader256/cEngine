@@ -137,33 +137,27 @@ object Expressions {
         println(args.toList)
         state.callTheFunction(name, call, args).map{ x => Seq(x)}.getOrElse(Seq())
     case bin: IASTBinaryExpression =>
-        val op1 = recurse(bin.getOperand1).head
-
-        val shouldShortCircuit = (bin.getOperator, op1) match {
-          case (IASTBinaryExpression.op_logicalOr, RValue(x: Boolean, _)) if x => true
-          case (IASTBinaryExpression.op_logicalAnd, RValue(x: Boolean, _)) if !x => true
-          case _ => false
-        }
-
-        val result = if (shouldShortCircuit) {
-          op1
-        } else {
+      val result = (bin.getOperator, recurse(bin.getOperand1).head) match {
+        case (IASTBinaryExpression.op_logicalOr, op1 @ RValue(x: Boolean, _)) if x => op1
+        case (IASTBinaryExpression.op_logicalAnd, op1 @ RValue(x: Boolean, _)) if !x => op1
+        case (_, op1) =>
           val op2 = recurse(bin.getOperand2).head
 
-          if (Utils.isAssignment(bin.getOperator)) {
+          val result = if (Utils.isAssignment(bin.getOperator)) {
             BinaryExpr.parseAssign(bin, bin.getOperator, op1.asInstanceOf[LValue], op2)
           } else {
             BinaryExpr.evaluate(bin, op1, op2, bin.getOperator)
           }
-        }
 
-        Seq(result)
+          result
+      }
+
+      Seq(result)
   }
 
   def parse(expr: IASTExpression)(implicit state: State): PartialFunction[Direction, Seq[IASTNode]] = expr match {
     case exprList: IASTExpressionList => {
-      case Stage2 => exprList.getExpressions
-      case Exiting => Seq ()
+      case Exiting => exprList.getExpressions
     }
     case ternary: IASTConditionalExpression => {
       case Exiting =>
@@ -218,30 +212,7 @@ object Expressions {
     }
     case bin: IASTBinaryExpression => {
       case Exiting =>
-
-        val op1 = recurse(bin.getOperand1).head
-
-
-        state.context.stack.push((bin.getOperator, op1) match {
-          case (IASTBinaryExpression.op_logicalOr, RValue(x: Boolean, _)) if x => op1
-          case (IASTBinaryExpression.op_logicalAnd, RValue(x: Boolean, _)) if !x => op1
-          case _ =>
-            val op2 = recurse(bin.getOperand2).head
-
-            val result = if (Utils.isAssignment(bin.getOperator)) {
-              BinaryExpr.parseAssign(bin, bin.getOperator, op1.asInstanceOf[LValue], op2)
-            } else {
-              BinaryExpr.evaluate(bin, op1, op2, bin.getOperator)
-            }
-
-            result
-        })
-
-
-
-
-        Seq()
-      case Gotoing =>
+        state.context.stack.push(recurse(bin).head)
         Seq()
     }
   }
