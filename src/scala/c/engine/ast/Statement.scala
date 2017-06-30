@@ -103,9 +103,8 @@ object Statement {
       case _ => Seq()
     }
     case caseStatement: IASTCaseStatement => {
-      case Stage2 => Seq(caseStatement.getExpression)
       case Exiting =>
-        val caseExpr = state.context.stack.pop.asInstanceOf[RValue].value
+        val caseExpr = Expressions.evaluate(caseStatement.getExpression).head.asInstanceOf[RValue].value
         val switchExpr = state.context.stack.head
 
         val resolved = (switchExpr match {
@@ -169,9 +168,8 @@ object Statement {
         state.pushScope(new LoopScope(List(), whileLoop, state.context, state) {})
         state.context.pathStack.push(NodePath(whileLoop, Stage2))
         Seq()
-      case Stage2 => Seq(whileLoop.getCondition)
       case PreLoop =>
-        val cast = state.context.stack.pop
+        val cast = Expressions.evaluate(whileLoop.getCondition).head
 
         val shouldLoop = TypeHelper.resolveBoolean(cast)
 
@@ -190,9 +188,8 @@ object Statement {
         Seq(whileLoop.getBody)
     }
     case ifStatement: IASTIfStatement => {
-      case Stage2 => Seq(ifStatement.getConditionExpression)
       case Exiting =>
-        val result = state.context.stack.pop
+        val result = Expressions.evaluate(ifStatement.getConditionExpression).head
 
         val value = result match {
           case info @ LValue(_,_) => info.value
@@ -243,18 +240,12 @@ object Statement {
         Seq(forLoop.getBody, forLoop.getIterationExpression)
     }
     case ret: IASTReturnStatement => {
-      case Stage1 =>
-        if (ret.getReturnValue != null) {
-          Seq(ret.getReturnValue)
-        } else {
-          Seq()
-        }
       case Stage2 =>
 
         var retVal: ValueType = null
 
         if (ret.getReturnValue != null) {
-          val returnVal = state.context.stack.pop
+          val returnVal = Expressions.evaluate(ret.getReturnValue).head
 
           retVal = returnVal match {
             case info @ LValue(addr, theType) =>
