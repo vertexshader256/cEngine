@@ -215,25 +215,25 @@ object Statement {
         state.pushScope(new LoopScope(List(), forLoop, state.context, state) {})
         state.context.pathStack.push(NodePath(forLoop, Stage2))
         Seq(Option(forLoop.getInitializerStatement)).flatten
-      case Stage3 =>
+      case Stage2 =>
         val shouldKeepLooping = if (forLoop.getConditionExpression != null) {
-
           val result = TypeHelper.resolve(Expressions.evaluate(forLoop.getConditionExpression).get).value
-
           TypeHelper.resolveBoolean(result)
         } else {
+          // if theres no condition, always loop
           true
         }
 
-        if (!shouldKeepLooping) {
-          statement.direction = PreLoop
-          Seq()
-        } else {
+        if (shouldKeepLooping) {
           Seq(forLoop.getBody)
+        } else {
+          statement.direction = Stage3
+          Seq()
         }
-      case PreLoop =>
+      case Stage3 =>
+        Expressions.evaluate(forLoop.getIterationExpression)
         statement.direction = Stage1
-        Seq(forLoop.getIterationExpression)
+        Seq()
       case Exiting =>
         state.popFunctionContext
         Seq()
