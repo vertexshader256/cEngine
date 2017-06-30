@@ -12,8 +12,11 @@ object Ast {
 
     case statement: IASTStatement =>
       Statement.parse(current)
-    case expression: IASTExpression =>
-      Expressions.parse(expression)
+    case expression: IASTExpression => {
+      case Exiting =>
+        state.context.stack.pushAll(Expressions.evaluate(expression))
+        Seq()
+    }
     case decl: IASTDeclarator =>
       Declarator.execute(decl)
     case array: IASTArrayModifier => {

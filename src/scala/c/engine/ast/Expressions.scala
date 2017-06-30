@@ -8,20 +8,20 @@ import scala.annotation.switch
 
 object Expressions {
 
-  def recurse(expr: IASTInitializerClause)(implicit state: State): Seq[ValueType] = expr match {
+  def evaluate(expr: IASTInitializerClause)(implicit state: State): Seq[ValueType] = expr match {
     case exprList: IASTExpressionList =>
-      exprList.getExpressions.flatMap{x => recurse(x)}
+      exprList.getExpressions.flatMap{x => evaluate(x)}
     case ternary: IASTConditionalExpression =>
-      val result = TypeHelper.resolveBoolean (recurse(ternary.getLogicalConditionExpression).head)
+      val result = TypeHelper.resolveBoolean (evaluate(ternary.getLogicalConditionExpression).head)
 
       if (result) {
-        recurse(ternary.getPositiveResultExpression)
+        evaluate(ternary.getPositiveResultExpression)
       } else {
-        recurse(ternary.getNegativeResultExpression)
+        evaluate(ternary.getNegativeResultExpression)
       }
     case cast: IASTCastExpression =>
         val theType = TypeHelper.getType(cast.getTypeId).theType
-        val operand = recurse(cast.getOperand).head
+        val operand = evaluate(cast.getOperand).head
 
         Seq(operand match {
           case str @ StringLiteral(_) => str
@@ -41,7 +41,7 @@ object Expressions {
     case fieldRef: IASTFieldReference =>
         var baseAddr = -1
 
-        val struct = recurse(fieldRef.getFieldOwner).head.asInstanceOf[LValue]
+        val struct = evaluate(fieldRef.getFieldOwner).head.asInstanceOf[LValue]
 
         def resolve(theType: IType, addr: Int): CStructure = theType match {
           case qual: CQualifierType =>
@@ -74,8 +74,8 @@ object Expressions {
 
         Seq(resultAddress)
     case subscript: IASTArraySubscriptExpression =>
-      val arrayVarPtr = recurse(subscript.getArrayExpression).head.asInstanceOf[LValue]
-      val index = recurse(subscript.getArgument).head match {
+      val arrayVarPtr = evaluate(subscript.getArrayExpression).head.asInstanceOf[LValue]
+      val index = evaluate(subscript.getArgument).head match {
         case x @ RValue(_, _) => TypeHelper.cast(TypeHelper.pointerType, x.value).value.asInstanceOf[Int]
         case info @ LValue(_, _) =>
           info.value.value match {
@@ -105,7 +105,7 @@ object Expressions {
 
       Seq(LValue(offset, aType))
     case unary: IASTUnaryExpression =>
-      Seq(UnaryExpression.execute(recurse(unary.getOperand).head, unary))
+      Seq(UnaryExpression.execute(evaluate(unary.getOperand).head, unary))
     case lit: IASTLiteralExpression =>
         val litStr = lit.getRawSignature
         Seq(if (litStr.head == '\"' && litStr.last == '\"') {
@@ -120,7 +120,7 @@ object Expressions {
         val theType = TypeHelper.getType(typeExpr.getTypeId).theType
         Seq(RValue(TypeHelper.sizeof(theType), TypeHelper.pointerType))
     case call: IASTFunctionCallExpression =>
-        val pop = recurse(call.getFunctionNameExpression).head
+        val pop = evaluate(call.getFunctionNameExpression).head
 
         val name = if (state.hasFunction(call.getFunctionNameExpression.getRawSignature)) {
           call.getFunctionNameExpression.getRawSignature
@@ -132,16 +132,16 @@ object Expressions {
           }
         }
 
-        val args = call.getArguments.map{x => recurse(x).head}
+        val args = call.getArguments.map{x => evaluate(x).head}
 
         println(args.toList)
         state.callTheFunction(name, call, args).map{ x => Seq(x)}.getOrElse(Seq())
     case bin: IASTBinaryExpression =>
-      val result = (bin.getOperator, recurse(bin.getOperand1).head) match {
+      val result = (bin.getOperator, evaluate(bin.getOperand1).head) match {
         case (IASTBinaryExpression.op_logicalOr, op1 @ RValue(x: Boolean, _)) if x => op1
         case (IASTBinaryExpression.op_logicalAnd, op1 @ RValue(x: Boolean, _)) if !x => op1
         case (_, op1) =>
-          val op2 = recurse(bin.getOperand2).head
+          val op2 = evaluate(bin.getOperand2).head
 
           val result = if (Utils.isAssignment(bin.getOperator)) {
             BinaryExpr.parseAssign(bin, bin.getOperator, op1.asInstanceOf[LValue], op2)
@@ -153,67 +153,5 @@ object Expressions {
       }
 
       Seq(result)
-  }
-
-  def parse(expr: IASTExpression)(implicit state: State): PartialFunction[Direction, Seq[IASTNode]] = expr match {
-    case exprList: IASTExpressionList => {
-      case Exiting => exprList.getExpressions
-    }
-    case ternary: IASTConditionalExpression => {
-      case Exiting =>
-        state.context.stack.pushAll(recurse(ternary))
-        Seq()
-    }
-    case cast: IASTCastExpression => {
-      case Exiting =>
-        state.context.stack.pushAll(recurse(cast))
-        Seq()
-    }
-    case fieldRef: IASTFieldReference => {
-      case Exiting =>
-
-        state.context.stack.pushAll(recurse(fieldRef))
-
-        Seq()
-    }
-    case subscript: IASTArraySubscriptExpression => {
-      case Exiting =>
-        state.context.stack.pushAll(recurse(subscript))
-        Seq()
-    }
-    case unary: IASTUnaryExpression => {
-      case Stage2 => Seq(unary.getOperand)
-      case Exiting =>
-        state.context.stack.push(UnaryExpression.execute(state.context.stack.pop, unary))
-        Seq()
-      case Gotoing => Seq()
-    }
-    case lit: IASTLiteralExpression => {
-      case Exiting =>
-        state.context.stack.pushAll(recurse(lit))
-        Seq()
-    }
-    case id: IASTIdExpression => {
-      case Exiting =>
-        state.context.stack.pushAll(state.context.resolveId(id.getName))
-        Seq()
-    }
-    case typeExpr: IASTTypeIdExpression => {
-      // used for sizeof calls on a type
-      case Exiting =>
-        val theType = TypeHelper.getType(typeExpr.getTypeId).theType
-        state.context.stack.push(RValue(TypeHelper.sizeof(theType), TypeHelper.pointerType))
-        Seq()
-    }
-    case call: IASTFunctionCallExpression => {
-      case Exiting =>
-        state.context.stack.pushAll(recurse(call))
-        Seq()
-    }
-    case bin: IASTBinaryExpression => {
-      case Exiting =>
-        state.context.stack.push(recurse(bin).head)
-        Seq()
-    }
   }
 }
