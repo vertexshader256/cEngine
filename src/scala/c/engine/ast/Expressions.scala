@@ -8,11 +8,11 @@ import scala.annotation.switch
 
 object Expressions {
 
-  def evaluate(expr: IASTInitializerClause)(implicit state: State): Seq[ValueType] = expr match {
+  def evaluate(expr: IASTInitializerClause)(implicit state: State): Option[ValueType] = expr match {
     case exprList: IASTExpressionList =>
-      exprList.getExpressions.flatMap{x => evaluate(x)}
+      exprList.getExpressions.map{x => evaluate(x)}.last
     case ternary: IASTConditionalExpression =>
-      val result = TypeHelper.resolveBoolean (evaluate(ternary.getLogicalConditionExpression).head)
+      val result = TypeHelper.resolveBoolean (evaluate(ternary.getLogicalConditionExpression).get)
 
       if (result) {
         evaluate(ternary.getPositiveResultExpression)
@@ -21,9 +21,9 @@ object Expressions {
       }
     case cast: IASTCastExpression =>
         val theType = TypeHelper.getType(cast.getTypeId).theType
-        val operand = evaluate(cast.getOperand).head
+        val operand = evaluate(cast.getOperand).get
 
-        Seq(operand match {
+        Some(operand match {
           case str @ StringLiteral(_) => str
           case LValue(addr, aType) =>
             theType match {
@@ -41,7 +41,7 @@ object Expressions {
     case fieldRef: IASTFieldReference =>
         var baseAddr = -1
 
-        val struct = evaluate(fieldRef.getFieldOwner).head.asInstanceOf[LValue]
+        val struct = evaluate(fieldRef.getFieldOwner).get.asInstanceOf[LValue]
 
         def resolve(theType: IType, addr: Int): CStructure = theType match {
           case qual: CQualifierType =>
@@ -72,10 +72,10 @@ object Expressions {
           }
         }
 
-        Seq(resultAddress)
+        Some(resultAddress)
     case subscript: IASTArraySubscriptExpression =>
       val arrayVarPtr = evaluate(subscript.getArrayExpression).head.asInstanceOf[LValue]
-      val index = evaluate(subscript.getArgument).head match {
+      val index = evaluate(subscript.getArgument).get match {
         case x @ RValue(_, _) => TypeHelper.cast(TypeHelper.pointerType, x.value).value.asInstanceOf[Int]
         case info @ LValue(_, _) =>
           info.value.value match {
@@ -103,22 +103,22 @@ object Expressions {
 
       aType = TypeHelper.stripSyntheticTypeInfo(aType)
 
-      Seq(LValue(offset, aType))
+      Some(LValue(offset, aType))
     case unary: IASTUnaryExpression =>
-      Seq(UnaryExpression.execute(evaluate(unary.getOperand).head, unary))
+      Some(UnaryExpression.execute(evaluate(unary.getOperand).head, unary))
     case lit: IASTLiteralExpression =>
         val litStr = lit.getRawSignature
-        Seq(if (litStr.head == '\"' && litStr.last == '\"') {
+        Some(if (litStr.head == '\"' && litStr.last == '\"') {
           StringLiteral(litStr)
         } else {
           Literal.cast(lit.getRawSignature)
         })
     case id: IASTIdExpression =>
-        Seq(state.context.resolveId(id.getName).get)
+        Some(state.context.resolveId(id.getName).get)
     case typeExpr: IASTTypeIdExpression =>
       // used for sizeof calls on a type
         val theType = TypeHelper.getType(typeExpr.getTypeId).theType
-        Seq(RValue(TypeHelper.sizeof(theType), TypeHelper.pointerType))
+        Some(RValue(TypeHelper.sizeof(theType), TypeHelper.pointerType))
     case call: IASTFunctionCallExpression =>
         val pop = evaluate(call.getFunctionNameExpression).head
 
@@ -134,8 +134,7 @@ object Expressions {
 
         val args = call.getArguments.map{x => evaluate(x).head}
 
-        println(args.toList)
-        state.callTheFunction(name, call, args).map{ x => Seq(x)}.getOrElse(Seq())
+        state.callTheFunction(name, call, args)
     case bin: IASTBinaryExpression =>
       val result = (bin.getOperator, evaluate(bin.getOperand1).head) match {
         case (IASTBinaryExpression.op_logicalOr, op1 @ RValue(x: Boolean, _)) if x => op1
@@ -152,6 +151,6 @@ object Expressions {
           result
       }
 
-      Seq(result)
+      Some(result)
   }
 }
