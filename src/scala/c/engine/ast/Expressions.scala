@@ -217,26 +217,29 @@ object Expressions {
         Seq()
     }
     case bin: IASTBinaryExpression => {
-      case Stage2 =>
-        val y = recurse(bin.getOperand1).head
-        state.context.stack.push(y)
-
-        (bin.getOperator, y) match {
-          case (IASTBinaryExpression.op_logicalOr, RValue(x: Boolean, _)) if x => state.context.pathStack.pop; Seq()
-          case (IASTBinaryExpression.op_logicalAnd, RValue(x: Boolean, _)) if !x => state.context.pathStack.pop; Seq()
-          case _ => Seq()
-        }
       case Exiting =>
-        val op2 = recurse(bin.getOperand2).head
-        val op1 = state.context.stack.pop
 
-        val result = if (Utils.isAssignment(bin.getOperator)) {
-          BinaryExpr.parseAssign(bin, bin.getOperator, op1.asInstanceOf[LValue], op2)
-        } else {
-          BinaryExpr.evaluate(bin, op1, op2, bin.getOperator)
-        }
+        val op1 = recurse(bin.getOperand1).head
 
-        state.context.stack.push(result)
+
+        state.context.stack.push((bin.getOperator, op1) match {
+          case (IASTBinaryExpression.op_logicalOr, RValue(x: Boolean, _)) if x => op1
+          case (IASTBinaryExpression.op_logicalAnd, RValue(x: Boolean, _)) if !x => op1
+          case _ =>
+            val op2 = recurse(bin.getOperand2).head
+
+            val result = if (Utils.isAssignment(bin.getOperator)) {
+              BinaryExpr.parseAssign(bin, bin.getOperator, op1.asInstanceOf[LValue], op2)
+            } else {
+              BinaryExpr.evaluate(bin, op1, op2, bin.getOperator)
+            }
+
+            result
+        })
+
+
+
+
         Seq()
       case Gotoing =>
         Seq()
