@@ -218,14 +218,16 @@ object Expressions {
     }
     case bin: IASTBinaryExpression => {
       case Stage2 =>
-        state.context.stack.push(recurse(bin.getOperand1).head)
-        (bin.getOperator, state.context.stack.head) match {
+        val y = recurse(bin.getOperand1).head
+        state.context.stack.push(y)
+
+        (bin.getOperator, y) match {
           case (IASTBinaryExpression.op_logicalOr, RValue(x: Boolean, _)) if x => state.context.pathStack.pop; Seq()
           case (IASTBinaryExpression.op_logicalAnd, RValue(x: Boolean, _)) if !x => state.context.pathStack.pop; Seq()
-          case _ => Seq(bin.getOperand2)
+          case _ => Seq()
         }
       case Exiting =>
-        val op2 = state.context.stack.pop
+        val op2 = recurse(bin.getOperand2).head
         val op1 = state.context.stack.pop
 
         val result = if (Utils.isAssignment(bin.getOperator)) {
