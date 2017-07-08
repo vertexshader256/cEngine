@@ -110,7 +110,7 @@ class Variable(val name: IASTName, val state: State, aType: IType) extends LValu
   }
 
   def allocateSpace(state: State, aType: IType, numElements: Int): Int = {
-    aType match {
+    def recurse(aType: IType): Int = aType match {
       case array: IArrayType =>
         state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * numElements)
       case array: IPointerType =>
@@ -124,20 +124,19 @@ class Variable(val name: IASTName, val state: State, aType: IType) extends LValu
           if (result == -1) {
             result = allocateSpace(state, field.getType, numElements)
           } else {
-            allocateSpace(state, field.getType, numElements)
+            recurse(field.getType)
           }
         }
         result
       case typedef: CTypedef =>
-        allocateSpace(state, typedef.asInstanceOf[CTypedef].getType, numElements)
+        recurse(typedef.asInstanceOf[CTypedef].getType)
       case qual: IQualifierType =>
-        allocateSpace(state, qual.asInstanceOf[IQualifierType].getType, numElements)
+        recurse(qual.asInstanceOf[IQualifierType].getType)
       case basic: IBasicType =>
         state.allocateSpace(TypeHelper.sizeof(basic) * numElements)
-      //      } else {
-      //        state.allocateSpace(TypeHelper.sizeof(aType) * numElements)
-      //      }
     }
+
+    recurse(aType)
   }
 
   def setValues(values: List[ValueType]) = {
