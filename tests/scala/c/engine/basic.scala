@@ -1,4 +1,5 @@
 package c.engine
+package basictests
 
 class AssignmentTest extends StandardTest {
   "A simple math expression with double assigned to integer" should "print the correct results" in {

@@ -33,7 +33,7 @@ class SwitchScope(theStaticVars: List[Variable], node: IASTNode, parent: Scope, 
 
 abstract class Scope(staticVars: List[Variable], val node: IASTNode, val parent: Scope, state: State) {
   private var varMap = new mutable.HashSet[Variable]()
-  val pathStack = new Stack[NodePath]()
+
   val stack = new Stack[ValueType]()
   var startingStackAddr = 0
 
@@ -56,35 +56,19 @@ abstract class Scope(staticVars: List[Variable], val node: IASTNode, val parent:
   }
 
   def tick(state: State): Boolean = {
-    val current = state.context.pathStack.headOption.getOrElse(null)
+    val index = state.pathIndex
+    val current = if (index >= state.pathStack.size) null else state.pathStack(index)
     if (current != null) {
 
-      //println(current.node.getClass.getSimpleName + ":" + current.direction)
-
-      val paths: Seq[NodePath] = if (state.isGotoing && current.direction != Stage1) {
-        val result = (ast.Ast.step(current, Gotoing)(state) orElse ast.Ast.NoMatch)(Gotoing).map{ x => NodePath(x, Stage1)}
-
-        if (state.context.pathStack.size > 1) {
-          state.context.pathStack.pop
-        }
-
-        result
+      if (current.isInstanceOf[IASTNode]) {
+        println(current.getClass.getSimpleName + ":" + index + ":" + current.asInstanceOf[IASTNode].getRawSignature)
       } else {
-
-        val result = (ast.Ast.step(current, current.direction)(state) orElse ast.Ast.NoMatch)(current.direction).map{x => NodePath(x, Stage1)}
-
-        current.direction match {
-          case Stage1 => current.direction = Stage2
-          case Stage2 => current.direction = Stage3
-          case Stage3 => current.direction = PreLoop
-          case PreLoop => current.direction = Exiting
-          case Exiting => state.context.pathStack.pop
-        }
-
-        result
+        println(current.getClass.getSimpleName + ":" + index)
       }
 
-      state.context.pathStack.pushAll(paths.reverse)
+      ast.Ast.step(current)(state)
+
+      state.pathIndex += 1
 
       true
     } else {
@@ -101,7 +85,7 @@ abstract class Scope(staticVars: List[Variable], val node: IASTNode, val parent:
   def reset = {
     varMap.clear
     varMap ++= staticVars.toSet.toList
-    pathStack.clear
+    //pathStack.clear
     stack.clear
     startingStackAddr = state.Stack.insertIndex
   }

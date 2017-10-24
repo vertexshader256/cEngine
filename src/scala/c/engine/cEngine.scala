@@ -1,6 +1,6 @@
 package c.engine
 
-import org.eclipse.cdt.core.dom.ast._
+import org.eclipse.cdt.core.dom.ast.{IASTDeclarationStatement, IASTEqualsInitializer, _}
 
 import scala.collection.mutable.Stack
 import scala.collection.mutable.ListBuffer
@@ -128,6 +128,20 @@ class Memory(size: Int) {
   }
 }
 
+case class JmpIfNotEqual(expr: IASTExpression, relativeJump: Int)
+case class JmpToLabelIfNotEqual(expr: IASTExpression, label: Label)
+case class JmpToLabelIfEqual(expr: IASTExpression, label: Label)
+case class Jmp(relativeJump: Int)
+case class JmpLabel(label: Label)
+
+abstract class Label {
+  var address = 0
+}
+
+case class GotoLabel() extends Label
+case class BreakLabel() extends Label
+case class ContinueLabel() extends Label
+
 class State {
 
   object Stack extends Memory(100000)
@@ -142,6 +156,9 @@ class State {
   val functionPointers = scala.collection.mutable.Map[String, Variable]()
   val stdout = new ListBuffer[Char]()
   var functionCount = 0
+
+  var pathStack = List[Any]()
+  var pathIndex = 0
 
   // flags
   var isGotoing = false
@@ -178,8 +195,102 @@ class State {
     addScalaFunctionDef(fcn)
   }
 
+  def flattenTranslationUnit(tUnit: IASTTranslationUnit): List[Any] = {
+
+    def recurse(node: IASTNode): List[Any] = {
+      node match {
+        case null => List()
+
+        case ifStatement: IASTIfStatement =>
+          val contents = recurse(ifStatement.getThenClause)
+          val elseContents = recurse(ifStatement.getElseClause)
+
+          val jmp = if (ifStatement.getElseClause != null) {
+            List(Jmp(elseContents.size))
+          } else {
+            List()
+          }
+
+          // add +1 for the jmp statement
+          JmpIfNotEqual(ifStatement.getConditionExpression, (contents ++ jmp).size) +: ((contents ++ jmp) ++ elseContents)
+        case forStatement: IASTForStatement =>
+
+//          initialization;
+//          while(condition)
+//          {
+//            action;
+//            increment;
+//          }
+
+          val init = recurse(forStatement.getInitializerStatement)
+          val contents = recurse(forStatement.getBody)
+          val iter = forStatement.getIterationExpression
+          val beginLabel = new GotoLabel()
+
+          val execution = iter +: contents
+
+          init ++ (beginLabel +: execution :+ JmpToLabelIfEqual(forStatement.getConditionExpression, beginLabel))
+        case whileStatement: IASTWhileStatement =>
+
+//                  jmp loop1   ; Jump to condition first
+//          cloop1  nop         ; Execute the content of the loop
+//          loop1   cmp ax,1    ; Check the condition
+//                  je cloop1   ; Jump to content of the loop if met
+
+          val contents = recurse(whileStatement.getBody)
+          val begin = new ContinueLabel()
+          val end = new GotoLabel()
+
+          (List(JmpLabel(end), begin) ++ contents ++ List(end, JmpToLabelIfEqual(whileStatement.getCondition, begin)) :+ BreakLabel())
+        case doWhileStatement: IASTDoStatement =>
+
+          val contents = recurse(doWhileStatement.getBody)
+          val begin = new ContinueLabel()
+          val end = new GotoLabel()
+
+          (List(begin) ++ contents ++ List(end, JmpToLabelIfEqual(doWhileStatement.getCondition, begin)) :+ BreakLabel())
+//        case goto: IASTGotoStatement =>
+//
+//
+//
+//          (List(begin) ++ contents ++ List(end, JmpToLabelIfEqual(doWhileStatement.getCondition, begin)) :+ BreakLabel())
+        case fcn: IASTFunctionDefinition =>
+          fcn.getDeclarator +: recurse(fcn.getBody)
+        case compound: IASTCompoundStatement =>
+          compound.getStatements.flatMap(recurse).toList
+        case decl: IASTDeclarationStatement =>
+          decl.getChildren.toList.flatMap(recurse)
+        case decl: CASTSimpleDeclaration =>
+          decl.getChildren.toList.flatMap(recurse)
+        case spec: IASTSimpleDeclSpecifier =>
+          List()
+        case decl: IASTDeclarator =>
+          recurse(decl.getInitializer) :+ decl
+        case eq: IASTEqualsInitializer =>
+          List(eq.getInitializerClause)
+        case _ =>
+          println("SPLITTING: " + node.getClass.getSimpleName)
+          node +: node.getChildren.toList
+      }
+    }
+
+    tUnit.getChildren.flatMap{recurse}.toList
+  }
+
   def init(codes: Seq[String], state: State) = {
     val tUnit = Utils.getTranslationUnit(codes)
+
+    state.pathStack = flattenTranslationUnit(tUnit)
+
+    var instructionCounter = 0
+    state.pathStack.foreach{ node =>
+      if (node.isInstanceOf[Label]) {
+        node.asInstanceOf[Label].address = instructionCounter
+      }
+      instructionCounter += 1
+    }
+
+    println(state.pathStack.map{_.getClass.getSimpleName})
 
     val fcns = tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
     fcns.foreach{fcnDef => state.addFunctionDef(fcnDef)}
@@ -188,7 +299,6 @@ class State {
       .collect{case comp: CASTCompositeTypeSpecifier => comp}
       .map{x => x.getName.resolveBinding().asInstanceOf[CStructure]}
 
-    state.context.pathStack.push(NodePath(tUnit, Stage1))
     state.context.run
   }
 
@@ -316,7 +426,7 @@ class State {
         popFunctionContext
         returnVal.map{theVal => RValue(theVal, null)}
       } else {
-        context.pathStack.push(NodePath(function.node, Stage1))
+        //context.pathStack.push(NodePath(function.node, Stage1))
         context.stack.pushAll(convertedArgs :+ RValue(resolvedArgs.size, null))
         context.run
         if (!context.stack.isEmpty) {
@@ -333,7 +443,7 @@ class State {
       val fcnPointer = functionContexts.head.resolveId(new CASTName(name.toCharArray)).get
       val function = getFunctionByIndex(fcnPointer.value.asInstanceOf[Int])
       functionContexts.push(new FunctionScope(function.staticVars, call, functionContexts.head, new CFunctionType(call.getExpressionType, null), this))
-      context.pathStack.push(NodePath(function.node, Stage1))
+      //context.pathStack.push(NodePath(function.node, Stage1))
       context.run
       popFunctionContext
       None

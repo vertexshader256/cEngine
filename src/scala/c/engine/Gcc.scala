@@ -21,7 +21,7 @@ object Gcc {
       state.functionList -= main
       state.Stack.insertIndex -= 4
 
-      state.context.pathStack.push(NodePath(main.node, Stage1))
+      //state.context.pathStack.push(NodePath(main.node, Stage1))
       state.context.run
   }
 

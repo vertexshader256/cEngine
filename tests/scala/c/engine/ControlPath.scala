@@ -347,6 +347,7 @@ class WhileStatement extends StandardTest {
           x++;
           if (x % 2 == 0) {
             continue;
+            printf("continue\n");
           }
           if (x == 11) {
              break;

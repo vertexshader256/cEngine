@@ -9,70 +9,71 @@ import scala.collection.mutable.Stack
 
 object Declarator {
 
-  def execute(decl: IASTDeclarator)(implicit state: State): PartialFunction[Direction, Seq[IASTNode]] = decl match {
+  def execute(decl: IASTDeclarator)(implicit state: State) = decl match {
 
     case fcnDec: IASTFunctionDeclarator => {
-      case Stage2 =>
-        val isInFunctionPrototype = Utils.getAncestors(fcnDec).exists {
-          _.isInstanceOf[IASTSimpleDeclaration]
-        }
+      val isInFunctionPrototype = Utils.getAncestors(fcnDec).exists {
+        _.isInstanceOf[IASTSimpleDeclaration]
+      }
 
-        if (isInFunctionPrototype) {
-          state.functionPrototypes += fcnDec
-        }
+      if (isInFunctionPrototype) {
+        state.functionPrototypes += fcnDec
+      }
 
-        // ignore main's params for now
-        val isInMain = fcnDec.getName.getRawSignature == "main"
-        val fcnName = fcnDec.getName.getRawSignature
+      println("PARSING FUNC DECL")
 
-        val paramDecls = new Stack[IASTParameterDeclaration]() ++ fcnDec.getChildren.collect { case x: IASTParameterDeclaration => x }
+      // ignore main's params for now
+      val isInMain = fcnDec.getName.getRawSignature == "main"
+      val fcnName = fcnDec.getName.getRawSignature
 
-        if (!paramDecls.isEmpty && !isInMain) {
+      val paramDecls = new Stack[IASTParameterDeclaration]() ++ fcnDec.getChildren.collect { case x: IASTParameterDeclaration => x }
 
-          var numArgs = 0
+      if (!paramDecls.isEmpty && !isInMain) {
 
-          val others = fcnDec.getChildren.filter { x => !x.isInstanceOf[IASTParameterDeclaration] && !x.isInstanceOf[IASTName] }
+        var numArgs = 0
 
-          if (!isInFunctionPrototype) {
-            numArgs = state.context.stack.pop.asInstanceOf[RValue].value.asInstanceOf[Integer]
-            val args = (0 until numArgs).map { arg => state.context.stack.pop }.reverse
+        val others = fcnDec.getChildren.filter { x => !x.isInstanceOf[IASTParameterDeclaration] && !x.isInstanceOf[IASTName] }
 
-            val resolvedArgs = args.map { arg => arg match {
-              case StringLiteral(str) =>
-                state.createStringVariable(str, false)
-              case info @ LValue(_, _) => info.value
-              case value @ RValue(_, _) => value
-            }}
+        if (!isInFunctionPrototype) {
+          numArgs = state.context.stack.pop.asInstanceOf[RValue].value.asInstanceOf[Integer]
+          val args = (0 until numArgs).map { arg => state.context.stack.pop }.reverse
 
-            resolvedArgs.foreach { arg =>
-              if (!isInFunctionPrototype && !paramDecls.isEmpty) {
+          val resolvedArgs = args.map { arg => arg match {
+            case StringLiteral(str) =>
+              state.createStringVariable(str, false)
+            case info @ LValue(_, _) => info.value
+            case value @ RValue(_, _) => value
+          }}
 
-                val paramDecl = paramDecls.pop
+          resolvedArgs.foreach { arg =>
+            if (!isInFunctionPrototype && !paramDecls.isEmpty) {
 
-                val paramInfo = paramDecl.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
+              val paramDecl = paramDecls.pop
 
-                val name = paramDecl.getDeclarator.getName
-                val newVar = state.context.addVariable(name, paramInfo.getType)
-                val casted = TypeHelper.cast(newVar.theType, arg.value).value
-                state.Stack.writeToMemory(casted, newVar.address, newVar.theType)
-              } else {
-                val theType = TypeHelper.getType(arg.value)
-                val sizeof = TypeHelper.sizeof(theType)
-                val space = state.allocateSpace(Math.max(sizeof, 4))
-                state.Stack.writeToMemory(arg.value, space, theType)
-              }
+              val paramInfo = paramDecl.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
+
+              val name = paramDecl.getDeclarator.getName
+              val newVar = state.context.addVariable(name, paramInfo.getType)
+              val casted = TypeHelper.cast(newVar.theType, arg.value).value
+              state.Stack.writeToMemory(casted, newVar.address, newVar.theType)
+            } else {
+              val theType = TypeHelper.getType(arg.value)
+              val sizeof = TypeHelper.sizeof(theType)
+              val space = state.allocateSpace(Math.max(sizeof, 4))
+              state.Stack.writeToMemory(arg.value, space, theType)
             }
           }
-
-          others
-        } else {
-          Seq()
         }
+
+        others
+      } else {
+        Seq()
+      }
     }
     case arrayDecl: IASTArrayDeclarator => {
-      case Stage1 =>
-        Seq(Option(decl.getInitializer)).flatten ++ arrayDecl.getArrayModifiers
-      case Stage2 =>
+//      case Stage1 =>
+//        Seq(Option(decl.getInitializer)).flatten ++ arrayDecl.getArrayModifiers
+//      case Stage2 =>
         val nameBinding = decl.getName.resolveBinding()
         val name = decl.getName
         val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
@@ -139,8 +140,8 @@ object Declarator {
         Seq()
     }
     case decl: CASTDeclarator => {
-      case Stage1 => Seq(Option(decl.getInitializer)).flatten
-      case Stage2 =>
+//      case Stage1 => Seq(Option(decl.getInitializer)).flatten
+//      case Stage2 =>
         val nameBinding = decl.getName.resolveBinding()
         val name = decl.getName
         if (nameBinding.isInstanceOf[IVariable]) {
