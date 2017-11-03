@@ -15,22 +15,6 @@ class FunctionScope(theStaticVars: List[Variable], node: IASTNode, parent: Scope
   val isContinuable = false
 }
 
-class LoopScope(theStaticVars: List[Variable], node: IASTNode, parent: Scope, theState: State)
-  extends Scope(theStaticVars, node, parent, theState) {
-
-  val isBreakable = true
-  val isContinuable = true
-}
-
-class SwitchScope(theStaticVars: List[Variable], node: IASTNode, parent: Scope, theState: State)
-  extends Scope(theStaticVars, node, parent, theState) {
-
-  var isCaseFound = false
-
-  val isBreakable = true
-  val isContinuable = false
-}
-
 abstract class Scope(staticVars: List[Variable], val node: IASTNode, val parent: Scope, state: State) {
   private var varMap = new mutable.HashSet[Variable]()
 

@@ -71,9 +71,9 @@ object Declarator {
       }
     }
     case arrayDecl: IASTArrayDeclarator => {
-//      case Stage1 =>
-//        Seq(Option(decl.getInitializer)).flatten ++ arrayDecl.getArrayModifiers
-//      case Stage2 =>
+        List(Option(decl.getInitializer)).flatten.foreach{Ast.step}
+        arrayDecl.getArrayModifiers.foreach{Ast.step}
+
         val nameBinding = decl.getName.resolveBinding()
         val name = decl.getName
         val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
@@ -140,8 +140,6 @@ object Declarator {
         Seq()
     }
     case decl: CASTDeclarator => {
-//      case Stage1 => Seq(Option(decl.getInitializer)).flatten
-//      case Stage2 =>
         val nameBinding = decl.getName.resolveBinding()
         val name = decl.getName
         if (nameBinding.isInstanceOf[IVariable]) {
@@ -151,6 +149,9 @@ object Declarator {
           val variable = state.context.addVariable(name, theType)
 
           if (!variable.isInitialized) {
+
+            List(Option(decl.getInitializer)).flatten.foreach{x => Ast.step(x)}
+
             if (!stripped.isInstanceOf[CStructure]) {
               val initVal = Option(decl.getInitializer).map(x => state.context.stack.pop).getOrElse(RValue(0, null))
               BinaryExpr.parseAssign(decl, op_assign, variable, initVal)

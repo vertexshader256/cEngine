@@ -129,18 +129,24 @@ class Memory(size: Int) {
 }
 
 case class JmpIfNotEqual(expr: IASTExpression, relativeJump: Int)
-case class JmpToLabelIfNotEqual(expr: IASTExpression, label: Label)
-case class JmpToLabelIfEqual(expr: IASTExpression, label: Label)
+case class JmpToLabelIfNotZero(expr: IASTExpression, label: Label)
+case class JmpToLabelIfZero(expr: IASTExpression, label: Label)
+case class JmpToLabelIfNotEqual(expr1: IASTExpression, expr2: IASTExpression, label: Label)
+case class JmpToLabelIfEqual(expr1: IASTExpression, expr2: IASTExpression, label: Label)
 case class Jmp(relativeJump: Int)
 case class JmpLabel(label: Label)
+case class JmpName(label: String) {
+  var destAddress = 0
+}
 
 abstract class Label {
   var address = 0
 }
 
-case class GotoLabel() extends Label
+case class GotoLabel(name: String) extends Label
 case class BreakLabel() extends Label
 case class ContinueLabel() extends Label
+case class GenericLabel() extends Label
 
 class State {
 
@@ -160,11 +166,8 @@ class State {
   var pathStack = List[Any]()
   var pathIndex = 0
 
-  // flags
-  var isGotoing = false
-  var gotoName = ""
-
-  var nextGotoNode: Seq[IASTNode] = Seq()
+  val breakLabelStack = new Stack[Label]()
+  val continueLabelStack = new Stack[Label]()
 
   val declarations = new ListBuffer[CStructure]()
 
@@ -195,15 +198,18 @@ class State {
     addScalaFunctionDef(fcn)
   }
 
-  def flattenTranslationUnit(tUnit: IASTTranslationUnit): List[Any] = {
+  def flattenTranslationUnit(tUnit: IASTTranslationUnit)(implicit state: State): List[Any] = {
 
     def recurse(node: IASTNode): List[Any] = {
+
+      println(node.getClass.getSimpleName)
+
       node match {
         case null => List()
 
         case ifStatement: IASTIfStatement =>
           val contents = recurse(ifStatement.getThenClause)
-          val elseContents = recurse(ifStatement.getElseClause)
+          val elseContents = List(Option(ifStatement.getElseClause)).flatten.flatMap(recurse)
 
           val jmp = if (ifStatement.getElseClause != null) {
             List(Jmp(elseContents.size))
@@ -215,45 +221,90 @@ class State {
           JmpIfNotEqual(ifStatement.getConditionExpression, (contents ++ jmp).size) +: ((contents ++ jmp) ++ elseContents)
         case forStatement: IASTForStatement =>
 
-//          initialization;
-//          while(condition)
-//          {
-//            action;
-//            increment;
-//          }
+          val breakLabel = BreakLabel()
+          state.breakLabelStack.push(breakLabel)
+          val continueLabel = ContinueLabel()
+          state.continueLabelStack.push(continueLabel)
 
-          val init = recurse(forStatement.getInitializerStatement)
+          val init = List(forStatement.getInitializerStatement)
           val contents = recurse(forStatement.getBody)
           val iter = forStatement.getIterationExpression
-          val beginLabel = new GotoLabel()
+          val beginLabel = new GotoLabel("")
 
-          val execution = iter +: contents
+          state.breakLabelStack.pop
+          state.continueLabelStack.pop
 
-          init ++ (beginLabel +: execution :+ JmpToLabelIfEqual(forStatement.getConditionExpression, beginLabel))
+          val execution = contents ++ List(continueLabel, iter)
+
+          if (forStatement.getConditionExpression != null) {
+            init ++ (beginLabel +: execution :+ JmpToLabelIfZero(forStatement.getConditionExpression, beginLabel)) :+ breakLabel
+          } else {
+            init ++ (beginLabel +: execution :+ JmpLabel(beginLabel)) :+ breakLabel
+          }
         case whileStatement: IASTWhileStatement =>
 
-//                  jmp loop1   ; Jump to condition first
-//          cloop1  nop         ; Execute the content of the loop
-//          loop1   cmp ax,1    ; Check the condition
-//                  je cloop1   ; Jump to content of the loop if met
+          val breakLabel = BreakLabel()
+          state.breakLabelStack.push(breakLabel)
+          val continueLabel = ContinueLabel()
+          state.continueLabelStack.push(continueLabel)
 
           val contents = recurse(whileStatement.getBody)
-          val begin = new ContinueLabel()
-          val end = new GotoLabel()
+          val begin = new GotoLabel("")
+          val end = new GotoLabel("")
 
-          (List(JmpLabel(end), begin) ++ contents ++ List(end, JmpToLabelIfEqual(whileStatement.getCondition, begin)) :+ BreakLabel())
+          state.breakLabelStack.pop
+          state.continueLabelStack.pop
+
+          List(JmpLabel(end), begin) ++ contents ++ List(end, continueLabel, JmpToLabelIfZero(whileStatement.getCondition, begin)) :+ breakLabel
         case doWhileStatement: IASTDoStatement =>
 
-          val contents = recurse(doWhileStatement.getBody)
-          val begin = new ContinueLabel()
-          val end = new GotoLabel()
+          val breakLabel = BreakLabel()
+          state.breakLabelStack.push(breakLabel)
+          val continueLabel = ContinueLabel()
+          state.continueLabelStack.push(continueLabel)
 
-          (List(begin) ++ contents ++ List(end, JmpToLabelIfEqual(doWhileStatement.getCondition, begin)) :+ BreakLabel())
-//        case goto: IASTGotoStatement =>
-//
-//
-//
-//          (List(begin) ++ contents ++ List(end, JmpToLabelIfEqual(doWhileStatement.getCondition, begin)) :+ BreakLabel())
+          val contents = recurse(doWhileStatement.getBody)
+          val begin = new GenericLabel()
+
+          state.breakLabelStack.pop
+          state.continueLabelStack.pop
+
+          List(begin) ++ contents ++ List(continueLabel, JmpToLabelIfZero(doWhileStatement.getCondition, begin)) :+ breakLabel
+        case switch: IASTSwitchStatement =>
+
+          val breakLabel = BreakLabel()
+          state.breakLabelStack.push(breakLabel)
+
+          val jumpTable = new ListBuffer[Any]()
+
+          val result = switch.getBody.getChildren.flatMap{
+            case caseStatement: IASTCaseStatement =>
+              val label = GenericLabel()
+              jumpTable += JmpToLabelIfEqual(caseStatement.getExpression, switch.getControllerExpression, label)
+              List(label)
+            case default: IASTDefaultStatement =>
+              val label = GenericLabel()
+              jumpTable += JmpLabel(label)
+              List(label)
+            case x: IASTNode =>
+              recurse(x)
+          }
+
+          state.breakLabelStack.pop
+
+          jumpTable += JmpLabel(breakLabel)
+
+          (jumpTable.toList ++ result) :+ breakLabel
+        case continue: IASTContinueStatement =>
+          List(JmpLabel(state.continueLabelStack.head))
+        case break: IASTBreakStatement =>
+          List(JmpLabel(state.breakLabelStack.head))
+        case composite: IASTCompositeTypeSpecifier =>
+          List()
+        case elaborated: IASTElaboratedTypeSpecifier =>
+          List()
+        case goto: IASTGotoStatement =>
+          List(JmpName(goto.getName.getRawSignature))
         case fcn: IASTFunctionDefinition =>
           fcn.getDeclarator +: recurse(fcn.getBody)
         case compound: IASTCompoundStatement =>
@@ -261,15 +312,25 @@ class State {
         case decl: IASTDeclarationStatement =>
           decl.getChildren.toList.flatMap(recurse)
         case decl: CASTSimpleDeclaration =>
-          decl.getChildren.toList.flatMap(recurse)
+          List(decl)
         case spec: IASTSimpleDeclSpecifier =>
           List()
         case decl: IASTDeclarator =>
-          recurse(decl.getInitializer) :+ decl
+          List(decl)
         case eq: IASTEqualsInitializer =>
-          List(eq.getInitializerClause)
+          recurse(eq.getInitializerClause)
+        case label: IASTLabelStatement =>
+          GotoLabel(label.getName.getRawSignature) +: recurse(label.getNestedStatement)
+        case exprState: CASTExpressionStatement =>
+          List(exprState.getExpression)
+        case fcn: IASTFunctionCallExpression =>
+          List(fcn)
+        case enum: IASTEnumerationSpecifier =>
+          List(enum)
+        case nameSpec: CASTTypedefNameSpecifier =>
+          List(nameSpec)
         case _ =>
-          println("SPLITTING: " + node.getClass.getSimpleName)
+          println("SPLITTING: " + node.getClass.getSimpleName + " : " + node.getRawSignature)
           node +: node.getChildren.toList
       }
     }
@@ -280,7 +341,7 @@ class State {
   def init(codes: Seq[String], state: State) = {
     val tUnit = Utils.getTranslationUnit(codes)
 
-    state.pathStack = flattenTranslationUnit(tUnit)
+    state.pathStack = flattenTranslationUnit(tUnit)(state)
 
     var instructionCounter = 0
     state.pathStack.foreach{ node =>
@@ -290,7 +351,19 @@ class State {
       instructionCounter += 1
     }
 
-    println(state.pathStack.map{_.getClass.getSimpleName})
+    state.pathStack.collect{case jmpName: JmpName => jmpName}.foreach{ node =>
+      state.pathStack.find{label => label.isInstanceOf[GotoLabel] &&
+        label.asInstanceOf[GotoLabel].name == node.label}.foreach { labelFound =>
+        node.destAddress = labelFound.asInstanceOf[GotoLabel].address
+      }
+    }
+
+    println(state.pathStack.map{x =>
+      x.getClass.getSimpleName + ":" + { x match {
+        case node: IASTNode => node.getRawSignature
+        case x => ""
+      }}
+    })
 
     val fcns = tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
     fcns.foreach{fcnDef => state.addFunctionDef(fcnDef)}

@@ -8,7 +8,7 @@ object Ast {
 
   val NoMatch: PartialFunction[Direction, Seq[IASTNode]] = { case _ => Seq()}
 
-  def step(current: Any)(implicit state: State) = current match {
+  def step(current: Any)(implicit state: State): Unit = current match {
 
     case statement: IASTStatement =>
       println("PARSING STATEMENT")
@@ -21,20 +21,16 @@ object Ast {
       println("PARSING DECL")
       Declarator.execute(decl)
     case array: IASTArrayModifier => {
-      if (array.getConstantExpression != null) {
-        Seq(array.getConstantExpression)
-      } else {
-        Seq()
-      }
+      List(Option(array.getConstantExpression)).flatten.foreach(step)
     }
     case JmpIfNotEqual(expr, lines) =>
       val raw = Expressions.evaluate(expr).get
       val result = TypeHelper.resolveBoolean(raw)
-      println("JMPNEQ RESULT: " + raw)
+      println("JMPNEQ RESULT: " + raw + ":" + result)
       if (!result) {
         state.pathIndex += lines
       }
-    case JmpToLabelIfNotEqual(expr, label) =>
+    case JmpToLabelIfNotZero(expr, label) =>
       val raw = Expressions.evaluate(expr).get
       val result = TypeHelper.resolveBoolean(raw)
       println("JMP NEQ LABEL RESULT: " + raw)
@@ -43,16 +39,31 @@ object Ast {
       }
     case JmpLabel(label) =>
       state.pathIndex = label.address
-    case JmpToLabelIfEqual(expr, label) =>
+    case JmpToLabelIfZero(expr, label) =>
       val raw = Expressions.evaluate(expr).get
       val result = TypeHelper.resolveBoolean(raw)
       println("JMP EQ LABEL RESULT: " + raw)
       if (result) {
         state.pathIndex = label.address
       }
+    case JmpToLabelIfNotEqual(expr1, expr2, label) =>
+      val raw1 = TypeHelper.resolve(Expressions.evaluate(expr1).get).value
+      val raw2 = TypeHelper.resolve(Expressions.evaluate(expr2).get).value
+      if (raw1 != raw2) {
+        state.pathIndex = label.address
+      }
+    case JmpToLabelIfEqual(expr1, expr2, label) =>
+      val raw1 = TypeHelper.resolve(Expressions.evaluate(expr1).get).value
+      val raw2 = TypeHelper.resolve(Expressions.evaluate(expr2).get).value
+      if (raw1 == raw2) {
+        state.pathIndex = label.address
+      }
     case Jmp(lines) =>
       println("JUMPING: " + lines)
       state.pathIndex += lines
+    case jmp: JmpName =>
+      println("GOTO TO " + jmp.destAddress + " : " + jmp.label)
+      state.pathIndex = jmp.destAddress
     case ptr: IASTPointer => {
       Seq()
     }
@@ -63,25 +74,22 @@ object Ast {
     }
     case simple: IASTSimpleDeclaration => {
       val declSpec = simple.getDeclSpecifier
+
+      simple.getDeclarators.foreach(step)
+
       if (declSpec.isInstanceOf[IASTEnumerationSpecifier]) {
-        simple.getDeclarators :+ simple.getDeclSpecifier
-      } else {
-        simple.getDeclarators
+        step(simple.getDeclSpecifier)
       }
     }
-//    case enumerator: CASTEnumerator => {
-//      case Stage2 =>
-//        Seq(enumerator.getValue)
-//      case Exiting =>
-//        val newVar = state.context.addVariable(enumerator.getName, TypeHelper.pointerType)
-//        val value = state.context.stack.pop.asInstanceOf[RValue]
-//        state.Stack.writeToMemory(value.value, newVar.address, TypeHelper.pointerType)
-//        Seq()
-//    }
-//    case enum: IASTEnumerationSpecifier => {
-//      case Exiting =>
-//        enum.getEnumerators
-//    }
+    case enumerator: CASTEnumerator => {
+      step(enumerator.getValue)
+      val newVar = state.context.addVariable(enumerator.getName, TypeHelper.pointerType)
+      val value = state.context.stack.pop.asInstanceOf[RValue]
+      state.Stack.writeToMemory(value.value, newVar.address, TypeHelper.pointerType)
+    }
+    case enum: IASTEnumerationSpecifier => {
+      enum.getEnumerators.foreach(step)
+    }
     case fcnDef: IASTFunctionDefinition => {
 //        if (!state.context.stack.isEmpty) {
 //          val retVal = state.context.stack.pop
@@ -89,11 +97,15 @@ object Ast {
 //        }
 //        Seq()
 //      case Stage2 =>
-        Seq(fcnDef.getDeclarator, fcnDef.getBody)
+//      step(fcnDef.getDeclarator)
+//      step(fcnDef.getBody)
     }
     case initList: IASTInitializerList => {
-        initList.getClauses
+      initList.getClauses.foreach{step}
     }
+    case equals: IASTEqualsInitializer =>
+      step(equals.getInitializerClause)
     case label: Label =>
+    case GotoLabel =>
   }
 }
