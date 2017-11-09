@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
 class CornerCase extends StandardTest {
 //  "A strange corner case" should "print the correct results" in {

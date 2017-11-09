@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
 class SignTest extends StandardTest {
   "unsigned test 1" should "print the correct results" in {

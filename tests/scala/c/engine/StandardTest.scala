@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
 import org.scalatest._
 import better.files._
@@ -46,7 +46,10 @@ class StandardTest extends FlatSpec {
           state.init(Seq("#define HAS_FLOAT\n" + File("src\\scala\\c\\engine\\ee_printf.c").contentAsString) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }, state)
         }
 
-        //state.pathStack.push(NodePath(state.getFunction("main").node, Stage1))
+        state.context.pathIndex = 0
+        state.context.pathStack = List(MainCall()) ++ state.context.pathStack
+
+        //state.context.pathStack.push(NodePath(state.getFunction("main").node, Stage1))
         state.context.run
         //totalTime += (System.nanoTime - start) / 1000000000.0
         result = getResults(state.stdout.toList)

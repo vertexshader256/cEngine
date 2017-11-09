@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
 import java.io.File
 import java.util.HashMap
@@ -77,7 +77,13 @@ object Utils {
   val mainPath = raw"C:\Scala\Git\cEngine"
   val mainAdditionalPath = raw"C:\Scala\Git\cEngine\tests\scala\c\engine\libds-master"
   val minGWIncludes = raw"C:\MinGW\include"
-  val minGWAdditionalIncludes = raw"C:\MinGW\lib\gcc\mingw32\5.3.0\include"
+
+  val minGWAdditionalIncludes = if (new File(raw"C:\MinGW\lib\gcc\mingw32\5.3.0\include").exists) {
+		raw"C:\MinGW\lib\gcc\mingw32\5.3.0\include"
+	} else {
+		raw"C:\MinGW\lib\gcc\mingw32\4.6.2\include"
+	}
+
   val minGWMoreIncludes = raw"C:\MinGW\include\GL"
   
   def getTranslationUnit(codes: Seq[String]): IASTTranslationUnit = {
@@ -117,7 +123,7 @@ object Utils {
   		pp.getQuoteIncludePath.add(minGWIncludes)
   		pp.getQuoteIncludePath.add(mainAdditionalPath)
   		//pp.addMacro("ALLOC_TESTING");
-		
+
   		val stream = new ByteArrayInputStream(code.getBytes(StandardCharsets.UTF_8))
   		
   		pp.addInput(new InputLexerSource(stream))

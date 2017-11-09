@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
 class TypesTest extends StandardTest {
   "Simple type test" should "print the correct results" in {

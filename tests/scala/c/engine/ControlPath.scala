@@ -1,6 +1,23 @@
-package c.engine
+package scala.c.engine
 
 class SwitchStatement extends StandardTest {
+
+  "A simple local variable reassignment after a switch statement" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 10;
+        switch(x) {
+          default :
+            printf("2\n");
+            break;
+        }
+        x = 5;
+        printf("%d\n", x);
+      }"""
+
+    checkResults(code)
+  }
+
   "A switch statement" should "print the correct results" in {
     val code = """
       void main() {
@@ -347,7 +364,6 @@ class WhileStatement extends StandardTest {
           x++;
           if (x % 2 == 0) {
             continue;
-            printf("continue\n");
           }
           if (x == 11) {
              break;

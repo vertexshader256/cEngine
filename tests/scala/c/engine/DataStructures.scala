@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
 import better.files.File
 
@@ -44,7 +44,7 @@ class HashMapTest extends StandardTest {
       File("tests\\scala\\c\\engine\\libds-master\\maptest.c").contentAsString)
 
 
-    checkResults2(allCode, false)
+    checkResults2(allCode)
   }
 }
 

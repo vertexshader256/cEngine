@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
 class HelloWorld extends StandardTest {
   "hello world" should "print the correct results" in {

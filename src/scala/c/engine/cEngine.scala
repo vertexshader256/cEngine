@@ -1,6 +1,6 @@
-package c.engine
+package scala.c.engine
 
-import org.eclipse.cdt.core.dom.ast.{IASTDeclarationStatement, IASTEqualsInitializer, _}
+import org.eclipse.cdt.core.dom.ast.{IASTCaseStatement, IASTDeclarationStatement, IASTEqualsInitializer, _}
 
 import scala.collection.mutable.Stack
 import scala.collection.mutable.ListBuffer
@@ -128,6 +128,10 @@ class Memory(size: Int) {
   }
 }
 
+case class MainCall()
+
+case class ReturnFromFunction() extends Exception("returning")
+
 case class JmpIfNotEqual(expr: IASTExpression, relativeJump: Int)
 case class JmpToLabelIfNotZero(expr: IASTExpression, label: Label)
 case class JmpToLabelIfZero(expr: IASTExpression, label: Label)
@@ -148,61 +152,13 @@ case class BreakLabel() extends Label
 case class ContinueLabel() extends Label
 case class GenericLabel() extends Label
 
-class State {
+case class CaseLabel(caseStatement: IASTCaseStatement) extends Label
+case class DefaultLabel(default: IASTDefaultStatement) extends Label
 
-  object Stack extends Memory(100000)
-
-  var heapInsertIndex = 50000
-
-  val functionPrototypes = scala.collection.mutable.HashSet[IASTFunctionDeclarator]()
-
-  private val functionContexts = new Stack[Scope]()
-  def context: Scope = functionContexts.head
-  val functionList = new ListBuffer[Function]()
-  val functionPointers = scala.collection.mutable.Map[String, Variable]()
-  val stdout = new ListBuffer[Char]()
-  var functionCount = 0
-
-  var pathStack = List[Any]()
-  var pathIndex = 0
-
-  val breakLabelStack = new Stack[Label]()
-  val continueLabelStack = new Stack[Label]()
-
-  val declarations = new ListBuffer[CStructure]()
-
-  functionContexts.push(new FunctionScope(List(), null, null, null, this))
-
-  private val scopeCache = new scala.collection.mutable.HashMap[IASTNode, Scope]()
-
-  def numScopes = functionContexts.size
-
-  def pushScope(scope: Scope): Unit = {
-    functionContexts.push(scope)
-  }
-
-  def getFunctionScope = {
-    functionContexts.collect{case fcnScope: FunctionScope => fcnScope}.head
-  }
-
-  def popFunctionContext = {
-    Stack.insertIndex = functionContexts.head.startingStackAddr
-    functionContexts.pop
-  }
-
-  def hasFunction(name: String): Boolean = functionList.exists{fcn => fcn.name == name}
-  def getFunction(name: String): Function = functionList.find{fcn => fcn.name == name}.get
-  def getFunctionByIndex(index: Int): Function = functionList.find{fcn => fcn.index == index}.get
-
-  Functions.scalaFunctions.foreach{fcn =>
-    addScalaFunctionDef(fcn)
-  }
-
-  def flattenTranslationUnit(tUnit: IASTTranslationUnit)(implicit state: State): List[Any] = {
+object State {
+  def flattenNode(tUnit: IASTNode)(implicit state: State): List[Any] = {
 
     def recurse(node: IASTNode): List[Any] = {
-
-      println(node.getClass.getSimpleName)
 
       node match {
         case null => List()
@@ -275,26 +231,26 @@ class State {
           val breakLabel = BreakLabel()
           state.breakLabelStack.push(breakLabel)
 
-          val jumpTable = new ListBuffer[Any]()
+          val descendants = recurse(switch.getBody)
 
-          val result = switch.getBody.getChildren.flatMap{
-            case caseStatement: IASTCaseStatement =>
-              val label = GenericLabel()
-              jumpTable += JmpToLabelIfEqual(caseStatement.getExpression, switch.getControllerExpression, label)
-              List(label)
-            case default: IASTDefaultStatement =>
-              val label = GenericLabel()
-              jumpTable += JmpLabel(label)
-              List(label)
-            case x: IASTNode =>
-              recurse(x)
-          }
+          val jumpTable = descendants.flatMap{
+            case x @ CaseLabel(caseStatement) =>
+              List(JmpToLabelIfEqual(caseStatement.getExpression, switch.getControllerExpression, x))
+            case x @ DefaultLabel(_) =>
+              List(JmpLabel(x))
+            case _ =>
+              List()
+          } :+ JmpLabel(breakLabel)
 
           state.breakLabelStack.pop
 
-          jumpTable += JmpLabel(breakLabel)
+          val complete = jumpTable ++ descendants :+ breakLabel
 
-          (jumpTable.toList ++ result) :+ breakLabel
+          complete :+ breakLabel
+        case x: IASTCaseStatement =>
+          List(CaseLabel(x))
+        case x: IASTDefaultStatement =>
+          List(DefaultLabel(x))
         case continue: IASTContinueStatement =>
           List(JmpLabel(state.continueLabelStack.head))
         case break: IASTBreakStatement =>
@@ -306,7 +262,7 @@ class State {
         case goto: IASTGotoStatement =>
           List(JmpName(goto.getName.getRawSignature))
         case fcn: IASTFunctionDefinition =>
-          fcn.getDeclarator +: recurse(fcn.getBody)
+          List(fcn)
         case compound: IASTCompoundStatement =>
           compound.getStatements.flatMap(recurse).toList
         case decl: IASTDeclarationStatement =>
@@ -337,36 +293,62 @@ class State {
 
     tUnit.getChildren.flatMap{recurse}.toList
   }
+}
+
+class State {
+
+  object Stack extends Memory(100000)
+
+  var heapInsertIndex = 50000
+
+  val functionPrototypes = scala.collection.mutable.HashSet[IASTFunctionDeclarator]()
+
+  private val functionContexts = new Stack[Scope]()
+  def context: Scope = functionContexts.head
+  val functionList = new ListBuffer[Function]()
+  val functionPointers = scala.collection.mutable.Map[String, Variable]()
+  val stdout = new ListBuffer[Char]()
+  var functionCount = 0
+
+  val breakLabelStack = new Stack[Label]()
+  val continueLabelStack = new Stack[Label]()
+
+  val declarations = new ListBuffer[CStructure]()
+
+  private val scopeCache = new scala.collection.mutable.HashMap[IASTNode, Scope]()
+
+  def numScopes = functionContexts.size
+
+  def pushScope(scope: Scope): Unit = {
+    functionContexts.push(scope)
+  }
+
+  def getFunctionScope = {
+    functionContexts.collect{case fcnScope: FunctionScope => fcnScope}.head
+  }
+
+  def popFunctionContext = {
+    Stack.insertIndex = functionContexts.head.startingStackAddr
+    functionContexts.pop
+  }
+
+  def hasFunction(name: String): Boolean = functionList.exists{fcn => fcn.name == name}
+  def getFunction(name: String): Function = functionList.find{fcn => fcn.name == name}.get
+  def getFunctionByIndex(index: Int): Function = functionList.find{fcn => fcn.index == index}.get
+
+  Functions.scalaFunctions.foreach{fcn =>
+    addScalaFunctionDef(fcn)
+  }
 
   def init(codes: Seq[String], state: State) = {
     val tUnit = Utils.getTranslationUnit(codes)
 
-    state.pathStack = flattenTranslationUnit(tUnit)(state)
-
-    var instructionCounter = 0
-    state.pathStack.foreach{ node =>
-      if (node.isInstanceOf[Label]) {
-        node.asInstanceOf[Label].address = instructionCounter
-      }
-      instructionCounter += 1
-    }
-
-    state.pathStack.collect{case jmpName: JmpName => jmpName}.foreach{ node =>
-      state.pathStack.find{label => label.isInstanceOf[GotoLabel] &&
-        label.asInstanceOf[GotoLabel].name == node.label}.foreach { labelFound =>
-        node.destAddress = labelFound.asInstanceOf[GotoLabel].address
-      }
-    }
-
-    println(state.pathStack.map{x =>
-      x.getClass.getSimpleName + ":" + { x match {
-        case node: IASTNode => node.getRawSignature
-        case x => ""
-      }}
-    })
-
     val fcns = tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
     fcns.foreach{fcnDef => state.addFunctionDef(fcnDef)}
+
+    val program = new FunctionScope(List(), tUnit, null, null, state) {}
+
+    functionContexts.push(program)
 
     declarations ++= tUnit.getDeclarations.collect{case simp: CASTSimpleDeclaration => simp.getDeclSpecifier}
       .collect{case comp: CASTCompositeTypeSpecifier => comp}
@@ -416,33 +398,12 @@ class State {
 
     val fcnType = fcnDef.getDeclarator.getName.resolveBinding().asInstanceOf[IFunction].getType
 
-
-//    def findLabels(node: IASTNode): List[IASTLabelStatement] = {
-//
-//      @tailrec
-//      def recurse(nodes: List[IASTNode], acc: List[IASTLabelStatement]): List[IASTLabelStatement] = {
-//        nodes match {
-//          case Nil => acc
-//          case x :: tail =>
-//            val label: Seq[IASTLabelStatement] = if (x.isInstanceOf[IASTLabelStatement]) {
-//              Seq(x.asInstanceOf[IASTLabelStatement])
-//            } else {
-//              Seq()
-//            }
-//            recurse(tail, acc ++ label)
-//        }
-//      }
-//
-//      recurse(List(node), List())
-//    }
-
     functionList += new Function(name.getRawSignature, true) {
       index = functionCount
-
+      node = fcnDef
       override val staticVars = addStaticFunctionVars(fcnDef, State.this)
       def parameters = fcnType.getParameterTypes.toList
       def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = {None}
-      override def node = fcnDef
     }
 
     val newVar = new Variable(name, State.this, fcnType)
@@ -465,8 +426,6 @@ class State {
   def callTheFunction(name: String, call: IASTFunctionCallExpression, args: Array[ValueType]): Option[ValueType] = {
 
     functionList.find(_.name == name).map{ function =>
-
-      functionContexts.push(new FunctionScope(function.staticVars, call, functionContexts.head, new CFunctionType(call.getExpressionType, null), this))
 
       val resolvedArgs: Array[RValue] = args.map{x =>
         x match {
@@ -496,9 +455,16 @@ class State {
       if (!function.isNative) {
         // this is a function simulated in scala
         val returnVal = function.run(resolvedArgs.reverse, this)
-        popFunctionContext
+        //popFunctionContext
         returnVal.map{theVal => RValue(theVal, null)}
       } else {
+
+        if (call != null) {
+          functionContexts.push(new FunctionScope(function.staticVars, function.node, functionContexts.head, new CFunctionType(call.getExpressionType, null), this))
+        } else {
+          functionContexts.push(new FunctionScope(function.staticVars, function.node, functionContexts.head, null, this))
+        }
+
         //context.pathStack.push(NodePath(function.node, Stage1))
         context.stack.pushAll(convertedArgs :+ RValue(resolvedArgs.size, null))
         context.run

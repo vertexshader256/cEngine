@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 package ast
 
 import org.eclipse.cdt.core.dom.ast._
@@ -28,42 +28,42 @@ object Ast {
       val result = TypeHelper.resolveBoolean(raw)
       println("JMPNEQ RESULT: " + raw + ":" + result)
       if (!result) {
-        state.pathIndex += lines
+        state.context.pathIndex += lines
       }
     case JmpToLabelIfNotZero(expr, label) =>
       val raw = Expressions.evaluate(expr).get
       val result = TypeHelper.resolveBoolean(raw)
       println("JMP NEQ LABEL RESULT: " + raw)
       if (!result) {
-        state.pathIndex = label.address
+        state.context.pathIndex = label.address
       }
     case JmpLabel(label) =>
-      state.pathIndex = label.address
+      state.context.pathIndex = label.address
     case JmpToLabelIfZero(expr, label) =>
       val raw = Expressions.evaluate(expr).get
       val result = TypeHelper.resolveBoolean(raw)
       println("JMP EQ LABEL RESULT: " + raw)
       if (result) {
-        state.pathIndex = label.address
+        state.context.pathIndex = label.address
       }
     case JmpToLabelIfNotEqual(expr1, expr2, label) =>
       val raw1 = TypeHelper.resolve(Expressions.evaluate(expr1).get).value
       val raw2 = TypeHelper.resolve(Expressions.evaluate(expr2).get).value
       if (raw1 != raw2) {
-        state.pathIndex = label.address
+        state.context.pathIndex = label.address
       }
     case JmpToLabelIfEqual(expr1, expr2, label) =>
       val raw1 = TypeHelper.resolve(Expressions.evaluate(expr1).get).value
       val raw2 = TypeHelper.resolve(Expressions.evaluate(expr2).get).value
       if (raw1 == raw2) {
-        state.pathIndex = label.address
+        state.context.pathIndex = label.address
       }
     case Jmp(lines) =>
       println("JUMPING: " + lines)
-      state.pathIndex += lines
+      state.context.pathIndex += lines
     case jmp: JmpName =>
       println("GOTO TO " + jmp.destAddress + " : " + jmp.label)
-      state.pathIndex = jmp.destAddress
+      state.context.pathIndex = jmp.destAddress
     case ptr: IASTPointer => {
       Seq()
     }
@@ -75,7 +75,13 @@ object Ast {
     case simple: IASTSimpleDeclaration => {
       val declSpec = simple.getDeclSpecifier
 
-      simple.getDeclarators.foreach(step)
+      val isWithinFunction = Utils.getAncestors(simple).exists{_.isInstanceOf[IASTFunctionDefinition]}
+
+      simple.getDeclarators.foreach{
+        case fcn: IASTFunctionDeclarator =>
+          if (!isWithinFunction) step(fcn) else step(fcn.getNestedDeclarator)
+        case x => step(x)
+      }
 
       if (declSpec.isInstanceOf[IASTEnumerationSpecifier]) {
         step(simple.getDeclSpecifier)
@@ -107,5 +113,8 @@ object Ast {
       step(equals.getInitializerClause)
     case label: Label =>
     case GotoLabel =>
+    case MainCall() =>
+      println("CALLING MAIN")
+      state.callTheFunction("main", null, Array())
   }
 }

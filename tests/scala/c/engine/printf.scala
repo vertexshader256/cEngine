@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
 class printf extends StandardTest {   
   "Different basic prints" should "print the correct results" in {
@@ -46,6 +46,6 @@ class printfCustom extends StandardTest {
         printf("%s %c %d\n", "Just a test!", 'K', 378437);
       }"""
 
-    checkResults(code, false)
+    checkResults(code, true)
   }
 }

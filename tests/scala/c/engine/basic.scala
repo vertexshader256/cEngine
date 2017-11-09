@@ -1,5 +1,4 @@
-package c.engine
-package basictests
+package scala.c.engine
 
 class AssignmentTest extends StandardTest {
   "A simple math expression with double assigned to integer" should "print the correct results" in {
@@ -13,7 +12,7 @@ class AssignmentTest extends StandardTest {
 
     checkResults(code)
   }
-  
+
   "initialized by an assignment" should "print the correct results" in {
     val code = """
       void main() {
@@ -29,9 +28,9 @@ class AssignmentTest extends StandardTest {
 class PreprocessorTest extends StandardTest {
   "A simple math expression with double assigned to integer" should "print the correct results" in {
     val code = """
-      
+
       #define PRINT(x) printf("%d\n", x)
-      
+
       void main() {
         int x = 54332;
         PRINT(x);
@@ -42,7 +41,7 @@ class PreprocessorTest extends StandardTest {
 }
 
 class BasicHelloWorld extends StandardTest {
-  
+
   "Hello world" should "print the correct results" in {
     val code =
       """
@@ -65,7 +64,7 @@ class SimpleInitTest extends StandardTest {
       void main() {
         printf("%d\n", x);
       }"""
-    
+
     checkResults(code)
   }
 }
@@ -80,7 +79,7 @@ class ComplexInitTest extends StandardTest {
 
     checkResults(code)
   }
-  
+
   "A cascaded multi-var init" should "print the correct results" in {
     val code = """
       void main() {
@@ -105,7 +104,7 @@ class BasicTest extends StandardTest {
 
     checkResults(code)
   }
-  
+
   "A simple integer uninitialized global reference" should "print the correct results" in {
     val code = """
       int x;
@@ -148,7 +147,7 @@ class BasicTest extends StandardTest {
 
     checkResults(code)
   }
-  
+
   "A simple math expression with double reassignment" should "print the correct results" in {
     val code = """
       void main() {
@@ -160,7 +159,7 @@ class BasicTest extends StandardTest {
 
     checkResults(code)
   }
-  
+
   "A simple math expression with addition and one global var" should "print the correct results" in {
     val code = """
       int x = 1 + 2;
@@ -288,21 +287,6 @@ class BasicTest extends StandardTest {
     val code = """
       void main() {
         int x = 10;
-        x = 5;
-        printf("%d\n", x);
-      }"""
-
-    checkResults(code)
-  }
-  "A simple local variable reassignment after a switch statement" should "print the correct results" in {
-    val code = """
-      void main() {
-        int x = 10;
-        switch(x) {
-          default :
-            printf("2\n");
-            break;
-        }
         x = 5;
         printf("%d\n", x);
       }"""

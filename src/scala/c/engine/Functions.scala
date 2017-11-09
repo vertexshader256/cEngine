@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
 import org.eclipse.cdt.core.dom.ast._
 import java.util.Formatter
@@ -12,11 +12,11 @@ import scala.collection.mutable.ListBuffer
 // 'isNative' implies the function is in C, not Scala
 abstract case class Function(name: String, isNative: Boolean) {
   var index = -1
+  var node: IASTNode = null
 
   val staticVars: List[Variable] = List()
 
   def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal]
-  def node: IASTNode = null
 }
 
 object Functions {

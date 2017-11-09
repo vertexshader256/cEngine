@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
 class ArrayStagingArea extends StandardTest {
   "A 2d array" should "print the correct results" in {

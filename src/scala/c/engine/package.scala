@@ -1,4 +1,4 @@
-package c
+package scala.c
 
 package object engine {
   type char = Byte

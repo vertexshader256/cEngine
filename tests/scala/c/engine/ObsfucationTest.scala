@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
 class ObsfucationTest extends StandardTest {
   "obsfucation 1" should "print the correct results" in {
@@ -19,7 +19,7 @@ class ObsfucationTest extends StandardTest {
      printf("%s\n", (char*)x);
  }"""
 
-    checkResults(code, false)
+    checkResults(code)
   }
 
   "obsfucation 2" should "print the correct results" in {
@@ -39,6 +39,6 @@ class ObsfucationTest extends StandardTest {
    x)p(x)y(x)z(x)free(l);}
    """
 
-    checkResults(code, false)
+    checkResults(code)
   }
 }

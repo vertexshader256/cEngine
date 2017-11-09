@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
 class LinkedListTest extends StandardTest {
   "Linked list test" should "print the correct results" in {
@@ -238,7 +238,7 @@ class LinkedListTest extends StandardTest {
         }
       
       """
-    checkResults(code, false)
+    checkResults(code)
   }
 }
 
@@ -266,7 +266,7 @@ class ComplexTest extends StandardTest {
       }
       """
 
-    checkResults(code, false)
+    checkResults(code)
   }
   
   
@@ -350,7 +350,7 @@ class ComplexTest extends StandardTest {
       }
       """
 
-    checkResults(code, false)
+    checkResults(code)
   }  
 }
 
@@ -391,7 +391,7 @@ class CaesarCipherTest extends StandardTest {
       }
       """
 
-    checkResults(code, false)
+    checkResults(code)
   }  
 }
   
@@ -420,7 +420,7 @@ class CaesarCipherTest extends StandardTest {
         }
         """
   
-      checkResults(code, false)
+      checkResults(code)
     }
  }
 
@@ -463,7 +463,7 @@ class DuffsTest extends StandardTest {
         }
         """
 
-    checkResults(code, false)
+    checkResults(code)
   }
 
 
@@ -521,7 +521,7 @@ class CarmichaelTest extends StandardTest {
     return 0;
     }"""
 
-    checkResults(code, false)
+    checkResults(code)
   }
 }
 
@@ -554,7 +554,7 @@ class PerniciousTest extends StandardTest {
           return 0;
         }"""
 
-    checkResults(code, false)
+    checkResults(code)
   }
 }
 
@@ -615,6 +615,6 @@ class CholskeyTest extends StandardTest {
       return 0;
       }"""
 
-    checkResults(code, false)
+    checkResults(code)
   }
 }

@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
 class StagingArea extends StandardTest {
 

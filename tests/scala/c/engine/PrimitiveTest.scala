@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
 class StagingAreaPrimitive extends StandardTest {
   "bool test" should "print the correct results" in {
@@ -288,7 +288,7 @@ class PrimitiveTest extends StandardTest {
       }
       """
 
-    checkResults(code, false)
+    checkResults(code)
   } 
   
   "unsigned char test" should "print the correct results" in {

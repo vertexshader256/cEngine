@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
 class ScopeTest extends StandardTest {
   "Two variables of the same name but different scope" should "print the correct results" in {

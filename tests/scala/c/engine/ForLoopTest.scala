@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
 class ForLooptestStaging extends StandardTest {
   "A for loop with a continue and a loop in the second case" should "print the correct results" in {
@@ -10,9 +10,9 @@ class ForLooptestStaging extends StandardTest {
           switch(i) {
             case 1:
               continue;
-              printf("1\n");
+              //printf("4\n");
             case 2:
-              for (x = 0; x < 3; x++) {
+              for (x = 0; x < 2; x++) {
                 printf("%d\n", x);
               }
               break;
@@ -22,7 +22,7 @@ class ForLooptestStaging extends StandardTest {
           }
         }
         
-        printf("%d\n", x);
+        //printf("%d\n", x);
       }"""
 
     checkResults(code)
@@ -79,8 +79,10 @@ class ForLooptest extends StandardTest {
         int n = 7;
         for (i = 0, j = n - 1;; i++, j--) {
           printf("%d %d\n", i, j);
-          if (i == 5)
+          if (i == 5) {
+            printf("breaking!\n");
             break;
+          }
         }
       }"""
 

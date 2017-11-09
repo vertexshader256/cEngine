@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
 class ExtremeFP extends StandardTest {
 
@@ -36,7 +36,7 @@ class ExtremeFP extends StandardTest {
       return 0;
       }"""
 
-    checkResults(code, false)
+    checkResults(code)
   }
 }
 

@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
 import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.internal.core.dom.parser.c._

@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
 class CastTest extends StandardTest {
   "A simple cast" should "print the correct results" in {

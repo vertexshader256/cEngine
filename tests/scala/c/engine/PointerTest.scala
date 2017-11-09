@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
 class StagingGround extends StandardTest {
   "assign then increment" should "print the correct results" in {

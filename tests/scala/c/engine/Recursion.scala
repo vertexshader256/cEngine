@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
 class Recursion extends StandardTest {
   "Recursion test 1" should "print the correct results" in {

@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 package ast
 
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.op_assign
@@ -12,15 +12,13 @@ object Declarator {
   def execute(decl: IASTDeclarator)(implicit state: State) = decl match {
 
     case fcnDec: IASTFunctionDeclarator => {
-      val isInFunctionPrototype = Utils.getAncestors(fcnDec).exists {
-        _.isInstanceOf[IASTSimpleDeclaration]
+      val isInFunctionPrototype = !Utils.getAncestors(fcnDec).exists {
+        _.isInstanceOf[IASTFunctionDefinition]
       }
 
       if (isInFunctionPrototype) {
         state.functionPrototypes += fcnDec
       }
-
-      println("PARSING FUNC DECL")
 
       // ignore main's params for now
       val isInMain = fcnDec.getName.getRawSignature == "main"
@@ -142,6 +140,7 @@ object Declarator {
     case decl: CASTDeclarator => {
         val nameBinding = decl.getName.resolveBinding()
         val name = decl.getName
+
         if (nameBinding.isInstanceOf[IVariable]) {
           val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
           val stripped = TypeHelper.stripSyntheticTypeInfo(theType)

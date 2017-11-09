@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 package ast
 
 import org.eclipse.cdt.core.dom.ast._
@@ -6,17 +6,12 @@ import scala.collection.mutable.{ListBuffer, Stack}
 
 object Statement {
 
-  def parse(statement: IASTStatement)(implicit state: State) = statement match {
+  def parse(statement: IASTStatement)(implicit state: State): Unit = statement match {
     case _: IASTNullStatement =>
       PartialFunction.empty
-//    case _: IASTBreakStatement => {
-//      while (!state.pathStack(state.pathIndex).isInstanceOf[BreakLabel]) {
-//        state.pathIndex += 1
-//      }
-//    }
     case _: IASTContinueStatement => {
-      while (!state.pathStack(state.pathIndex).isInstanceOf[ContinueLabel]) {
-        state.pathIndex += 1
+      while (!state.context.pathStack(state.context.pathIndex).isInstanceOf[ContinueLabel]) {
+        state.context.pathIndex += 1
       }
     }
     case ret: IASTReturnStatement => {
@@ -33,27 +28,14 @@ object Statement {
         }
       }
 
-      while (state.numScopes > 1 && !state.context.isInstanceOf[FunctionScope]) {
-        state.popFunctionContext
-      }
-//        while (state.context.pathStack.size > 1) {
-//          state.context.pathStack.pop
-//        }
-
       if (retVal != null) {
         state.context.stack.push(retVal)
       }
 
-      Seq()
-    }
-    case decl: IASTDeclarationStatement => {
-      Seq(decl.getDeclaration)
-    }
-    case compound: IASTCompoundStatement => {
-      compound.getStatements
+      throw ReturnFromFunction()
     }
     case exprStatement: IASTExpressionStatement => {
-      Seq(exprStatement.getExpression)
+      Expressions.evaluate(exprStatement.getExpression)
     }
   }
 }

@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
   class RadixSort extends StandardTest {
     "radix sort test 1" should "print the correct results" in {

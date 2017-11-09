@@ -1,4 +1,4 @@
-package c.engine
+package scala.c.engine
 
 import scala.sys.process.ProcessIO
 import scala.sys.process._
