@@ -193,7 +193,7 @@ object State {
           val execution = contents ++ List(continueLabel, iter)
 
           if (forStatement.getConditionExpression != null) {
-            init ++ (beginLabel +: execution :+ JmpToLabelIfZero(forStatement.getConditionExpression, beginLabel)) :+ breakLabel
+            init ++ (beginLabel +: JmpToLabelIfNotZero(forStatement.getConditionExpression, breakLabel) +: execution :+ JmpLabel(beginLabel)) :+ breakLabel
           } else {
             init ++ (beginLabel +: execution :+ JmpLabel(beginLabel)) :+ breakLabel
           }
@@ -251,13 +251,13 @@ object State {
           List(CaseLabel(x))
         case x: IASTDefaultStatement =>
           List(DefaultLabel(x))
-        case continue: IASTContinueStatement =>
+        case _: IASTContinueStatement =>
           List(JmpLabel(state.continueLabelStack.head))
-        case break: IASTBreakStatement =>
+        case _: IASTBreakStatement =>
           List(JmpLabel(state.breakLabelStack.head))
-        case composite: IASTCompositeTypeSpecifier =>
+        case _: IASTCompositeTypeSpecifier =>
           List()
-        case elaborated: IASTElaboratedTypeSpecifier =>
+        case _: IASTElaboratedTypeSpecifier =>
           List()
         case goto: IASTGotoStatement =>
           List(JmpName(goto.getName.getRawSignature))
@@ -269,7 +269,9 @@ object State {
           decl.getChildren.toList.flatMap(recurse)
         case decl: CASTSimpleDeclaration =>
           List(decl)
-        case spec: IASTSimpleDeclSpecifier =>
+        case _: IASTSimpleDeclSpecifier =>
+          List()
+        case _: CASTTypedefNameSpecifier =>
           List()
         case decl: IASTDeclarator =>
           List(decl)

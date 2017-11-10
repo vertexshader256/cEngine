@@ -88,6 +88,18 @@ class ForLooptest extends StandardTest {
 
     checkResults(code)
   }
+
+  "A for loop that never enters" should "print the correct results" in {
+    val code = """
+      void main() {
+        int i = 0;
+        for (i = 5; i < 5; i++) {
+          printf("HERE\n");
+        }
+      }"""
+
+    checkResults(code)
+  }
   
   "A little more advanced for loop" should "print the correct results" in {
     val code = """

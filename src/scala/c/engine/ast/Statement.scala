@@ -34,6 +34,8 @@ object Statement {
 
       throw ReturnFromFunction()
     }
+    case decl: IASTDeclarationStatement =>
+      Ast.step(decl.getDeclaration)
     case exprStatement: IASTExpressionStatement => {
       Expressions.evaluate(exprStatement.getExpression)
     }

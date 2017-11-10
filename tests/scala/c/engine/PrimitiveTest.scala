@@ -288,7 +288,7 @@ class PrimitiveTest extends StandardTest {
       }
       """
 
-    checkResults(code)
+    checkResults(code, false)
   } 
   
   "unsigned char test" should "print the correct results" in {

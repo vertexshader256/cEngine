@@ -11,14 +11,12 @@ object Ast {
   def step(current: Any)(implicit state: State): Unit = current match {
 
     case statement: IASTStatement =>
-      println("PARSING STATEMENT")
       Statement.parse(statement)
     case expression: IASTExpression => {
         state.context.stack.pushAll(Expressions.evaluate(expression))
         Seq()
     }
     case decl: IASTDeclarator =>
-      println("PARSING DECL")
       Declarator.execute(decl)
     case array: IASTArrayModifier => {
       List(Option(array.getConstantExpression)).flatten.foreach(step)
@@ -26,14 +24,12 @@ object Ast {
     case JmpIfNotEqual(expr, lines) =>
       val raw = Expressions.evaluate(expr).get
       val result = TypeHelper.resolveBoolean(raw)
-      println("JMPNEQ RESULT: " + raw + ":" + result)
       if (!result) {
         state.context.pathIndex += lines
       }
     case JmpToLabelIfNotZero(expr, label) =>
       val raw = Expressions.evaluate(expr).get
       val result = TypeHelper.resolveBoolean(raw)
-      println("JMP NEQ LABEL RESULT: " + raw)
       if (!result) {
         state.context.pathIndex = label.address
       }
@@ -42,7 +38,6 @@ object Ast {
     case JmpToLabelIfZero(expr, label) =>
       val raw = Expressions.evaluate(expr).get
       val result = TypeHelper.resolveBoolean(raw)
-      println("JMP EQ LABEL RESULT: " + raw)
       if (result) {
         state.context.pathIndex = label.address
       }
