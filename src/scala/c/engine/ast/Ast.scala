@@ -108,8 +108,5 @@ object Ast {
       step(equals.getInitializerClause)
     case label: Label =>
     case GotoLabel =>
-    case MainCall() =>
-      println("CALLING MAIN")
-      state.callTheFunction("main", null, Array())
   }
 }

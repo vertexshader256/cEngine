@@ -134,7 +134,7 @@ object Expressions {
 
         val args = call.getArguments.map{x => evaluate(x).head}
 
-        state.callTheFunction(name, call, args)
+        state.callTheFunction(name, call, args, None)
     case bin: IASTBinaryExpression =>
       val result = (bin.getOperator, evaluate(bin.getOperand1).head) match {
         case (IASTBinaryExpression.op_logicalOr, op1 @ RValue(x: Boolean, _)) if x => op1

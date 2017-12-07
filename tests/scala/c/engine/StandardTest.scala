@@ -7,6 +7,7 @@ import scala.concurrent._
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 import ExecutionContext.Implicits.global
+import scala.c.engine.Gcc.program
 
 class StandardTest extends FlatSpec {
 
@@ -40,17 +41,22 @@ class StandardTest extends FlatSpec {
       try {
         val start = System.nanoTime
         val state = new State
-        if (shouldBootstrap) {
-          state.init(codeInFiles, state)
+        val node = if (shouldBootstrap) {
+          state.init(codeInFiles)
         } else {
-          state.init(Seq("#define HAS_FLOAT\n" + File("src\\scala\\c\\engine\\ee_printf.c").contentAsString) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }, state)
+          state.init(Seq("#define HAS_FLOAT\n" + File("src\\scala\\c\\engine\\ee_printf.c").contentAsString) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code })
         }
 
+        val program = new FunctionScope(List(), null, null) {}
+        state.pushScope(program)
+        program.init(node, state, true)
+
+        state.context.run(state) // parse globals
+
         state.context.pathIndex = 0
-        state.context.pathStack = List(MainCall()) ++ state.context.pathStack
 
         //state.context.pathStack.push(NodePath(state.getFunction("main").node, Stage1))
-        state.context.run
+        state.callTheFunction("main", null, Array(), None)
         //totalTime += (System.nanoTime - start) / 1000000000.0
         result = getResults(state.stdout.toList)
 

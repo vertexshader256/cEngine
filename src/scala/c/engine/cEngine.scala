@@ -11,8 +11,6 @@ import org.eclipse.cdt.internal.core.dom.parser.c._
 
 
 object Interpreter {
-  implicit val state = new State
-  
   implicit class CounterSC(val sc: StringContext) extends AnyVal {
 
     // Define functions that we want to use with string interpolation syntax
@@ -127,8 +125,6 @@ class Memory(size: Int) {
     TypeHelper.castSign(theType, result)
   }
 }
-
-case class MainCall()
 
 case class ReturnFromFunction() extends Exception("returning")
 
@@ -305,8 +301,8 @@ class State {
 
   val functionPrototypes = scala.collection.mutable.HashSet[IASTFunctionDeclarator]()
 
-  private val functionContexts = new Stack[Scope]()
-  def context: Scope = functionContexts.head
+  val functionContexts = new Stack[FunctionScope]()
+  def context: FunctionScope = functionContexts.head
   val functionList = new ListBuffer[Function]()
   val functionPointers = scala.collection.mutable.Map[String, Variable]()
   val stdout = new ListBuffer[Char]()
@@ -321,7 +317,7 @@ class State {
 
   def numScopes = functionContexts.size
 
-  def pushScope(scope: Scope): Unit = {
+  def pushScope(scope: FunctionScope): Unit = {
     functionContexts.push(scope)
   }
 
@@ -342,21 +338,17 @@ class State {
     addScalaFunctionDef(fcn)
   }
 
-  def init(codes: Seq[String], state: State) = {
+  def init(codes: Seq[String]): IASTNode = {
     val tUnit = Utils.getTranslationUnit(codes)
 
     val fcns = tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
-    fcns.foreach{fcnDef => state.addFunctionDef(fcnDef)}
-
-    val program = new FunctionScope(List(), tUnit, null, null, state) {}
-
-    functionContexts.push(program)
+    fcns.foreach{fcnDef => addFunctionDef(fcnDef)}
 
     declarations ++= tUnit.getDeclarations.collect{case simp: CASTSimpleDeclaration => simp.getDeclSpecifier}
       .collect{case comp: CASTCompositeTypeSpecifier => comp}
       .map{x => x.getName.resolveBinding().asInstanceOf[CStructure]}
 
-    state.context.run
+    tUnit
   }
 
   def addScalaFunctionDef(fcn: Function) = {
@@ -425,7 +417,7 @@ class State {
     Seq()
   }
 
-  def callTheFunction(name: String, call: IASTFunctionCallExpression, args: Array[ValueType]): Option[ValueType] = {
+  def callTheFunction(name: String, call: IASTFunctionCallExpression, args: Array[ValueType], scope: Option[FunctionScope]): Option[ValueType] = {
 
     functionList.find(_.name == name).map{ function =>
 
@@ -461,21 +453,31 @@ class State {
         returnVal.map{theVal => RValue(theVal, null)}
       } else {
 
-        if (call != null) {
-          functionContexts.push(new FunctionScope(function.staticVars, function.node, functionContexts.head, new CFunctionType(call.getExpressionType, null), this))
-        } else {
-          functionContexts.push(new FunctionScope(function.staticVars, function.node, functionContexts.head, null, this))
+        val newScope = scope.getOrElse {
+          if (call != null) {
+            new FunctionScope(function.staticVars, functionContexts.headOption.getOrElse(null), new CFunctionType(call.getExpressionType, null))
+          } else {
+            new FunctionScope(function.staticVars, functionContexts.headOption.getOrElse(null), null)
+          }
         }
+
+        newScope.init(function.node, this, !scope.isDefined)
+
+        functionContexts.push(newScope)
 
         //context.pathStack.push(NodePath(function.node, Stage1))
         context.stack.pushAll(convertedArgs :+ RValue(resolvedArgs.size, null))
-        context.run
+        context.run(this)
         if (!context.stack.isEmpty) {
           val returnVal = context.stack.pop
-          popFunctionContext
+          if (!scope.isDefined) {
+            popFunctionContext
+          }
           Some(returnVal)
         } else {
-          popFunctionContext
+          if (!scope.isDefined) {
+            popFunctionContext
+          }
           None
         }
       }
@@ -483,9 +485,11 @@ class State {
       // function pointer case
       val fcnPointer = functionContexts.head.resolveId(new CASTName(name.toCharArray)).get
       val function = getFunctionByIndex(fcnPointer.value.asInstanceOf[Int])
-      functionContexts.push(new FunctionScope(function.staticVars, call, functionContexts.head, new CFunctionType(call.getExpressionType, null), this))
+      val scope = new FunctionScope(function.staticVars, functionContexts.head, new CFunctionType(call.getExpressionType, null))
+      functionContexts.push(scope)
+      scope.init(call, this, true)
       //context.pathStack.push(NodePath(function.node, Stage1))
-      context.run
+      context.run(this)
       popFunctionContext
       None
     }

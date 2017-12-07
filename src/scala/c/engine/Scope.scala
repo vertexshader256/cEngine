@@ -8,40 +8,50 @@ import scala.collection.mutable.{ListBuffer, Stack}
 
 case class NodePath(node: IASTNode, var direction: Direction)
 
-class FunctionScope(theStaticVars: List[Variable], node: IASTNode, parent: Scope, val function: IFunctionType, theState: State)
-  extends Scope(theStaticVars, node, parent, theState) {
+class FunctionScope(theStaticVars: List[Variable], parent: Scope, val function: IFunctionType)
+  extends Scope(theStaticVars, parent) {
 
-  pathStack = State.flattenNode(node)(theState)
+  println("CREATING NEW FUNCTION SCOPE")
 
-  var instructionCounter = 0
-  pathStack.foreach{ node =>
-    if (node.isInstanceOf[Label]) {
-      node.asInstanceOf[Label].address = instructionCounter
+  def init(node: IASTNode, theState: State, shouldReset: Boolean) {
+    if (shouldReset) {
+      reset(theState)
     }
-    instructionCounter += 1
-  }
 
-  pathStack.collect{case jmpName: JmpName => jmpName}.foreach{ node =>
-    pathStack.find{label => label.isInstanceOf[GotoLabel] &&
-      label.asInstanceOf[GotoLabel].name == node.label}.foreach { labelFound =>
-      node.destAddress = labelFound.asInstanceOf[GotoLabel].address
+    pathStack ++= State.flattenNode(node)(theState)
+
+    var instructionCounter = 0
+    pathStack.foreach { node =>
+      if (node.isInstanceOf[Label]) {
+        node.asInstanceOf[Label].address = instructionCounter
+      }
+      instructionCounter += 1
+    }
+
+    pathStack.collect { case jmpName: JmpName => jmpName }.foreach { node =>
+      pathStack.find { label =>
+        label.isInstanceOf[GotoLabel] &&
+          label.asInstanceOf[GotoLabel].name == node.label
+      }.foreach { labelFound =>
+        node.destAddress = labelFound.asInstanceOf[GotoLabel].address
+      }
     }
   }
 }
 
-abstract class Scope(staticVars: List[Variable], val node: IASTNode, val parent: Scope, state: State) {
-  private var varMap = new mutable.HashSet[Variable]()
+abstract class Scope(staticVars: List[Variable], val parent: Scope) {
+  var varMap = new mutable.HashSet[Variable]()
 
   val stack = new Stack[ValueType]()
   var startingStackAddr = 0
 
-  var pathStack = List[Any]()
+  var pathStack = ListBuffer[Any]()
   var pathIndex = 0
 
-  reset
+  var state: State = null
 
-  def run = {
-
+  def run(theState: State) = {
+    state = theState
     var keepRunning = true
     try {
       while (keepRunning) {
@@ -58,12 +68,12 @@ abstract class Scope(staticVars: List[Variable], val node: IASTNode, val parent:
     val current = if (index >= pathStack.size) null else pathStack(index)
     if (current != null) {
 
-//      if (current.isInstanceOf[IASTNode]) {
-//        println(current.getClass.getSimpleName + ":" + index + ":" + current.asInstanceOf[IASTNode].getRawSignature)
-//        println(Utils.getDescendants(current.asInstanceOf[IASTNode]).map(_.getClass.getSimpleName))
-//      } else {
-//        println(current.getClass.getSimpleName + ":" + index)
-//      }
+      if (current.isInstanceOf[IASTNode]) {
+        println(current.getClass.getSimpleName + ":" + index + ":" + current.asInstanceOf[IASTNode].getRawSignature)
+        println(Utils.getDescendants(current.asInstanceOf[IASTNode]).map(_.getClass.getSimpleName))
+      } else {
+        println(current.getClass.getSimpleName + ":" + index)
+      }
 
       ast.Ast.step(current)(state)
 
@@ -81,7 +91,7 @@ abstract class Scope(staticVars: List[Variable], val node: IASTNode, val parent:
       .orElse(Some(state.functionPointers(name.getRawSignature)))
   }
 
-  def reset = {
+  def reset(state: State) = {
     varMap.clear
     varMap ++= staticVars.toSet.toList
     //pathStack.clear

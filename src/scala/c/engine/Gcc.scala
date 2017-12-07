@@ -7,7 +7,11 @@ import java.io.File
 import scala.collection.mutable.ListBuffer
 import java.io.{InputStream, OutputStream, PrintWriter}
 
+import org.eclipse.cdt.core.dom.ast.IASTNode
+
 object Gcc {
+
+  val program = new FunctionScope(List(), null, null) {}
 
   def runCode(code: String, state: State) = {
       val exeCode = s"""
@@ -16,13 +20,36 @@ object Gcc {
         }
       """
 
-      state.init(Seq(exeCode), state)
-      val main = state.getFunction("main")
-      state.functionList -= main
-      state.Stack.insertIndex -= 4
+      val node = state.init(Seq(exeCode))
+
+//      if (state.functionContexts.isEmpty) {
+//        val program = new FunctionScope(List(), null, null, state) {}
+//        state.pushScope(program)
+//      }
+//
+//      state.context.init(node)
+
+// else {
+//        state.context.reset
+//        state.context.pathStack.clear
+//        state.context.pathStack ++= State.flattenNode(node)(state)
+//      }
+
+//      state.context.pathIndex = 0
+//      state.context.pathStack += MainCall()
+
+//      state.Stack.insertIndex -= 4
 
       //state.context.pathStack.push(NodePath(main.node, Stage1))
-      state.context.run
+
+      println(state.functionContexts)
+
+      state.callTheFunction("main", null, Array(), Some(program))
+
+      println(state.context.varMap)
+
+      val main = state.getFunction("main")
+      state.functionList -= main
   }
 
   def runGlobalCode(code: String, state: State) = {
@@ -30,7 +57,7 @@ object Gcc {
        $code
     """
 
-    state.init(Seq(exeCode), state)
+    state.init(Seq(exeCode))
   }
   
   
