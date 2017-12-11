@@ -10,9 +10,10 @@ class printf extends StandardTest {
         printf("%s\n", "Hello World!");
         printf("%.2f\n", 1.47453);
         printf("%.1f\n", 1.47453);
+        printf("%f\n", 1.5f);
       }"""
 
-    checkResults(code)
+    checkResults(code, false)
   }
   
   "printing a string with inline pointer arithmetic" should "print the correct results" in {

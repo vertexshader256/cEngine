@@ -74,6 +74,7 @@ class Memory(size: Int) {
         newVal match {
           case char: char => tape.put(address, char)
           case int: Int => tape.putInt(address, int)
+          case bool: Boolean => tape.putInt(address, if (bool) 1 else 0)
         }
       case basic: IFunctionType =>
         newVal match {
@@ -446,6 +447,15 @@ class State {
         resolvedArgs
       }
 
+      // printf assumes all floating point numbers are doubles
+      val promoted = convertedArgs.map{arg =>
+        if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eFloat) {
+          TypeHelper.cast(new CBasicType(IBasicType.Kind.eDouble, 0), arg.value)
+        } else {
+          arg
+        }
+      }
+
       if (!function.isNative) {
         // this is a function simulated in scala
         val returnVal = function.run(resolvedArgs.reverse, this)
@@ -466,7 +476,7 @@ class State {
         functionContexts.push(newScope)
 
         //context.pathStack.push(NodePath(function.node, Stage1))
-        context.stack.pushAll(convertedArgs :+ RValue(resolvedArgs.size, null))
+        context.stack.pushAll(promoted :+ RValue(resolvedArgs.size, null))
         context.run(this)
         if (!context.stack.isEmpty) {
           val returnVal = context.stack.pop
