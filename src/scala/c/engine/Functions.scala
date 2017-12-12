@@ -220,7 +220,7 @@ object Functions {
           None
         }
       }
-   
+
    scalaFunctions += new Function("strlen", false) {
         def run(formattedOutputParams: Array[RValue], state: State) = {
           val straddy = formattedOutputParams.head.value match {
@@ -321,6 +321,7 @@ object Functions {
             case "double" => (8, new CBasicType(IBasicType.Kind.eDouble, 0))
             case "char" => (1, new CBasicType(IBasicType.Kind.eChar, 0))
             case "char *" => (4, new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0))
+            case "unsigned long" => (8, new CPointerType(new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG), 0))
           })
           
           val result = state.Stack.readFromMemory(varArgStartingAddr, theType).value

@@ -448,9 +448,14 @@ class State {
       }
 
       // printf assumes all floating point numbers are doubles
+      // and shorts are 4 bytes
       val promoted = convertedArgs.map{arg =>
         if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eFloat) {
           TypeHelper.cast(new CBasicType(IBasicType.Kind.eDouble, 0), arg.value)
+        } else if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].isShort) {
+          TypeHelper.cast(new CBasicType(IBasicType.Kind.eInt, 0), arg.value)
+        } else if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eChar) {
+          TypeHelper.cast(new CBasicType(IBasicType.Kind.eInt, 0), arg.value)
         } else {
           arg
         }

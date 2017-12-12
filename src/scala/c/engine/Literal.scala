@@ -38,12 +38,14 @@ object Literal {
       (StringLiteral(lit), new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0))
     } else if (lit.head == '\'' && lit.last == '\'' && (lit.size == 3 || lit == "'\\0'" || lit == "'\\n'" || lit == "'\\\\'")) {
       if (lit == "'\\0'") {
-        (0, new CBasicType(IBasicType.Kind.eFloat, 0))
+        ('\0'.toByte, new CBasicType(IBasicType.Kind.eChar, 0))
       } else if (lit == "'\\n'") {
         ('\n'.toByte, new CBasicType(IBasicType.Kind.eChar, 0))
       } else {
         (lit.toCharArray.apply(1).toByte, new CBasicType(IBasicType.Kind.eChar, 0))
       }
+    } else if (isLong) {
+      (lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
     } else if (isIntNumber(lit)) {
       (lit.toInt, new CBasicType(IBasicType.Kind.eInt, 0))
     } else if (isLongNumber(lit)) {

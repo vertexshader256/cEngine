@@ -11,8 +11,6 @@ case class NodePath(node: IASTNode, var direction: Direction)
 class FunctionScope(theStaticVars: List[Variable], parent: Scope, val function: IFunctionType)
   extends Scope(theStaticVars, parent) {
 
-  println("CREATING NEW FUNCTION SCOPE")
-
   def init(node: IASTNode, theState: State, shouldReset: Boolean) {
     if (shouldReset) {
       reset(theState)
@@ -68,12 +66,12 @@ abstract class Scope(staticVars: List[Variable], val parent: Scope) {
     val current = if (index >= pathStack.size) null else pathStack(index)
     if (current != null) {
 
-      if (current.isInstanceOf[IASTNode]) {
-        println(current.getClass.getSimpleName + ":" + index + ":" + current.asInstanceOf[IASTNode].getRawSignature)
-        println(Utils.getDescendants(current.asInstanceOf[IASTNode]).map(_.getClass.getSimpleName))
-      } else {
-        println(current.getClass.getSimpleName + ":" + index)
-      }
+//      if (current.isInstanceOf[IASTNode]) {
+//        println(current.getClass.getSimpleName + ":" + index + ":" + current.asInstanceOf[IASTNode].getRawSignature)
+//        println(Utils.getDescendants(current.asInstanceOf[IASTNode]).map(_.getClass.getSimpleName))
+//      } else {
+//        println(current.getClass.getSimpleName + ":" + index)
+//      }
 
       ast.Ast.step(current)(state)
 

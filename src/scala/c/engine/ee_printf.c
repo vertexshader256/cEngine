@@ -496,7 +496,12 @@ repeat:
     {
       case 'c':
         if (!(flags & LEFT)) while (--field_width > 0) *str++ = ' ';
-        *str++ = (unsigned char) va_arg(args, int);
+        char x = (unsigned char) va_arg(args, int);
+        if (x == 0) {
+          *str++ = '}';
+        } else {
+          *str++ = x;
+        }
         while (--field_width > 0) *str++ = ' ';
         continue;
 
@@ -579,7 +584,11 @@ repeat:
 }
 
 void uart_send_char(char c) {
-  putchar(c);
+  if (c == '}') {
+    putchar('\0');
+  } else {
+    putchar(c);
+  }
 }
 
 int ee_printf(const char *fmt, ...)

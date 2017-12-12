@@ -19,9 +19,9 @@ class StandardTest extends FlatSpec {
     }
   }
 
-  def checkResults(code: String, shouldBootstrap: Boolean = true): Unit = checkResults2(Seq(code), shouldBootstrap)
+  def checkResults(code: String, shouldBootstrap: Boolean = false): Unit = checkResults2(Seq(code), shouldBootstrap)
 
-  def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = true) = {
+  def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = false) = {
 
     var except: Exception = null
 
@@ -81,6 +81,9 @@ class StandardTest extends FlatSpec {
         if (except != null) {
           throw except
         }
+
+        println(cEngineOutput.map{_.getBytes.toList})
+        println(gccOutput.toList.map{_.getBytes.toList})
 
         assert(cEngineOutput == gccOutput.toList)
       case Failure(e) =>
