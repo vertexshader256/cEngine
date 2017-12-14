@@ -151,6 +151,7 @@ object Declarator {
 
             List(Option(decl.getInitializer)).flatten.foreach{x => Ast.step(x)}
 
+
             if (!stripped.isInstanceOf[CStructure]) {
               val initVal = Option(decl.getInitializer).map(x => state.context.stack.pop).getOrElse(RValue(0, null))
               BinaryExpr.parseAssign(decl, op_assign, variable, initVal)

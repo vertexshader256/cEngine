@@ -24,7 +24,7 @@ object BinaryExpr {
       case info @ LValue(_, _) => info.value
       case value @ RValue(_, _) => value
       case StringLiteral(str) =>
-        state.createStringVariable(str, false)
+        state.createStringVariable(str, true)
     }
 
     val initialRight = if ((x.theType.isInstanceOf[IPointerType] || x.theType.isInstanceOf[IArrayType]) && (operator == `op_minus` || operator == `op_plus`)) {

@@ -150,9 +150,6 @@ object Functions {
             case char: char => char.toChar
           }
 
-          printf(char.toString)
-          println(char.toInt)
-
           state.stdout += char
 
           None
@@ -280,8 +277,6 @@ object Functions {
         val str1 = Utils.readString(straddy)(state)
         val str2 = Utils.readString(straddy2)(state)
 
-        println(str1 + " : " + str2)
-
         val same = str1 == str2
         Some((if (same) 0 else 1))
       }
@@ -377,7 +372,6 @@ object Functions {
           val result = state.allocateHeapSpace(20)
 
           state.setArray(array, result, 1)
-          println(result)
           Some(result)
         }
       }

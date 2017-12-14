@@ -372,17 +372,14 @@ class State {
       case decl: IASTDeclarator =>
         val nameBinding = decl.getName.resolveBinding()
 
-        if (nameBinding.isInstanceOf[IVariable]) {
-          val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
-
-          if (decl.getParent.isInstanceOf[IASTSimpleDeclaration] &&
-            decl.getParent.asInstanceOf[IASTSimpleDeclaration].getDeclSpecifier.getStorageClass == IASTDeclSpecifier.sc_static) {
-            List(new Variable(decl.getName, state, theType))
-          } else {
-            List()
-          }
-        } else {
-          List()
+        nameBinding match {
+          case vari: IVariable =>
+            if (vari.isStatic) {
+              List(new Variable(decl.getName, state, vari.getType))
+            } else {
+              List()
+            }
+          case _ => List()
         }
       case x => x.getChildren.toList.flatMap{x => addStaticFunctionVars(x, state)}
     }

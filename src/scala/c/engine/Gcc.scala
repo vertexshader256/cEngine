@@ -20,29 +20,6 @@ object Gcc {
         }
       """
 
-      val node = state.init(Seq(exeCode))
-
-//      if (state.functionContexts.isEmpty) {
-//        val program = new FunctionScope(List(), null, null, state) {}
-//        state.pushScope(program)
-//      }
-//
-//      state.context.init(node)
-
-// else {
-//        state.context.reset
-//        state.context.pathStack.clear
-//        state.context.pathStack ++= State.flattenNode(node)(state)
-//      }
-
-//      state.context.pathIndex = 0
-//      state.context.pathStack += MainCall()
-
-//      state.Stack.insertIndex -= 4
-
-      //state.context.pathStack.push(NodePath(main.node, Stage1))
-
-      println(state.functionContexts)
 
       state.callTheFunction("main", null, Array(), Some(program))
 
