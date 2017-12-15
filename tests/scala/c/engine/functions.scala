@@ -231,16 +231,17 @@ class FunctionTest extends StandardTest {
     checkResults(code)
   }
 
-  "A function prototype which provides conversion information" should "print the correct results" in {
+  "A function using oldschool syntax" should "print the correct results" in {
     val code = """
-      int x = 0x0F0F0F0F;
-      void test(char x);
+      int x = 5;
+      void test(x);
 
       void main() {
-        test(x);
+        test(10);
+        printf("%d\n", x);
       }
-      void test(char x) {
-         printf("%c\n", x);
+      void test(y) int y; {
+         x = y;
       }"""
 
     checkResults(code)

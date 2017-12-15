@@ -360,7 +360,7 @@ class State {
 
     val fcnType = new CFunctionType(new CBasicType(IBasicType.Kind.eVoid, 0), null)
 
-    val newVar = new Variable(new CASTName(fcn.name.toCharArray), State.this, fcnType)
+    val newVar = new Variable(fcn.name, State.this, fcnType)
     Stack.writeToMemory(functionCount, newVar.address, fcnType)
 
     functionPointers += fcn.name -> newVar
@@ -375,7 +375,12 @@ class State {
         nameBinding match {
           case vari: IVariable =>
             if (vari.isStatic) {
-              List(new Variable(decl.getName, state, vari.getType))
+              if (vari.getType.isInstanceOf[IArrayType]) {
+                val arrayType = vari.getType.asInstanceOf[IArrayType]
+                List(new ArrayVariable(decl.getName.getRawSignature, state, arrayType, Seq(arrayType.getSize.numericalValue().toInt)))
+              } else {
+                List(new Variable(decl.getName.getRawSignature, state, vari.getType))
+              }
             } else {
               List()
             }
@@ -398,7 +403,7 @@ class State {
       def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = {None}
     }
 
-    val newVar = new Variable(name, State.this, fcnType)
+    val newVar = new Variable(name.getRawSignature, State.this, fcnType)
     Stack.writeToMemory(functionCount, newVar.address, fcnType)
 
     functionPointers += name.getRawSignature -> newVar

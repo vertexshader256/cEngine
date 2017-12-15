@@ -7,6 +7,7 @@ import java.util.Locale
 import scala.collection.mutable.HashMap
 import org.eclipse.cdt.internal.core.dom.parser.c.{CBasicType, _}
 
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 // 'isNative' implies the function is in C, not Scala
@@ -21,7 +22,7 @@ abstract case class Function(name: String, isNative: Boolean) {
 
 object Functions {
   
-  var varArgStartingAddr = 0
+  var varArgStartingAddr = new mutable.Stack[Int]()
   
   val scalaFunctions = new ListBuffer[Function]()
   
@@ -305,38 +306,40 @@ object Functions {
       }
   
   scalaFunctions += new Function("va_arg", false) {
-        def run(formattedOutputParams: Array[RValue], state: State) = {
-          val argTypeStr = formattedOutputParams(0).value.asInstanceOf[Int]
-          
-          val str = Utils.readString(argTypeStr)(state)
-          
-          val (offset, theType) = (str match {
-            case "unsigned int" => (4, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))
-            case "int" => (4, TypeHelper.pointerType)
-            case "double" => (8, new CBasicType(IBasicType.Kind.eDouble, 0))
-            case "char" => (1, new CBasicType(IBasicType.Kind.eChar, 0))
-            case "char *" => (4, new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0))
-            case "unsigned long" => (8, new CPointerType(new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG), 0))
-          })
-          
-          val result = state.Stack.readFromMemory(varArgStartingAddr, theType).value
+      def run(formattedOutputParams: Array[RValue], state: State) = {
+        val argTypeStr = formattedOutputParams(0).value.asInstanceOf[Int]
 
-          varArgStartingAddr += offset
-          Some(result)
-        }
+        val str = Utils.readString(argTypeStr)(state)
+
+        val (offset, theType) = (str match {
+          case "unsigned int" => (4, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))
+          case "int" => (4, TypeHelper.pointerType)
+          case "double" => (8, new CBasicType(IBasicType.Kind.eDouble, 0))
+          case "char" => (1, new CBasicType(IBasicType.Kind.eChar, 0))
+          case "char *" => (4, new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0))
+          case "unsigned long" => (8, new CPointerType(new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG), 0))
+        })
+
+        val current = varArgStartingAddr.pop
+        val result = state.Stack.readFromMemory(current, theType).value
+        varArgStartingAddr.push(current + offset)
+
+        Some(result)
       }
+    }
   
    scalaFunctions += new Function("va_start", false) {
-        def run(formattedOutputParams: Array[RValue], state: State) = {
-          val lastNamedArgAddr = formattedOutputParams(0).value.asInstanceOf[Int]
-          val listAddr = formattedOutputParams(1).value.asInstanceOf[Int]
-          varArgStartingAddr = lastNamedArgAddr + 4
-          None
-        }
+      def run(formattedOutputParams: Array[RValue], state: State) = {
+        val lastNamedArgAddr = formattedOutputParams(0).value.asInstanceOf[Int]
+        val listAddr = formattedOutputParams(1).value.asInstanceOf[Int]
+        varArgStartingAddr.push(lastNamedArgAddr + 4)
+        None
       }
+    }
    
    scalaFunctions += new Function("va_end", false) {
         def run(formattedOutputParams: Array[RValue], state: State) = {
+           varArgStartingAddr.pop
            None
         }
       }

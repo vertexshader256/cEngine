@@ -83,8 +83,12 @@ object Ast {
       }
     }
     case enumerator: CASTEnumerator => {
-      step(enumerator.getValue)
-      val newVar = state.context.addVariable(enumerator.getName, TypeHelper.pointerType)
+      if (enumerator.getValue != null) {
+        step(enumerator.getValue)
+      } else {
+        state.context.stack.push(new RValue(enumerator.getParent.getChildren.indexOf(enumerator) - 1, TypeHelper.pointerType))
+      }
+      val newVar = state.context.addVariable(enumerator.getName.getRawSignature, TypeHelper.pointerType)
       val value = state.context.stack.pop.asInstanceOf[RValue]
       state.Stack.writeToMemory(value.value, newVar.address, TypeHelper.pointerType)
     }

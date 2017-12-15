@@ -20,7 +20,7 @@ object Gcc {
         }
       """
 
-
+      state.init(Seq(exeCode))
       state.callTheFunction("main", null, Array(), Some(program))
 
       println(state.context.varMap)

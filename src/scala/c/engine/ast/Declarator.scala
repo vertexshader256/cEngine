@@ -22,11 +22,11 @@ object Declarator {
 
       // ignore main's params for now
       val isInMain = fcnDec.getName.getRawSignature == "main"
-      val fcnName = fcnDec.getName.getRawSignature
 
-      val paramDecls = new Stack[IASTParameterDeclaration]() ++ fcnDec.getChildren.collect { case x: IASTParameterDeclaration => x }
+      if (fcnDec.getName.resolveBinding().isInstanceOf[CFunction] && !fcnDec.getName.resolveBinding().asInstanceOf[CFunction].getParameters.isEmpty && !isInMain) {
 
-      if (!paramDecls.isEmpty && !isInMain) {
+        val fcn = fcnDec.getName.resolveBinding().asInstanceOf[CFunction]
+        val paramDecls = new Stack[CParameter]() ++ fcn.getParameters
 
         var numArgs = 0
 
@@ -45,13 +45,8 @@ object Declarator {
 
           resolvedArgs.foreach { arg =>
             if (!isInFunctionPrototype && !paramDecls.isEmpty) {
-
               val paramDecl = paramDecls.pop
-
-              val paramInfo = paramDecl.getDeclarator.getName.resolveBinding().asInstanceOf[CParameter]
-
-              val name = paramDecl.getDeclarator.getName
-              val newVar = state.context.addVariable(name, paramInfo.getType)
+              val newVar = state.context.addVariable(paramDecl.getName, paramDecl.getType)
               val casted = TypeHelper.cast(newVar.theType, arg.value).value
               state.Stack.writeToMemory(casted, newVar.address, newVar.theType)
             } else {
@@ -100,7 +95,7 @@ object Declarator {
             val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
             val withNull = (translateLineFeed.toCharArray() :+ 0.toChar).map { char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0)) } // terminating null char
 
-            val theArrayPtr = state.context.addArrayVariable(name, theType.asInstanceOf[IArrayType], Seq(initString.size))
+            val theArrayPtr = state.context.addArrayVariable(name.getRawSignature, theType.asInstanceOf[IArrayType], Seq(initString.size))
             theArrayPtr.setArray(withNull)
           } else {
             val list = initializer.getInitializerClause.asInstanceOf[IASTInitializerList]
@@ -113,7 +108,7 @@ object Declarator {
               }
             }.reverse.toArray.map{x => RValue(x.value, theType.asInstanceOf[IArrayType].getType)}
 
-            val theArrayPtr = state.context.addArrayVariable(name, theType.asInstanceOf[IArrayType], Array(size))
+            val theArrayPtr = state.context.addArrayVariable(name.getRawSignature, theType.asInstanceOf[IArrayType], Array(size))
             theArrayPtr.setArray(values)
           }
           Seq()
@@ -129,11 +124,12 @@ object Declarator {
             }
           }
 
-          val theArrayVar = state.context.addArrayVariable(name, theType.asInstanceOf[IArrayType], dimensions)
+          val theArrayVar = state.context.addArrayVariable(name.getRawSignature, theType.asInstanceOf[IArrayType], dimensions)
 
           state.setArray(initialArray, theArrayVar.address, TypeHelper.sizeof(theArrayVar.theType))
         } else {
-          state.context.addArrayVariable(name, theType.asInstanceOf[IArrayType], dimensions)
+          println(name.getRawSignature + ":" + arrayDecl.getRawSignature)
+          state.context.addArrayVariable(name.getRawSignature, theType.asInstanceOf[IArrayType], dimensions)
         }
         Seq()
     }
@@ -145,7 +141,7 @@ object Declarator {
           val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
           val stripped = TypeHelper.stripSyntheticTypeInfo(theType)
 
-          val variable = state.context.addVariable(name, theType)
+          val variable = state.context.addVariable(name.getRawSignature, theType)
 
           if (!variable.isInitialized) {
 

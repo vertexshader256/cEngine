@@ -66,12 +66,12 @@ abstract class Scope(staticVars: List[Variable], val parent: Scope) {
     val current = if (index >= pathStack.size) null else pathStack(index)
     if (current != null) {
 
-//      if (current.isInstanceOf[IASTNode]) {
-//        println(current.getClass.getSimpleName + ":" + index + ":" + current.asInstanceOf[IASTNode].getRawSignature)
-//        println(Utils.getDescendants(current.asInstanceOf[IASTNode]).map(_.getClass.getSimpleName))
-//      } else {
-//        println(current.getClass.getSimpleName + ":" + index)
-//      }
+      if (current.isInstanceOf[IASTNode]) {
+        println(current.getClass.getSimpleName + ":" + index + ":" + current.asInstanceOf[IASTNode].getRawSignature)
+        println(Utils.getDescendants(current.asInstanceOf[IASTNode]).map(_.getClass.getSimpleName))
+      } else {
+        println(current.getClass.getSimpleName + ":" + index)
+      }
 
       ast.Ast.step(current)(state)
 
@@ -84,7 +84,7 @@ abstract class Scope(staticVars: List[Variable], val parent: Scope) {
   }
 
   def resolveId(name: IASTName): Option[Variable] = {
-    varMap.find{_.name.getRawSignature == name.getRawSignature}
+    varMap.find{_.name == name.getRawSignature}
       .orElse(if (parent != null) parent.resolveId(name) else None)
       .orElse(Some(state.functionPointers(name.getRawSignature)))
   }
@@ -97,8 +97,8 @@ abstract class Scope(staticVars: List[Variable], val parent: Scope) {
     startingStackAddr = state.Stack.insertIndex
   }
 
-  def addArrayVariable(name: IASTName, theType: IArrayType, dimensions: Seq[Int]): ArrayVariable = {
-    staticVars.find{_.name.getRawSignature == name.getRawSignature}.getOrElse {
+  def addArrayVariable(name: String, theType: IArrayType, dimensions: Seq[Int]): ArrayVariable = {
+    staticVars.find{_.name == name}.getOrElse {
       val newVar = new ArrayVariable(name, state, theType, dimensions)
       varMap.remove(newVar)
       varMap += newVar
@@ -106,8 +106,8 @@ abstract class Scope(staticVars: List[Variable], val parent: Scope) {
     }.asInstanceOf[ArrayVariable]
   }
 
-  def addVariable(name: IASTName, theType: IType): Variable = {
-    staticVars.find{_.name.getRawSignature == name.getRawSignature}.getOrElse {
+  def addVariable(name: String, theType: IType): Variable = {
+    staticVars.find{_.name == name}.getOrElse {
       val newVar = new Variable(name, state, theType)
       varMap.remove(newVar)
       varMap += newVar

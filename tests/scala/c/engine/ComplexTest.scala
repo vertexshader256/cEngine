@@ -1,5 +1,7 @@
 package scala.c.engine
 
+import better.files.File
+
 class LinkedListTest extends StandardTest {
   "Linked list test" should "print the correct results" in {
     val code = """
@@ -624,5 +626,30 @@ class CholskeyTest extends StandardTest {
       }"""
 
     checkResults(code)
+  }
+}
+
+class RegexTest extends StandardTest {
+  "Regex test" should "print the correct results" in {
+    val code = """
+        #include <re.h>
+
+        int main(void)
+        {
+           /* Standard null-terminated C-string to search: */
+           const char* string_to_search = "ahem.. 'hello world !' ..";
+
+           /* Compile a simple regular expression using character classes, meta-char and greedy + non-greedy quantifiers: */
+           re_t pattern = re_compile("[Hh]ello [Ww]orld\\s*[!]?");
+
+           /* Check if the regex matches the text: */
+           int match_idx = re_matchp(pattern, string_to_search);
+           if (match_idx != -1)
+           {
+             printf("match at idx %d.\n", match_idx);
+           }
+        }"""
+
+    checkResults2(Seq(File("tests\\scala\\c\\engine\\libds-master\\re.c").contentAsString, code))
   }
 }
