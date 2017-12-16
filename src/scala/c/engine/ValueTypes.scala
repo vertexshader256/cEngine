@@ -120,7 +120,7 @@ class Variable(val name: String, val state: State, aType: IType) extends LValue(
         } else {
           1
         }
-        state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * size)
+        state.allocateSpace(TypeHelper.sizeof(array.getType) * size)
       case array: IPointerType =>
         state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType))
       case fcn: CFunctionType =>
