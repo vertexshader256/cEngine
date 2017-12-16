@@ -122,9 +122,11 @@ class Variable(val name: String, val state: State, aType: IType) extends LValue(
         }
 
         if (size > 0) {
+          (0 until size).map { _ =>
             recurse(array.getType)
           }.head
         } else {
+          0
         }
       case array: IPointerType =>
         state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType))
