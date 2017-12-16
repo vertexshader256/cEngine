@@ -120,13 +120,17 @@ class Variable(val name: String, val state: State, aType: IType) extends LValue(
         } else {
           1
         }
-        state.allocateSpace(TypeHelper.sizeof(array.getType) * size)
+
+        if (size > 0) {
+            recurse(array.getType)
+          }.head
+        } else {
+        }
       case array: IPointerType =>
         state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType))
       case fcn: CFunctionType =>
         state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType))
-      case structType: CStructure =>
-        val struct = structType.asInstanceOf[CStructure]
+      case struct: CStructure =>
         struct.getKey match {
           case ICompositeType.k_struct =>
             struct.getFields.map { field =>
