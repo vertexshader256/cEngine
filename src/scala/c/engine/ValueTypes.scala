@@ -53,19 +53,20 @@ class ArrayVariable(name: String, state: State, arrayType: IArrayType, dim: Seq[
   val allocate: Int = {
     // where we store the actual data
 
-    def recurse(subType: IArrayType, dimensions: Seq[Int]): Int = {
+    def recurse(subType: IType, dimensions: Seq[Int]): Int = {
 
-      if (dimensions.size > 0) {
-        val addr = (0 until dimensions.head).map { x =>
-          allocateSpace(state, subType.getType)
-        }.head
-        if (dimensions.size > 1) {
-          for (i <- (0 until dimensions.head)) {
-            val subaddr = recurse(subType.getType.asInstanceOf[IArrayType], dimensions.tail)
-            state.Stack.writeToMemory(subaddr, addr + i * 4, new CBasicType(IBasicType.Kind.eChar, 0)) // write pointer
-          }
+      if (dimensions.size > 0) { // need this guard
+        subType match {
+          case array: IArrayType if array.getType.isInstanceOf[IArrayType] => // multi-dimensional array
+            val addr = state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * dimensions.head)
+            for (i <- (0 until dimensions.head)) {
+              val subaddr = recurse(array.getType, dimensions.tail)
+              state.Stack.writeToMemory(subaddr, addr + i * 4, TypeHelper.pointerType) // write pointer
+            }
+            addr
+          case array: IArrayType =>
+            state.allocateSpace(TypeHelper.sizeof(array.getType) * dimensions.head)
         }
-        addr
       } else {
         0
       }

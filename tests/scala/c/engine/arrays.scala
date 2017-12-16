@@ -153,13 +153,13 @@ class HigherDimArrays extends StandardTest {
   "A 3d array with different sizes" should "print the correct results" in {
     val code = """
       void main() {
-        int x[2][4][2];
+        int x[2][4][6];
         int i, j, k = 0;
         int count = 0;
 
         for (i = 0; i < 2; i++) {
           for (j = 0; j < 4; j++) {
-            for (k = 0; k < 2; k++) {
+            for (k = 0; k < 6; k++) {
               x[i][j][k] = count;
               count += 1;
             }
@@ -168,7 +168,7 @@ class HigherDimArrays extends StandardTest {
 
         for (i = 0; i < 2; i++) {
           for (j = 0; j < 4; j++) {
-            for (k = 0; k < 2; k++) {
+            for (k = 0; k < 6; k++) {
               printf("%d\n", x[i][j][k]);
             }
           }
