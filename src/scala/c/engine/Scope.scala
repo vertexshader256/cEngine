@@ -66,12 +66,12 @@ abstract class Scope(staticVars: List[Variable], val parent: Scope) {
     val current = if (index >= pathStack.size) null else pathStack(index)
     if (current != null) {
 
-      if (current.isInstanceOf[IASTNode]) {
-        println(current.getClass.getSimpleName + ":" + index + ":" + current.asInstanceOf[IASTNode].getRawSignature)
-        println(Utils.getDescendants(current.asInstanceOf[IASTNode]).map(_.getClass.getSimpleName))
-      } else {
-        println(current.getClass.getSimpleName + ":" + index)
-      }
+//      if (current.isInstanceOf[IASTNode]) {
+//        println(current.getClass.getSimpleName + ":" + index + ":" + current.asInstanceOf[IASTNode].getRawSignature)
+//        println(Utils.getDescendants(current.asInstanceOf[IASTNode]).map(_.getClass.getSimpleName))
+//      } else {
+//        println(current.getClass.getSimpleName + ":" + index)
+//      }
 
       ast.Ast.step(current)(state)
 

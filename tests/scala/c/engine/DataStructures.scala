@@ -47,3 +47,26 @@ class HashMapTest extends StandardTest {
     checkResults2(allCode)
   }
 }
+
+class RegexTest extends StandardTest {
+  "A simple regex" should "print the correct results" in {
+
+    val code =
+      """
+      #include <stdio.h>
+      #include <stdlib.h>
+      #include <string.h>
+      #include "slre.h"
+
+      void main() {
+//        printf("%d\n", slre_match("$", "abcd", 4, NULL, 0, 0) == 4);
+//        printf("%d\n", slre_match("^", "abcd", 4, NULL, 0, 0) == 0);
+//        printf("%d\n", slre_match("x|^", "abcd", 4, NULL, 0, 0) == 0);
+        printf("%d\n", slre_match("x|$", "abcd", 4, NULL, 0, 0) == 4);
+      }"""
+
+    val allCode =  Seq(File("tests\\scala\\c\\engine\\libds-master\\slre.c").contentAsString, code)
+
+    checkResults2(allCode)
+  }
+}

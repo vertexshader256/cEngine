@@ -225,16 +225,16 @@ object TypeHelper {
   }
 
   def offsetof(struct: CStructure, memberName: String): Int = {
-    struct.getFields.takeWhile{field => field.getName != memberName}.map{x => TypeHelper.sizeof(x.getType)}.sum
+    struct.getFields.takeWhile{field => field.getName != memberName}.map{x => TypeHelper.sizeof(x)}.sum
   }
 
   def sizeof(theType: IType): Int = theType match {
     case fcn: IFunctionType => 4
     case ptr: IPointerType =>
       4
-    case struct: CStructure =>
+    case struct: CStructure => // TODO: Add unions
       struct.getFields.map { field =>
-        sizeof(field.getType)
+        sizeof(field)
       }.sum
     case array: IArrayType =>
       sizeof(array.getType)
@@ -256,5 +256,12 @@ object TypeHelper {
         case `eVoid`                    => 4
         case `eBoolean`                 => 4
       }
+  }
+
+  def sizeof(field: IField): Int = field.getType match {
+    case array: IArrayType =>
+      sizeof(array.getType) * array.getSize.numericalValue().toInt
+    case x =>
+      sizeof(x)
   }
 }

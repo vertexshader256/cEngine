@@ -63,13 +63,21 @@ object Expressions {
 
         var offset = 0
         var resultAddress: LValue = null
-        structType.getFields.foreach{field =>
-          if (field.getName == fieldRef.getFieldName.getRawSignature) {
-            // can assume names are unique
-            resultAddress = LValue(baseAddr + offset, field.getType)
-          } else {
-            offset += TypeHelper.sizeof(field.getType)
-          }
+
+        structType.getKey match {
+          case ICompositeType.k_struct =>
+            structType.getFields.foreach{field =>
+              if (field.getName == fieldRef.getFieldName.getRawSignature) {
+                // can assume names are unique
+                resultAddress = LValue(baseAddr + offset, field.getType)
+              } else {
+                offset += TypeHelper.sizeof(field)
+              }
+            }
+          case ICompositeType.k_union =>
+            structType.getFields.find{field => field.getName == fieldRef.getFieldName.getRawSignature}.foreach { field =>
+              resultAddress = LValue(baseAddr, field.getType)
+            }
         }
 
         Some(resultAddress)
@@ -98,6 +106,9 @@ object Expressions {
             case ptr: IPointerType =>
               aType = ptr.getType
               state.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
+            case typedef: CTypedef =>
+              println(TypeHelper.sizeof(typedef.getType))
+              state.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(typedef.getType)
           }
         }
 

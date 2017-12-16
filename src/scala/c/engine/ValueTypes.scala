@@ -56,11 +56,13 @@ class ArrayVariable(name: String, state: State, arrayType: IArrayType, dim: Seq[
     def recurse(subType: IArrayType, dimensions: Seq[Int]): Int = {
 
       if (dimensions.size > 0) {
-        val addr = allocateSpace(state, subType.getType, dimensions.head)
-        for (i <- (0 until dimensions.head)) {
-          if (dimensions.size > 1) {
+        val addr = (0 until dimensions.head).map { x =>
+          allocateSpace(state, subType.getType)
+        }.head
+        if (dimensions.size > 1) {
+          for (i <- (0 until dimensions.head)) {
             val subaddr = recurse(subType.getType.asInstanceOf[IArrayType], dimensions.tail)
-            state.Stack.writeToMemory(subaddr, addr + i * 4, new CBasicType(IBasicType.Kind.eChar, 0))
+            state.Stack.writeToMemory(subaddr, addr + i * 4, new CBasicType(IBasicType.Kind.eChar, 0)) // write pointer
           }
         }
         addr
@@ -87,7 +89,7 @@ class ArrayVariable(name: String, state: State, arrayType: IArrayType, dim: Seq[
 class Variable(val name: String, val state: State, aType: IType) extends LValue(state) {
   val theType = aType
   val size = TypeHelper.sizeof(aType)
-  val address = allocateSpace(state, aType, 1)
+  val address = allocateSpace(state, aType)
 
   override def hashCode: Int = {
     name.hashCode
@@ -109,35 +111,88 @@ class Variable(val name: String, val state: State, aType: IType) extends LValue(
     "Variable(" + name + ", " + address + ", " + theType + ")"
   }
 
-  def allocateSpace(state: State, aType: IType, numElements: Int): Int = {
+  def allocateSpace(state: State, aType: IType): Int = {
     def recurse(aType: IType): Int = aType match {
       case array: IArrayType =>
-        state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * numElements)
+        val size = if (array.hasSize) {
+          array.getSize.numericalValue().toInt
+        } else {
+          1
+        }
+        state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * size)
       case array: IPointerType =>
-        state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * numElements)
+        state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType))
       case fcn: CFunctionType =>
-        state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * numElements)
+        state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType))
       case structType: CStructure =>
         val struct = structType.asInstanceOf[CStructure]
-        var result = -1
-        struct.getFields.foreach { field =>
-          if (result == -1) {
-            result = allocateSpace(state, field.getType, numElements)
-          } else {
-            recurse(field.getType)
-          }
+        struct.getKey match {
+          case ICompositeType.k_struct =>
+            struct.getFields.map { field =>
+              recurse(field.getType)
+            }.head
+          case ICompositeType.k_union =>
+            var maxSize = 0
+            struct.getFields.foreach { field =>
+              val size = TypeHelper.sizeof(field)
+              if (size > maxSize) {
+                maxSize = size
+              }
+            }
+            state.allocateSpace(maxSize)
         }
-        result
       case typedef: CTypedef =>
         recurse(typedef.asInstanceOf[CTypedef].getType)
       case qual: IQualifierType =>
         recurse(qual.asInstanceOf[IQualifierType].getType)
       case basic: IBasicType =>
-        state.allocateSpace(TypeHelper.sizeof(basic) * numElements)
+        state.allocateSpace(TypeHelper.sizeof(basic))
     }
 
     recurse(aType)
   }
+
+//  private def allocateFieldSpace(state: State, aType: IType): Int = {
+//    def recurse(aType: IType): Int = aType match {
+//      case array: IArrayType =>
+//        state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * array.getSize.numericalValue().toInt)
+//      case array: IPointerType =>
+//        state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType))
+//      case fcn: CFunctionType =>
+//        state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType))
+//      case structType: CStructure =>
+//        val struct = structType.asInstanceOf[CStructure]
+//        var result = -1
+//        struct.getKey match {
+//          case ICompositeType.k_struct =>
+//            struct.getFields.foreach { field =>
+//              if (result == -1) {
+//                result = allocateFieldSpace(state, field.getType)
+//              } else {
+//                recurse(field.getType)
+//              }
+//            }
+//          case ICompositeType.k_union =>
+//            var maxSize = 0
+//            struct.getFields.foreach { field =>
+//              val size = TypeHelper.sizeof(field.getType)
+//              if (size > maxSize) {
+//                maxSize = size
+//              }
+//            }
+//            result = state.allocateSpace(maxSize)
+//        }
+//        result
+//      case typedef: CTypedef =>
+//        recurse(typedef.asInstanceOf[CTypedef].getType)
+//      case qual: IQualifierType =>
+//        recurse(qual.asInstanceOf[IQualifierType].getType)
+//      case basic: IBasicType =>
+//        state.allocateSpace(TypeHelper.sizeof(basic))
+//    }
+//
+//    recurse(aType)
+//  }
 
   def setValues(values: List[ValueType]) = {
     var offset = 0

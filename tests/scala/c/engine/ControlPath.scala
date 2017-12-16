@@ -395,12 +395,24 @@ class WhileStatement extends StandardTest {
 }
 
 class TernaryTest extends StandardTest {
-  "A simple ternary evaluat" should "print the correct results" in {
+  "A simple ternary expression" should "print the correct results" in {
     val code = """
       void main() {
         int x = 5 == 5 ? 3 : 1;
         int y = 5 > 6 ? 3 : 1;
         printf("%d %d\n", x, y);
+      }"""
+
+    checkResults(code)
+  }
+
+  "A nested ternary expression" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 5 == 5 ? 2 : 4 == 4 ? 2 : 1;
+        int y = 5 == 5 ? 2 : 4 == 5 ? 2 : 1;
+        int z = 5 == 4 ? 2 : 4 == 5 ? 2 : 1;
+        printf("%d %d %d\n", x, y, z);
       }"""
 
     checkResults(code)

@@ -185,6 +185,8 @@ static int bar(const char *re, int re_len, const char *s, int s_len,
   /* i is offset in re, j is offset in s, bi is brackets index */
   int i, j, n, step;
 
+  printf("RE_LEN: %d\n", re_len);
+
   for (i = j = 0; i < re_len && j <= s_len; i += step) {
 
     /* Handle quantifiers. Get the length of the chunk. */
@@ -196,6 +198,8 @@ static int bar(const char *re, int re_len, const char *s, int s_len,
 
     FAIL_IF(is_quantifier(&re[i]), SLRE_UNEXPECTED_QUANTIFIER);
     FAIL_IF(step <= 0, SLRE_INVALID_CHARACTER_SET);
+
+    printf("%d S-LEN\n", s_len);
 
     if (i + step < re_len && is_quantifier(re + i + step)) {
       DBG(("QUANTIFIER: [%.*s]%c [%.*s]\n", step, re + i,
@@ -253,6 +257,8 @@ static int bar(const char *re, int re_len, const char *s, int s_len,
       continue;
     }
 
+    printf("HEEEEEEEEEEEEREEEEEEEE\n");
+
     if (re[i] == '[') {
       n = match_set(re + i + 1, re_len - (i + 2), s + j, info);
       DBG(("SET %.*s [%.*s] -> %d\n", step, re + i, s_len - j, s + j, n));
@@ -280,6 +286,7 @@ static int bar(const char *re, int re_len, const char *s, int s_len,
       DBG(("CAPTURED [%.*s] [%.*s]:%d\n", step, re + i, s_len - j, s + j, n));
       FAIL_IF(n < 0, n);
       if (info->caps != NULL && n > 0) {
+      printf("ADJUSTING PTR\n");
         info->caps[bi - 1].ptr = s + j;
         info->caps[bi - 1].len = n;
       }
@@ -287,6 +294,7 @@ static int bar(const char *re, int re_len, const char *s, int s_len,
     } else if (re[i] == '^') {
       FAIL_IF(j != 0, SLRE_NO_MATCH);
     } else if (re[i] == '$') {
+      printf("%d %d----\n", j, s_len);
       FAIL_IF(j != s_len, SLRE_NO_MATCH);
     } else {
       FAIL_IF(j >= s_len, SLRE_NO_MATCH);
@@ -295,6 +303,8 @@ static int bar(const char *re, int re_len, const char *s, int s_len,
       j += n;
     }
   }
+
+  printf("DONE\n");
 
   return j;
 }
@@ -305,12 +315,16 @@ static int doh(const char *s, int s_len, struct regex_info *info, int bi) {
   int i = 0, len, result;
   const char *p;
 
+  printf("BI: %d\n", &info->brackets[bi].ptr);
+
   do {
     p = i == 0 ? b->ptr : info->branches[b->branches + i - 1].schlong + 1;
+    printf("NUM BRANCHES: %d %d %d\n", info->branches[b->branches + i].schlong, p, b->ptr);
     len = b->num_branches == 0 ? b->len :
       i == b->num_branches ? (int) (b->ptr + b->len - p) :
       (int) (info->branches[b->branches + i].schlong - p);
     DBG(("%s %d %d [%.*s] [%.*s]\n", __func__, bi, i, len, p, s_len, s));
+    printf("............ LEN: %d\n", len);
     result = bar(p, len, s, s_len, info, bi);
     DBG(("%s <- %d\n", __func__, result));
   } while (result <= 0 && i++ < b->num_branches);  /* At least 1 iteration */
@@ -321,7 +335,10 @@ static int doh(const char *s, int s_len, struct regex_info *info, int bi) {
 static int baz(const char *s, int s_len, struct regex_info *info) {
   int i, result = -1, is_anchored = info->brackets[0].ptr[0] == '^';
 
+  printf("OK%d\n", info->brackets[0].ptr);
+
   for (i = 0; i <= s_len; i++) {
+  printf("CALLING DOH\n");
     result = doh(s + i, s_len - i, info, 0);
     if (result >= 0) {
       result += i;
@@ -371,16 +388,20 @@ static int foo(const char *re, int re_len, const char *s, int s_len,
   info->brackets[0].len = re_len;
   info->num_brackets = 1;
 
+  printf("RE_LEN %d\n", re_len);
+  printf("BEFORE PTR %d\n", info->brackets[0].ptr);
+
   /* Make a single pass over regex string, memorize brackets and branches */
   for (i = 0; i < re_len; i += step) {
     step = get_op_len(re + i, re_len - i);
+    printf("STEP: %d\n", step);
 
     if (re[i] == '|') {
-      FAIL_IF(info->num_branches >= (int) ARRAY_SIZE(info->branches),
-              SLRE_TOO_MANY_BRANCHES);
+      FAIL_IF(info->num_branches >= (int) ARRAY_SIZE(info->branches), SLRE_TOO_MANY_BRANCHES);
       info->branches[info->num_branches].bracket_index =
-        info->brackets[info->num_brackets - 1].len == -1 ?
-        info->num_brackets - 1 : depth;
+      info->brackets[info->num_brackets - 1].len == -1 ?
+      info->num_brackets - 1 : depth;
+      printf("SCHLONG: %d\n", &re[i]);
       info->branches[info->num_branches].schlong = &re[i];
       info->num_branches++;
     } else if (re[i] == '\\') {
@@ -398,6 +419,7 @@ static int foo(const char *re, int re_len, const char *s, int s_len,
     } else if (re[i] == '(') {
       FAIL_IF(info->num_brackets >= (int) ARRAY_SIZE(info->brackets),
               SLRE_TOO_MANY_BRACKETS);
+              printf("///////////////\n");
       depth++;  /* Order is important here. Depth increments first. */
       info->brackets[info->num_brackets].ptr = re + i + 1;
       info->brackets[info->num_brackets].len = -1;
@@ -416,8 +438,12 @@ static int foo(const char *re, int re_len, const char *s, int s_len,
     }
   }
 
+  printf("HERE3\n");
+
   FAIL_IF(depth != 0, SLRE_UNBALANCED_BRACKETS);
   setup_branch_points(info);
+
+   printf("AFTER PTR %d\n", info->brackets[0].ptr);
 
   return baz(s, s_len, info);
 }
@@ -432,6 +458,5 @@ int slre_match(const char *regexp, const char *s, int s_len,
   info.num_caps = num_caps;
   info.caps = caps;
 
-  DBG(("========================> [%s] [%.*s]\n", regexp, s_len, s));
   return foo(regexp, (int) strlen(regexp), s, s_len, &info);
 }

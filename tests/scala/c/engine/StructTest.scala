@@ -308,6 +308,38 @@ class StructTest extends StandardTest {
 
     checkResults(code)
   }
+
+  "struct with arrays" should "print the correct results" in {
+    val code = """
+
+      struct bracket_pair {
+         int num_brackets;
+         int num_branches;
+      };
+
+      struct branch {
+         int num_brackets;
+         int num_branches;
+      };
+
+      struct Test {
+        struct bracket_pair brackets[30];
+        int num_brackets;
+        struct branch branches[30];
+        int num_branches;
+      };
+
+      void main() {
+        struct Test x;
+        x.num_brackets = 30;
+        x.num_branches = 40;
+        printf("%d %d\n", x.num_brackets, x.num_branches);
+      }"""
+
+    checkResults(code)
+  }
+
+
   
   
 }
