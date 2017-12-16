@@ -309,18 +309,20 @@ class StructTest extends StandardTest {
     checkResults(code)
   }
 
-  "struct with arrays" should "print the correct results" in {
+  "struct field clobbering test" should "not clobber" in {
     val code = """
 
-      struct bracket_pair {
-         int num_brackets;
-         int num_branches;
-      };
+     struct bracket_pair {
+       const char *ptr;
+       int len;
+       int branches;
+       int num_branches;
+     };
 
-      struct branch {
-         int num_brackets;
-         int num_branches;
-      };
+     struct branch {
+       int bracket_index;
+       const char *schlong;
+     };
 
       struct Test {
         struct bracket_pair brackets[30];
@@ -331,12 +333,19 @@ class StructTest extends StandardTest {
 
       void main() {
         struct Test x;
+        char string[] = "hello";
         x.num_brackets = 30;
         x.num_branches = 40;
-        printf("%d %d\n", x.num_brackets, x.num_branches);
+        x.brackets[0].ptr = string;
+        x.brackets[0].len = 50;
+        x.brackets[0].num_branches = 50;
+        x.branches[0].bracket_index = 50;
+        x.branches[0].schlong = string;
+
+        printf("%d %d %d\n", x.num_brackets, x.num_branches, x.brackets[0].ptr == string);
       }"""
 
-    checkResults(code)
+    checkResults(code, true)
   }
 
 
