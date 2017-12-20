@@ -38,10 +38,33 @@ object Functions {
           Some(if (theChar.isLetter) 1 else 0)
         }
       }
+
+  scalaFunctions += new Function("isdigit", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      val theChar = formattedOutputParams.head.value match {
+        case c: char => c.toChar
+        case int: Int => int.toChar
+      }
+      Some(if (theChar.isDigit) 1 else 0)
+    }
+  }
+
+  scalaFunctions += new Function("isxdigit", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      val theChar = formattedOutputParams.head.value match {
+        case c: char => c.toChar
+        case int: Int => int.toChar
+      }
+      Some(if (theChar.toString.matches("^[0-9a-fA-F]+$")) 1 else 0)
+    }
+  }
   
   scalaFunctions += new Function("tolower", false) {
         def run(formattedOutputParams: Array[RValue], state: State) = {
-          val theChar = formattedOutputParams.head.value.asInstanceOf[char].toChar
+          val theChar = formattedOutputParams.head.value match {
+            case c: char => c.toChar
+            case int: Int => int.toChar
+          }
           Some(theChar.toLower.toByte)
         }
       }
@@ -229,6 +252,7 @@ object Functions {
           var i = 0
           do {
             current = state.Stack.readFromMemory(straddy + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[char]
+            println("STRLEN: " + current)
             if (current != 0) {
               i += 1
             }

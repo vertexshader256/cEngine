@@ -39,23 +39,13 @@ object Expressions {
             LValue(newAddr, theType)
         })
     case fieldRef: IASTFieldReference =>
-        var baseAddr = -1
+        println("FIELD: " + fieldRef.getRawSignature)
 
         val struct = evaluate(fieldRef.getFieldOwner).get.asInstanceOf[LValue]
 
-        def resolve(theType: IType, addr: Int): CStructure = theType match {
-          case qual: CQualifierType =>
-            resolve(qual.getType, addr)
-          case typedef: CTypedef =>
-            resolve(typedef.getType, addr)
-          case struct: CStructure => struct
-          case ptr: IPointerType =>
-            resolve(ptr.getType, baseAddr)
-        }
+        val structType = TypeHelper.resolveStruct(struct.theType)
 
-        val structType = resolve(struct.theType, struct.address)
-
-        baseAddr = if (fieldRef.isPointerDereference) {
+        val baseAddr = if (fieldRef.isPointerDereference) {
           state.readPtrVal(struct.address)
         } else {
           struct.address
@@ -80,50 +70,37 @@ object Expressions {
             }
         }
 
+      println("FIELD RESULT: " + resultAddress.address)
+
         Some(resultAddress)
     case subscript: IASTArraySubscriptExpression =>
+
+      println("SUBSCRIPT: " + subscript.getRawSignature)
+
       val arrayVarPtr = evaluate(subscript.getArrayExpression).head.asInstanceOf[LValue]
       val index = evaluate(subscript.getArgument).get match {
         case x @ RValue(_, _) => TypeHelper.cast(TypeHelper.pointerType, x.value).value.asInstanceOf[Int]
-        case info @ LValue(_, _) =>
-          info.value.value match {
-            case int: Int => int
-            case long: Long => long.toInt
-          }
+        case x @ LValue(_, _) => TypeHelper.cast(TypeHelper.pointerType, x.value.value).value.asInstanceOf[Int]
       }
 
-      var aType = arrayVarPtr.theType
-
-      val offset =
-        if (arrayVarPtr.isInstanceOf[ArrayVariable]) {
-          aType = arrayVarPtr.asInstanceOf[ArrayVariable].theType.getType
+      val aType = TypeHelper.getPointerType(arrayVarPtr.theType)
+      val offset = arrayVarPtr.theType match {
+        case x: IArrayType if x.getType.isInstanceOf[IArrayType] =>
+          state.readPtrVal(arrayVarPtr.address + index * 4)
+        case x: IPointerType  =>
+          state.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
+        case _ =>
           arrayVarPtr.address + index * TypeHelper.sizeof(aType)
-        } else {
-          aType match {
-            case array: IArrayType =>
-              aType = array.getType
-              state.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
-            case ptr: IPointerType =>
-              aType = ptr.getType
-              state.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
-            case typedef: CTypedef =>
-              println(TypeHelper.sizeof(typedef.getType))
-              state.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(typedef.getType)
-          }
-        }
+      }
 
-      aType = TypeHelper.stripSyntheticTypeInfo(aType)
+      // state.readPtrVal(
 
       Some(LValue(offset, aType))
     case unary: IASTUnaryExpression =>
       Some(UnaryExpression.execute(evaluate(unary.getOperand).head, unary))
     case lit: IASTLiteralExpression =>
         val litStr = lit.getRawSignature
-        Some(if (litStr.head == '\"' && litStr.last == '\"') {
-          StringLiteral(litStr)
-        } else {
-          Literal.cast(lit.getRawSignature)
-        })
+        Some(Literal.cast(lit.getRawSignature))
     case id: IASTIdExpression =>
         Some(state.context.resolveId(id.getName).get)
     case typeExpr: IASTTypeIdExpression =>

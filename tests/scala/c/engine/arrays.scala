@@ -119,7 +119,7 @@ class HigherDimArrays extends StandardTest {
         }  
       }"""
 
-    checkResults(code)
+    checkResults(code, true)
   }
   
   "A 3d array" should "print the correct results" in {
@@ -147,7 +147,7 @@ class HigherDimArrays extends StandardTest {
         }  
       }"""
 
-    checkResults(code)
+    checkResults(code, true)
   }
 
   "A 3d array with different sizes" should "print the correct results" in {
@@ -175,7 +175,7 @@ class HigherDimArrays extends StandardTest {
         }
       }"""
 
-    checkResults(code)
+    checkResults(code, true)
   }
 }
 
@@ -200,7 +200,7 @@ class ArrayTest extends StandardTest {
         printf("%d\n", x[2]);
       }"""
 
-    checkResults(code)
+    checkResults(code, false)
   }
   
   "An array with dimensions from a binary expr" should "print the correct results" in {

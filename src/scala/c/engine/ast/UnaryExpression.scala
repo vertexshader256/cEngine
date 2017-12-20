@@ -50,7 +50,7 @@ object UnaryExpression {
           RValue(newVal, lValue.theType)
         case `op_sizeof` =>
           value match {
-            case info@LValue(_, theType) => RValue(info.sizeof, TypeHelper.pointerType)
+            case info @ LValue(_, theType) => RValue(info.sizeof, TypeHelper.pointerType)
           }
         case `op_amper` =>
           value match {

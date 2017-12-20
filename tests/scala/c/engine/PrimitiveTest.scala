@@ -182,8 +182,32 @@ class SizeOfTest extends StandardTest {
         float *e;
         double *f;
         long long *g;
-        
+
         printf("%d %d %d %d %d %d %d\n", sizeof(a[3]), sizeof(b[3]), sizeof(c[3]), sizeof(d[3]), sizeof(e[3]), sizeof(f[3]), sizeof(g[3]));
+      }"""
+
+    checkResults(code)
+  }
+
+  "A sizeof call on an array of shorts" should "print the correct results" in {
+    val code = """
+      void main() {
+        short x[5] = {1,2,3,4,5};
+        printf("%d\n", sizeof(x) / sizeof(x[0]));
+      }"""
+
+    checkResults(code)
+  }
+
+  "A sizeof call on a field" should "print the correct results" in {
+    val code = """
+      void main() {
+         struct regex_info {
+           int brackets[100];
+         };
+
+         struct regex_info x;
+         printf("%d\n", sizeof(x.brackets));
       }"""
 
     checkResults(code)

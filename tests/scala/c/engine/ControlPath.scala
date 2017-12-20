@@ -68,7 +68,29 @@ class SwitchStatement extends StandardTest {
             printf("2\n");
             break;
         }
-         
+
+      }"""
+
+    checkResults(code)
+  }
+
+  "A switch statement with a pointer to char which hits default" should "print the correct results" in {
+    val code = """
+      void main() {
+        unsigned char x = 'a';
+        unsigned char *ptr = &x;
+        switch(*ptr) {
+          case 'a':
+            printf("1\n");
+            break;
+          case 'b':
+            printf("3\n");
+            break;
+          default :
+            printf("2\n");
+            break;
+        }
+
       }"""
 
     checkResults(code)
@@ -116,17 +138,24 @@ class SwitchStatement extends StandardTest {
     val code = """
       void main() {
          int a = 100;
-         int b = 200;
+         int b = 400;
+         unsigned char x[5] = {'a','b','c','d','e'};
        
-         switch(a) {
-            case 100: 
+         switch(x[0]) {
+            case 'c':
                printf("1\n");
                switch(b) {
                   case 200:
                      printf("2\n");
+                     break;
+                  default:
+                     printf("4\n");
+                     break;
                }
-            case 300:
+               break;
+            case 'a':
               printf("3\n");
+              break;
          }         
       }"""
 

@@ -213,6 +213,13 @@ object TypeHelper {
     case qualType: IQualifierType => stripSyntheticTypeInfo(qualType.getType)
     case fcn: IFunctionType       => fcn
   }
+
+  def getPointerType(theType: IType): IType = theType match {
+    case typedef: ITypedef        => getPointerType(typedef.getType)
+    case ptrType: IPointerType    => ptrType.getType
+    case arrayType: IArrayType    => arrayType.getType
+    case qualType: IQualifierType => getPointerType(qualType.getType)
+  }
   
   def resolveBoolean(theVal: Any): Boolean = theVal match {
       case x: Boolean => x
@@ -226,6 +233,16 @@ object TypeHelper {
 
   def offsetof(struct: CStructure, memberName: String): Int = {
     struct.getFields.takeWhile{field => field.getName != memberName}.map{x => TypeHelper.sizeof(x)}.sum
+  }
+
+  def resolveStruct(theType: IType): CStructure = theType match {
+    case qual: CQualifierType =>
+      resolveStruct(qual.getType)
+    case typedef: CTypedef =>
+      resolveStruct(typedef.getType)
+    case struct: CStructure => struct
+    case ptr: IPointerType =>
+      resolveStruct(ptr.getType)
   }
 
   def sizeof(theType: IType): Int = theType match {

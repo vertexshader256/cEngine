@@ -10,7 +10,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
 import org.eclipse.cdt.internal.core.dom.parser.c.CPointerType
 
 object Literal {
-  def cast(litStr: String): RValue = {
+  def cast(litStr: String): ValueType = {
 
     def isIntNumber(s: String): Boolean = (allCatch opt s.toInt).isDefined
     def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
@@ -26,37 +26,39 @@ object Literal {
     } else {
       litStr
     }
-    
-    val lit = if (pre.startsWith("0x")) {
+
+    val post = pre.replaceAll("(\\\\\\\\)+", "\\\\")
+
+    val lit = if (post.startsWith("0x")) {
       val bigInt = new BigInteger(pre.drop(2), 16);
       bigInt.toString
     } else {
-      pre
+      post
     }
 
-    val (resultValue, theType: IBasicType) = if (lit.head == '\"' && lit.last == '\"') {
-      (StringLiteral(lit), new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0))
+    val result = if (lit.head == '\"' && lit.last == '\"') {
+      StringLiteral(lit)
     } else if (lit.head == '\'' && lit.last == '\'' && (lit.size == 3 || lit == "'\\0'" || lit == "'\\n'" || lit == "'\\\\'")) {
       if (lit == "'\\0'") {
-        ('\0'.toByte, new CBasicType(IBasicType.Kind.eChar, 0))
+        RValue('\0'.toByte, new CBasicType(IBasicType.Kind.eChar, 0))
       } else if (lit == "'\\n'") {
-        ('\n'.toByte, new CBasicType(IBasicType.Kind.eChar, 0))
+        RValue('\n'.toByte, new CBasicType(IBasicType.Kind.eChar, 0))
       } else {
-        (lit.toCharArray.apply(1).toByte, new CBasicType(IBasicType.Kind.eChar, 0))
+        RValue(lit.toCharArray.apply(1).toByte, new CBasicType(IBasicType.Kind.eChar, 0))
       }
     } else if (isLong) {
-      (lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
+      RValue(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
     } else if (isIntNumber(lit)) {
-      (lit.toInt, new CBasicType(IBasicType.Kind.eInt, 0))
+      RValue(lit.toInt, new CBasicType(IBasicType.Kind.eInt, 0))
     } else if (isLongNumber(lit)) {
-      (lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
+      RValue(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
     } else if (lit.contains('F') || lit.contains('f')) {
       val num = lit.toCharArray.filter(x => x != 'f' && x != 'F').mkString
-      (num.toFloat, new CBasicType(IBasicType.Kind.eFloat, 0))
+      RValue(num.toFloat, new CBasicType(IBasicType.Kind.eFloat, 0))
     } else {
-      (lit.toDouble, new CBasicType(IBasicType.Kind.eDouble, 0))
+      RValue(lit.toDouble, new CBasicType(IBasicType.Kind.eDouble, 0))
     }
 
-    RValue(resultValue.asInstanceOf[AnyVal], theType)
+    result
   }
 }

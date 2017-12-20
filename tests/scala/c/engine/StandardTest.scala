@@ -19,9 +19,9 @@ class StandardTest extends FlatSpec {
     }
   }
 
-  def checkResults(code: String, shouldBootstrap: Boolean = false): Unit = checkResults2(Seq(code), shouldBootstrap)
+  def checkResults(code: String, shouldBootstrap: Boolean = true): Unit = checkResults2(Seq(code), shouldBootstrap)
 
-  def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = false) = {
+  def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = true) = {
 
     var except: Exception = null
 

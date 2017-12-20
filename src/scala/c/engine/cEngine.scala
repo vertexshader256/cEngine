@@ -230,10 +230,18 @@ object State {
 
           val descendants = recurse(switch.getBody)
 
+          def getParentSwitchBody(node: IASTNode): IASTStatement = {
+            if (node.getParent.isInstanceOf[IASTSwitchStatement]) {
+              node.getParent.asInstanceOf[IASTSwitchStatement].getBody
+            } else {
+              getParentSwitchBody(node.getParent)
+            }
+          }
+
           val jumpTable = descendants.flatMap{
-            case x @ CaseLabel(caseStatement) =>
+            case x @ CaseLabel(caseStatement) if (switch.getBody == getParentSwitchBody(caseStatement)) =>
               List(JmpToLabelIfEqual(caseStatement.getExpression, switch.getControllerExpression, x))
-            case x @ DefaultLabel(_) =>
+            case x @ DefaultLabel(default) if (switch.getBody == getParentSwitchBody(default)) =>
               List(JmpLabel(x))
             case _ =>
               List()
@@ -243,7 +251,7 @@ object State {
 
           val complete = jumpTable ++ descendants :+ breakLabel
 
-          complete :+ breakLabel
+          complete
         case x: IASTCaseStatement =>
           List(CaseLabel(x))
         case x: IASTDefaultStatement =>
