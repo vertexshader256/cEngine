@@ -85,6 +85,16 @@ object Functions {
           Some(if (theChar.isUpper) 1 else 0)
         }
       }
+
+  scalaFunctions += new Function("isspace", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      val theChar = formattedOutputParams.head.value match {
+        case c: char => c.toChar
+        case int: Int => int.toChar
+      }
+      Some(if (theChar.isSpaceChar) 1 else 0)
+    }
+  }
   
   scalaFunctions += new Function("calloc", false) {
         def run(formattedOutputParams: Array[RValue], state: State) = {
@@ -148,7 +158,7 @@ object Functions {
           None
         }
       }
-   
+
    scalaFunctions += new Function("modf", false) {
         def run(formattedOutputParams: Array[RValue], state: State) = {
           val fraction = formattedOutputParams(0).value.asInstanceOf[Double]
@@ -252,7 +262,6 @@ object Functions {
           var i = 0
           do {
             current = state.Stack.readFromMemory(straddy + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[char]
-            println("STRLEN: " + current)
             if (current != 0) {
               i += 1
             }
@@ -309,7 +318,10 @@ object Functions {
  
   scalaFunctions += new Function("memcmp", false) {
       def run(formattedOutputParams: Array[RValue], state: State) = {
-        val numBytes = formattedOutputParams(0).value.asInstanceOf[Long].toInt
+        val numBytes = formattedOutputParams(0).value match {
+          case long: Long => long.toInt
+          case int: Int => int
+        }
         val memaddy = formattedOutputParams(1).value.asInstanceOf[int]
         val memaddy2 = formattedOutputParams(2).value.asInstanceOf[int]
 

@@ -30,17 +30,15 @@ object Expressions {
               case ptr: IPointerType if aType.isInstanceOf[IArrayType] =>
                 val newAddr = state.allocateSpace(4)
                 state.Stack.writeToMemory(addr, newAddr, theType)
-                LValue(newAddr, theType)
-              case _ => LValue(addr, theType)
+                MemoryLocation(state, newAddr, theType)
+              case _ => MemoryLocation(state, addr, theType)
             }
           case RValue(value, _) =>
             val newAddr = state.allocateSpace(TypeHelper.sizeof(theType))
             state.Stack.writeToMemory(TypeHelper.cast(theType, value).value, newAddr, theType)
-            LValue(newAddr, theType)
+            MemoryLocation(state, newAddr, theType)
         })
     case fieldRef: IASTFieldReference =>
-        println("FIELD: " + fieldRef.getRawSignature)
-
         val struct = evaluate(fieldRef.getFieldOwner).get.asInstanceOf[LValue]
 
         val structType = TypeHelper.resolveStruct(struct.theType)
@@ -59,23 +57,19 @@ object Expressions {
             structType.getFields.foreach{field =>
               if (field.getName == fieldRef.getFieldName.getRawSignature) {
                 // can assume names are unique
-                resultAddress = LValue(baseAddr + offset, field.getType)
+                resultAddress = Field(state, baseAddr + offset, field.getType, TypeHelper.sizeof(field))
               } else {
                 offset += TypeHelper.sizeof(field)
               }
             }
           case ICompositeType.k_union =>
             structType.getFields.find{field => field.getName == fieldRef.getFieldName.getRawSignature}.foreach { field =>
-              resultAddress = LValue(baseAddr, field.getType)
+              resultAddress = Field(state, baseAddr, field.getType, TypeHelper.sizeof(field))
             }
         }
 
-      println("FIELD RESULT: " + resultAddress.address)
-
         Some(resultAddress)
     case subscript: IASTArraySubscriptExpression =>
-
-      println("SUBSCRIPT: " + subscript.getRawSignature)
 
       val arrayVarPtr = evaluate(subscript.getArrayExpression).head.asInstanceOf[LValue]
       val index = evaluate(subscript.getArgument).get match {
@@ -95,7 +89,7 @@ object Expressions {
 
       // state.readPtrVal(
 
-      Some(LValue(offset, aType))
+      Some(MemoryLocation(state, offset, aType))
     case unary: IASTUnaryExpression =>
       Some(UnaryExpression.execute(evaluate(unary.getOperand).head, unary))
     case lit: IASTLiteralExpression =>

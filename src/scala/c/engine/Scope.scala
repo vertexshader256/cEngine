@@ -1,7 +1,7 @@
 package scala.c.engine
 
 import org.eclipse.cdt.core.dom.ast._
-import org.eclipse.cdt.internal.core.dom.parser.c.{CASTFunctionCallExpression, CASTIdExpression, CASTName}
+import org.eclipse.cdt.internal.core.dom.parser.c.{CASTFunctionCallExpression, CASTIdExpression, CASTName, CVariable}
 
 import scala.collection.mutable
 import scala.collection.mutable.{ListBuffer, Stack}
@@ -97,18 +97,18 @@ abstract class Scope(staticVars: List[Variable], val parent: Scope) {
     startingStackAddr = state.Stack.insertIndex
   }
 
-  def addArrayVariable(name: String, theType: IArrayType, dimensions: Seq[Int]): ArrayVariable = {
+  def addArrayVariable(name: String, vari: IVariable, dimensions: Seq[Int]): Variable = {
     staticVars.find{_.name == name}.getOrElse {
-      val newVar = new ArrayVariable(name, state, theType, dimensions)
+      val newVar = Variable(name, state, vari, dimensions)
       varMap.remove(newVar)
       varMap += newVar
       newVar
-    }.asInstanceOf[ArrayVariable]
+    }
   }
 
-  def addVariable(name: String, theType: IType): Variable = {
+  def addVariable(name: String, vari: IVariable): Variable = {
     staticVars.find{_.name == name}.getOrElse {
-      val newVar = new Variable(name, state, theType)
+      val newVar = Variable(name, state, vari, Seq())
       varMap.remove(newVar)
       varMap += newVar
       newVar

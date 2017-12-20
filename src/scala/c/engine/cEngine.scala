@@ -293,7 +293,7 @@ object State {
         case nameSpec: CASTTypedefNameSpecifier =>
           List(nameSpec)
         case _ =>
-          println("SPLITTING: " + node.getClass.getSimpleName + " : " + node.getRawSignature)
+          //println("SPLITTING: " + node.getClass.getSimpleName + " : " + node.getRawSignature)
           node +: node.getChildren.toList
       }
     }
@@ -366,10 +366,12 @@ class State {
 
     functionList += fcn
 
-    val fcnType = new CFunctionType(new CBasicType(IBasicType.Kind.eVoid, 0), null)
+    val fcnType = new CVariable(new CASTName("sjadsj".toCharArray)) {
+      override def getType = new CFunctionType(new CBasicType(IBasicType.Kind.eVoid, 0), null)
+    }
 
-    val newVar = new Variable(fcn.name, State.this, fcnType)
-    Stack.writeToMemory(functionCount, newVar.address, fcnType)
+    val newVar = Variable(fcn.name, State.this, fcnType, Seq())
+    Stack.writeToMemory(functionCount, newVar.address, fcnType.getType)
 
     functionPointers += fcn.name -> newVar
     functionCount += 1
@@ -383,12 +385,13 @@ class State {
         nameBinding match {
           case vari: IVariable =>
             if (vari.isStatic) {
-              if (vari.getType.isInstanceOf[IArrayType]) {
+              val dim = if (vari.getType.isInstanceOf[IArrayType]) {
                 val arrayType = vari.getType.asInstanceOf[IArrayType]
-                List(new ArrayVariable(decl.getName.getRawSignature, state, arrayType, Seq(arrayType.getSize.numericalValue().toInt)))
+                Seq(arrayType.getSize.numericalValue().toInt)
               } else {
-                List(new Variable(decl.getName.getRawSignature, state, vari.getType))
+                Seq()
               }
+              List(Variable(decl.getName.getRawSignature, state, vari, dim))
             } else {
               List()
             }
@@ -411,7 +414,11 @@ class State {
       def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = {None}
     }
 
-    val newVar = new Variable(name.getRawSignature, State.this, fcnType)
+    val fcn = new CVariable(new CASTName("blah".toCharArray)) {
+      override def getType = fcnType
+    }
+
+    val newVar = Variable(name.getRawSignature, State.this, fcn, Seq())
     Stack.writeToMemory(functionCount, newVar.address, fcnType)
 
     functionPointers += name.getRawSignature -> newVar
