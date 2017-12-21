@@ -46,7 +46,7 @@ object Declarator {
           resolvedArgs.foreach { arg =>
             if (!isInFunctionPrototype && !paramDecls.isEmpty) {
               val paramDecl = paramDecls.pop
-              val newVar = state.context.addVariable(paramDecl.getName, paramDecl)
+              val newVar = state.context.addVariable(paramDecl.getName, paramDecl.getType)
               val casted = TypeHelper.cast(newVar.theType, arg.value).value
               state.Stack.writeToMemory(casted, newVar.address, newVar.theType)
             } else {
@@ -96,7 +96,7 @@ object Declarator {
             val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
             val withNull = (translateLineFeed.toCharArray() :+ 0.toChar).map { char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0)) } // terminating null char
 
-            val theArrayPtr = state.context.addArrayVariable(name.getRawSignature, variable, Seq(initString.size))
+            val theArrayPtr = state.context.addVariable(name.getRawSignature, variable.getType, Seq(initString.size))
             theArrayPtr.setArray(withNull)
           } else {
             val list = initializer.getInitializerClause.asInstanceOf[IASTInitializerList]
@@ -109,7 +109,7 @@ object Declarator {
               }
             }.reverse.toArray.map{x => RValue(x.value, theType.asInstanceOf[IArrayType].getType)}
 
-            val theArrayPtr = state.context.addArrayVariable(name.getRawSignature, variable, Array(size))
+            val theArrayPtr = state.context.addVariable(name.getRawSignature, variable.getType, Array(size))
             theArrayPtr.setArray(values)
           }
           Seq()
@@ -126,12 +126,12 @@ object Declarator {
           }
 
           println("OH NO: " +variable.getType)
-          val theArrayVar = state.context.addArrayVariable(name.getRawSignature, variable, dimensions)
+          val theArrayVar = state.context.addVariable(name.getRawSignature, variable.getType, dimensions)
 
           state.setArray(initialArray, theArrayVar.address, TypeHelper.sizeof(theArrayVar.theType))
         } else {
           println(name.getRawSignature + ":" + arrayDecl.getRawSignature)
-          state.context.addArrayVariable(name.getRawSignature, variable, dimensions)
+          state.context.addVariable(name.getRawSignature, variable.getType, dimensions)
         }
         Seq()
     }
@@ -143,7 +143,7 @@ object Declarator {
           val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
           val stripped = TypeHelper.stripSyntheticTypeInfo(theType)
 
-          val variable = state.context.addVariable(name.getRawSignature, nameBinding.asInstanceOf[IVariable])
+          val variable = state.context.addVariable(name.getRawSignature, theType)
 
           if (!variable.isInitialized) {
 

@@ -97,18 +97,9 @@ abstract class Scope(staticVars: List[Variable], val parent: Scope) {
     startingStackAddr = state.Stack.insertIndex
   }
 
-  def addArrayVariable(name: String, vari: IVariable, dimensions: Seq[Int]): Variable = {
+  def addVariable(name: String, theType: IType, dimensions: Seq[Int] = Seq()): Variable = {
     staticVars.find{_.name == name}.getOrElse {
-      val newVar = Variable(name, state, vari, dimensions)
-      varMap.remove(newVar)
-      varMap += newVar
-      newVar
-    }
-  }
-
-  def addVariable(name: String, vari: IVariable): Variable = {
-    staticVars.find{_.name == name}.getOrElse {
-      val newVar = Variable(name, state, vari, Seq())
+      val newVar = Variable(name, state, theType, dimensions)
       varMap.remove(newVar)
       varMap += newVar
       newVar

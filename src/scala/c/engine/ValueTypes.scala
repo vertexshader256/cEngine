@@ -46,7 +46,7 @@ object LValue {
   def unapply(info: LValue): Option[(Int, IType)] = Some((info.address, info.theType))
 }
 
-case class Variable(name: String, state: State, vari: IVariable, dim: Seq[Int]) extends LValue(state) {
+case class Variable(name: String, state: State, theType: IType, dim: Seq[Int]) extends LValue(state) {
 
   def setArray(array: Array[RValue]): Unit = {
     state.setArray(array, address, TypeHelper.sizeof(theType))
@@ -111,8 +111,6 @@ case class Variable(name: String, state: State, vari: IVariable, dim: Seq[Int]) 
 
     recurse(aType, dimensions)
   }
-
-  val theType = vari.getType
 
   val (allocate, theSize) = {
     val current = state.Stack.insertIndex

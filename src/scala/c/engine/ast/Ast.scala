@@ -86,11 +86,8 @@ object Ast {
       } else {
         state.context.stack.push(new RValue(enumerator.getParent.getChildren.indexOf(enumerator) - 1, TypeHelper.pointerType))
       }
-      val variable = new CVariable(enumerator.getName) {
-        override def getType = TypeHelper.pointerType
-      }
 
-      val newVar = state.context.addVariable(enumerator.getName.getRawSignature, variable)
+      val newVar = state.context.addVariable(enumerator.getName.getRawSignature, TypeHelper.pointerType)
       val value = state.context.stack.pop.asInstanceOf[RValue]
       state.Stack.writeToMemory(value.value, newVar.address, TypeHelper.pointerType)
     }

@@ -366,12 +366,9 @@ class State {
 
     functionList += fcn
 
-    val fcnType = new CVariable(new CASTName("sjadsj".toCharArray)) {
-      override def getType = new CFunctionType(new CBasicType(IBasicType.Kind.eVoid, 0), null)
-    }
-
+    val fcnType = new CFunctionType(new CBasicType(IBasicType.Kind.eVoid, 0), null)
     val newVar = Variable(fcn.name, State.this, fcnType, Seq())
-    Stack.writeToMemory(functionCount, newVar.address, fcnType.getType)
+    Stack.writeToMemory(functionCount, newVar.address, fcnType)
 
     functionPointers += fcn.name -> newVar
     functionCount += 1
@@ -391,7 +388,7 @@ class State {
               } else {
                 Seq()
               }
-              List(Variable(decl.getName.getRawSignature, state, vari, dim))
+              List(Variable(decl.getName.getRawSignature, state, vari.getType, dim))
             } else {
               List()
             }
@@ -414,11 +411,7 @@ class State {
       def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = {None}
     }
 
-    val fcn = new CVariable(new CASTName("blah".toCharArray)) {
-      override def getType = fcnType
-    }
-
-    val newVar = Variable(name.getRawSignature, State.this, fcn, Seq())
+    val newVar = Variable(name.getRawSignature, State.this, fcnType, Seq())
     Stack.writeToMemory(functionCount, newVar.address, fcnType)
 
     functionPointers += name.getRawSignature -> newVar
