@@ -46,38 +46,20 @@ object Gcc {
     val logger = new SyntaxLogger
     val linkerLogger = new LinkerLogger
     val runLogger = new RunLogger
-    
-    var myCount = 0;
-    
-    val fileNames = codes.map{ code =>
-    
-      synchronized {
-        myCount = count
-        count += 1
-      }
-      
-      ("temp" + myCount, code)
-    }
 
-    synchronized {
-      myCount = count
-      count += 1
-    }
-    
-    val files = fileNames.map{ case (fileName, code) =>
-      val file = new File(fileName + ".c")
+    val files = codes.map{ code =>
+      val file = File.createTempFile("cEng", ".c", new File("."))
       val pw = new PrintWriter(file)
       pw.write(code)
       pw.close
       file
     }
     
-    val objectFiles = fileNames.map{ case (fileName, code) =>
-      val file = new File(fileName + ".o")
-      file
+    val objectFiles = files.map{ file =>
+      new File(file.getAbsolutePath.reverse.drop(2).reverse + ".o")
     } 
     
-    val exeFile = new File("temp" + myCount + ".exe")
+    val exeFile = File.createTempFile("cEng", ".exe", new File("."))
     
     val sourceFileTokens = files.flatMap{file => Seq("-c", file.getAbsolutePath)}
     val includeTokens = Seq("-I", Utils.mainPath, 

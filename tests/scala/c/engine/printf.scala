@@ -11,6 +11,7 @@ class printf extends StandardTest {
         printf("%.2f\n", 1.47453);
         printf("%.1f\n", 1.47453);
         printf("%f\n", 1.5f);
+        printf("\\n");
       }"""
 
     checkResults(code, false)

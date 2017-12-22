@@ -38,7 +38,7 @@ object Literal {
 
     val result = if (lit.head == '\"' && lit.last == '\"') {
       StringLiteral(lit)
-    } else if (lit.head == '\'' && lit.last == '\'' && (lit.size == 3 || lit == "'\\0'" || lit == "'\\n'" || lit == "'\\\\'")) {
+    } else if (lit.head == '\'' && lit.last == '\'') {
       if (lit == "'\\0'") {
         RValue('\0'.toByte, new CBasicType(IBasicType.Kind.eChar, 0))
       } else if (lit == "'\\n'") {
