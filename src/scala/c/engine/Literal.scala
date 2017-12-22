@@ -16,9 +16,7 @@ object Literal {
     def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
     
     val isLong = litStr.endsWith("L")
-    val isUnsigned = litStr.endsWith("u")
-    val isUnsignedLong = litStr.endsWith("UL")
-    
+
     val pre: String = if (litStr.endsWith("L")) {
       litStr.take(litStr.size - 1).mkString
     } else if (litStr.endsWith("u")) {
@@ -27,7 +25,31 @@ object Literal {
       litStr
     }
 
-    val post = pre.replaceAll("(\\\\\\\\)+", "\\\\")
+    def process(str: String): String = {
+      val x = str.split("\\\\\\\\")
+      if (x.size > 1) {
+        x.reduce{(x, y) => process(x) + "\\" + process(y)}
+      } else {
+        val x = str.split("\\\\r\\\\n")
+        if (x.size > 1) {
+          x.reduce{(x, y) => process(x) + '\r' + '\n' + process(y)}
+        } else {
+          val x = str.split("\\\\n")
+          if (x.size > 1) {
+            x.reduce{(x, y) => process(x) + '\n' + process(y)}
+          } else {
+            val x = str.split("\\\\0")
+            if (x.size > 1) {
+              x.reduce{(x, y) => process(x) + '\0' + process(y)}
+            } else {
+              x.head
+            }
+          }
+        }
+      }
+    }
+
+    val post = process(pre)
 
     val lit = if (post.startsWith("0x")) {
       val bigInt = new BigInteger(pre.drop(2), 16);
@@ -39,13 +61,7 @@ object Literal {
     val result = if (lit.head == '\"' && lit.last == '\"') {
       StringLiteral(lit)
     } else if (lit.head == '\'' && lit.last == '\'') {
-      if (lit == "'\\0'") {
-        RValue('\0'.toByte, new CBasicType(IBasicType.Kind.eChar, 0))
-      } else if (lit == "'\\n'") {
-        RValue('\n'.toByte, new CBasicType(IBasicType.Kind.eChar, 0))
-      } else {
-        RValue(lit.toCharArray.apply(1).toByte, new CBasicType(IBasicType.Kind.eChar, 0))
-      }
+      RValue(lit.toCharArray.apply(1).toByte, new CBasicType(IBasicType.Kind.eChar, 0))
     } else if (isLong) {
       RValue(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
     } else if (isIntNumber(lit)) {

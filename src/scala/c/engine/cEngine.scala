@@ -554,8 +554,8 @@ class State {
 
   def createStringVariable(str: String, isHeap: Boolean)(implicit state: State): RValue = {
     val theStr = Utils.stripQuotes(str)
-    val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
-    val withNull = (translateLineFeed.toCharArray() :+ 0.toChar).map{char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))} // terminating null char
+
+    val withNull = (theStr.toCharArray() :+ 0.toChar).map{char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))} // terminating null char
     val strAddr = if (isHeap) allocateHeapSpace(withNull.size) else allocateSpace(withNull.size)
 
     setArray(withNull, strAddr, 1)
