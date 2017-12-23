@@ -8,12 +8,35 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 import ExecutionContext.Implicits.global
 import scala.c.engine.Gcc.program
+import scala.collection.mutable.ListBuffer
 
 class StandardTest extends FlatSpec {
 
   def getResults(stdout: List[Char]): List[String] = {
     if (!stdout.isEmpty) {
-      stdout.mkString.split("\\n").toList ++ (if (stdout.reverse.take(2) == List('\n', '\n')) List("") else List())
+      val results = new ListBuffer[String]()
+
+      var currentString = new ListBuffer[Char]()
+      var writeLast = false
+
+      var index = 0
+      while (index < stdout.size) {
+
+        if (stdout(index) == '\n') {
+          results += currentString.mkString
+          currentString = new ListBuffer[Char]()
+          writeLast = false
+        } else {
+          currentString += stdout(index)
+          writeLast = true
+        }
+        index += 1
+      }
+
+      if (writeLast) {
+        results += currentString.mkString
+      }
+      results.toList
     } else {
       List()
     }

@@ -2,12 +2,15 @@ package scala.c.engine
 
 import org.eclipse.cdt.core.dom.ast._
 
-import scala.collection.mutable.{ ListBuffer, Stack }
+import scala.collection.mutable.{ListBuffer, Stack}
 import scala.util.control.Exception.allCatch
 import java.math.BigInteger
+
 import scala.collection.mutable.Map
 import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
 import org.eclipse.cdt.internal.core.dom.parser.c.CPointerType
+
+import scala.util.Try
 
 object Literal {
   def cast(litStr: String): ValueType = {
@@ -26,27 +29,30 @@ object Literal {
     }
 
     def process(str: String): String = {
-      val x = str.split("\\\\\\\\")
-      if (x.size > 1) {
-        x.reduce{(x, y) => process(x) + "\\" + process(y)}
-      } else {
-        val x = str.split("\\\\r\\\\n")
-        if (x.size > 1) {
-          x.reduce{(x, y) => process(x) + '\r' + '\n' + process(y)}
-        } else {
-          val x = str.split("\\\\n")
-          if (x.size > 1) {
-            x.reduce{(x, y) => process(x) + '\n' + process(y)}
-          } else {
-            val x = str.split("\\\\0")
-            if (x.size > 1) {
-              x.reduce{(x, y) => process(x) + '\0' + process(y)}
-            } else {
-              x.head
-            }
+
+      val theStr = str.toCharArray.toList
+
+      val result = new ListBuffer[Char]()
+
+      try {
+
+        var index = 0
+        while (index < theStr.size - 1) {
+          (theStr(index), Try(theStr(index + 1)).getOrElse(null)) match {
+            case ('\\', '\\') => result += '\\'; index += 2
+            case ('\\', 'n') => result += '\n'; index += 2
+            case ('\\', 'r') => result += '\n'; index += 2
+            case ('\\', '0') => result += '\0'; index += 2
+            case x => result += x._1; index += 1
           }
         }
+      } catch {
+        case x => println("ERROR")
       }
+
+      result += theStr.last
+
+      result.toList.mkString
     }
 
     val post = process(pre)
