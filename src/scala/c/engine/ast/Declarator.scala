@@ -86,9 +86,9 @@ object Declarator {
         // Oddly enough, it is possible to have a pointer to an array with no dimensions OR initializer:
         //    extern char *x[]
 
-        if (dimensions.isEmpty && initializer != null) {
+        if (initializer != null) {
 
-          if (TypeHelper.resolve(theType).getKind == IBasicType.Kind.eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
+          val (initArray, initType) = if (TypeHelper.resolve(theType).getKind == IBasicType.Kind.eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
             // e.g. char str[] = "Hello!\n";
             val initString = state.context.stack.pop.asInstanceOf[StringLiteral].value
 
@@ -96,39 +96,37 @@ object Declarator {
             val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
             val withNull = (translateLineFeed.toCharArray() :+ 0.toChar).map { char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0)) } // terminating null char
 
-            val theArrayPtr = state.context.addVariable(name.getRawSignature, variable.getType, Seq(initString.size))
-            theArrayPtr.setArray(withNull)
+            val inferredArrayType = new CArrayType(theType.asInstanceOf[IArrayType].getType)
+            inferredArrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, initString.size.toString.toCharArray)))
+
+            (withNull, inferredArrayType)
           } else {
-            val list = initializer.getInitializerClause.asInstanceOf[IASTInitializerList]
-            val size = list.getSize
+            val initVals: Array[Any] = (0 until initializer.getInitializerClause.getChildren.size).map { x => state.context.stack.pop }.reverse.toArray
 
-            val values: Array[RValue] = (0 until size).map { x =>
-              state.context.stack.pop match {
-                case value@RValue(_, _) => value
+            val initialArray = initVals.map { newInit =>
+              newInit match {
+                case StringLiteral(x) =>
+                  state.createStringVariable(newInit.asInstanceOf[StringLiteral].value, false)
                 case info@LValue(_, _) => info.value
+                case value@RValue(_, _) => value
               }
-            }.reverse.toArray.map{x => RValue(x.value, theType.asInstanceOf[IArrayType].getType)}
+            }.map { x => RValue(x.value, theType.asInstanceOf[IArrayType].getType) }
 
-            val theArrayPtr = state.context.addVariable(name.getRawSignature, variable.getType, Array(size))
-            theArrayPtr.setArray(values)
-          }
-          Seq()
-        } else if (initializer != null) {
-          val initVals: Array[Any] = (0 until initializer.getInitializerClause.getChildren.size).map { x => state.context.stack.pop }.reverse.toArray
-
-          val initialArray = initVals.map { newInit =>
-            newInit match {
-              case StringLiteral(x) =>
-                state.createStringVariable(newInit.asInstanceOf[StringLiteral].value, false)
-              case info@LValue(_, _) => info.value
-              case value@RValue(_, _) => value
+            val finalType = if (!dimensions.isEmpty) {
+              variable.getType
+            } else {
+              val inferredArrayType = new CArrayType(theType.asInstanceOf[IArrayType].getType)
+              inferredArrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, initialArray.size.toString.toCharArray)))
+              inferredArrayType
             }
+
+            (initialArray, finalType)
           }
 
-          println("OH NO: " +variable.getType)
-          val theArrayVar = state.context.addVariable(name.getRawSignature, variable.getType, dimensions)
+          val theArrayPtr = state.context.addVariable(name.getRawSignature, initType, Seq())
+          theArrayPtr.setArray(initArray)
 
-          state.setArray(initialArray, theArrayVar.address, TypeHelper.sizeof(theArrayVar.theType))
+          Seq()
         } else {
           println(name.getRawSignature + ":" + arrayDecl.getRawSignature)
           state.context.addVariable(name.getRawSignature, variable.getType, dimensions)

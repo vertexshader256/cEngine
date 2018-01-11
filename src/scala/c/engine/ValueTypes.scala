@@ -73,18 +73,8 @@ case class Variable(name: String, state: State, theType: IType, dim: Seq[Int]) e
           val arraySize = if (dimensions.size > 0) dimensions.head else size
           state.allocateSpace(TypeHelper.sizeof(array.getType) * arraySize)
         }
-      case ptr: IPointerType =>
-        state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType))
-      case fcn: CFunctionType =>
-        state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType))
-      case struct: CStructure =>
-        state.allocateSpace(TypeHelper.sizeof(struct))
-      case typedef: CTypedef =>
-        recurse(typedef.asInstanceOf[CTypedef].getType, dimensions)
-      case qual: IQualifierType =>
-        recurse(qual.asInstanceOf[IQualifierType].getType, dimensions)
-      case basic: IBasicType =>
-        state.allocateSpace(TypeHelper.sizeof(basic))
+      case x =>
+        state.allocateSpace(TypeHelper.sizeof(x))
     }
 
     recurse(aType, dimensions)
