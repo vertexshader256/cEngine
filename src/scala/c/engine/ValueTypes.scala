@@ -55,52 +55,30 @@ case class Variable(name: String, state: State, theType: IType, dim: Seq[Int]) e
   def allocateSpace(state: State, aType: IType, dimensions: Seq[Int] = Seq()): Int = {
     def recurse(aType: IType, dimensions: Seq[Int]): Int = aType match {
       case array: IArrayType =>
-        if (dimensions.size > 0) { // need this guard
-          if (array.getType.isInstanceOf[IArrayType]) { // multi-dimensional array
-            val addr = state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType) * dimensions.head)
-            for (i <- (0 until dimensions.head)) {
-              val subaddr = recurse(array.getType, dimensions.tail)
-              state.Stack.writeToMemory(subaddr, addr + i * 4, TypeHelper.pointerType) // write pointer
-            }
-            addr
-          } else {
-            state.allocateSpace(TypeHelper.sizeof(array.getType) * dimensions.head)
-          }
-        } else {
-          val size = if (array.hasSize) {
-            array.getSize.numericalValue().toInt
-          } else {
-            1
-          }
 
-          if (size > 0) {
-            (0 until size).map { _ =>
-              recurse(array.getType, dimensions)
-            }.head
-          } else {
-            0
-          }
+        val size = if (array.hasSize) {
+          array.getSize.numericalValue().toInt
+        } else {
+          1
         }
-      case array: IPointerType =>
+
+        if (array.getType.isInstanceOf[IArrayType]) { // multi-dimensional array
+          val addr = state.allocateSpace(TypeHelper.sizeof(array) * size)
+          for (i <- (0 until size)) {
+            val subaddr = recurse(array.getType, dimensions.tail)
+            state.Stack.writeToMemory(subaddr, addr + i * 4, TypeHelper.pointerType) // write pointer
+          }
+          addr
+        } else {
+          val arraySize = if (dimensions.size > 0) dimensions.head else size
+          state.allocateSpace(TypeHelper.sizeof(array.getType) * arraySize)
+        }
+      case ptr: IPointerType =>
         state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType))
       case fcn: CFunctionType =>
         state.allocateSpace(TypeHelper.sizeof(TypeHelper.pointerType))
       case struct: CStructure =>
-        struct.getKey match {
-          case ICompositeType.k_struct =>
-            struct.getFields.map { field =>
-              recurse(field.getType, dimensions)
-            }.head
-          case ICompositeType.k_union =>
-            var maxSize = 0
-            struct.getFields.foreach { field =>
-              val size = TypeHelper.sizeof(field)
-              if (size > maxSize) {
-                maxSize = size
-              }
-            }
-            state.allocateSpace(maxSize)
-        }
+        state.allocateSpace(TypeHelper.sizeof(struct))
       case typedef: CTypedef =>
         recurse(typedef.asInstanceOf[CTypedef].getType, dimensions)
       case qual: IQualifierType =>
@@ -126,7 +104,7 @@ case class Variable(name: String, state: State, theType: IType, dim: Seq[Int]) e
   // need this for function-scoped static vars
   var isInitialized = false
 
-  def value = if (!dim.isEmpty) {
+  def value = if (theType.isInstanceOf[IArrayType]) {
     RValue(address, theType)
   } else {
     state.Stack.readFromMemory(address, theType)

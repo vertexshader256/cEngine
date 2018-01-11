@@ -249,10 +249,22 @@ object TypeHelper {
     case fcn: IFunctionType => 4
     case ptr: IPointerType =>
       4
-    case struct: CStructure => // TODO: Add unions
-      struct.getFields.map { field =>
-        sizeof(field)
-      }.sum
+    case struct: CStructure =>
+      struct.getKey match {
+        case ICompositeType.k_struct =>
+          struct.getFields.map { field =>
+            sizeof(field)
+          }.sum
+        case ICompositeType.k_union =>
+          var maxSize = 0
+          struct.getFields.foreach { field =>
+            val size = sizeof(field)
+            if (size > maxSize) {
+              maxSize = size
+            }
+          }
+          maxSize
+      }
     case array: IArrayType =>
       sizeof(array.getType)
     case typedef: CTypedef =>
