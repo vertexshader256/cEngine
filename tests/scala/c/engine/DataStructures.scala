@@ -173,68 +173,68 @@ class RegexTest extends StandardTest {
           ASSERT(memcmp(caps[0].ptr, "12", 2) == 0);
           ASSERT(slre_match("(.*(2.))", "123", 3, caps, 10, 0) == 3);
           ASSERT(slre_match("(.)(.)", "123", 3, caps, 10, 0) == 2);
-          ASSERT(slre_match("(\\d+)\\s+(\\S+)", "12 hi", 5, caps, 10, 0) == 5);
-//          ASSERT(slre_match("ab(cd)+ef", "abcdcdef", 8, NULL, 0, 0) == 8);
-//          ASSERT(slre_match("ab(cd)*ef", "abcdcdef", 8, NULL, 0, 0) == 8);
-//          ASSERT(slre_match("ab(cd)+?ef", "abcdcdef", 8, NULL, 0, 0) == 8);
-//          ASSERT(slre_match("ab(cd)+?.", "abcdcdef", 8, NULL, 0, 0) == 5);
-//          ASSERT(slre_match("ab(cd)?", "abcdcdef", 8, NULL, 0, 0) == 4);
-//          ASSERT(slre_match("a(b)(cd)", "abcdcdef", 8, caps, 1, 0) ==
-//              SLRE_CAPS_ARRAY_TOO_SMALL);
-//          ASSERT(slre_match("(.+/\\d+\\.\\d+)\\.jpg$", "/foo/bar/12.34.jpg", 18,
-//                            caps, 1, 0) == 18);
-//          ASSERT(slre_match("(ab|cd).*\\.(xx|yy)", "ab.yy", 5, NULL, 0, 0) == 5);
-//          ASSERT(slre_match(".*a", "abcdef", 6, NULL, 0, 0) == 1);
-//          ASSERT(slre_match("(.+)c", "abcdef", 6, NULL, 0, 0) == 3);
-//          ASSERT(slre_match("\\n", "abc\ndef", 7, NULL, 0, 0) == 4);
+//          ASSERT(slre_match("(\\d+)\\s+(\\S+)", "12 hi", 5, caps, 10, 0) == 5);
+          ASSERT(slre_match("ab(cd)+ef", "abcdcdef", 8, NULL, 0, 0) == 8);
+          ASSERT(slre_match("ab(cd)*ef", "abcdcdef", 8, NULL, 0, 0) == 8);
+          ASSERT(slre_match("ab(cd)+?ef", "abcdcdef", 8, NULL, 0, 0) == 8);
+          ASSERT(slre_match("ab(cd)+?.", "abcdcdef", 8, NULL, 0, 0) == 5);
+          ASSERT(slre_match("ab(cd)?", "abcdcdef", 8, NULL, 0, 0) == 4);
+          ASSERT(slre_match("a(b)(cd)", "abcdcdef", 8, caps, 1, 0) ==
+              SLRE_CAPS_ARRAY_TOO_SMALL);
+          ASSERT(slre_match("(.+/\\d+\\.\\d+)\\.jpg$", "/foo/bar/12.34.jpg", 18,
+                            caps, 1, 0) == 18);
+          ASSERT(slre_match("(ab|cd).*\\.(xx|yy)", "ab.yy", 5, NULL, 0, 0) == 5);
+          ASSERT(slre_match(".*a", "abcdef", 6, NULL, 0, 0) == 1);
+          ASSERT(slre_match("(.+)c", "abcdef", 6, NULL, 0, 0) == 3);
+          ASSERT(slre_match("\\n", "abc\ndef", 7, NULL, 0, 0) == 4);
 //          ASSERT(slre_match("b.\\s*\\n", "aa\r\nbb\r\ncc\r\n\r\n", 14,
 //                            caps, 10, 0) == 8);
-//
-//          /* Greedy vs non-greedy */
-//          ASSERT(slre_match(".+c", "abcabc", 6, NULL, 0, 0) == 6);
-//          ASSERT(slre_match(".+?c", "abcabc", 6, NULL, 0, 0) == 3);
-//          ASSERT(slre_match(".*?c", "abcabc", 6, NULL, 0, 0) == 3);
-//          ASSERT(slre_match(".*c", "abcabc", 6, NULL, 0, 0) == 6);
-//          ASSERT(slre_match("bc.d?k?b+", "abcabc", 6, NULL, 0, 0) == 5);
-//
-//          /* Branching */
-//          ASSERT(slre_match("|", "abc", 3, NULL, 0, 0) == 0);
-//          ASSERT(slre_match("|.", "abc", 3, NULL, 0, 0) == 1);
-//          ASSERT(slre_match("x|y|b", "abc", 3, NULL, 0, 0) == 2);
+
+          /* Greedy vs non-greedy */
+          ASSERT(slre_match(".+c", "abcabc", 6, NULL, 0, 0) == 6);
+          ASSERT(slre_match(".+?c", "abcabc", 6, NULL, 0, 0) == 3);
+          ASSERT(slre_match(".*?c", "abcabc", 6, NULL, 0, 0) == 3);
+          ASSERT(slre_match(".*c", "abcabc", 6, NULL, 0, 0) == 6);
+          ASSERT(slre_match("bc.d?k?b+", "abcabc", 6, NULL, 0, 0) == 5);
+
+          /* Branching */
+          ASSERT(slre_match("|", "abc", 3, NULL, 0, 0) == 0);
+          ASSERT(slre_match("|.", "abc", 3, NULL, 0, 0) == 1);
+          ASSERT(slre_match("x|y|b", "abc", 3, NULL, 0, 0) == 2);
 //          ASSERT(slre_match("k(xx|yy)|ca", "abcabc", 6, NULL, 0, 0) == 4);
 //          ASSERT(slre_match("k(xx|yy)|ca|bc", "abcabc", 6, NULL, 0, 0) == 3);
-//          ASSERT(slre_match("(|.c)", "abc", 3, caps, 10, 0) == 3);
-//          ASSERT(caps[0].len == 2);
-//          ASSERT(memcmp(caps[0].ptr, "bc", 2) == 0);
-//          ASSERT(slre_match("a|b|c", "a", 1, NULL, 0, 0) == 1);
-//          ASSERT(slre_match("a|b|c", "b", 1, NULL, 0, 0) == 1);
-//          ASSERT(slre_match("a|b|c", "c", 1, NULL, 0, 0) == 1);
-//          ASSERT(slre_match("a|b|c", "d", 1, NULL, 0, 0) == SLRE_NO_MATCH);
-//
-//          /* Optional match at the end of the string */
-//          ASSERT(slre_match("^.*c.?$", "abc", 3, NULL, 0, 0) == 3);
-//          ASSERT(slre_match("^.*C.?$", "abc", 3, NULL, 0, SLRE_IGNORE_CASE) == 3);
-//          ASSERT(slre_match("bk?", "ab", 2, NULL, 0, 0) == 2);
-//          ASSERT(slre_match("b(k?)", "ab", 2, NULL, 0, 0) == 2);
-//          ASSERT(slre_match("b[k-z]*", "ab", 2, NULL, 0, 0) == 2);
-//          ASSERT(slre_match("ab(k|z|y)*", "ab", 2, NULL, 0, 0) == 2);
-//          ASSERT(slre_match("[b-z].*", "ab", 2, NULL, 0, 0) == 2);
-//          ASSERT(slre_match("(b|z|u).*", "ab", 2, NULL, 0, 0) == 2);
-//          ASSERT(slre_match("ab(k|z|y)?", "ab", 2, NULL, 0, 0) == 2);
-//          ASSERT(slre_match(".*", "ab", 2, NULL, 0, 0) == 2);
-//          ASSERT(slre_match(".*$", "ab", 2, NULL, 0, 0) == 2);
-//          ASSERT(slre_match("a+$", "aa", 2, NULL, 0, 0) == 2);
-//          ASSERT(slre_match("a*$", "aa", 2, NULL, 0, 0) == 2);
-//          ASSERT(slre_match( "a+$" ,"Xaa", 3, NULL, 0, 0) == 3);
-//          ASSERT(slre_match( "a*$" ,"Xaa", 3, NULL, 0, 0) == 3);
-//
-//          /* Ignore case flag */
-//          ASSERT(slre_match("[a-h]+", "abcdefghxxx", 11, NULL, 0, 0) == 8);
-//          ASSERT(slre_match("[A-H]+", "ABCDEFGHyyy", 11, NULL, 0, 0) == 8);
-//          ASSERT(slre_match("[a-h]+", "ABCDEFGHyyy", 11, NULL, 0, 0) == SLRE_NO_MATCH);
-//          ASSERT(slre_match("[A-H]+", "abcdefghyyy", 11, NULL, 0, 0) == SLRE_NO_MATCH);
-//          ASSERT(slre_match("[a-h]+", "ABCDEFGHyyy", 11, NULL, 0, SLRE_IGNORE_CASE) == 8);
-//          ASSERT(slre_match("[A-H]+", "abcdefghyyy", 11, NULL, 0, SLRE_IGNORE_CASE) == 8);
+          ASSERT(slre_match("(|.c)", "abc", 3, caps, 10, 0) == 3);
+          ASSERT(caps[0].len == 2);
+          ASSERT(memcmp(caps[0].ptr, "bc", 2) == 0);
+          ASSERT(slre_match("a|b|c", "a", 1, NULL, 0, 0) == 1);
+          ASSERT(slre_match("a|b|c", "b", 1, NULL, 0, 0) == 1);
+          ASSERT(slre_match("a|b|c", "c", 1, NULL, 0, 0) == 1);
+          ASSERT(slre_match("a|b|c", "d", 1, NULL, 0, 0) == SLRE_NO_MATCH);
+
+          /* Optional match at the end of the string */
+          ASSERT(slre_match("^.*c.?$", "abc", 3, NULL, 0, 0) == 3);
+          ASSERT(slre_match("^.*C.?$", "abc", 3, NULL, 0, SLRE_IGNORE_CASE) == 3);
+          ASSERT(slre_match("bk?", "ab", 2, NULL, 0, 0) == 2);
+          ASSERT(slre_match("b(k?)", "ab", 2, NULL, 0, 0) == 2);
+          ASSERT(slre_match("b[k-z]*", "ab", 2, NULL, 0, 0) == 2);
+          ASSERT(slre_match("ab(k|z|y)*", "ab", 2, NULL, 0, 0) == 2);
+          ASSERT(slre_match("[b-z].*", "ab", 2, NULL, 0, 0) == 2);
+          ASSERT(slre_match("(b|z|u).*", "ab", 2, NULL, 0, 0) == 2);
+          ASSERT(slre_match("ab(k|z|y)?", "ab", 2, NULL, 0, 0) == 2);
+          ASSERT(slre_match(".*", "ab", 2, NULL, 0, 0) == 2);
+          ASSERT(slre_match(".*$", "ab", 2, NULL, 0, 0) == 2);
+          ASSERT(slre_match("a+$", "aa", 2, NULL, 0, 0) == 2);
+          ASSERT(slre_match("a*$", "aa", 2, NULL, 0, 0) == 2);
+          ASSERT(slre_match( "a+$" ,"Xaa", 3, NULL, 0, 0) == 3);
+          ASSERT(slre_match( "a*$" ,"Xaa", 3, NULL, 0, 0) == 3);
+
+          /* Ignore case flag */
+          ASSERT(slre_match("[a-h]+", "abcdefghxxx", 11, NULL, 0, 0) == 8);
+          ASSERT(slre_match("[A-H]+", "ABCDEFGHyyy", 11, NULL, 0, 0) == 8);
+          ASSERT(slre_match("[a-h]+", "ABCDEFGHyyy", 11, NULL, 0, 0) == SLRE_NO_MATCH);
+          ASSERT(slre_match("[A-H]+", "abcdefghyyy", 11, NULL, 0, 0) == SLRE_NO_MATCH);
+          ASSERT(slre_match("[a-h]+", "ABCDEFGHyyy", 11, NULL, 0, SLRE_IGNORE_CASE) == 8);
+          ASSERT(slre_match("[A-H]+", "abcdefghyyy", 11, NULL, 0, SLRE_IGNORE_CASE) == 8);
       }"""
 
 

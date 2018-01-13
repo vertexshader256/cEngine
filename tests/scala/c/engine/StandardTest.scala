@@ -100,7 +100,7 @@ class StandardTest extends FlatSpec {
       result match {
         case (gccOutput, cEngineOutput) =>
                   info("C_Engine output: " + cEngineOutput)
-                  info("Gcc output: " + gccOutput)
+                  info("Gcc      output: " + gccOutput.toList)
 
           println("HERE")
           if (except != null) {

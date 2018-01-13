@@ -18,6 +18,23 @@ class SwitchStatement extends StandardTest {
     checkResults(code)
   }
 
+  "referencing a nested variable from a do..while" should "print the correct results" in {
+    val code = """
+      void main() {
+        int j = 10;
+        if (1) {
+          int j2 = j, nj = j, x, n2 = -1, ni, non_greedy = 0;
+          x = 10;
+          do {
+            x++;
+            printf("%d\n", x);
+          } while (x < 12);
+        }
+      }"""
+
+    checkResults(code)
+  }
+
   "A switch statement" should "print the correct results" in {
     val code = """
       void main() {
@@ -281,7 +298,7 @@ class DoWhileStatement extends StandardTest {
         int x = 0;
         do {
           x++;
-          if (x == 4) {
+          if (x == 3) {
             break;
           }
         } while (x < 5);
