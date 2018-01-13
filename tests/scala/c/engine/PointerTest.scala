@@ -263,6 +263,24 @@ class PointerTest extends StandardTest {
     
     checkResults(code)
   }
+
+  "Saving a function arguments address" should "print the correct results" in {
+    val code = """
+
+      int *ptr = 0;
+      void add(int *x) {
+        ptr = &x[0];
+      }
+
+      void main() {
+        int y[] = {1,2,3,4,5,6,7,8,9};
+        int *z = y;
+        add(z);
+        printf("%d\n", *ptr);
+      }"""
+
+    checkResults(code)
+  }
    
   "A function with a pointer to an unsized array as an argument" should "print the correct results" in {
     val code = """
