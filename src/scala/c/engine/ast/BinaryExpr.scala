@@ -14,25 +14,18 @@ object BinaryExpr {
 
     val casted = TypeHelper.cast(dst.theType, result.value).value
     dst.setValue(casted)
-    //state.Stack.writeToMemory(casted, dst.address, dst.theType)
-    
+
     dst
   }
 
   def evaluate(node: IASTNode, x: ValueType, y: ValueType, operator: Int)(implicit state: State): RValue = {
 
     val right = y match {
+      case info @ LValue(_, ptr: IArrayType) => RValue(info.address, TypeHelper.pointerType)
       case info @ LValue(_, _) => info.value
       case value @ RValue(_, _) => value
       case StringLiteral(str) =>
         state.createStringVariable(str, true)
-    }
-
-    val initialRight = if ((x.theType.isInstanceOf[IPointerType] || x.theType.isInstanceOf[IArrayType]) && (operator == `op_minus` || operator == `op_plus`)) {
-      // increment by the size of the left arg
-      right.value.asInstanceOf[Int] * TypeHelper.sizeof(TypeHelper.resolve(x.theType))
-    } else {
-      right.value
     }
 
     val left = x match {
@@ -43,9 +36,25 @@ object BinaryExpr {
         state.createStringVariable(str, false)
     }
 
+    println(node.getRawSignature)
+
+    val initialRight = if ((x.theType.isInstanceOf[IPointerType] || x.theType.isInstanceOf[IArrayType]) && (operator == `op_minus` || operator == `op_plus`)) {
+      // increment by the size of the left arg
+      right.value.asInstanceOf[Int] * TypeHelper.sizeof(TypeHelper.resolve(x.theType))
+    } else {
+      right.value
+    }
+
+    val initialLeft = if ((y.theType.isInstanceOf[IPointerType] || y.theType.isInstanceOf[IArrayType]) && (operator == `op_minus` || operator == `op_plus`)) {
+      // increment by the size of the right arg
+      left.value.asInstanceOf[Int] * TypeHelper.sizeof(TypeHelper.resolve(y.theType))
+    } else {
+      left.value
+    }
+
     // Because of integer promotion, C never does math on anything less than int's
 
-    val op1 = left.value match {
+    val op1 = initialLeft match {
       case theChar: char => theChar.toInt
       case theShort: short => theShort.toInt
       case x => x
