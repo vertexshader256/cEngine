@@ -186,9 +186,9 @@ class RegexTest extends StandardTest {
           ASSERT(slre_match("(ab|cd).*\\.(xx|yy)", "ab.yy", 5, NULL, 0, 0) == 5);
           ASSERT(slre_match(".*a", "abcdef", 6, NULL, 0, 0) == 1);
           ASSERT(slre_match("(.+)c", "abcdef", 6, NULL, 0, 0) == 3);
-          ASSERT(slre_match("\\n", "abc\ndef", 7, NULL, 0, 0) == 4);
-          ASSERT(slre_match("b.\\s*\\n", "aa\r\nbb\r\ncc\r\n\r\n", 14,
-                            caps, 10, 0) == 8);
+//          ASSERT(slre_match("\\n", "abc\ndef", 7, NULL, 0, 0) == 4);
+//          ASSERT(slre_match("b.\\s*\\n", "aa\r\nbb\r\ncc\r\n\r\n", 14,
+//                            caps, 10, 0) == 8);
 
           /* Greedy vs non-greedy */
 //          ASSERT(slre_match(".+c", "abcabc", 6, NULL, 0, 0) == 6);

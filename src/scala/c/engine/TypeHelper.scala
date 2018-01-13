@@ -4,6 +4,8 @@ import org.eclipse.cdt.internal.core.dom.parser.c._
 import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 import org.eclipse.cdt.core.dom.ast._
 
+import scala.c.engine.ast.Expressions
+
 object TypeHelper {
 
   val one = RValue(1, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))
@@ -231,8 +233,31 @@ object TypeHelper {
       case info @ LValue(_, _) => resolveBoolean(info.value)
   }
 
-  def offsetof(struct: CStructure, memberName: String): Int = {
-    struct.getFields.takeWhile{field => field.getName != memberName}.map{x => TypeHelper.sizeof(x)}.sum
+  def offsetof(struct: CStructure, memberName: String, state: State): Int = {
+    struct.getFields.takeWhile{field => field.getName != memberName}.map{x => TypeHelper.sizeInBits(x)(state) / 8}.sum
+  }
+
+  def offsetof(structType: CStructure, baseAddress: Int, fieldName: String, state: State) = {
+    var resultAddress: Field = null
+    var offsetInBits: Int = 0
+
+    structType.getKey match {
+      case ICompositeType.k_struct =>
+        structType.getFields.foreach{field =>
+          if (field.getName == fieldName) {
+            // can assume names are unique
+            resultAddress = Field(state, baseAddress + offsetInBits / 8, offsetInBits % 8, field.getType, TypeHelper.sizeInBits(field)(state))
+          } else {
+            offsetInBits += TypeHelper.sizeInBits(field)(state)
+          }
+        }
+      case ICompositeType.k_union =>
+        // TODO: Unions and bit fields dont work
+        structType.getFields.find{field => field.getName == fieldName}.foreach { field =>
+          resultAddress = Field(state, baseAddress, 0, field.getType, TypeHelper.sizeInBits(field)(state))
+        }
+    }
+    resultAddress
   }
 
   def resolveStruct(theType: IType): CStructure = theType match {
@@ -245,26 +270,28 @@ object TypeHelper {
       resolveStruct(ptr.getType)
   }
 
-  def sizeof(theType: IType): Int = theType match {
+  def sizeof(theType: IType)(implicit state: State): Int = theType match {
     case fcn: IFunctionType => 4
     case ptr: IPointerType =>
       4
     case struct: CStructure =>
-      struct.getKey match {
+      val numBits = struct.getKey match {
         case ICompositeType.k_struct =>
           struct.getFields.map { field =>
-            sizeof(field)
+            sizeInBits(field)
           }.sum
         case ICompositeType.k_union =>
           var maxSize = 0
           struct.getFields.foreach { field =>
-            val size = sizeof(field)
+            val size = sizeInBits(field)
             if (size > maxSize) {
               maxSize = size
             }
           }
           maxSize
       }
+
+      Math.ceil(Math.max(numBits, 32) / 32.0).toInt * 4
     case array: IArrayType =>
       sizeof(array.getType)
     case typedef: CTypedef =>
@@ -287,10 +314,16 @@ object TypeHelper {
       }
   }
 
-  def sizeof(field: IField): Int = field.getType match {
-    case array: IArrayType =>
-      sizeof(array.getType) * array.getSize.numericalValue().toInt
-    case x =>
-      sizeof(x)
+  def sizeInBits(field: IField)(implicit state: State): Int = {
+    val parent = field.asInstanceOf[CField].getDefinition.getParent
+    parent match {
+      case field: CASTFieldDeclarator => Expressions.evaluate(field.getBitFieldSize).get.asInstanceOf[RValue].value.asInstanceOf[Int]
+      case _ => field.getType match {
+        case array: IArrayType =>
+          sizeof(array.getType) * array.getSize.numericalValue().toInt * 8
+        case x =>
+          sizeof(x) * 8
+      }
+    }
   }
 }

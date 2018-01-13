@@ -49,26 +49,8 @@ object Expressions {
           struct.address
         }
 
-        var offset = 0
-        var resultAddress: LValue = null
-
-        structType.getKey match {
-          case ICompositeType.k_struct =>
-            structType.getFields.foreach{field =>
-              if (field.getName == fieldRef.getFieldName.getRawSignature) {
-                // can assume names are unique
-                resultAddress = Field(state, baseAddr + offset, field.getType, TypeHelper.sizeof(field))
-              } else {
-                offset += TypeHelper.sizeof(field)
-              }
-            }
-          case ICompositeType.k_union =>
-            structType.getFields.find{field => field.getName == fieldRef.getFieldName.getRawSignature}.foreach { field =>
-              resultAddress = Field(state, baseAddr, field.getType, TypeHelper.sizeof(field))
-            }
-        }
-
-        Some(resultAddress)
+        val field = TypeHelper.offsetof(structType, baseAddr, fieldRef.getFieldName.getRawSignature, state: State)
+        Some(field)
     case subscript: IASTArraySubscriptExpression =>
 
       val arrayVarPtr = evaluate(subscript.getArrayExpression).head.asInstanceOf[LValue]

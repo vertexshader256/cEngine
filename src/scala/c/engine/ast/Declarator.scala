@@ -123,13 +123,21 @@ object Declarator {
             (initialArray, finalType)
           }
 
-          val theArrayPtr = state.context.addVariable(name.getRawSignature, initType, Seq())
+          val theArrayPtr = state.context.addVariable(name.getRawSignature, initType)
           theArrayPtr.setArray(initArray)
 
           Seq()
         } else {
-          println(name.getRawSignature + ":" + arrayDecl.getRawSignature)
-          state.context.addVariable(name.getRawSignature, variable.getType, dimensions)
+          if (!variable.getType.asInstanceOf[CArrayType].isConst && !dimensions.isEmpty) { // an array bounded by a variable e.g x[y]
+
+            // TODO: higher dimensions
+            val inferredArrayType = new CArrayType(theType.asInstanceOf[IArrayType].getType)
+            inferredArrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, dimensions.head.toString.toCharArray)))
+
+            state.context.addVariable(name.getRawSignature, inferredArrayType)
+          } else {
+            state.context.addVariable(name.getRawSignature, variable.getType)
+          }
         }
         Seq()
     }
@@ -156,7 +164,12 @@ object Declarator {
 
               val clause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
               val values = clause.asInstanceOf[IASTInitializerList].getClauses.map { x => state.context.stack.pop }.reverse.toList
-              variable.setValues(values)
+
+              val struct = stripped.asInstanceOf[CStructure]
+              struct.getFields.zip(values).foreach{ case (field, newValue) =>
+                val theField = TypeHelper.offsetof(struct, variable.address, field.getName, state)
+                  theField.setValue(newValue.asInstanceOf[RValue].value)
+              }
             }
 
             variable.isInitialized = true

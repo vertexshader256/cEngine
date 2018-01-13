@@ -34,7 +34,7 @@ class Memory(size: Int) {
   tape.order(ByteOrder.LITTLE_ENDIAN)
 
   // use Address type to prevent messing up argument order
-  def writeToMemory(newVal: AnyVal, address: Int, theType: IType): Unit = {
+  def writeToMemory(newVal: AnyVal, address: Int, theType: IType, bitOffset: Int = 0, sizeInBits: Int = 0): Unit = {
 
     TypeHelper.stripSyntheticTypeInfo(theType) match {
       case basic: IBasicType if basic.getKind == eInt && basic.isShort =>
@@ -53,7 +53,19 @@ class Memory(size: Int) {
         }
       case basic: IBasicType if basic.getKind == eInt || basic.getKind == eVoid =>
         newVal match {
-          case int: Int => tape.putInt(address, int)
+          case int: Int =>
+            val x = if (bitOffset != 0) {
+              val currentVal = tape.getInt(address)
+              val right = currentVal << (32 - bitOffset) >>> (32 - bitOffset)
+              val left = currentVal >>> (sizeInBits + bitOffset) << (sizeInBits + bitOffset)
+
+              val newVal = int << bitOffset
+              left + newVal + right
+            } else {
+              int
+            }
+
+            tape.putInt(address, x)
           case long: Long => tape.putInt(address, long.toInt)
         }
       case basic: IBasicType if basic.getKind == eDouble =>
@@ -92,19 +104,39 @@ class Memory(size: Int) {
     }
   }
 
-  def readFromMemory(address: Int, theType: IType): RValue = {
+  def readFromMemory(address: Int, theType: IType, bitOffset: Int = 0, sizeInBits: Int = 0): RValue = {
     val result: AnyVal = theType match {
       case basic: IBasicType =>
         if (basic.getKind == eInt && basic.isShort) {
-          tape.getShort(address)
+          var result = tape.getShort(address)
+          if (sizeInBits != 0) {
+            result = (result << (16 - sizeInBits - bitOffset) >>> (16 - sizeInBits)).toShort
+          }
+          result
         } else if (basic.getKind == eInt && basic.isLongLong) {
-          tape.getLong(address)
+          var result = tape.getLong(address)
+          if (sizeInBits != 0) {
+            result = result << (64 - sizeInBits - bitOffset) >>> (64 - sizeInBits)
+          }
+          result
         } else if (basic.getKind == eInt && basic.isLong) {
-          tape.getInt(address)
+          var result = tape.getInt(address)
+          if (sizeInBits != 0) {
+            result = result << (32 - sizeInBits - bitOffset) >>> (32 - sizeInBits)
+          }
+          result
         } else if (basic.getKind == eInt) {
-          tape.getInt(address)
+          var result = tape.getInt(address)
+          if (sizeInBits != 0) {
+            result = result << (32 - sizeInBits - bitOffset) >>> (32 - sizeInBits)
+          }
+          result
         } else if (basic.getKind == eBoolean) {
-          tape.getInt(address)
+          var result = tape.getInt(address)
+          if (sizeInBits != 0) {
+            result = result << (32 - sizeInBits - bitOffset) >> (32 - sizeInBits)
+          }
+          result
         } else if (basic.getKind == eDouble) {
           tape.getDouble(address)
         } else if (basic.getKind == eFloat) {
@@ -122,6 +154,7 @@ class Memory(size: Int) {
       case qual: IQualifierType => readFromMemory(address, qual.getType).value
       case typedef: CTypedef => readFromMemory(address, typedef.getType).value
     }
+
 
     TypeHelper.castSign(theType, result)
   }
@@ -367,7 +400,7 @@ class State {
     functionList += fcn
 
     val fcnType = new CFunctionType(new CBasicType(IBasicType.Kind.eVoid, 0), null)
-    val newVar = Variable(fcn.name, State.this, fcnType, Seq())
+    val newVar = Variable(fcn.name, State.this, fcnType)
     Stack.writeToMemory(functionCount, newVar.address, fcnType)
 
     functionPointers += fcn.name -> newVar
@@ -382,13 +415,7 @@ class State {
         nameBinding match {
           case vari: IVariable =>
             if (vari.isStatic) {
-              val dim = if (vari.getType.isInstanceOf[IArrayType]) {
-                val arrayType = vari.getType.asInstanceOf[IArrayType]
-                Seq(arrayType.getSize.numericalValue().toInt)
-              } else {
-                Seq()
-              }
-              List(Variable(decl.getName.getRawSignature, state, vari.getType, dim))
+              List(Variable(decl.getName.getRawSignature, state, vari.getType))
             } else {
               List()
             }
@@ -411,7 +438,7 @@ class State {
       def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = {None}
     }
 
-    val newVar = Variable(name.getRawSignature, State.this, fcnType, Seq())
+    val newVar = Variable(name.getRawSignature, State.this, fcnType)
     Stack.writeToMemory(functionCount, newVar.address, fcnType)
 
     functionPointers += name.getRawSignature -> newVar

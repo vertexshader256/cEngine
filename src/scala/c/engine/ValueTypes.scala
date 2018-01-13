@@ -12,6 +12,7 @@ abstract class LValue(state: State) extends ValueType {
   val theType: IType
   def sizeof: Int
   def value: RValue
+  def setValue(newVal: AnyVal)
 
   override def toString = {
     "AddressInfo(" + address + ", " + theType + ")"
@@ -32,28 +33,38 @@ case class RValue(value: AnyVal, theType: IType) extends ValueType {
   }
 }
 
-case class Field(state: State, address: Int, theType: IType, size: Int) extends LValue(state) {
-  val sizeof = size
-  def value = state.Stack.readFromMemory(address, theType)
+case class Field(state: State, address: Int, bitOffset: Int, theType: IType, sizeInBits: Int) extends LValue(state) {
+  val sizeof = sizeInBits / 8
+  def value = {println(sizeInBits + ":" + state.Stack.readFromMemory(address, theType, bitOffset, sizeInBits)); state.Stack.readFromMemory(address, theType, bitOffset, sizeInBits)}
+  def setValue(newVal: AnyVal) = {
+    state.Stack.writeToMemory(newVal, address, theType, bitOffset, sizeInBits)
+  }
 }
 
 case class MemoryLocation(state: State, address: Int, theType: IType) extends LValue(state) {
-  val sizeof = TypeHelper.sizeof(theType)
+  val sizeof = TypeHelper.sizeof(theType)(state)
   def value = state.Stack.readFromMemory(address, theType)
+  def setValue(newVal: AnyVal) = {
+    state.Stack.writeToMemory(newVal, address, theType)
+  }
 }
 
 object LValue {
   def unapply(info: LValue): Option[(Int, IType)] = Some((info.address, info.theType))
 }
 
-case class Variable(name: String, state: State, theType: IType, dim: Seq[Int]) extends LValue(state) {
+case class Variable(name: String, state: State, theType: IType) extends LValue(state) {
 
-  def setArray(array: Array[RValue]): Unit = {
-    state.setArray(array, address, TypeHelper.sizeof(theType))
+  def setValue(newVal: AnyVal) = {
+    state.Stack.writeToMemory(newVal, address, theType)
   }
 
-  def allocateSpace(state: State, aType: IType, dimensions: Seq[Int] = Seq()): Int = {
-    def recurse(aType: IType, dimensions: Seq[Int]): Int = aType match {
+  def setArray(array: Array[RValue]): Unit = {
+    state.setArray(array, address, TypeHelper.sizeof(theType)(state))
+  }
+
+  def allocateSpace(state: State, aType: IType): Int = {
+    def recurse(aType: IType): Int = aType match {
       case array: IArrayType =>
 
         val size = if (array.hasSize) {
@@ -63,26 +74,25 @@ case class Variable(name: String, state: State, theType: IType, dim: Seq[Int]) e
         }
 
         if (array.getType.isInstanceOf[IArrayType]) { // multi-dimensional array
-          val addr = state.allocateSpace(TypeHelper.sizeof(array) * size)
+          val addr = state.allocateSpace(TypeHelper.sizeof(array)(state) * size)
           for (i <- (0 until size)) {
-            val subaddr = recurse(array.getType, dimensions.tail)
+            val subaddr = recurse(array.getType)
             state.Stack.writeToMemory(subaddr, addr + i * 4, TypeHelper.pointerType) // write pointer
           }
           addr
         } else {
-          val arraySize = if (dimensions.size > 0) dimensions.head else size
-          state.allocateSpace(TypeHelper.sizeof(array.getType) * arraySize)
+          state.allocateSpace(TypeHelper.sizeof(array.getType)(state) * size)
         }
       case x =>
-        state.allocateSpace(TypeHelper.sizeof(x))
+        state.allocateSpace(TypeHelper.sizeof(x)(state))
     }
 
-    recurse(aType, dimensions)
+    recurse(aType)
   }
 
   val (allocate, theSize) = {
     val current = state.Stack.insertIndex
-    val result = allocateSpace(state, theType, dim.reverse)
+    val result = allocateSpace(state, theType)
     val size = state.Stack.insertIndex - current
     (result, size)
   }
@@ -104,12 +114,12 @@ case class Variable(name: String, state: State, theType: IType, dim: Seq[Int]) e
     "Variable(" + name + ", " + address + ", " + theType + ")"
   }
 
-  def setValues(values: List[ValueType]) = {
+  def setValues(values: List[ValueType], state: State) = {
     var offset = 0
     values.foreach {
       case RValue(value, theType) =>
         state.Stack.writeToMemory(value, address + offset, theType)
-        offset += TypeHelper.sizeof(theType)
+        offset += TypeHelper.sizeof(theType)(state)
     }
   }
 }
