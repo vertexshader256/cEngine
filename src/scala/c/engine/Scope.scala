@@ -38,7 +38,7 @@ class FunctionScope(theStaticVars: List[Variable], parent: Scope, val function: 
 }
 
 abstract class Scope(staticVars: List[Variable], val parent: Scope) {
-  var varMap = new mutable.HashSet[Variable]()
+  var varMap = new mutable.LinkedHashSet[Variable]() // linked to keep deterministic
 
   val stack = new Stack[ValueType]()
   var startingStackAddr = 0

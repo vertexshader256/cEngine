@@ -341,12 +341,12 @@ class State {
 
   var heapInsertIndex = 50000
 
-  val functionPrototypes = scala.collection.mutable.HashSet[IASTFunctionDeclarator]()
+  val functionPrototypes = scala.collection.mutable.LinkedHashSet[IASTFunctionDeclarator]()
 
   val functionContexts = new Stack[FunctionScope]()
   def context: FunctionScope = functionContexts.head
   val functionList = new ListBuffer[Function]()
-  val functionPointers = scala.collection.mutable.Map[String, Variable]()
+  val functionPointers = scala.collection.mutable.LinkedHashMap[String, Variable]()
   val stdout = new ListBuffer[Char]()
   var functionCount = 0
 
@@ -354,8 +354,6 @@ class State {
   val continueLabelStack = new Stack[Label]()
 
   val declarations = new ListBuffer[CStructure]()
-
-  private val scopeCache = new scala.collection.mutable.HashMap[IASTNode, Scope]()
 
   def numScopes = functionContexts.size
 

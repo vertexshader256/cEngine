@@ -4,7 +4,6 @@ import org.eclipse.cdt.core.dom.ast._
 import java.util.Formatter
 import java.util.Locale
 
-import scala.collection.mutable.HashMap
 import org.eclipse.cdt.internal.core.dom.parser.c.{CBasicType, _}
 
 import scala.collection.mutable

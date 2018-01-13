@@ -2,13 +2,11 @@ package scala.c.engine
 
 import org.eclipse.cdt.core.dom.ast._
 
-import scala.collection.mutable.{ListBuffer, Stack}
+import scala.collection.mutable.ListBuffer
 import scala.util.control.Exception.allCatch
 import java.math.BigInteger
 
-import scala.collection.mutable.Map
 import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
-import org.eclipse.cdt.internal.core.dom.parser.c.CPointerType
 
 import scala.util.Try
 

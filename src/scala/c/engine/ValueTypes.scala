@@ -35,7 +35,7 @@ case class RValue(value: AnyVal, theType: IType) extends ValueType {
 
 case class Field(state: State, address: Int, bitOffset: Int, theType: IType, sizeInBits: Int) extends LValue(state) {
   val sizeof = sizeInBits / 8
-  def value = {println(sizeInBits + ":" + state.Stack.readFromMemory(address, theType, bitOffset, sizeInBits)); state.Stack.readFromMemory(address, theType, bitOffset, sizeInBits)}
+  def value = state.Stack.readFromMemory(address, theType, bitOffset, sizeInBits)
   def setValue(newVal: AnyVal) = {
     state.Stack.writeToMemory(newVal, address, theType, bitOffset, sizeInBits)
   }
