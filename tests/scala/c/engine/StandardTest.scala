@@ -5,7 +5,7 @@ import better.files._
 
 import scala.concurrent._
 import scala.concurrent.duration._
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 import ExecutionContext.Implicits.global
 import scala.c.engine.Gcc.program
 import scala.collection.mutable.ListBuffer
@@ -94,24 +94,24 @@ class StandardTest extends FlatSpec {
       cEngine <- cEngineOutputFuture
     } yield (gcc, cEngine)
 
-    val result = Await.ready(testExe, Duration.Inf).value.get
+//    val result = Await.ready(testExe, Duration.Inf).value.get
 
-    result match {
-      case Success((gccOutput, cEngineOutput)) =>
-        info("C_Engine output: " + cEngineOutput)
-        info("Gcc output: " + gccOutput)
+    val next = testExe.map{ result =>
+      result match {
+        case (gccOutput, cEngineOutput) =>
+                  info("C_Engine output: " + cEngineOutput)
+                  info("Gcc output: " + gccOutput)
 
-        if (except != null) {
-          throw except
-        }
+          println("HERE")
+          if (except != null) {
+            throw except
+          }
 
-        println(cEngineOutput.map{_.getBytes.toList})
-        println(gccOutput.toList.map{_.getBytes.toList})
-
-        assert(cEngineOutput == gccOutput.toList)
-      case Failure(e) =>
-        e.printStackTrace()
-        false
+          cEngineOutput.map{_.getBytes.toList} == gccOutput.toList.map{_.getBytes.toList}
+      }
     }
+
+    val result = Await.result(next, Duration.Inf)
+    assert(result)
   }
 }
