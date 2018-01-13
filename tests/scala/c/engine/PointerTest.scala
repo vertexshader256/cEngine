@@ -29,21 +29,6 @@ class StagingGround extends StandardTest {
 }
 
 class PointerArithmeticTest extends StandardTest {
-  "pointer arithmetic on a array type" should "print the correct results" in {
-    val code = """
-      void main() {
-        int arr[10] = {1,2,3,4,5,6,7,8,9,10};
-        int *p1, *p2;
-        int offset = 5;
-
-        p1 = arr + 3;
-        p2 = arr + offset;
-        printf("%d %d\n", *p1, *p2);
-      }"""
-
-    checkResults(code)
-  }
-
   "pointer arithmetic on a pointer type" should "print the correct results" in {
     val code = """
       void main() {
@@ -51,19 +36,17 @@ class PointerArithmeticTest extends StandardTest {
         int *arr = num;
 
         int *p1 = arr + 3;
-        int *p2 = 3 + arr;
-        printf("%d %d\n", *p1, *p2);
+        int *p2 = 5 + arr;
+        int p3 = p2 - p1;
+        int p4 = p1 - p2;
+        printf("%d %d %d %d\n", *p1, *p2, p3, p4);
       }"""
 
     checkResults(code)
   }
 }
 
-
 class PointerTest extends StandardTest {
-  
-
-  
   "pointer equality" should "print the correct results" in {
     val code = """
       

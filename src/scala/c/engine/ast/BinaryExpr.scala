@@ -36,18 +36,33 @@ object BinaryExpr {
         state.createStringVariable(str, false)
     }
 
-    println(node.getRawSignature)
+    val isLeftPointer = x.theType.isInstanceOf[IPointerType] || x.theType.isInstanceOf[IArrayType]
+    val isRightPointer = y.theType.isInstanceOf[IPointerType] || y.theType.isInstanceOf[IArrayType]
 
-    val initialRight = if ((x.theType.isInstanceOf[IPointerType] || x.theType.isInstanceOf[IArrayType]) && (operator == `op_minus` || operator == `op_plus`)) {
-      // increment by the size of the left arg
-      right.value.asInstanceOf[Int] * TypeHelper.sizeof(TypeHelper.resolve(x.theType))
+    val initialRight = if (operator == `op_minus` || operator == `op_plus`) {
+      if (isLeftPointer && !isRightPointer) {
+        // increment by the size of the left arg
+        right.value.asInstanceOf[Int] * TypeHelper.sizeof(TypeHelper.resolve(x.theType))
+      } else if (isLeftPointer && isRightPointer) {
+        // increment by the size of the left arg
+        right.value.asInstanceOf[Int] / TypeHelper.sizeof(TypeHelper.resolve(x.theType))
+      } else {
+        right.value
+      }
     } else {
       right.value
     }
 
-    val initialLeft = if ((y.theType.isInstanceOf[IPointerType] || y.theType.isInstanceOf[IArrayType]) && (operator == `op_minus` || operator == `op_plus`)) {
-      // increment by the size of the right arg
-      left.value.asInstanceOf[Int] * TypeHelper.sizeof(TypeHelper.resolve(y.theType))
+    val initialLeft = if (operator == `op_minus` || operator == `op_plus`) {
+      if (!isLeftPointer && isRightPointer) {
+        // increment by the size of the left arg
+        left.value.asInstanceOf[Int] * TypeHelper.sizeof(TypeHelper.resolve(y.theType))
+      } else if (isLeftPointer && isRightPointer) {
+        // increment by the size of the left arg
+        left.value.asInstanceOf[Int] / TypeHelper.sizeof(TypeHelper.resolve(y.theType))
+      } else {
+        left.value
+      }
     } else {
       left.value
     }
