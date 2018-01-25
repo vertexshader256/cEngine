@@ -8,8 +8,29 @@ import scala.collection.mutable.{ListBuffer, Stack}
 
 case class NodePath(node: IASTNode, var direction: Direction)
 
-class FunctionScope(theStaticVars: List[Variable], parent: Scope, val function: IFunctionType)
-  extends Scope(theStaticVars, parent) {
+class Scope(staticVars: List[Variable], val parent: Scope, val returnType: IType) {
+  var varMap = new mutable.LinkedHashSet[Variable]() // linked to keep deterministic
+
+  val stack = new Stack[ValueType]()
+  var startingStackAddr = 0
+
+  var pathStack = ListBuffer[Any]()
+  var pathIndex = 0
+
+  var state: State = null
+
+  def run(theState: State) = {
+    state = theState
+    var keepRunning = true
+    try {
+      while (keepRunning) {
+        keepRunning = tick(state)
+      }
+    } catch {
+      case ReturnFromFunction() =>
+      case x => x.printStackTrace()
+    }
+  }
 
   def init(node: IASTNode, theState: State, shouldReset: Boolean) {
     if (shouldReset) {
@@ -33,31 +54,6 @@ class FunctionScope(theStaticVars: List[Variable], parent: Scope, val function: 
       }.foreach { labelFound =>
         node.destAddress = labelFound.asInstanceOf[GotoLabel].address
       }
-    }
-  }
-}
-
-abstract class Scope(staticVars: List[Variable], val parent: Scope) {
-  var varMap = new mutable.LinkedHashSet[Variable]() // linked to keep deterministic
-
-  val stack = new Stack[ValueType]()
-  var startingStackAddr = 0
-
-  var pathStack = ListBuffer[Any]()
-  var pathIndex = 0
-
-  var state: State = null
-
-  def run(theState: State) = {
-    state = theState
-    var keepRunning = true
-    try {
-      while (keepRunning) {
-        keepRunning = tick(state)
-      }
-    } catch {
-      case ReturnFromFunction() =>
-      case x => x.printStackTrace()
     }
   }
 

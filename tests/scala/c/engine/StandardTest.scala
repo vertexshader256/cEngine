@@ -70,7 +70,7 @@ class StandardTest extends FlatSpec {
           state.init(Seq("#define HAS_FLOAT\n" + File("src\\scala\\c\\engine\\ee_printf.c").contentAsString) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code })
         }
 
-        val program = new FunctionScope(List(), null, null) {}
+        val program = new Scope(List(), null, null) {}
         state.pushScope(program)
         program.init(node, state, true)
 

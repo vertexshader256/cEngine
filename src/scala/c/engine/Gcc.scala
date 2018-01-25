@@ -11,7 +11,7 @@ import org.eclipse.cdt.core.dom.ast.IASTNode
 
 object Gcc {
 
-  val program = new FunctionScope(List(), null, null) {}
+  val program = new Scope(List(), null, null) {}
 
   def runCode(code: String, state: State) = {
       val exeCode = s"""

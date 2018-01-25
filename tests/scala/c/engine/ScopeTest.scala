@@ -21,6 +21,41 @@ class ScopeTest extends StandardTest {
     checkResults(code)
   }
 
+  "scope of a block" should "print the correct results" in {
+    val code = """
+
+      void main()
+      {
+        int x = 5;
+        {
+           int x = 10;
+           printf("%d\n", x);
+        }
+        printf("%d\n", x);
+      }
+      """
+
+    checkResults(code)
+  }
+
+  "scope of a if statement" should "print the correct results" in {
+    val code = """
+
+      int x = 5;
+
+      void main()
+      {
+        if (x == 5) {
+           int x = 10;
+           printf("%d\n", x);
+        }
+        printf("%d\n", x);
+      }
+      """
+
+    checkResults(code)
+  }
+
   "function-scoped static vars" should "print the correct results" in {
     val code = """
 
