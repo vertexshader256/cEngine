@@ -342,8 +342,8 @@ class State {
 
   val functionPrototypes = scala.collection.mutable.LinkedHashSet[IASTFunctionDeclarator]()
 
-  var functionContexts = List[Scope]()
-  def context: Scope = functionContexts.head
+  var functionContexts = List[FunctionScope]()
+  def context: FunctionScope = functionContexts.head
   val functionList = new ListBuffer[Function]()
   val functionPointers = scala.collection.mutable.LinkedHashMap[String, Variable]()
   val stdout = new ListBuffer[Char]()
@@ -356,12 +356,12 @@ class State {
 
   def numScopes = functionContexts.size
 
-  def pushScope(scope: Scope): Unit = {
+  def pushScope(scope: FunctionScope): Unit = {
     functionContexts = scope +: functionContexts
   }
 
   def getFunctionScope = {
-    functionContexts.collect{case fcnScope: Scope => fcnScope}.head
+    functionContexts.collect{case fcnScope: FunctionScope => fcnScope}.head
   }
 
   def popFunctionContext = {
@@ -452,7 +452,7 @@ class State {
     Seq()
   }
 
-  def callTheFunction(name: String, call: IASTFunctionCallExpression, args: Array[ValueType], scope: Option[Scope]): Option[ValueType] = {
+  def callTheFunction(name: String, call: IASTFunctionCallExpression, args: Array[ValueType], scope: Option[FunctionScope]): Option[ValueType] = {
 
     functionList.find(_.name == name).map{ function =>
 
@@ -504,9 +504,9 @@ class State {
 
         val newScope = scope.getOrElse {
           if (call != null) {
-            new Scope(function.staticVars, functionContexts.headOption.getOrElse(null), call.getExpressionType)
+            new FunctionScope(function.staticVars, functionContexts.headOption.getOrElse(null), call.getExpressionType)
           } else {
-            new Scope(function.staticVars, functionContexts.headOption.getOrElse(null), null)
+            new FunctionScope(function.staticVars, functionContexts.headOption.getOrElse(null), null)
           }
         }
 
@@ -529,7 +529,7 @@ class State {
       // function pointer case
       val fcnPointer = functionContexts.head.resolveId(new CASTName(name.toCharArray)).get
       val function = getFunctionByIndex(fcnPointer.value.asInstanceOf[Int])
-      val scope = new Scope(function.staticVars, functionContexts.head, call.getExpressionType)
+      val scope = new FunctionScope(function.staticVars, functionContexts.head, call.getExpressionType)
       functionContexts = functionContexts :+ scope
       scope.init(call, this, true)
       //context.pathStack.push(NodePath(function.node, Stage1))

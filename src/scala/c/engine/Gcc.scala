@@ -11,7 +11,7 @@ import org.eclipse.cdt.core.dom.ast.IASTNode
 
 object Gcc {
 
-  val program = new Scope(List(), null, null) {}
+  val program = new FunctionScope(List(), null, null) {}
 
   def runCode(code: String, state: State) = {
       val exeCode = s"""
@@ -22,8 +22,6 @@ object Gcc {
 
       state.init(Seq(exeCode))
       state.callTheFunction("main", null, Array(), Some(program))
-
-      println(state.context.varMap)
 
       val main = state.getFunction("main")
       state.functionList -= main

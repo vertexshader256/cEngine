@@ -8,8 +8,12 @@ import scala.collection.mutable.{ListBuffer, Stack}
 
 case class NodePath(node: IASTNode, var direction: Direction)
 
-class Scope(staticVars: List[Variable], val parent: Scope, val returnType: IType) {
+class VariableScope() {
   var varMap = new mutable.LinkedHashSet[Variable]() // linked to keep deterministic
+}
+
+class FunctionScope(staticVars: List[Variable], val parent: FunctionScope, val returnType: IType) {
+  var variableScopes = List[VariableScope](new VariableScope()) // linked to keep deterministic
 
   private var stack = List[ValueType]()
   var startingStackAddr = 0
@@ -18,6 +22,23 @@ class Scope(staticVars: List[Variable], val parent: Scope, val returnType: IType
   private var pathIndex = 0
 
   var state: State = null
+
+  def resolveId(name: IASTName): Option[Variable] = {
+    variableScopes.flatMap{scope =>
+      scope.varMap.find{_.name == name.getRawSignature}
+        .orElse(if (parent != null) parent.resolveId(name) else None)
+        .orElse(Some(state.functionPointers(name.getRawSignature)))
+    }.headOption
+  }
+
+  def addVariable(name: String, theType: IType): Variable = {
+    staticVars.find{_.name == name}.getOrElse {
+      val newVar = Variable(name, state, theType)
+      variableScopes.head.varMap.remove(newVar)
+      variableScopes.head.varMap += newVar
+      newVar
+    }
+  }
 
   def continue() = {
     while (!pathStack(state.context.pathIndex).isInstanceOf[ContinueLabel]) {
@@ -107,26 +128,14 @@ class Scope(staticVars: List[Variable], val parent: Scope, val returnType: IType
     }
   }
 
-  def resolveId(name: IASTName): Option[Variable] = {
-    varMap.find{_.name == name.getRawSignature}
-      .orElse(if (parent != null) parent.resolveId(name) else None)
-      .orElse(Some(state.functionPointers(name.getRawSignature)))
-  }
 
   def reset(state: State) = {
-    varMap.clear
-    varMap ++= staticVars.toSet.toList
+    variableScopes.head.varMap.clear
+    variableScopes.head.varMap ++= staticVars.toSet.toList
     //pathStack.clear
     stack = List()
     startingStackAddr = state.Stack.insertIndex
   }
 
-  def addVariable(name: String, theType: IType): Variable = {
-    staticVars.find{_.name == name}.getOrElse {
-      val newVar = Variable(name, state, theType)
-      varMap.remove(newVar)
-      varMap += newVar
-      newVar
-    }
-  }
+
 }
