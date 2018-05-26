@@ -11,20 +11,28 @@ case class NodePath(node: IASTNode, var direction: Direction)
 class Scope(staticVars: List[Variable], val parent: Scope, val returnType: IType) {
   var varMap = new mutable.LinkedHashSet[Variable]() // linked to keep deterministic
 
-  private val stack = new Stack[ValueType]()
+  private var stack = List[ValueType]()
   var startingStackAddr = 0
 
-  var pathStack = ListBuffer[Any]()
+  private var pathStack = ListBuffer[Any]()
   var pathIndex = 0
 
   var state: State = null
 
+  def continue() = {
+    while (!pathStack(state.context.pathIndex).isInstanceOf[ContinueLabel]) {
+      pathIndex += 1
+    }
+  }
+
   def pushOntoStack(values: List[ValueType]) = {
-    stack.pushAll(values)
+    stack = values.reverse ++: stack
   }
 
   def popStack: ValueType = {
-    stack.pop
+    val retVal = stack.head
+    stack = stack.tail
+    retVal
   }
 
   def getReturnValue: Option[ValueType] = {
@@ -101,7 +109,7 @@ class Scope(staticVars: List[Variable], val parent: Scope, val returnType: IType
     varMap.clear
     varMap ++= staticVars.toSet.toList
     //pathStack.clear
-    stack.clear
+    stack = List()
     startingStackAddr = state.Stack.insertIndex
   }
 

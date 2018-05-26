@@ -10,9 +10,7 @@ object Statement {
     case _: IASTNullStatement =>
       PartialFunction.empty
     case _: IASTContinueStatement => {
-      while (!state.context.pathStack(state.context.pathIndex).isInstanceOf[ContinueLabel]) {
-        state.context.pathIndex += 1
-      }
+      state.context.continue()
     }
     case ret: IASTReturnStatement => {
       var retVal: ValueType = null
