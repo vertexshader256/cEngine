@@ -76,7 +76,7 @@ class StandardTest extends FlatSpec {
 
         state.context.run(state) // parse globals
 
-        state.context.pathIndex = 0
+        state.context.setAddress(0)
 
         //state.context.pathStack.push(NodePath(state.getFunction("main").node, Stage1))
         state.callTheFunction("main", null, Array(), None)

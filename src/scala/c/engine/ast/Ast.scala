@@ -27,38 +27,38 @@ object Ast {
       val raw = Expressions.evaluate(expr).get
       val result = TypeHelper.resolveBoolean(raw)
       if (!result) {
-        state.context.pathIndex += lines
+        state.context.jmpRelative(lines)
       }
     case JmpToLabelIfNotZero(expr, label) =>
       val raw = Expressions.evaluate(expr).get
       val result = TypeHelper.resolveBoolean(raw)
       if (!result) {
-        state.context.pathIndex = label.address
+        state.context.setAddress(label.address)
       }
     case JmpLabel(label) =>
-      state.context.pathIndex = label.address
+      state.context.setAddress(label.address)
     case JmpToLabelIfZero(expr, label) =>
       val raw = Expressions.evaluate(expr).get
       val result = TypeHelper.resolveBoolean(raw)
       if (result) {
-        state.context.pathIndex = label.address
+        state.context.setAddress(label.address)
       }
     case JmpToLabelIfNotEqual(expr1, expr2, label) =>
       val raw1 = TypeHelper.resolve(Expressions.evaluate(expr1).get).value
       val raw2 = TypeHelper.resolve(Expressions.evaluate(expr2).get).value
       if (raw1 != raw2) {
-        state.context.pathIndex = label.address
+        state.context.setAddress(label.address)
       }
     case JmpToLabelIfEqual(expr1, expr2, label) =>
       val raw1 = TypeHelper.resolve(Expressions.evaluate(expr1).get).value
       val raw2 = TypeHelper.resolve(Expressions.evaluate(expr2).get).value
       if (raw1 == raw2) {
-        state.context.pathIndex = label.address
+        state.context.setAddress(label.address)
       }
     case Jmp(lines) =>
-      state.context.pathIndex += lines
+      state.context.jmpRelative(lines)
     case jmp: JmpName =>
-      state.context.pathIndex = jmp.destAddress
+      state.context.setAddress(jmp.destAddress)
     case ptr: IASTPointer => {
       Seq()
     }

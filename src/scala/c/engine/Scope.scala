@@ -15,7 +15,7 @@ class Scope(staticVars: List[Variable], val parent: Scope, val returnType: IType
   var startingStackAddr = 0
 
   private var pathStack = ListBuffer[Any]()
-  var pathIndex = 0
+  private var pathIndex = 0
 
   var state: State = null
 
@@ -23,6 +23,14 @@ class Scope(staticVars: List[Variable], val parent: Scope, val returnType: IType
     while (!pathStack(state.context.pathIndex).isInstanceOf[ContinueLabel]) {
       pathIndex += 1
     }
+  }
+
+  def jmpRelative(incrementBy: Int) = {
+    pathIndex += incrementBy
+  }
+
+  def setAddress(addr: Int) = {
+    pathIndex = addr
   }
 
   def pushOntoStack(values: List[ValueType]) = {
