@@ -2,7 +2,6 @@ package scala.c.engine
 
 import org.eclipse.cdt.core.dom.ast.{IASTCaseStatement, IASTDeclarationStatement, IASTEqualsInitializer, _}
 
-import scala.collection.mutable.Stack
 import scala.collection.mutable.ListBuffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -208,17 +207,17 @@ object State {
         case forStatement: IASTForStatement =>
 
           val breakLabel = BreakLabel()
-          state.breakLabelStack.push(breakLabel)
+          state.breakLabelStack = breakLabel +: state.breakLabelStack
           val continueLabel = ContinueLabel()
-          state.continueLabelStack.push(continueLabel)
+          state.continueLabelStack = continueLabel +: state.continueLabelStack
 
           val init = List(forStatement.getInitializerStatement)
           val contents = recurse(forStatement.getBody)
           val iter = forStatement.getIterationExpression
           val beginLabel = new GotoLabel("")
 
-          state.breakLabelStack.pop
-          state.continueLabelStack.pop
+          state.breakLabelStack = state.breakLabelStack.tail
+          state.continueLabelStack = state.continueLabelStack.tail
 
           val execution = contents ++ List(continueLabel, iter)
 
@@ -230,36 +229,36 @@ object State {
         case whileStatement: IASTWhileStatement =>
 
           val breakLabel = BreakLabel()
-          state.breakLabelStack.push(breakLabel)
+          state.breakLabelStack = breakLabel +: state.breakLabelStack
           val continueLabel = ContinueLabel()
-          state.continueLabelStack.push(continueLabel)
+          state.continueLabelStack = continueLabel +: state.continueLabelStack
 
           val contents = recurse(whileStatement.getBody)
           val begin = new GotoLabel("")
           val end = new GotoLabel("")
 
-          state.breakLabelStack.pop
-          state.continueLabelStack.pop
+          state.breakLabelStack = state.breakLabelStack.tail
+          state.continueLabelStack = state.continueLabelStack.tail
 
           List(JmpLabel(end), begin) ++ contents ++ List(end, continueLabel, JmpToLabelIfZero(whileStatement.getCondition, begin)) :+ breakLabel
         case doWhileStatement: IASTDoStatement =>
 
           val breakLabel = BreakLabel()
-          state.breakLabelStack.push(breakLabel)
+          state.breakLabelStack = breakLabel +: state.breakLabelStack
           val continueLabel = ContinueLabel()
-          state.continueLabelStack.push(continueLabel)
+          state.continueLabelStack = continueLabel +: state.continueLabelStack
 
           val contents = recurse(doWhileStatement.getBody)
           val begin = new GenericLabel()
 
-          state.breakLabelStack.pop
-          state.continueLabelStack.pop
+          state.breakLabelStack = state.breakLabelStack.tail
+          state.continueLabelStack = state.continueLabelStack.tail
 
           List(begin) ++ contents ++ List(continueLabel, JmpToLabelIfZero(doWhileStatement.getCondition, begin)) :+ breakLabel
         case switch: IASTSwitchStatement =>
 
           val breakLabel = BreakLabel()
-          state.breakLabelStack.push(breakLabel)
+          state.breakLabelStack = breakLabel +: state.breakLabelStack
 
           val descendants = recurse(switch.getBody)
 
@@ -280,7 +279,7 @@ object State {
               List()
           } :+ JmpLabel(breakLabel)
 
-          state.breakLabelStack.pop
+          state.breakLabelStack = state.breakLabelStack.tail
 
           val complete = jumpTable ++ descendants :+ breakLabel
 
@@ -343,22 +342,22 @@ class State {
 
   val functionPrototypes = scala.collection.mutable.LinkedHashSet[IASTFunctionDeclarator]()
 
-  val functionContexts = new Stack[Scope]()
+  var functionContexts = List[Scope]()
   def context: Scope = functionContexts.head
   val functionList = new ListBuffer[Function]()
   val functionPointers = scala.collection.mutable.LinkedHashMap[String, Variable]()
   val stdout = new ListBuffer[Char]()
   var functionCount = 0
 
-  val breakLabelStack = new Stack[Label]()
-  val continueLabelStack = new Stack[Label]()
+  private var breakLabelStack = List[Label]()
+  private var continueLabelStack = List[Label]()
 
   val declarations = new ListBuffer[CStructure]()
 
   def numScopes = functionContexts.size
 
   def pushScope(scope: Scope): Unit = {
-    functionContexts.push(scope)
+    functionContexts = scope +: functionContexts
   }
 
   def getFunctionScope = {
@@ -367,7 +366,7 @@ class State {
 
   def popFunctionContext = {
     Stack.insertIndex = functionContexts.head.startingStackAddr
-    functionContexts.pop
+    functionContexts = functionContexts.tail
   }
 
   def hasFunction(name: String): Boolean = functionList.exists{fcn => fcn.name == name}
@@ -513,7 +512,7 @@ class State {
 
         newScope.init(function.node, this, !scope.isDefined)
 
-        functionContexts.push(newScope)
+        functionContexts = newScope +: functionContexts
 
         //context.pathStack.push(NodePath(function.node, Stage1))
         context.stack.pushAll(promoted :+ RValue(resolvedArgs.size, null))
@@ -536,7 +535,7 @@ class State {
       val fcnPointer = functionContexts.head.resolveId(new CASTName(name.toCharArray)).get
       val function = getFunctionByIndex(fcnPointer.value.asInstanceOf[Int])
       val scope = new Scope(function.staticVars, functionContexts.head, call.getExpressionType)
-      functionContexts.push(scope)
+      functionContexts = functionContexts :+ scope
       scope.init(call, this, true)
       //context.pathStack.push(NodePath(function.node, Stage1))
       context.run(this)

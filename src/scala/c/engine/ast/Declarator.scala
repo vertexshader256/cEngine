@@ -5,8 +5,6 @@ import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.op_assign
 import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.internal.core.dom.parser.c._
 
-import scala.collection.mutable.Stack
-
 object Declarator {
 
   def execute(decl: IASTDeclarator)(implicit state: State) = decl match {
@@ -26,8 +24,6 @@ object Declarator {
       if (fcnDec.getName.resolveBinding().isInstanceOf[CFunction] && !fcnDec.getName.resolveBinding().asInstanceOf[CFunction].getParameters.isEmpty && !isInMain) {
 
         val fcn = fcnDec.getName.resolveBinding().asInstanceOf[CFunction]
-        val paramDecls = new Stack[CParameter]() ++ fcn.getParameters
-
         var numArgs = 0
 
         val others = fcnDec.getChildren.filter { x => !x.isInstanceOf[IASTParameterDeclaration] && !x.isInstanceOf[IASTName] }
@@ -43,9 +39,12 @@ object Declarator {
             case value @ RValue(_, _) => value
           }}
 
+          var paramDecls = fcn.getParameters.toList
+
           resolvedArgs.foreach { arg =>
             if (!isInFunctionPrototype && !paramDecls.isEmpty) {
-              val paramDecl = paramDecls.pop
+              val paramDecl = paramDecls.head
+              paramDecls = paramDecls.tail
               val newVar = state.context.addVariable(paramDecl.getName, paramDecl.getType)
               val casted = TypeHelper.cast(newVar.theType, arg.value).value
               state.Stack.writeToMemory(casted, newVar.address, newVar.theType)
