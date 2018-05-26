@@ -29,7 +29,7 @@ object Statement {
       }
 
       if (retVal != null) {
-        state.context.stack.push(retVal)
+        state.context.pushOntoStack(List(retVal))
       }
 
       throw ReturnFromFunction()

@@ -29,8 +29,8 @@ object Declarator {
         val others = fcnDec.getChildren.filter { x => !x.isInstanceOf[IASTParameterDeclaration] && !x.isInstanceOf[IASTName] }
 
         if (!isInFunctionPrototype) {
-          numArgs = state.context.stack.pop.asInstanceOf[RValue].value.asInstanceOf[Integer]
-          val args = (0 until numArgs).map { arg => state.context.stack.pop }.reverse
+          numArgs = state.context.popStack.asInstanceOf[RValue].value.asInstanceOf[Integer]
+          val args = (0 until numArgs).map { arg => state.context.popStack }.reverse
 
           val resolvedArgs = args.map { arg => arg match {
             case StringLiteral(str) =>
@@ -73,7 +73,7 @@ object Declarator {
         val dimensions = arrayDecl.getArrayModifiers.filter {
           _.getConstantExpression != null
         }.map { dim =>
-          state.context.stack.pop match {
+          state.context.popStack match {
             // can we can assume dimensions are integers
             case RValue(value, _) => value.asInstanceOf[Int]
             case info@LValue(_, _) => info.value.value.asInstanceOf[Int]
@@ -89,7 +89,7 @@ object Declarator {
 
           val (initArray, initType) = if (TypeHelper.resolve(theType).getKind == IBasicType.Kind.eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
             // e.g. char str[] = "Hello!\n";
-            val initString = state.context.stack.pop.asInstanceOf[StringLiteral].value
+            val initString = state.context.popStack.asInstanceOf[StringLiteral].value
 
             val theStr = Utils.stripQuotes(initString)
             val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
@@ -100,7 +100,7 @@ object Declarator {
 
             (withNull, inferredArrayType)
           } else {
-            val initVals: Array[Any] = (0 until initializer.getInitializerClause.getChildren.size).map { x => state.context.stack.pop }.reverse.toArray
+            val initVals: Array[Any] = (0 until initializer.getInitializerClause.getChildren.size).map { x => state.context.popStack }.reverse.toArray
 
             val initialArray = initVals.map { newInit =>
               newInit match {
@@ -156,13 +156,13 @@ object Declarator {
 
 
             if (!stripped.isInstanceOf[CStructure]) {
-              val initVal = Option(decl.getInitializer).map(x => state.context.stack.pop).getOrElse(RValue(0, null))
+              val initVal = Option(decl.getInitializer).map(x => state.context.popStack).getOrElse(RValue(0, null))
               BinaryExpr.parseAssign(decl, op_assign, variable, initVal)
             } else if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
               && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
 
               val clause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
-              val values = clause.asInstanceOf[IASTInitializerList].getClauses.map { x => state.context.stack.pop }.reverse.toList
+              val values = clause.asInstanceOf[IASTInitializerList].getClauses.map { x => state.context.popStack }.reverse.toList
 
               val struct = stripped.asInstanceOf[CStructure]
               struct.getFields.zip(values).foreach{ case (field, newValue) =>

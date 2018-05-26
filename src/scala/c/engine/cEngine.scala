@@ -446,7 +446,7 @@ class State {
 
     functionList.find(_.name == name).map { fcn =>
       // this is a function simulated in scala
-      fcn.run(args.reverse, this).foreach { retVal => context.stack.push(RValue(retVal, null)) }
+      fcn.run(args.reverse, this).foreach { retVal => context.pushOntoStack(List(RValue(retVal, null))) }
     }
 
     Seq()
@@ -493,7 +493,7 @@ class State {
         } else {
           arg
         }
-      }
+      }.toList
 
       if (!function.isNative) {
         // this is a function simulated in scala
@@ -515,20 +515,16 @@ class State {
         functionContexts = newScope +: functionContexts
 
         //context.pathStack.push(NodePath(function.node, Stage1))
-        context.stack.pushAll(promoted :+ RValue(resolvedArgs.size, null))
+        context.pushOntoStack(promoted :+ RValue(resolvedArgs.size, null))
         context.run(this)
-        if (!context.stack.isEmpty) {
-          val returnVal = context.stack.pop
-          if (!scope.isDefined) {
-            popFunctionContext
-          }
-          Some(returnVal)
-        } else {
-          if (!scope.isDefined) {
-            popFunctionContext
-          }
-          None
+
+        val returnVal = context.getReturnValue
+
+        if (!scope.isDefined) {
+          popFunctionContext
         }
+
+        returnVal
       }
     }.getOrElse{
       // function pointer case

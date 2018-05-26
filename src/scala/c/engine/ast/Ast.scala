@@ -13,8 +13,10 @@ object Ast {
     case statement: IASTStatement =>
       Statement.parse(statement)
     case expression: IASTExpression => {
-        state.context.stack.pushAll(Expressions.evaluate(expression))
-        Seq()
+      Expressions.evaluate(expression).foreach { value =>
+        state.context.pushOntoStack(List(value))
+      }
+      Seq()
     }
     case decl: IASTDeclarator =>
       Declarator.execute(decl)
@@ -84,11 +86,11 @@ object Ast {
       if (enumerator.getValue != null) {
         step(enumerator.getValue)
       } else {
-        state.context.stack.push(new RValue(enumerator.getParent.getChildren.indexOf(enumerator) - 1, TypeHelper.pointerType))
+        state.context.pushOntoStack(List(new RValue(enumerator.getParent.getChildren.indexOf(enumerator) - 1, TypeHelper.pointerType)))
       }
 
       val newVar = state.context.addVariable(enumerator.getName.getRawSignature, TypeHelper.pointerType)
-      val value = state.context.stack.pop.asInstanceOf[RValue]
+      val value = state.context.popStack.asInstanceOf[RValue]
       state.Stack.writeToMemory(value.value, newVar.address, TypeHelper.pointerType)
     }
     case enum: IASTEnumerationSpecifier => {
