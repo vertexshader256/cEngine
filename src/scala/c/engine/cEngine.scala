@@ -511,11 +511,10 @@ class State {
         }
 
         newScope.init(function.node, this, !scope.isDefined)
+        newScope.pushOntoStack(promoted :+ RValue(resolvedArgs.size, null))
 
         functionContexts = newScope +: functionContexts
 
-        //context.pathStack.push(NodePath(function.node, Stage1))
-        context.pushOntoStack(promoted :+ RValue(resolvedArgs.size, null))
         context.run(this)
 
         val returnVal = context.getReturnValue
