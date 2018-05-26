@@ -21,7 +21,7 @@ abstract case class Function(name: String, isNative: Boolean) {
 
 object Functions {
   
-  var varArgStartingAddr = new mutable.Stack[Int]()
+  var varArgStartingAddr = List[Int]()
   
   val scalaFunctions = new ListBuffer[Function]()
   
@@ -355,9 +355,10 @@ object Functions {
           case "unsigned long" => (8, new CPointerType(new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG), 0))
         })
 
-        val current = varArgStartingAddr.pop
+        val current = varArgStartingAddr.head
+        varArgStartingAddr = varArgStartingAddr.tail
         val result = state.Stack.readFromMemory(current, theType).value
-        varArgStartingAddr.push(current + offset)
+        varArgStartingAddr = (current + offset) +: varArgStartingAddr
 
         Some(result)
       }
@@ -366,15 +367,14 @@ object Functions {
    scalaFunctions += new Function("va_start", false) {
       def run(formattedOutputParams: Array[RValue], state: State) = {
         val lastNamedArgAddr = formattedOutputParams(0).value.asInstanceOf[Int]
-        val listAddr = formattedOutputParams(1).value.asInstanceOf[Int]
-        varArgStartingAddr.push(lastNamedArgAddr + 4)
+        varArgStartingAddr = (lastNamedArgAddr + 4) +: varArgStartingAddr
         None
       }
     }
    
    scalaFunctions += new Function("va_end", false) {
         def run(formattedOutputParams: Array[RValue], state: State) = {
-           varArgStartingAddr.pop
+           varArgStartingAddr = varArgStartingAddr.tail
            None
         }
       }
