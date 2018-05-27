@@ -23,6 +23,10 @@ object Ast {
     case array: IASTArrayModifier => {
       List(Option(array.getConstantExpression)).flatten.foreach(step)
     }
+    case PushVariableStack() =>
+      state.context.pushVariableScope
+    case PopVariableStack() =>
+      state.context.popVariableScope
     case JmpIfNotEqual(expr, lines) =>
       val raw = Expressions.evaluate(expr).get
       val result = TypeHelper.resolveBoolean(raw)

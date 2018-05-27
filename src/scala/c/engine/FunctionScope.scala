@@ -23,6 +23,14 @@ class FunctionScope(staticVars: List[Variable], val parent: FunctionScope, val r
 
   var state: State = null
 
+  def pushVariableScope() = {
+    variableScopes = new VariableScope() +: variableScopes
+  }
+
+  def popVariableScope() = {
+    variableScopes = variableScopes.tail
+  }
+
   def resolveId(name: IASTName): Option[Variable] = {
     variableScopes.flatMap{scope =>
       scope.varMap.get(name.getRawSignature)

@@ -176,6 +176,9 @@ abstract class Label {
   var address = 0
 }
 
+case class PushVariableStack()
+case class PopVariableStack()
+
 case class GotoLabel(name: String) extends Label
 case class BreakLabel() extends Label
 case class ContinueLabel() extends Label
@@ -193,7 +196,7 @@ object State {
         case null => List()
 
         case ifStatement: IASTIfStatement =>
-          val contents = recurse(ifStatement.getThenClause)
+          val contents = PushVariableStack() +: recurse(ifStatement.getThenClause) :+ PopVariableStack()
           val elseContents = List(Option(ifStatement.getElseClause)).flatten.flatMap(recurse)
 
           val jmp = if (ifStatement.getElseClause != null) {
