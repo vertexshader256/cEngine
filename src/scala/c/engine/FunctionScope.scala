@@ -26,9 +26,9 @@ class FunctionScope(staticVars: List[Variable], val parent: FunctionScope, val r
   def resolveId(name: IASTName): Option[Variable] = {
     variableScopes.flatMap{scope =>
       scope.varMap.get(name.getRawSignature)
-        .orElse(if (parent != null) parent.resolveId(name) else None)
-        .orElse(Some(state.functionPointers(name.getRawSignature)))
     }.headOption
+      .orElse(if (parent != null) parent.resolveId(name) else None)
+      .orElse(Some(state.functionPointers(name.getRawSignature)))
   }
 
   def addVariable(name: String, theType: IType): Variable = {
