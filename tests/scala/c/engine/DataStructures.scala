@@ -173,7 +173,7 @@ class RegexTest extends StandardTest {
           ASSERT(memcmp(caps[0].ptr, "12", 2) == 0);
           ASSERT(slre_match("(.*(2.))", "123", 3, caps, 10, 0) == 3);
           ASSERT(slre_match("(.)(.)", "123", 3, caps, 10, 0) == 2);
-//          ASSERT(slre_match("(\\d+)\\s+(\\S+)", "12 hi", 5, caps, 10, 0) == 5);
+          ASSERT(slre_match("(\\d+)\\s+(\\S+)", "12 hi", 5, caps, 10, 0) == 5);
           ASSERT(slre_match("ab(cd)+ef", "abcdcdef", 8, NULL, 0, 0) == 8);
           ASSERT(slre_match("ab(cd)*ef", "abcdcdef", 8, NULL, 0, 0) == 8);
           ASSERT(slre_match("ab(cd)+?ef", "abcdcdef", 8, NULL, 0, 0) == 8);

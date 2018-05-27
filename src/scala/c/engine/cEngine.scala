@@ -197,7 +197,7 @@ object State {
 
         case ifStatement: IASTIfStatement =>
           val contents = PushVariableStack() +: recurse(ifStatement.getThenClause) :+ PopVariableStack()
-          val elseContents = List(Option(ifStatement.getElseClause)).flatten.flatMap(recurse)
+          val elseContents = PushVariableStack() +: List(Option(ifStatement.getElseClause)).flatten.flatMap(recurse) :+ PopVariableStack()
 
           val jmp = if (ifStatement.getElseClause != null) {
             List(Jmp(elseContents.size))
@@ -224,11 +224,13 @@ object State {
 
           val execution = contents ++ List(continueLabel, iter)
 
-          if (forStatement.getConditionExpression != null) {
+          val result = (if (forStatement.getConditionExpression != null) {
             init ++ (beginLabel +: JmpToLabelIfNotZero(forStatement.getConditionExpression, breakLabel) +: execution :+ JmpLabel(beginLabel)) :+ breakLabel
           } else {
             init ++ (beginLabel +: execution :+ JmpLabel(beginLabel)) :+ breakLabel
-          }
+          })
+
+          PushVariableStack() +: result :+ PopVariableStack()
         case whileStatement: IASTWhileStatement =>
 
           val breakLabel = BreakLabel()
@@ -243,7 +245,9 @@ object State {
           state.breakLabelStack = state.breakLabelStack.tail
           state.continueLabelStack = state.continueLabelStack.tail
 
-          List(JmpLabel(end), begin) ++ contents ++ List(end, continueLabel, JmpToLabelIfZero(whileStatement.getCondition, begin)) :+ breakLabel
+          val result = List(JmpLabel(end), begin) ++ contents ++ List(end, continueLabel, JmpToLabelIfZero(whileStatement.getCondition, begin)) :+ breakLabel
+
+          PushVariableStack() +: result :+ PopVariableStack()
         case doWhileStatement: IASTDoStatement =>
 
           val breakLabel = BreakLabel()
@@ -257,7 +261,9 @@ object State {
           state.breakLabelStack = state.breakLabelStack.tail
           state.continueLabelStack = state.continueLabelStack.tail
 
-          List(begin) ++ contents ++ List(continueLabel, JmpToLabelIfZero(doWhileStatement.getCondition, begin)) :+ breakLabel
+          val result = List(begin) ++ contents ++ List(continueLabel, JmpToLabelIfZero(doWhileStatement.getCondition, begin)) :+ breakLabel
+
+          PushVariableStack() +: result :+ PopVariableStack()
         case switch: IASTSwitchStatement =>
 
           val breakLabel = BreakLabel()
@@ -284,9 +290,9 @@ object State {
 
           state.breakLabelStack = state.breakLabelStack.tail
 
-          val complete = jumpTable ++ descendants :+ breakLabel
+          val result = jumpTable ++ descendants :+ breakLabel
 
-          complete
+          PushVariableStack() +: result :+ PopVariableStack()
         case x: IASTCaseStatement =>
           List(CaseLabel(x))
         case x: IASTDefaultStatement =>

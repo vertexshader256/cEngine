@@ -56,6 +56,86 @@ class ScopeTest extends StandardTest {
     checkResults(code)
   }
 
+  "scope of a else statement" should "print the correct results" in {
+    val code = """
+
+      int x = 6;
+
+      void main()
+      {
+        if (x == 5) {
+           int x = 10;
+           printf("%d\n", x);
+        } else {
+           int x = 10;
+           printf("%d\n", x);
+        }
+        printf("%d\n", x);
+      }
+      """
+
+    checkResults(code)
+  }
+
+  "scope of a for statement" should "print the correct results" in {
+    val code = """
+
+      int x = 6;
+
+      void main()
+      {
+        int i = 0;
+        for (i = 0; i < 5; i++) {
+           int x = 10;
+           printf("%d\n", x);
+        }
+        printf("%d\n", x);
+      }
+      """
+
+    checkResults(code)
+  }
+
+  "scope of a while statement" should "print the correct results" in {
+    val code = """
+
+      int x = 6;
+
+      void main()
+      {
+        int i = 0;
+        while (i < 10) {
+           int x = 10;
+           printf("%d %d\n", x, i);
+           i += 1;
+        }
+        printf("%d\n", x);
+      }
+      """
+
+    checkResults(code)
+  }
+
+  "scope of a do while statement" should "print the correct results" in {
+    val code = """
+
+      int x = 6;
+
+      void main()
+      {
+        int i = 0;
+        do {
+           int x = 10;
+           printf("%d %d\n", x, i);
+           i += 1;
+        } while (i < 10);
+        printf("%d\n", x);
+      }
+      """
+
+    checkResults(code)
+  }
+
   "function-scoped static vars" should "print the correct results" in {
     val code = """
 
