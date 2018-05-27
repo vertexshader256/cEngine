@@ -92,12 +92,10 @@ class FunctionScope(staticVars: List[Variable], val parent: FunctionScope, val r
 
     pathStack ++= State.flattenNode(node)(theState)
 
-    var instructionCounter = 0
-    pathStack.foreach { node =>
+    pathStack.zipWithIndex.foreach { case (node, index) =>
       if (node.isInstanceOf[Label]) {
-        node.asInstanceOf[Label].address = instructionCounter
+        node.asInstanceOf[Label].address = index
       }
-      instructionCounter += 1
     }
 
     pathStack.collect { case jmpName: JmpName => jmpName }.foreach { node =>
