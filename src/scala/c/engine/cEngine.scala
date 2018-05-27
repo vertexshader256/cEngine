@@ -531,7 +531,7 @@ class State {
       val function = getFunctionByIndex(fcnPointer.value.asInstanceOf[Int])
       val scope = new FunctionScope(function.staticVars, functionContexts.head, call.getExpressionType)
       functionContexts = functionContexts :+ scope
-      scope.init(call, this, true)
+      scope.init(call, this, false)
       //context.pathStack.push(NodePath(function.node, Stage1))
       context.run(this)
       popFunctionContext

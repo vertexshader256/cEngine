@@ -83,8 +83,12 @@ class FunctionScope(staticVars: List[Variable], val parent: FunctionScope, val r
 
   def init(node: IASTNode, theState: State, shouldReset: Boolean) {
     if (shouldReset) {
-      reset(theState)
+      variableScopes.head.varMap.clear
     }
+
+    variableScopes.head.varMap ++= staticVars.toSet.toList
+    stack = List()
+    startingStackAddr = theState.Stack.insertIndex
 
     pathStack ++= State.flattenNode(node)(theState)
 
@@ -127,15 +131,4 @@ class FunctionScope(staticVars: List[Variable], val parent: FunctionScope, val r
       false
     }
   }
-
-
-  def reset(state: State) = {
-    variableScopes.head.varMap.clear
-    variableScopes.head.varMap ++= staticVars.toSet.toList
-    //pathStack.clear
-    stack = List()
-    startingStackAddr = state.Stack.insertIndex
-  }
-
-
 }

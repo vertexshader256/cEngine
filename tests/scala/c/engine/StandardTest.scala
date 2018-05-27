@@ -72,7 +72,7 @@ class StandardTest extends FlatSpec {
 
         val program = new FunctionScope(List(), null, null) {}
         state.pushScope(program)
-        program.init(node, state, true)
+        program.init(node, state, false)
 
         state.context.run(state) // parse globals
 
