@@ -9,7 +9,7 @@ import scala.collection.mutable.{ListBuffer, Stack}
 case class NodePath(node: IASTNode, var direction: Direction)
 
 class VariableScope() {
-  var varMap = new mutable.LinkedHashSet[Variable]() // linked to keep deterministic
+  var varMap = new mutable.LinkedHashMap[String, Variable]() // linked to keep deterministic
 }
 
 class FunctionScope(staticVars: List[Variable], val parent: FunctionScope, val returnType: IType) {
@@ -25,7 +25,7 @@ class FunctionScope(staticVars: List[Variable], val parent: FunctionScope, val r
 
   def resolveId(name: IASTName): Option[Variable] = {
     variableScopes.flatMap{scope =>
-      scope.varMap.find{_.name == name.getRawSignature}
+      scope.varMap.get(name.getRawSignature)
         .orElse(if (parent != null) parent.resolveId(name) else None)
         .orElse(Some(state.functionPointers(name.getRawSignature)))
     }.headOption
@@ -34,8 +34,7 @@ class FunctionScope(staticVars: List[Variable], val parent: FunctionScope, val r
   def addVariable(name: String, theType: IType): Variable = {
     staticVars.find{_.name == name}.getOrElse {
       val newVar = Variable(name, state, theType)
-      variableScopes.head.varMap.remove(newVar)
-      variableScopes.head.varMap += newVar
+      variableScopes.head.varMap += newVar.name -> newVar
       newVar
     }
   }
@@ -86,7 +85,10 @@ class FunctionScope(staticVars: List[Variable], val parent: FunctionScope, val r
       variableScopes.head.varMap.clear
     }
 
-    variableScopes.head.varMap ++= staticVars.toSet.toList
+    staticVars.foreach {static =>
+      variableScopes.head.varMap += static.name -> static
+    }
+
     stack = List()
     startingStackAddr = theState.Stack.insertIndex
 
