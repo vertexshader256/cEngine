@@ -22,15 +22,22 @@ class StandardTest extends FlatSpec {
       var index = 0
       while (index < stdout.size) {
 
-        if (stdout(index) == '\n') {
+        if (stdout(index) == '\r') {
           results += currentString.mkString
           currentString = new ListBuffer[Char]()
           writeLast = false
+          index += 1
+        }  else if (stdout(index) == '\n') {
+          results += currentString.mkString
+          currentString = new ListBuffer[Char]()
+          writeLast = false
+          index += 1
         } else {
           currentString += stdout(index)
           writeLast = true
+          index += 1
         }
-        index += 1
+
       }
 
       if (writeLast) {

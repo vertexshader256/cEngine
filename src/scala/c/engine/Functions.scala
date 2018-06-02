@@ -91,7 +91,7 @@ object Functions {
         case c: char => c.toChar
         case int: Int => int.toChar
       }
-      Some(if (theChar.isSpaceChar) 1 else 0)
+      Some(if (theChar.isSpaceChar || theChar.toInt == 13 || theChar.toInt == 10) 1 else 0)
     }
   }
   
