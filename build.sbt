@@ -16,6 +16,7 @@ scalaSource in Test := baseDirectory.value / "tests"
 scalaVersion := "2.12.6"
 
 parallelExecution in Test := true
+testOptions in Test += Tests.Argument("-P")
 
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.4" % "test",

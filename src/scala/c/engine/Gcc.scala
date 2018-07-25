@@ -6,6 +6,7 @@ import java.io.File
 
 import scala.collection.mutable.ListBuffer
 import java.io.{InputStream, OutputStream, PrintWriter}
+import java.util.concurrent.atomic.AtomicInteger
 
 import org.eclipse.cdt.core.dom.ast.IASTNode
 
@@ -33,73 +34,6 @@ object Gcc {
     """
 
     state.init(Seq(exeCode))
-  }
-  
-  
-  var count = 0
-  var count2 = 0
-  
-  def compileAndGetOutput(codes: Seq[String]): Seq[String] = {
-    
-    val logger = new SyntaxLogger
-    val linkerLogger = new LinkerLogger
-    val runLogger = new RunLogger
-
-    val files = codes.map{ code =>
-      val file = File.createTempFile("cEng", ".c", new File("."))
-      val pw = new PrintWriter(file)
-      pw.write(code)
-      pw.close
-      file
-    }
-    
-    val objectFiles = files.map{ file =>
-      new File(file.getAbsolutePath.reverse.drop(2).reverse + ".o")
-    } 
-    
-    val exeFile = File.createTempFile("cEng", ".exe", new File("."))
-    
-    val sourceFileTokens = files.flatMap{file => Seq("-c", file.getAbsolutePath)}
-    val includeTokens = Seq("-I", Utils.mainPath, 
-                            "-I", Utils.mainAdditionalPath)
-
-    val processTokens =
-        Seq("gcc") ++ sourceFileTokens ++ includeTokens ++ Seq("-D", "ALLOC_TESTING")
-  
-    val builder = Process(processTokens, new File("."))
-    val compile = builder.run(logger.process)
-    compile.exitValue()
-    
-    val numErrors = logger.errors.length
-
-    val result = if (numErrors == 0) {    
-      val linkTokens = Seq("gcc") ++ Seq("-o", exeFile.getAbsolutePath) ++ objectFiles.map(_.getAbsolutePath)
-      
-      val linker = Process(linkTokens, new File("."))
-      val link = linker.run(linkerLogger.process)
-      link.exitValue()
-      
-      var i = 0
-      while (!new File(exeFile.getAbsolutePath).exists && i < 1000) {
-          Thread.sleep(50)
-          i += 50
-      }
-      Thread.sleep(50)
-
-      val runner = Process(Seq(exeFile.getAbsolutePath), new File("."))
-      val run = runner.run(runLogger.process)
-      run.exitValue()
-
-      runLogger.stdout
-    } else {
-      logger.errors
-    }
-    
-    files.foreach{file => file.delete()}
-    objectFiles.foreach{file => file.delete()}
-    exeFile.delete()
-    
-    result
   }
 }
 

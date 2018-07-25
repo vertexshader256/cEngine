@@ -1,16 +1,22 @@
 package scala.c.engine
 
+import java.io.{File, PrintWriter}
+import java.util.concurrent.atomic.AtomicInteger
+
 import org.scalatest._
-import better.files._
-
 import scala.concurrent._
-import scala.concurrent.duration._
-import scala.util.{Failure, Success, Try}
-import ExecutionContext.Implicits.global
-import scala.c.engine.Gcc.program
 import scala.collection.mutable.ListBuffer
+import scala.sys.process.Process
+import scala.util.Try
 
-class StandardTest extends FlatSpec {
+object StandardTest {
+  val cFileCount = new AtomicInteger()
+  val exeCount = new AtomicInteger()
+}
+
+class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
+
+  implicit override def executionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   def getResults(stdout: List[Char]): List[String] = {
     if (!stdout.isEmpty) {
@@ -49,76 +55,111 @@ class StandardTest extends FlatSpec {
     }
   }
 
-  def checkResults(code: String, shouldBootstrap: Boolean = true): Unit = checkResults2(Seq(code), shouldBootstrap)
+  def checkResults(code: String, shouldBootstrap: Boolean = true) = checkResults2(Seq(code), shouldBootstrap)
+
+  def getCEngineResults(codeInFiles: Seq[String], shouldBootstrap: Boolean) = {
+    Try {
+      val start = System.nanoTime
+      val state = new State
+      val node = if (shouldBootstrap) {
+        state.init(codeInFiles)
+      } else {
+        state.init(Seq("#define HAS_FLOAT\n" + better.files.File("src\\scala\\c\\engine\\ee_printf.c").contentAsString) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code })
+      }
+
+      val program = new FunctionScope(List(), null, null) {}
+      state.pushScope(program)
+      program.init(node, state, false)
+
+      state.context.run(state) // parse globals
+
+      state.context.setAddress(0)
+
+      //state.context.pathStack.push(NodePath(state.getFunction("main").node, Stage1))
+      state.callTheFunction("main", null, Array(), None)
+      //totalTime += (System.nanoTime - start) / 1000000000.0
+      getResults(state.stdout.toList)
+    }.getOrElse(List())
+  }
 
   def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = true) = {
 
     var except: Exception = null
 
-    val gccOutputFuture = Future[Seq[String]] {
-      var result: Seq[String] = Seq()
-      try {
-        result = Gcc.compileAndGetOutput(codeInFiles)
-      } catch {
-        case e: Exception => except = e
-      }
-      result
-    }
+    Future {
 
-    val cEngineOutputFuture = Future[List[String]] {
+      var cEngineOutput: List[String] = List()
+      var gccOutput = Seq[String]()
 
-      var result: List[String] = List()
       try {
-        val start = System.nanoTime
-        val state = new State
-        val node = if (shouldBootstrap) {
-          state.init(codeInFiles)
-        } else {
-          state.init(Seq("#define HAS_FLOAT\n" + File("src\\scala\\c\\engine\\ee_printf.c").contentAsString) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code })
+
+        val logger = new SyntaxLogger
+        val runLogger = new RunLogger
+
+        val files = codeInFiles.map{ code =>
+          val file = new java.io.File(StandardTest.cFileCount.incrementAndGet + ".c")
+          val pw = new PrintWriter(file)
+          pw.write(code)
+          pw.close
+          file
         }
 
-        val program = new FunctionScope(List(), null, null) {}
-        state.pushScope(program)
-        program.init(node, state, false)
+        val exeFile = new java.io.File(StandardTest.exeCount.incrementAndGet + ".exe")
+        val sourceFileTokens = files.flatMap{file => Seq(file.getAbsolutePath)}
+        val includeTokens = Seq("-I", Utils.mainPath,
+          "-I", Utils.mainAdditionalPath)
 
-        state.context.run(state) // parse globals
+        val processTokens =
+          Seq("gcc") ++ sourceFileTokens ++ includeTokens ++ Seq("-o", exeFile.getAbsolutePath) ++ Seq("-D", "ALLOC_TESTING")
 
-        state.context.setAddress(0)
+        val builder = Process(processTokens, new java.io.File("."))
+        val compile = builder.run(logger.process)
 
-        //state.context.pathStack.push(NodePath(state.getFunction("main").node, Stage1))
-        state.callTheFunction("main", null, Array(), None)
-        //totalTime += (System.nanoTime - start) / 1000000000.0
-        result = getResults(state.stdout.toList)
+        // while its compiling, run the cEngine code
+
+        cEngineOutput = getCEngineResults(codeInFiles, shouldBootstrap)
+
+        compile.exitValue()
+
+        val numErrors = logger.errors.length
+
+        gccOutput = if (numErrors == 0) {
+
+          var isDone = false
+
+          while (!isDone) {
+            try {
+              // run the actual executable
+              val runner = Process(Seq(exeFile.getAbsolutePath), new File("."))
+              val run = runner.run(runLogger.process)
+              run.exitValue()
+              isDone = true
+            } catch {
+              case e => e.printStackTrace()
+            }
+          }
+
+          runLogger.stdout
+        } else {
+          logger.errors
+        }
+
+        files.foreach{file => file.delete()}
+        exeFile.delete()
 
       } catch {
         case e: Exception => except = e
       }
-      result
-    }
 
-    val testExe = for {
-      gcc <- gccOutputFuture
-      cEngine <- cEngineOutputFuture
-    } yield (gcc, cEngine)
+      info("C_Engine output: " + cEngineOutput)
+      info("Gcc      output: " + gccOutput.toList)
 
-//    val result = Await.ready(testExe, Duration.Inf).value.get
-
-    val next = testExe.map{ result =>
-      result match {
-        case (gccOutput, cEngineOutput) =>
-                  info("C_Engine output: " + cEngineOutput)
-                  info("Gcc      output: " + gccOutput.toList)
-
-          println("HERE")
-          if (except != null) {
-            throw except
-          }
-
-          cEngineOutput.map{_.getBytes.toList} == gccOutput.toList.map{_.getBytes.toList}
+      println("HERE")
+      if (except != null) {
+        throw except
       }
-    }
 
-    val result = Await.result(next, Duration.Inf)
-    assert(result)
+      assert(cEngineOutput.map{_.getBytes.toList} == gccOutput.toList.map{_.getBytes.toList})
+    }
   }
 }
