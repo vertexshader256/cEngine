@@ -343,7 +343,11 @@ object State {
   }
 }
 
-class State {
+abstract sealed trait NumBits
+case object ThirtyTwoBits extends NumBits
+case object SixtyFourBits extends NumBits
+
+class State(pointerSize: NumBits) {
 
   object Stack extends Memory(100000)
 
@@ -364,6 +368,12 @@ class State {
   val declarations = new ListBuffer[CStructure]()
 
   def numScopes = functionContexts.size
+
+  // 32-bit pointers
+  val pointerType = pointerSize match {
+    case ThirtyTwoBits => new CBasicType(IBasicType.Kind.eInt, 0)
+    case SixtyFourBits => new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG)
+  }
 
   def pushScope(scope: FunctionScope): Unit = {
     functionContexts = scope +: functionContexts
@@ -577,7 +587,10 @@ class State {
   }
 
   def readPtrVal(address: Int): Int = {
-    Stack.readFromMemory(address, TypeHelper.pointerType).value.asInstanceOf[Int]
+    Stack.readFromMemory(address, pointerType).value match {
+      case int: Int => int
+      case double: Double => double.toInt
+    }
   }
 
   def createStringVariable(str: String, isHeap: Boolean)(implicit state: State): RValue = {
@@ -587,7 +600,7 @@ class State {
     val strAddr = if (isHeap) allocateHeapSpace(withNull.size) else allocateSpace(withNull.size)
 
     setArray(withNull, strAddr, 1)
-    RValue(strAddr, TypeHelper.pointerType)
+    RValue(strAddr, pointerType)
   }
 
   def setArray(array: Array[RValue], address: Int, stride: Int): Unit = {

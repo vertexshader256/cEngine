@@ -90,12 +90,12 @@ object Ast {
       if (enumerator.getValue != null) {
         step(enumerator.getValue)
       } else {
-        state.context.pushOntoStack(List(new RValue(enumerator.getParent.getChildren.indexOf(enumerator) - 1, TypeHelper.pointerType)))
+        state.context.pushOntoStack(List(new RValue(enumerator.getParent.getChildren.indexOf(enumerator) - 1, new CBasicType(IBasicType.Kind.eInt, 0))))
       }
 
-      val newVar = state.context.addVariable(enumerator.getName.getRawSignature, TypeHelper.pointerType)
+      val newVar = state.context.addVariable(enumerator.getName.getRawSignature, new CBasicType(IBasicType.Kind.eInt, 0))
       val value = state.context.popStack.asInstanceOf[RValue]
-      state.Stack.writeToMemory(value.value, newVar.address, TypeHelper.pointerType)
+      state.Stack.writeToMemory(value.value, newVar.address, new CBasicType(IBasicType.Kind.eInt, 0))
     }
     case enum: IASTEnumerationSpecifier => {
       enum.getEnumerators.foreach(step)

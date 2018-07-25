@@ -21,7 +21,7 @@ object BinaryExpr {
   def evaluate(node: IASTNode, x: ValueType, y: ValueType, operator: Int)(implicit state: State): RValue = {
 
     val right = y match {
-      case info @ LValue(_, ptr: IArrayType) => RValue(info.address, TypeHelper.pointerType)
+      case info @ LValue(_, ptr: IArrayType) => RValue(info.address, state.pointerType)
       case info @ LValue(_, _) => info.value
       case value @ RValue(_, _) => value
       case StringLiteral(str) =>
@@ -29,7 +29,7 @@ object BinaryExpr {
     }
 
     val left = x match {
-      case info @ LValue(_, ptr: IArrayType) => RValue(info.address, TypeHelper.pointerType)
+      case info @ LValue(_, ptr: IArrayType) => RValue(info.address, state.pointerType)
       case info @ LValue(_, _) => info.value
       case value @ RValue(_, _) => value
       case StringLiteral(str) =>

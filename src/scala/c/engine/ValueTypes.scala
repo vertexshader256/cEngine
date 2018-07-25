@@ -77,7 +77,7 @@ case class Variable(name: String, state: State, theType: IType) extends LValue(s
           val addr = state.allocateSpace(TypeHelper.sizeof(array)(state) * size)
           for (i <- (0 until size)) {
             val subaddr = recurse(array.getType)
-            state.Stack.writeToMemory(subaddr, addr + i * 4, TypeHelper.pointerType) // write pointer
+            state.Stack.writeToMemory(subaddr, addr + i * 4, state.pointerType) // write pointer
           }
           addr
         } else {

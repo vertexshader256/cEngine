@@ -60,7 +60,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
   def getCEngineResults(codeInFiles: Seq[String], shouldBootstrap: Boolean) = {
     Try {
       val start = System.nanoTime
-      val state = new State
+      val state = new State(ThirtyTwoBits)
       val node = if (shouldBootstrap) {
         state.init(codeInFiles)
       } else {

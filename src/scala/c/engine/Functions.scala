@@ -348,7 +348,7 @@ object Functions {
 
         val (offset, theType) = (str match {
           case "unsigned int" => (4, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))
-          case "int" => (4, TypeHelper.pointerType)
+          case "int" => (4, new CBasicType(IBasicType.Kind.eInt, 0))
           case "double" => (8, new CBasicType(IBasicType.Kind.eDouble, 0))
           case "char" => (1, new CBasicType(IBasicType.Kind.eChar, 0))
           case "char *" => (4, new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0))

@@ -50,14 +50,14 @@ object UnaryExpression {
           RValue(newVal, lValue.theType)
         case `op_sizeof` =>
           value match {
-            case info @ LValue(_, theType) => RValue(info.sizeof, TypeHelper.pointerType)
+            case info @ LValue(_, theType) => RValue(info.sizeof, new CBasicType(IBasicType.Kind.eInt, 0))
           }
         case `op_amper` =>
           value match {
             case info@LValue(_, _) =>
               info.theType match {
                 case fcn: CFunctionType => MemoryLocation(state, info.address, fcn)
-                case x: IType => RValue(info.address, TypeHelper.pointerType)
+                case x: IType => RValue(info.address, state.pointerType)
               }
           }
         case `op_star` =>

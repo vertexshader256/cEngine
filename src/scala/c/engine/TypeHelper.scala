@@ -11,9 +11,6 @@ object TypeHelper {
   val one = RValue(1, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))
   val negativeOne = RValue(-1, new CBasicType(IBasicType.Kind.eInt, 0))
   
-  // 32-bit pointers
-  val pointerType = new CBasicType(IBasicType.Kind.eInt , 0)
-  
   // 8 bytes
   val qword = new CBasicType(IBasicType.Kind.eInt , IBasicType.IS_LONG_LONG)
 
@@ -197,13 +194,13 @@ object TypeHelper {
   }
 
   // Some standard cases of needing to know what a type resolves to
-  def resolve(theType: IType): IBasicType = theType match {
+  def resolve(theType: IType)(implicit state: State): IBasicType = theType match {
     case basicType: IBasicType    => basicType
     case typedef: ITypedef        => resolve(typedef.getType)
     case ptrType: IPointerType    => resolve(ptrType.getType)
     case arrayType: IArrayType    => resolve(arrayType.getType)
     case qualType: IQualifierType => resolve(qualType.getType)
-    case fcn: IFunctionType       => TypeHelper.pointerType
+    case fcn: IFunctionType       => state.pointerType
   }
   
   def stripSyntheticTypeInfo(theType: IType): IType = theType match {
