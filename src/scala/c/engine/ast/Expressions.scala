@@ -55,8 +55,14 @@ object Expressions {
 
       val arrayVarPtr = evaluate(subscript.getArrayExpression).head.asInstanceOf[LValue]
       val index = evaluate(subscript.getArgument).get match {
-        case x @ RValue(_, _) => TypeHelper.cast(state.pointerType, x.value).value.asInstanceOf[Int]
-        case x @ LValue(_, _) => TypeHelper.cast(state.pointerType, x.value.value).value.asInstanceOf[Int]
+        case x @ RValue(_, _) => TypeHelper.cast(state.pointerType, x.value).value match {
+          case int: Int => int
+          case long: Long => long.toInt
+        }
+        case x @ LValue(_, _) => TypeHelper.cast(state.pointerType, x.value.value).value match {
+          case int: Int => int
+          case long: Long => long.toInt
+        }
       }
 
       val aType = TypeHelper.getPointerType(arrayVarPtr.theType)
