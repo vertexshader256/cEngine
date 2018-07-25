@@ -369,10 +369,9 @@ class State(pointerSize: NumBits) {
 
   def numScopes = functionContexts.size
 
-  // 32-bit pointers
   val pointerType = pointerSize match {
     case ThirtyTwoBits => new CBasicType(IBasicType.Kind.eInt, 0)
-    case SixtyFourBits => new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG)
+    case SixtyFourBits => new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
   }
 
   def pushScope(scope: FunctionScope): Unit = {

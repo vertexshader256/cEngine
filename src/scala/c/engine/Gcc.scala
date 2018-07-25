@@ -54,6 +54,7 @@ class SyntaxLogger extends Logger {
   def err(stream: InputStream) = {
 
     val lines = scala.io.Source.fromInputStream(stream).getLines.toSeq
+    println(lines)
     val errors = getErrors(lines)
   }
 }

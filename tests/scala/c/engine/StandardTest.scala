@@ -55,12 +55,12 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
     }
   }
 
-  def checkResults(code: String, shouldBootstrap: Boolean = true) = checkResults2(Seq(code), shouldBootstrap)
+  def checkResults(code: String, shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits) = checkResults2(Seq(code), shouldBootstrap, pointerSize)
 
-  def getCEngineResults(codeInFiles: Seq[String], shouldBootstrap: Boolean) = {
+  def getCEngineResults(codeInFiles: Seq[String], shouldBootstrap: Boolean, pointerSize: NumBits) = {
     Try {
       val start = System.nanoTime
-      val state = new State(SixtyFourBits)
+      val state = new State(pointerSize)
       val node = if (shouldBootstrap) {
         state.init(codeInFiles)
       } else {
@@ -82,7 +82,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
     }.getOrElse(List())
   }
 
-  def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = true) = {
+  def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits) = {
 
     var except: Exception = null
 
@@ -109,15 +109,20 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
         val includeTokens = Seq("-I", Utils.mainPath,
           "-I", Utils.mainAdditionalPath)
 
+        val size = pointerSize match {
+          case ThirtyTwoBits => Seq("gcc")
+          case SixtyFourBits => Seq("gcc64")
+        }
+
         val processTokens =
-          Seq("gcc") ++ sourceFileTokens ++ includeTokens ++ Seq("-o", exeFile.getAbsolutePath) ++ Seq("-D", "ALLOC_TESTING")
+          size ++ sourceFileTokens ++ includeTokens ++ Seq("-o", exeFile.getAbsolutePath) ++ Seq("-D", "ALLOC_TESTING")
 
         val builder = Process(processTokens, new java.io.File("."))
         val compile = builder.run(logger.process)
 
         // while its compiling, run the cEngine code
 
-        cEngineOutput = getCEngineResults(codeInFiles, shouldBootstrap)
+        cEngineOutput = getCEngineResults(codeInFiles, shouldBootstrap, pointerSize)
 
         compile.exitValue()
 
@@ -135,7 +140,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
               run.exitValue()
               isDone = true
             } catch {
-              case e => e.printStackTrace()
+              case e =>
             }
           }
 

@@ -28,6 +28,27 @@ class StagingGround extends StandardTest {
   }
 }
 
+class PointerSizeTest extends StandardTest {
+
+  "32-bit pointer size" should "print the correct results" in {
+    val code = """
+      void main() {
+        printf("%d\n", sizeof(void *));
+      }"""
+
+    checkResults(code, pointerSize = ThirtyTwoBits)
+  }
+
+  "64-bit pointer size" should "print the correct results" in {
+    val code = """
+      void main() {
+        printf("%d\n", sizeof(void *));
+      }"""
+
+    checkResults(code, pointerSize = SixtyFourBits)
+  }
+}
+
 class PointerArithmeticTest extends StandardTest {
 
   "pointer arithmetic on a pointer type" should "print the correct results" in {
@@ -47,6 +68,17 @@ class PointerArithmeticTest extends StandardTest {
         int *p7 = y + arr;
 
         printf("%d %d %d %d %d %d %d\n", *p1, *p2, p3, p4, p5, *p6, *p7);
+      }"""
+
+    checkResults(code)
+  }
+
+  "pointer arithmetic between pointers" should "print the correct results" in {
+    val code = """
+      void main() {
+         int* x[5];
+
+         printf("%d\n", &x[0] - &x[1]);
       }"""
 
     checkResults(code)
