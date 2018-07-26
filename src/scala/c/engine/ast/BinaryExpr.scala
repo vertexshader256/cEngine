@@ -21,23 +21,25 @@ object BinaryExpr {
   def evaluate(node: IASTNode, x: ValueType, y: ValueType, operator: Int)(implicit state: State): RValue = {
 
     val right = y match {
-      case info @ LValue(_, ptr: IArrayType) => RValue(info.address, state.pointerType)
+      case info @ LValue(_, ptr: IArrayType) => new RValue(info.address, state.pointerType) {}
       case info @ LValue(_, _) => info.value
       case value @ RValue(_, _) => value
+      case address @ Address(value, theType, _) => new RValue(value, theType) {}
       case StringLiteral(str) =>
         state.createStringVariable(str, true)
     }
 
     val left = x match {
-      case info @ LValue(_, ptr: IArrayType) => RValue(info.address, state.pointerType)
+      case info @ LValue(_, ptr: IArrayType) => new RValue(info.address, state.pointerType) {}
       case info @ LValue(_, _) => info.value
       case value @ RValue(_, _) => value
+      case address @ Address(value, theType, _) => new RValue(value, theType) {}
       case StringLiteral(str) =>
         state.createStringVariable(str, false)
     }
 
-    val isLeftPointer = x.theType.isInstanceOf[IPointerType] || x.theType.isInstanceOf[IArrayType]
-    val isRightPointer = y.theType.isInstanceOf[IPointerType] || y.theType.isInstanceOf[IArrayType]
+    val isLeftPointer = x.theType.isInstanceOf[IPointerType] || x.theType.isInstanceOf[IArrayType] || left.isInstanceOf[Address]
+    val isRightPointer = y.theType.isInstanceOf[IPointerType] || y.theType.isInstanceOf[IArrayType] || right.isInstanceOf[Address]
 
     val initialRight = if (operator == `op_minus` || operator == `op_plus`) {
       if (isLeftPointer && !isRightPointer) {
@@ -246,7 +248,7 @@ object BinaryExpr {
     }
 
     if (Utils.isAssignment(operator)) {
-      RValue(result, left.theType)
+      new RValue(result, left.theType) {}
     } else {
 
       // offical conversion rules
@@ -269,9 +271,9 @@ object BinaryExpr {
       }
 
       if (resultType != null) {
-        RValue(result, resultType)
+        new RValue(result, resultType) {}
       } else {
-        RValue(result, left.theType)
+        new RValue(result, left.theType) {}
       }
     }
   }

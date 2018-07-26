@@ -27,9 +27,19 @@ case class TypeInfo(value: IType) extends ValueType {
   val theType = value
 }
 
-case class RValue(value: AnyVal, theType: IType) extends ValueType {
+object RValue {
+  def unapply(rvalue: RValue): Option[(AnyVal, IType)] = Some((rvalue.value, rvalue.theType))
+}
+
+abstract class RValue(val value: AnyVal, val theType: IType) extends ValueType {
   override def toString = {
     "RValue(" + value + ", " + theType + ")"
+  }
+}
+
+case class Address(avalue: Int, atheType: IType, baseType: IType) extends RValue(avalue, atheType) {
+  override def toString = {
+    "Address(" + value + ", " + theType + ")"
   }
 }
 
@@ -105,7 +115,7 @@ case class Variable(name: String, state: State, theType: IType) extends LValue(s
   var isInitialized = false
 
   def value = if (theType.isInstanceOf[IArrayType]) {
-    RValue(address, theType)
+    new RValue(address, theType) {}
   } else {
     state.Stack.readFromMemory(address, theType)
   }

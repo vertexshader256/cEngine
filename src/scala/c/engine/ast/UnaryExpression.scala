@@ -12,18 +12,18 @@ object UnaryExpression {
       unary.getOperator match {
         case `op_bracketedPrimary` => value
         case `op_tilde` =>
-          RValue(~value.asInstanceOf[RValue].value.asInstanceOf[Int], null)
-        case `op_not` => RValue(TypeHelper.not(value), TypeHelper.one.theType)
+          new RValue(~value.asInstanceOf[RValue].value.asInstanceOf[Int], null) {}
+        case `op_not` => new RValue(TypeHelper.not(value), TypeHelper.one.theType) {}
         case `op_minus` =>
           val valueType = value
           val newVal = BinaryExpr.evaluate(unary, valueType, TypeHelper.negativeOne, IASTBinaryExpression.op_multiply).value
-          RValue(newVal, valueType.theType)
+          new RValue(newVal, valueType.theType) {}
         case `op_postFixIncr` =>
           val lValue = value.asInstanceOf[LValue]
           val newVal = BinaryExpr.evaluate(unary, lValue, TypeHelper.one, IASTBinaryExpression.op_plus).value
 
           // push then set
-          val returnVal = RValue(lValue.value.value, lValue.theType)
+          val returnVal = new RValue(lValue.value.value, lValue.theType) {}
           state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
           returnVal
         case `op_postFixDecr` =>
@@ -31,7 +31,7 @@ object UnaryExpression {
           val newVal = BinaryExpr.evaluate(unary, lValue, TypeHelper.one, IASTBinaryExpression.op_minus).value
 
           // push then set
-          val returnVal = RValue(lValue.value.value, lValue.theType)
+          val returnVal = new RValue(lValue.value.value, lValue.theType) {}
           state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
           returnVal
         case `op_prefixIncr` =>
@@ -40,24 +40,24 @@ object UnaryExpression {
 
           // set then push
           state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
-          RValue(newVal, lValue.theType)
+          new RValue(newVal, lValue.theType) {}
         case `op_prefixDecr` =>
           val lValue = value.asInstanceOf[LValue]
           val newVal = BinaryExpr.evaluate(unary, lValue, TypeHelper.one, IASTBinaryExpression.op_minus).value
 
           // set then push
           state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
-          RValue(newVal, lValue.theType)
+          new RValue(newVal, lValue.theType) {}
         case `op_sizeof` =>
           value match {
-            case info @ LValue(_, theType) => RValue(info.sizeof, new CBasicType(IBasicType.Kind.eInt, 0))
+            case info @ LValue(_, theType) => new RValue(info.sizeof, new CBasicType(IBasicType.Kind.eInt, 0)) {}
           }
         case `op_amper` =>
           value match {
             case info@LValue(_, _) =>
               info.theType match {
                 case fcn: CFunctionType => MemoryLocation(state, info.address, fcn)
-                case x: IType => RValue(info.address, state.pointerType)
+                case x: IType => Address(info.address, state.pointerType, x)
               }
           }
         case `op_star` =>

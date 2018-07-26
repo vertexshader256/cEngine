@@ -464,7 +464,7 @@ class State(pointerSize: NumBits) {
 
     functionList.find(_.name == name).map { fcn =>
       // this is a function simulated in scala
-      fcn.run(args.reverse, this).foreach { retVal => context.pushOntoStack(List(RValue(retVal, null))) }
+      fcn.run(args.reverse, this).foreach { retVal => context.pushOntoStack(List(new RValue(retVal, null) {})) }
     }
 
     Seq()
@@ -480,6 +480,7 @@ class State(pointerSize: NumBits) {
             createStringVariable(str, false)(this)
           case info @ LValue(_, _) => info.value
           case value @ RValue(_, _) => value
+          case address @ Address(value, theType, _) => new RValue(value, theType) {}
         }
       }
 
@@ -517,7 +518,7 @@ class State(pointerSize: NumBits) {
         // this is a function simulated in scala
         val returnVal = function.run(resolvedArgs.reverse, this)
         //popFunctionContext
-        returnVal.map{theVal => RValue(theVal, null)}
+        returnVal.map{theVal => new RValue(theVal, null) {}}
       } else {
 
         val newScope = scope.getOrElse {
@@ -529,7 +530,7 @@ class State(pointerSize: NumBits) {
         }
 
         newScope.init(function.node, this, !scope.isDefined)
-        newScope.pushOntoStack(promoted :+ RValue(resolvedArgs.size, null))
+        newScope.pushOntoStack(promoted :+ new RValue(resolvedArgs.size, null) {})
 
         functionContexts = newScope +: functionContexts
 
@@ -595,11 +596,11 @@ class State(pointerSize: NumBits) {
   def createStringVariable(str: String, isHeap: Boolean)(implicit state: State): RValue = {
     val theStr = Utils.stripQuotes(str)
 
-    val withNull = (theStr.toCharArray() :+ 0.toChar).map{char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))} // terminating null char
+    val withNull = (theStr.toCharArray() :+ 0.toChar).map{char => new RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0)) {}} // terminating null char
     val strAddr = if (isHeap) allocateHeapSpace(withNull.size) else allocateSpace(withNull.size)
 
     setArray(withNull, strAddr, 1)
-    RValue(strAddr, pointerType)
+    new RValue(strAddr, pointerType) {}
   }
 
   def setArray(array: Array[RValue], address: Int, stride: Int): Unit = {

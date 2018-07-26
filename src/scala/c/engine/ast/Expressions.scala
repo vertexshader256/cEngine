@@ -88,7 +88,7 @@ object Expressions {
     case typeExpr: IASTTypeIdExpression =>
       // used for sizeof calls on a type
         val theType = TypeHelper.getType(typeExpr.getTypeId).theType
-        Some(RValue(TypeHelper.sizeof(theType), new CBasicType(IBasicType.Kind.eInt, 0)))
+        Some(new RValue(TypeHelper.sizeof(theType), new CBasicType(IBasicType.Kind.eInt, 0)) {})
     case call: IASTFunctionCallExpression =>
         val pop = evaluate(call.getFunctionNameExpression).head
 

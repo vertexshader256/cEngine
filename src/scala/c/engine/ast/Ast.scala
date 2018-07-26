@@ -90,7 +90,7 @@ object Ast {
       if (enumerator.getValue != null) {
         step(enumerator.getValue)
       } else {
-        state.context.pushOntoStack(List(new RValue(enumerator.getParent.getChildren.indexOf(enumerator) - 1, new CBasicType(IBasicType.Kind.eInt, 0))))
+        state.context.pushOntoStack(List(new RValue(enumerator.getParent.getChildren.indexOf(enumerator) - 1, new CBasicType(IBasicType.Kind.eInt, 0)) {}))
       }
 
       val newVar = state.context.addVariable(enumerator.getName.getRawSignature, new CBasicType(IBasicType.Kind.eInt, 0))

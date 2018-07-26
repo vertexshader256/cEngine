@@ -77,8 +77,36 @@ class PointerArithmeticTest extends StandardTest {
     val code = """
       void main() {
          int* x[5];
+         int y[5];
 
+         printf("%d %d\n", &x[0] - &x[1], &x[1] - &x[0]);
+         printf("%d %d\n", &x[0] - &x[4], &x[4] - &x[0]);
+
+         y[0] = 5;
+         int* z = y;
+         *(z + 1) = 10;
+         printf("%d\n", y[1]);
+
+      }"""
+
+    checkResults(code)
+  }
+
+  "pointer arithmetic with pointers to structs" should "print the correct results" in {
+    val code = """
+      void main() {
+         struct Test {
+            int x;
+            int y;
+            int z;
+         };
+
+         struct Test x[5];
+
+         //printf("%d\n", sizeof(struct Test));
+        // printf("%d %d\n", &x[0], &x[1]);
          printf("%d\n", &x[0] - &x[1]);
+
       }"""
 
     checkResults(code)

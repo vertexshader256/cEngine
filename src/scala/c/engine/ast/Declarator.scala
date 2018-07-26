@@ -93,7 +93,7 @@ object Declarator {
 
             val theStr = Utils.stripQuotes(initString)
             val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
-            val withNull = (translateLineFeed.toCharArray() :+ 0.toChar).map { char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0)) } // terminating null char
+            val withNull = (translateLineFeed.toCharArray() :+ 0.toChar).map { char => new RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0)) {} } // terminating null char
 
             val inferredArrayType = new CArrayType(theType.asInstanceOf[IArrayType].getType)
             inferredArrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, initString.size.toString.toCharArray)))
@@ -109,7 +109,7 @@ object Declarator {
                 case info@LValue(_, _) => info.value
                 case value@RValue(_, _) => value
               }
-            }.map { x => RValue(x.value, theType.asInstanceOf[IArrayType].getType) }
+            }.map { x => new RValue(x.value, theType.asInstanceOf[IArrayType].getType) {}}
 
             val finalType = if (!dimensions.isEmpty) {
               variable.getType
@@ -156,7 +156,7 @@ object Declarator {
 
 
             if (!stripped.isInstanceOf[CStructure]) {
-              val initVal = Option(decl.getInitializer).map(x => state.context.popStack).getOrElse(RValue(0, null))
+              val initVal = Option(decl.getInitializer).map(x => state.context.popStack).getOrElse(new RValue(0, null) {})
               BinaryExpr.parseAssign(decl, op_assign, variable, initVal)
             } else if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
               && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
@@ -167,7 +167,7 @@ object Declarator {
               val struct = stripped.asInstanceOf[CStructure]
               struct.getFields.zip(values).foreach{ case (field, newValue) =>
                 val theField = TypeHelper.offsetof(struct, variable.address, field.getName, state)
-                  theField.setValue(newValue.asInstanceOf[RValue].value)
+                theField.setValue(newValue.asInstanceOf[RValue].value)
               }
             }
 
