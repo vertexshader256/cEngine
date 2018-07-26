@@ -42,12 +42,23 @@ object BinaryExpr {
     val isRightPointer = y.theType.isInstanceOf[IPointerType] || y.theType.isInstanceOf[IArrayType] || right.isInstanceOf[Address]
 
     val initialRight = if (operator == `op_minus` || operator == `op_plus`) {
+
       if (isLeftPointer && !isRightPointer) {
+        val baseType = if (left.isInstanceOf[Address]) {
+          left.asInstanceOf[Address].baseType
+        } else {
+          TypeHelper.resolve(x.theType)
+        }
         // increment by the size of the left arg
-        right.value.asInstanceOf[Int] * TypeHelper.sizeof(TypeHelper.resolve(x.theType))
+        right.value.asInstanceOf[Int] * TypeHelper.sizeof(baseType)
       } else if (isLeftPointer && isRightPointer) {
+        val baseType = if (left.isInstanceOf[Address]) {
+          left.asInstanceOf[Address].baseType
+        } else {
+          TypeHelper.resolve(x.theType)
+        }
         // increment by the size of the left arg
-        right.value.asInstanceOf[Int] / TypeHelper.sizeof(TypeHelper.resolve(x.theType))
+        right.value.asInstanceOf[Int] / TypeHelper.sizeof(baseType)
       } else {
         right.value
       }
@@ -56,12 +67,23 @@ object BinaryExpr {
     }
 
     val initialLeft = if (operator == `op_minus` || operator == `op_plus`) {
+
       if (!isLeftPointer && isRightPointer) {
+        val baseType = if (right.isInstanceOf[Address]) {
+          right.asInstanceOf[Address].baseType
+        } else {
+          TypeHelper.resolve(y.theType)
+        }
         // increment by the size of the left arg
-        left.value.asInstanceOf[Int] * TypeHelper.sizeof(TypeHelper.resolve(y.theType))
+        left.value.asInstanceOf[Int] * TypeHelper.sizeof(baseType)
       } else if (isLeftPointer && isRightPointer) {
+        val baseType = if (right.isInstanceOf[Address]) {
+          right.asInstanceOf[Address].baseType
+        } else {
+          TypeHelper.resolve(y.theType)
+        }
         // increment by the size of the left arg
-        left.value.asInstanceOf[Int] / TypeHelper.sizeof(TypeHelper.resolve(y.theType))
+        left.value.asInstanceOf[Int] / TypeHelper.sizeof(baseType)
       } else {
         left.value
       }
