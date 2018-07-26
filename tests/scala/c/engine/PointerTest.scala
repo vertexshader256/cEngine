@@ -103,9 +103,8 @@ class PointerArithmeticTest extends StandardTest {
 
          struct Test x[5];
 
-         //printf("%d\n", sizeof(struct Test));
-        // printf("%d %d\n", &x[0], &x[1]);
          printf("%d\n", &x[0] - &x[1]);
+         printf("%d\n", &x[0] - (&x[1] + 1));
 
       }"""
 
