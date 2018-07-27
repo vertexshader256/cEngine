@@ -470,19 +470,11 @@ class State(pointerSize: NumBits) {
     Seq()
   }
 
-  def callTheFunction(name: String, call: IASTFunctionCallExpression, args: Array[ValueType], scope: Option[FunctionScope]): Option[ValueType] = {
+  def callTheFunction(name: String, call: IASTFunctionCallExpression, args: Array[ValueType], scope: Option[FunctionScope])(implicit state: State): Option[ValueType] = {
 
     functionList.find(_.name == name).map{ function =>
 
-      val resolvedArgs: Array[RValue] = args.map{x =>
-        x match {
-          case StringLiteral(str) =>
-            createStringVariable(str, false)(this)
-          case info @ LValue(_, _) => info.value
-          case value @ RValue(_, _) => value
-          case address @ Address(value, theType, _) => new RValue(value, theType) {}
-        }
-      }
+      val resolvedArgs: Array[RValue] = args.map{ TypeHelper.resolve }
 
       val convertedArgs = functionPrototypes.find{_.getName.getRawSignature == name}.map{ proto =>
         val params = proto.getChildren.collect{case param: CASTParameterDeclaration => param}

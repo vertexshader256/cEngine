@@ -32,12 +32,7 @@ object Declarator {
           numArgs = state.context.popStack.asInstanceOf[RValue].value.asInstanceOf[Integer]
           val args = (0 until numArgs).map { arg => state.context.popStack }.reverse
 
-          val resolvedArgs = args.map { arg => arg match {
-            case StringLiteral(str) =>
-              state.createStringVariable(str, false)
-            case info @ LValue(_, _) => info.value
-            case value @ RValue(_, _) => value
-          }}
+          val resolvedArgs = args.map { TypeHelper.resolve }
 
           var paramDecls = fcn.getParameters.toList
 
@@ -87,7 +82,7 @@ object Declarator {
 
         if (initializer != null) {
 
-          val (initArray, initType) = if (TypeHelper.resolve(theType).getKind == IBasicType.Kind.eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
+          val (initArray, initType) = if (TypeHelper.resolveBasic(theType).getKind == IBasicType.Kind.eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
             // e.g. char str[] = "Hello!\n";
             val initString = state.context.popStack.asInstanceOf[StringLiteral].value
 
@@ -100,16 +95,9 @@ object Declarator {
 
             (withNull, inferredArrayType)
           } else {
-            val initVals: Array[Any] = (0 until initializer.getInitializerClause.getChildren.size).map { x => state.context.popStack }.reverse.toArray
+            val initVals: Array[ValueType] = (0 until initializer.getInitializerClause.getChildren.size).map { x => state.context.popStack }.reverse.toArray
 
-            val initialArray = initVals.map { newInit =>
-              newInit match {
-                case StringLiteral(x) =>
-                  state.createStringVariable(newInit.asInstanceOf[StringLiteral].value, false)
-                case info@LValue(_, _) => info.value
-                case value@RValue(_, _) => value
-              }
-            }.map { x => new RValue(x.value, theType.asInstanceOf[IArrayType].getType) {}}
+            val initialArray = initVals.map { TypeHelper.resolve }.map { x => new RValue(x.value, theType.asInstanceOf[IArrayType].getType) {}}
 
             val finalType = if (!dimensions.isEmpty) {
               variable.getType

@@ -99,13 +99,42 @@ class PointerArithmeticTest extends StandardTest {
             int x;
             int y;
             int z;
+            struct Test* ptr2;
          };
 
          struct Test x[5];
+         struct Test* ptr = &x[1];
+         ptr->ptr2 = &x[2];
+         int i = 1;
 
          printf("%d\n", &x[0] - &x[1]);
          printf("%d\n", &x[0] - (&x[1] + 1));
+         printf("%d\n", &x[0] - (&x[1] - 1));
+         printf("%d\n", &x[0] - (1 + &x[1]));
 
+         printf("%d\n", &x[0] - ptr);
+         printf("%d\n", &x[0] - (ptr + 1));
+         printf("%d\n", &x[0] - (ptr - 1));
+         printf("%d\n", &x[0] - (1 + ptr));
+
+         printf("%d\n", x - ptr);
+         printf("%d\n", x - (ptr + 1));
+         printf("%d\n", x - (ptr - 1));
+         printf("%d\n", x - (1 + ptr));
+
+         printf("%d\n", ptr - x);
+         printf("%d\n", ptr - (x + 1));
+         printf("%d\n", ptr - (x - 1));
+         printf("%d\n", ptr - (1 + x));
+
+         printf("%d\n", ptr - (x + i));
+         printf("%d\n", ptr - (x - i));
+         printf("%d\n", ptr - (i + x));
+
+         printf("%d\n", ptr->ptr2 - x);
+         printf("%d\n", ptr->ptr2 - (x + 1));
+         printf("%d\n", ptr->ptr2 - (x - 1));
+         printf("%d\n", ptr->ptr2 - (1 + x));
       }"""
 
     checkResults(code)

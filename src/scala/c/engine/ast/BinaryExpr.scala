@@ -18,94 +18,127 @@ object BinaryExpr {
     dst
   }
 
-  def evaluate(node: IASTNode, x: ValueType, y: ValueType, operator: Int)(implicit state: State): RValue = {
+  def calculateBoolean(left: AnyVal, right: AnyVal, operator: Int): Boolean = operator match {
+    case `op_greaterThan` =>
+      (left, right) match {
+        case (x: Int, y: Int) => x > y
+        case (x: Int, y: Float) => x > y
+        case (x: Int, y: Double) => x > y
+        case (x: Int, y: Long) => x > y
 
-    val right = y match {
-      case info @ LValue(_, ptr: IArrayType) => new RValue(info.address, state.pointerType) {}
-      case info @ LValue(_, _) => info.value
-      case value @ RValue(_, _) => value
-      case address @ Address(value, theType, _) => new RValue(value, theType) {}
-      case StringLiteral(str) =>
-        state.createStringVariable(str, true)
-    }
+        case (x: Float, y: Int) => x > y
+        case (x: Float, y: Double) => x > y
+        case (x: Float, y: Float) => x > y
+        case (x: Float, y: Long) => x > y
 
-    val left = x match {
-      case info @ LValue(_, ptr: IArrayType) => new RValue(info.address, state.pointerType) {}
-      case info @ LValue(_, _) => info.value
-      case value @ RValue(_, _) => value
-      case address @ Address(value, theType, _) => new RValue(value, theType) {}
-      case StringLiteral(str) =>
-        state.createStringVariable(str, false)
-    }
+        case (x: Double, y: Int) => x > y
+        case (x: Double, y: Double) => x > y
+        case (x: Double, y: Float) => x > y
+        case (x: Double, y: Long) => x > y
 
-    val isLeftPointer = x.theType.isInstanceOf[IPointerType] || x.theType.isInstanceOf[IArrayType] || left.isInstanceOf[Address]
-    val isRightPointer = y.theType.isInstanceOf[IPointerType] || y.theType.isInstanceOf[IArrayType] || right.isInstanceOf[Address]
+        case (x: Long, y: Int) => x > y
+        case (x: Long, y: Float) => x > y
+        case (x: Long, y: Double) => x > y
+        case (x: Long, y: Long) => x > y
+      }
+    case `op_logicalAnd` =>
+      TypeHelper.resolveBoolean(left) && TypeHelper.resolveBoolean(right)
+    case `op_logicalOr` =>
+      TypeHelper.resolveBoolean(left) || TypeHelper.resolveBoolean(right)
+    case `op_equals` =>
+      left == right
+    case `op_notequals` =>
+      !calculateBoolean(left, right, op_equals)
+    case `op_greaterEqual` =>
+      calculateBoolean(left, right, op_greaterThan) || calculateBoolean(left, right, op_equals)
+    case `op_lessThan` =>
+      !calculateBoolean(left, right, op_greaterEqual)
+    case `op_lessEqual` =>
+      !calculateBoolean(left, right, op_greaterThan)
+  }
 
-    val initialRight = if (operator == `op_minus` || operator == `op_plus`) {
+  def evaluatePointerArithmetic(left: RValue, right: RValue, operator: Int)(implicit state: State): RValue = {
 
-      if (isLeftPointer && !isRightPointer) {
-        val baseType = if (left.isInstanceOf[Address]) {
-          left.asInstanceOf[Address].baseType
-        } else {
-          TypeHelper.resolve(x.theType)
-        }
-        // increment by the size of the left arg
-        right.value.asInstanceOf[Int] * TypeHelper.sizeof(baseType)
-      } else if (isLeftPointer && isRightPointer) {
-        val baseType = if (left.isInstanceOf[Address]) {
-          left.asInstanceOf[Address].baseType
-        } else {
-          TypeHelper.resolve(x.theType)
-        }
-        // increment by the size of the left arg
-        right.value.asInstanceOf[Int] / TypeHelper.sizeof(baseType)
+    val isLeftPointer = left.theType.isInstanceOf[IPointerType] || left.theType.isInstanceOf[IArrayType] || left.isInstanceOf[Address]
+    val isRightPointer = right.theType.isInstanceOf[IPointerType] || right.theType.isInstanceOf[IArrayType] || right.isInstanceOf[Address]
+
+    if (operator == `op_minus` || operator == `op_plus`) {
+
+      val baseType = if (left.isInstanceOf[Address]) {
+        left.asInstanceOf[Address].baseType
       } else {
-        right.value
+        TypeHelper.resolve(left.theType)
+      }
+
+      val rightBaseType = if (right.isInstanceOf[Address]) {
+        right.asInstanceOf[Address].baseType
+      } else {
+        TypeHelper.resolve(right.theType)
+      }
+
+      val ptrSize = TypeHelper.sizeof(baseType)
+      val rightPtrSize = TypeHelper.sizeof(rightBaseType)
+
+      if (isLeftPointer && isRightPointer) {
+        val result = if (operator == `op_minus`) {
+          (left.value.asInstanceOf[Int] - right.value.asInstanceOf[Int]) / ptrSize
+        } else {
+          (left.value.asInstanceOf[Int] + right.value.asInstanceOf[Int]) / ptrSize
+        }
+
+        if (left.isInstanceOf[Address]) {
+          Address(result, left.theType, baseType)
+        } else {
+          new RValue(result, left.theType) {}
+        }
+      } else if (!isLeftPointer && isRightPointer) {
+        val result = if (operator == `op_minus`) {
+          left.value.asInstanceOf[Int] * rightPtrSize - right.value.asInstanceOf[Int]
+        } else {
+          left.value.asInstanceOf[Int] * rightPtrSize + right.value.asInstanceOf[Int]
+        }
+
+        if (right.isInstanceOf[Address]) {
+          Address(result, left.theType, rightBaseType)
+        } else {
+          new RValue(result, right.theType) {}
+        }
+      } else if (isLeftPointer && !isRightPointer) {
+        val result = if (operator == `op_minus`) {
+          left.value.asInstanceOf[Int] - right.value.asInstanceOf[Int] * ptrSize
+        } else {
+          left.value.asInstanceOf[Int] + right.value.asInstanceOf[Int] * ptrSize
+        }
+
+        if (left.isInstanceOf[Address]) {
+          Address(result, left.theType, baseType)
+        } else {
+          new RValue(result, left.theType) {}
+        }
+      } else {
+        new RValue(calculate(left.value, right.value, operator), left.theType) {}
       }
     } else {
-      right.value
+      new RValue(calculate(left.value, right.value, operator), left.theType) {}
     }
+  }
 
-    val initialLeft = if (operator == `op_minus` || operator == `op_plus`) {
-
-      if (!isLeftPointer && isRightPointer) {
-        val baseType = if (right.isInstanceOf[Address]) {
-          right.asInstanceOf[Address].baseType
-        } else {
-          TypeHelper.resolve(y.theType)
-        }
-        // increment by the size of the left arg
-        left.value.asInstanceOf[Int] * TypeHelper.sizeof(baseType)
-      } else if (isLeftPointer && isRightPointer) {
-        val baseType = if (right.isInstanceOf[Address]) {
-          right.asInstanceOf[Address].baseType
-        } else {
-          TypeHelper.resolve(y.theType)
-        }
-        // increment by the size of the left arg
-        left.value.asInstanceOf[Int] / TypeHelper.sizeof(baseType)
-      } else {
-        left.value
-      }
-    } else {
-      left.value
-    }
-
+  def calculate(left: AnyVal, right: AnyVal, operator: Int)(implicit state: State): AnyVal = {
     // Because of integer promotion, C never does math on anything less than int's
 
-    val op1 = initialLeft match {
+    val op1 = left match {
       case theChar: char => theChar.toInt
       case theShort: short => theShort.toInt
       case x => x
     }
 
-    val op2 = initialRight match {
+    val op2 = right match {
       case theChar: char => theChar.toInt
       case theShort: short => theShort.toInt
       case x => x
     }
 
-    val result: AnyVal = operator match {
+    operator match {
       case `op_multiply` | `op_multiplyAssign` =>
         (op1, op2) match {
           case (x: Int, y: Int) => x * y
@@ -198,38 +231,6 @@ object BinaryExpr {
           case (x: Long, y: Int) => x << y
           case (x: Int, y: Int) => x << y
         }
-      case `op_equals` =>
-        op1 == op2
-      case `op_notequals` =>
-        !evaluate(node, left, right, op_equals).value.asInstanceOf[Boolean]
-      case `op_greaterThan` =>
-        (op1, op2) match {
-          case (x: Int, y: Int) => x > y
-          case (x: Int, y: Float) => x > y
-          case (x: Int, y: Double) => x > y
-          case (x: Int, y: Long) => x > y
-
-          case (x: Float, y: Int) => x > y
-          case (x: Float, y: Double) => x > y
-          case (x: Float, y: Float) => x > y
-          case (x: Float, y: Long) => x > y
-
-          case (x: Double, y: Int) => x > y
-          case (x: Double, y: Double) => x > y
-          case (x: Double, y: Float) => x > y
-          case (x: Double, y: Long) => x > y
-
-          case (x: Long, y: Int) => x > y
-          case (x: Long, y: Float) => x > y
-          case (x: Long, y: Double) => x > y
-          case (x: Long, y: Long) => x > y
-        }
-      case `op_greaterEqual` =>
-        evaluate(node, left, right, op_greaterThan).value.asInstanceOf[Boolean] || evaluate(node, left, right, op_equals).value.asInstanceOf[Boolean]
-      case `op_lessThan` =>
-        !evaluate(node, left, right, op_greaterEqual).value.asInstanceOf[Boolean]
-      case `op_lessEqual` =>
-        !evaluate(node, left, right, op_greaterThan).value.asInstanceOf[Boolean]
       case `op_modulo` =>
         (op1, op2) match {
           case (x: Long, y: Long) => if (x % y >= 0) x % y else (x % y) + y
@@ -238,21 +239,21 @@ object BinaryExpr {
           case (x: Double, y: Int) => if (x % y >= 0) x % y else (x % y) + y
           case (x: Int, y: Double) => if (x % y >= 0) x % y else (x % y) + y
           case (x: Double, y: Double) => if (x % y >= 0) x % y else (x % y) + y
-        } 
+        }
       case `op_binaryOr`  | `op_binaryOrAssign`=>
         (op1, op2) match {
           case (x: Int, y: Int) => x | y
           case (x: Int, y: Long) => x | y
           case (x: Long, y: Int) => x | y
           case (x: Long, y: Long) => x | y
-        }  
+        }
       case `op_binaryXor` | `op_binaryXorAssign` =>
         (op1, op2) match {
           case (x: Int, y: Int) => x ^ y
           case (x: Int, y: Long) => x ^ y
           case (x: Long, y: Int) => x ^ y
           case (x: Long, y: Long) => x ^ y
-        }   
+        }
       case `op_binaryAnd` | `op_binaryAndAssign` =>
         (op1, op2) match {
           case (x: Int, y: Int) => x & y
@@ -260,18 +261,24 @@ object BinaryExpr {
           case (x: Long, y: Int) => x & y
           case (x: Long, y: Long) => x & y
         }
-      case `op_logicalAnd` =>
-        TypeHelper.resolveBoolean(op1) && TypeHelper.resolveBoolean(op2)
-      case `op_logicalOr` =>
-        TypeHelper.resolveBoolean(op1) || TypeHelper.resolveBoolean(op2)
       case `op_assign` =>
         op2
-      case _ => throw new Exception("unhandled binary operator: " + operator); 0
+      case _ =>
+        calculateBoolean(op1, op2, operator)
     }
+  }
 
-    if (Utils.isAssignment(operator)) {
-      new RValue(result, left.theType) {}
+  def evaluate(node: IASTNode, x: ValueType, y: ValueType, operator: Int)(implicit state: State): RValue = {
+    val isLeftPointer = x.theType.isInstanceOf[IPointerType] || x.theType.isInstanceOf[IArrayType] || x.isInstanceOf[Address]
+    val isRightPointer = y.theType.isInstanceOf[IPointerType] || y.theType.isInstanceOf[IArrayType] || y.isInstanceOf[Address]
+
+    val left = TypeHelper.resolve(x)
+    val right = TypeHelper.resolve(y)
+
+    if (isLeftPointer || isRightPointer) {
+      evaluatePointerArithmetic(left, right, operator)
     } else {
+      val result = calculate(left.value,  right.value, operator)
 
       // offical conversion rules
       val resultType = (left.theType, right.theType) match {
@@ -287,16 +294,10 @@ object BinaryExpr {
           case (_, _) if (l.isUnsigned || r.isUnsigned) => new CBasicType(eInt, IBasicType.IS_UNSIGNED)
           case _ => new CBasicType(eInt, 0)
         }
-        case _ =>
-          //println("ERROR: (" + left.theType + ", " + right.theType + ") " + node.getParent.getRawSignature)
-          null
+        case _ => left.theType
       }
 
-      if (resultType != null) {
-        new RValue(result, resultType) {}
-      } else {
-        new RValue(result, left.theType) {}
-      }
+      new RValue(result, resultType) {}
     }
   }
 }

@@ -176,11 +176,12 @@ object TypeHelper {
     }
   }
   
-  // resolves 'Any' to 'ValueInfo'
+  // resolves 'ValueType' to 'RValue'
   def resolve(any: ValueType)(implicit state: State): RValue = {
     any match {
       case info @ LValue(_, _) => info.value
-      case value @ RValue(theVal, _) => value
+      case rValue @ RValue(_, _) => rValue
+      case StringLiteral(str) => state.createStringVariable(str, false)
     }
   }
 
@@ -193,9 +194,18 @@ object TypeHelper {
     case char: char => if (char == 0) 1 else 0
   }
 
-  // Some standard cases of needing to know what a type resolves to
-  def resolve(theType: IType)(implicit state: State): IBasicType = theType match {
+  def resolveBasic(theType: IType)(implicit state: State): IBasicType = theType match {
     case basicType: IBasicType    => basicType
+    case typedef: ITypedef        => resolveBasic(typedef.getType)
+    case ptrType: IPointerType    => resolveBasic(ptrType.getType)
+    case arrayType: IArrayType    => resolveBasic(arrayType.getType)
+    case qualType: IQualifierType => resolveBasic(qualType.getType)
+    case fcn: IFunctionType       => state.pointerType
+  }
+
+  def resolve(theType: IType)(implicit state: State): IType = theType match {
+    case basicType: IBasicType    => basicType
+    case struct: CStructure       => struct
     case typedef: ITypedef        => resolve(typedef.getType)
     case ptrType: IPointerType    => resolve(ptrType.getType)
     case arrayType: IArrayType    => resolve(arrayType.getType)

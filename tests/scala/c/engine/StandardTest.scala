@@ -76,7 +76,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
       state.context.setAddress(0)
 
       //state.context.pathStack.push(NodePath(state.getFunction("main").node, Stage1))
-      state.callTheFunction("main", null, Array(), None)
+      state.callTheFunction("main", null, Array(), None)(state)
       //totalTime += (System.nanoTime - start) / 1000000000.0
       getResults(state.stdout.toList)
     }.getOrElse(List())
@@ -137,6 +137,10 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
               // run the actual executable
               val runner = Process(Seq(exeFile.getAbsolutePath), new File("."))
               val run = runner.run(runLogger.process)
+
+              // delete files while program is running
+              files.foreach{file => file.delete()}
+
               run.exitValue()
               isDone = true
             } catch {
@@ -149,8 +153,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
           logger.errors
         }
 
-        files.foreach{file => file.delete()}
-        exeFile.delete()
+        Future {exeFile.delete()}
 
       } catch {
         case e: Exception => except = e
@@ -159,7 +162,6 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
       info("C_Engine output: " + cEngineOutput)
       info("Gcc      output: " + gccOutput.toList)
 
-      println("HERE")
       if (except != null) {
         throw except
       }

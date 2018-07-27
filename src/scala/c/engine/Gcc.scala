@@ -22,7 +22,7 @@ object Gcc {
       """
 
       state.init(Seq(exeCode))
-      state.callTheFunction("main", null, Array(), Some(program))
+      state.callTheFunction("main", null, Array(), Some(program))(state)
 
       val main = state.getFunction("main")
       state.functionList -= main

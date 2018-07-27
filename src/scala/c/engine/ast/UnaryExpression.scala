@@ -63,7 +63,7 @@ object UnaryExpression {
         case `op_star` =>
           value match {
             case RValue(int: Int, theType) =>
-              MemoryLocation(state, int, TypeHelper.resolve(theType))
+              MemoryLocation(state, int, TypeHelper.resolveBasic(theType))
             case info@LValue(_, _) =>
               val nestedType = info.theType match {
                 case ptr: IPointerType => ptr.getType
