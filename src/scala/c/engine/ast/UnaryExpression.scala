@@ -15,39 +15,42 @@ object UnaryExpression {
           new RValue(~value.asInstanceOf[RValue].value.asInstanceOf[Int], null) {}
         case `op_not` => new RValue(TypeHelper.not(value), TypeHelper.one.theType) {}
         case `op_minus` =>
-          val valueType = value
-          val newVal = BinaryExpr.evaluate(unary, valueType, TypeHelper.negativeOne, IASTBinaryExpression.op_multiply).value
-          new RValue(newVal, valueType.theType) {}
+          val newVal = BinaryExpr.evaluate(unary, value, TypeHelper.negativeOne, IASTBinaryExpression.op_multiply).value
+          new RValue(newVal, value.theType) {}
         case `op_postFixIncr` =>
-          val lValue = value.asInstanceOf[LValue]
-          val newVal = BinaryExpr.evaluate(unary, lValue, TypeHelper.one, IASTBinaryExpression.op_plus).value
-
-          // push then set
-          val returnVal = new RValue(lValue.value.value, lValue.theType) {}
-          state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
-          returnVal
+          val newVal = BinaryExpr.evaluate(unary, value, TypeHelper.one, IASTBinaryExpression.op_plus).value
+          value match {
+            case lValue: LValue =>
+              // push then set
+              val pre = lValue.value
+              state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
+              pre
+          }
         case `op_postFixDecr` =>
-          val lValue = value.asInstanceOf[LValue]
-          val newVal = BinaryExpr.evaluate(unary, lValue, TypeHelper.one, IASTBinaryExpression.op_minus).value
-
-          // push then set
-          val returnVal = new RValue(lValue.value.value, lValue.theType) {}
-          state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
-          returnVal
+          val newVal = BinaryExpr.evaluate(unary, value, TypeHelper.one, IASTBinaryExpression.op_minus).value
+          value match {
+            case lValue: LValue =>
+              // push then set
+              val pre = lValue.value
+              state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
+              pre
+          }
         case `op_prefixIncr` =>
-          val lValue = value.asInstanceOf[LValue]
-          val newVal = BinaryExpr.evaluate(unary, lValue, TypeHelper.one, IASTBinaryExpression.op_plus).value
-
-          // set then push
-          state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
-          new RValue(newVal, lValue.theType) {}
+          val newVal = BinaryExpr.evaluate(unary, value, TypeHelper.one, IASTBinaryExpression.op_plus)
+          value match {
+            case lValue: LValue =>
+              // set then push
+              state.Stack.writeToMemory(newVal.value, lValue.address, lValue.theType)
+              newVal
+          }
         case `op_prefixDecr` =>
-          val lValue = value.asInstanceOf[LValue]
-          val newVal = BinaryExpr.evaluate(unary, lValue, TypeHelper.one, IASTBinaryExpression.op_minus).value
-
-          // set then push
-          state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
-          new RValue(newVal, lValue.theType) {}
+          val newVal = BinaryExpr.evaluate(unary, value, TypeHelper.one, IASTBinaryExpression.op_minus)
+          value match {
+            case lValue @ LValue(_, _) =>
+              // set then push
+              state.Stack.writeToMemory(newVal.value, lValue.address, lValue.theType)
+              newVal
+          }
         case `op_sizeof` =>
           value match {
             case info @ LValue(_, theType) => new RValue(info.sizeof, new CBasicType(IBasicType.Kind.eInt, 0)) {}

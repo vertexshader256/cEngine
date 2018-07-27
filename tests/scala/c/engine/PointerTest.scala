@@ -95,11 +95,19 @@ class PointerArithmeticTest extends StandardTest {
   "pointer arithmetic with pointers to structs" should "print the correct results" in {
     val code = """
       void main() {
+
+         struct Test2 {
+             int x;
+             int y;
+             int z;
+         };
+
          struct Test {
             int x;
             int y;
             int z;
             struct Test* ptr2;
+            struct Test2 j[10];
          };
 
          struct Test x[5];
@@ -118,9 +126,14 @@ class PointerArithmeticTest extends StandardTest {
          printf("%d\n", &x[0] - (1 + ptr));
 
          printf("%d\n", x - ptr);
-         printf("%d\n", x - (ptr + 1));
-         printf("%d\n", x - (ptr - 1));
+         printf("%d\n", x - (ptr++ + 1));
+         printf("%d\n", x - (++ptr - 1));
          printf("%d\n", x - (1 + ptr));
+
+         printf("%d\n", &x[2] - x);
+         printf("%d\n", &x[2] - (x + 1));
+         printf("%d\n", &x[2] - (x - 1));
+         printf("%d\n", &x[2] - (1 + x));
 
          printf("%d\n", ptr - x);
          printf("%d\n", ptr - (x + 1));
@@ -131,11 +144,28 @@ class PointerArithmeticTest extends StandardTest {
          printf("%d\n", ptr - (x - i));
          printf("%d\n", ptr - (i + x));
 
-         printf("%d\n", ptr->ptr2 - x);
-         printf("%d\n", ptr->ptr2 - (x + 1));
-         printf("%d\n", ptr->ptr2 - (x - 1));
-         printf("%d\n", ptr->ptr2 - (1 + x));
+         printf("%d\n", ptr + i - x);
+         printf("%d\n", x + i - ++ptr);
+         printf("%d\n", x + 2 - ptr);
       }"""
+
+    checkResults(code)
+  }
+
+  "advanced pointer arithmetic" should "print the correct results" in {
+    val code = """
+
+       int c[4] = {1, 2, 3, 4};
+       int *cp[] = {c+3, c+2, c+1, c};
+       int **cpp = cp;
+
+       int main()
+       {
+            printf("%d", **++cpp);
+       // 	printf("%s ", *--*++cpp+3);
+       // 	printf("%s ", *cpp[-2]+3);
+       // 	printf("%s ", cpp[-1][-1]+1);
+       }"""
 
     checkResults(code)
   }
