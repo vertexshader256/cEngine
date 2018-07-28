@@ -41,7 +41,7 @@ object UnaryExpression {
             case lValue: LValue =>
               // set then push
               state.Stack.writeToMemory(newVal.value, lValue.address, lValue.theType)
-              newVal
+              lValue
           }
         case `op_prefixDecr` =>
           val newVal = BinaryExpr.evaluate(unary, value, TypeHelper.one, IASTBinaryExpression.op_minus)
@@ -49,7 +49,7 @@ object UnaryExpression {
             case lValue @ LValue(_, _) =>
               // set then push
               state.Stack.writeToMemory(newVal.value, lValue.address, lValue.theType)
-              newVal
+              lValue
           }
         case `op_sizeof` =>
           value match {
