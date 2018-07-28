@@ -87,7 +87,7 @@ object BinaryExpr {
         }
 
         if (left.isInstanceOf[Address]) {
-          Address(result, left.theType, baseType)
+          Address(result, baseType)
         } else {
           new RValue(result, left.theType) {}
         }
@@ -99,7 +99,7 @@ object BinaryExpr {
         }
 
         if (right.isInstanceOf[Address]) {
-          Address(result, left.theType, rightBaseType)
+          Address(result, rightBaseType)
         } else {
           new RValue(result, right.theType) {}
         }
@@ -111,7 +111,7 @@ object BinaryExpr {
         }
 
         if (left.isInstanceOf[Address]) {
-          Address(result, left.theType, baseType)
+          Address(result, baseType)
         } else {
           new RValue(result, left.theType) {}
         }
@@ -269,8 +269,8 @@ object BinaryExpr {
   }
 
   def evaluate(node: IASTNode, x: ValueType, y: ValueType, operator: Int)(implicit state: State): RValue = {
-    val isLeftPointer = x.theType.isInstanceOf[IPointerType] || x.theType.isInstanceOf[IArrayType] || x.isInstanceOf[Address]
-    val isRightPointer = y.theType.isInstanceOf[IPointerType] || y.theType.isInstanceOf[IArrayType] || y.isInstanceOf[Address]
+    val isLeftPointer = TypeHelper.isPointer(x)
+    val isRightPointer = TypeHelper.isPointer(y)
 
     val left = TypeHelper.resolve(x)
     val right = TypeHelper.resolve(y)

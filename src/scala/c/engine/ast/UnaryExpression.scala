@@ -67,7 +67,7 @@ object UnaryExpression {
             case info@LValue(_, _) =>
               info.theType match {
                 case fcn: CFunctionType => MemoryLocation(state, info.address, fcn)
-                case x: IType => Address(info.address, state.pointerType, x)
+                case theType: IType => Address(info.address, theType)
               }
           }
         case `op_star` =>

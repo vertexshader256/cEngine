@@ -11,7 +11,16 @@ abstract class LValue(state: State) extends ValueType {
   val address: Int
   val theType: IType
   def sizeof: Int
-  def value: RValue
+  def value: RValue = {
+    if (TypeHelper.isPointer(this)) {
+      Address(getValue.value.asInstanceOf[Int], TypeHelper.getPointerType(theType))
+    } else {
+      new RValue(getValue.value, theType) {}
+    }
+  }
+
+  protected def getValue: RValue
+
   def setValue(newVal: AnyVal)
 
   override def toString = {
@@ -37,7 +46,7 @@ abstract class RValue(val value: AnyVal, val theType: IType) extends ValueType {
   }
 }
 
-case class Address(avalue: Int, atheType: IType, baseType: IType) extends RValue(avalue, atheType) {
+case class Address(avalue: Int, baseType: IType) extends RValue(avalue, baseType) {
   override def toString = {
     "Address(" + value + ", " + theType + ")"
   }
@@ -45,7 +54,7 @@ case class Address(avalue: Int, atheType: IType, baseType: IType) extends RValue
 
 case class Field(state: State, address: Int, bitOffset: Int, theType: IType, sizeInBits: Int) extends LValue(state) {
   val sizeof = sizeInBits / 8
-  def value = state.Stack.readFromMemory(address, theType, bitOffset, sizeInBits)
+  def getValue = state.Stack.readFromMemory(address, theType, bitOffset, sizeInBits)
   def setValue(newVal: AnyVal) = {
     state.Stack.writeToMemory(newVal, address, theType, bitOffset, sizeInBits)
   }
@@ -53,7 +62,7 @@ case class Field(state: State, address: Int, bitOffset: Int, theType: IType, siz
 
 case class MemoryLocation(state: State, address: Int, theType: IType) extends LValue(state) {
   val sizeof = TypeHelper.sizeof(theType)(state)
-  def value = state.Stack.readFromMemory(address, theType)
+  def getValue = state.Stack.readFromMemory(address, theType)
   def setValue(newVal: AnyVal) = {
     state.Stack.writeToMemory(newVal, address, theType)
   }
@@ -114,7 +123,7 @@ case class Variable(name: String, state: State, theType: IType) extends LValue(s
   // need this for function-scoped static vars
   var isInitialized = false
 
-  def value = if (theType.isInstanceOf[IArrayType]) {
+  def getValue = if (theType.isInstanceOf[IArrayType]) {
     new RValue(address, theType) {}
   } else {
     state.Stack.readFromMemory(address, theType)

@@ -185,6 +185,10 @@ object TypeHelper {
     }
   }
 
+  def isPointer(value: ValueType) = {
+    value.theType.isInstanceOf[IPointerType] || value.theType.isInstanceOf[IArrayType] || value.isInstanceOf[Memory]
+  }
+
   def not(theVal: Any): AnyVal = theVal match {
     case info @ LValue(_, _) => not(info.value)
     case RValue(theVal, _) => not(theVal)
