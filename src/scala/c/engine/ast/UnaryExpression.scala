@@ -7,6 +7,45 @@ import org.eclipse.cdt.core.dom.ast.IASTUnaryExpression._
 import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 
 object UnaryExpression {
+
+  // per C Spec this returns a RValue
+  def evaluateIncrDecr(unary: IASTUnaryExpression, value: ValueType, operator: Int)(implicit state: State): RValue = operator match {
+    case `op_postFixIncr` =>
+      val newVal = BinaryExpr.evaluate(unary, value, TypeHelper.one, IASTBinaryExpression.op_plus).value
+      value match {
+        case lValue: LValue =>
+          // push then set
+          val pre = lValue.value
+          state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
+          pre
+      }
+    case `op_postFixDecr` =>
+      val newVal = BinaryExpr.evaluate(unary, value, TypeHelper.one, IASTBinaryExpression.op_minus).value
+      value match {
+        case lValue: LValue =>
+          // push then set
+          val pre = lValue.value
+          state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
+          pre
+      }
+    case `op_prefixIncr` =>
+      val newVal = BinaryExpr.evaluate(unary, value, TypeHelper.one, IASTBinaryExpression.op_plus)
+      value match {
+        case lValue: LValue =>
+          // set then push
+          state.Stack.writeToMemory(newVal.value, lValue.address, lValue.theType)
+          newVal
+      }
+    case `op_prefixDecr` =>
+      val newVal = BinaryExpr.evaluate(unary, value, TypeHelper.one, IASTBinaryExpression.op_minus)
+      value match {
+        case lValue @ LValue(_, _) =>
+          // set then push
+          state.Stack.writeToMemory(newVal.value, lValue.address, lValue.theType)
+          newVal
+      }
+  }
+
   def execute(value: ValueType, unary: IASTUnaryExpression)(implicit state: State): ValueType = {
 
       unary.getOperator match {
@@ -17,40 +56,8 @@ object UnaryExpression {
         case `op_minus` =>
           val newVal = BinaryExpr.evaluate(unary, value, TypeHelper.negativeOne, IASTBinaryExpression.op_multiply).value
           new RValue(newVal, value.theType) {}
-        case `op_postFixIncr` =>
-          val newVal = BinaryExpr.evaluate(unary, value, TypeHelper.one, IASTBinaryExpression.op_plus).value
-          value match {
-            case lValue: LValue =>
-              // push then set
-              val pre = lValue.value
-              state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
-              pre
-          }
-        case `op_postFixDecr` =>
-          val newVal = BinaryExpr.evaluate(unary, value, TypeHelper.one, IASTBinaryExpression.op_minus).value
-          value match {
-            case lValue: LValue =>
-              // push then set
-              val pre = lValue.value
-              state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
-              pre
-          }
-        case `op_prefixIncr` =>
-          val newVal = BinaryExpr.evaluate(unary, value, TypeHelper.one, IASTBinaryExpression.op_plus)
-          value match {
-            case lValue: LValue =>
-              // set then push
-              state.Stack.writeToMemory(newVal.value, lValue.address, lValue.theType)
-              lValue
-          }
-        case `op_prefixDecr` =>
-          val newVal = BinaryExpr.evaluate(unary, value, TypeHelper.one, IASTBinaryExpression.op_minus)
-          value match {
-            case lValue @ LValue(_, _) =>
-              // set then push
-              state.Stack.writeToMemory(newVal.value, lValue.address, lValue.theType)
-              lValue
-          }
+        case op @ (`op_postFixIncr` | `op_postFixDecr` | `op_prefixIncr` | `op_prefixDecr`) =>
+          evaluateIncrDecr(unary, value, op)
         case `op_sizeof` =>
           value match {
             case info @ LValue(_, theType) => new RValue(info.sizeof, new CBasicType(IBasicType.Kind.eInt, 0)) {}
