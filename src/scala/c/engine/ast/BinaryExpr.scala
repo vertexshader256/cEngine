@@ -59,8 +59,8 @@ object BinaryExpr {
 
   def evaluatePointerArithmetic(left: RValue, right: RValue, operator: Int)(implicit state: State): RValue = {
 
-    val isLeftPointer = left.theType.isInstanceOf[IPointerType] || left.theType.isInstanceOf[IArrayType] || left.isInstanceOf[Address]
-    val isRightPointer = right.theType.isInstanceOf[IPointerType] || right.theType.isInstanceOf[IArrayType] || right.isInstanceOf[Address]
+    val isLeftPointer = TypeHelper.isPointer(left)
+    val isRightPointer = TypeHelper.isPointer(right)
 
     if (operator == `op_minus` || operator == `op_plus`) {
 

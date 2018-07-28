@@ -200,7 +200,7 @@ class ArrayTest extends StandardTest {
         printf("%d\n", x[2]);
       }"""
 
-    checkResults(code, false)
+    checkResults(code)
   }
   
   "An array with dimensions from a binary expr" should "print the correct results" in {
