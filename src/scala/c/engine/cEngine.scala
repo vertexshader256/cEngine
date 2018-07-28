@@ -87,19 +87,21 @@ class Memory(size: Int) {
           case int: Int => tape.putInt(address, int)
           case bool: Boolean => tape.putInt(address, if (bool) 1 else 0)
         }
-      case basic: IFunctionType =>
-        newVal match {
-          case int: Int => tape.putInt(address, int)
-        }
-      case basic: CStructure =>
-        newVal match {
-          case int: Int => tape.putInt(address, int)
-        }
-      case ptr: IPointerType =>
-        newVal match {
-          case int: Int => tape.putInt(address, int)
-          case long: Long => tape.putInt(address, long.toInt)
-        }
+      case _: IFunctionType =>
+        writePointerToMemory(newVal, address)
+      case _: CStructure =>
+        writePointerToMemory(newVal, address)
+      case _: IPointerType =>
+        writePointerToMemory(newVal, address)
+      case _: IArrayType =>
+        writePointerToMemory(newVal, address)
+    }
+  }
+
+  private def writePointerToMemory(newVal: AnyVal, address: Int) = {
+    newVal match {
+      case int: Int => tape.putInt(address, int)
+      case long: Long => tape.putInt(address, long.toInt)
     }
   }
 

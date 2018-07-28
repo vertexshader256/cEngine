@@ -60,7 +60,8 @@ object UnaryExpression {
           evaluateIncrDecr(unary, value, op)
         case `op_sizeof` =>
           value match {
-            case info @ LValue(_, theType) => new RValue(info.sizeof, new CBasicType(IBasicType.Kind.eInt, 0)) {}
+            case info: LValue => new RValue(info.sizeof, new CBasicType(IBasicType.Kind.eInt, 0)) {}
+            case RValue(_, theType) => new RValue(TypeHelper.sizeof(theType), new CBasicType(IBasicType.Kind.eInt, 0)) {}
           }
         case `op_amper` =>
           value match {
@@ -73,7 +74,7 @@ object UnaryExpression {
         case `op_star` =>
           value match {
             case RValue(int: Int, theType) =>
-              MemoryLocation(state, int, TypeHelper.resolveBasic(theType))
+              MemoryLocation(state, int, theType)
             case info@LValue(_, _) =>
               val nestedType = info.theType match {
                 case ptr: IPointerType => ptr.getType

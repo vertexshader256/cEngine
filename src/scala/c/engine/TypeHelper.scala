@@ -305,7 +305,11 @@ object TypeHelper {
     case array: IArrayType =>
       sizeof(array.getType)
     case typedef: CTypedef =>
-      sizeof(typedef.getType)
+      if (typedef.getType.isInstanceOf[IArrayType]) {
+        sizeof(typedef.getType) * typedef.getType.asInstanceOf[IArrayType].getSize.numericalValue().toInt
+      } else {
+        sizeof(typedef.getType)
+      }
     case qual: IQualifierType =>
       sizeof(qual.getType)
     case basic: IBasicType =>

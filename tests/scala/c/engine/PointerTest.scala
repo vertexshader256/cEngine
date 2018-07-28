@@ -152,19 +152,99 @@ class PointerArithmeticTest extends StandardTest {
     checkResults(code)
   }
 
+  "pointer arithmetic with pointers to arrays" should "print the correct results" in {
+    val code = """
+      void main() {
+
+         typedef int Test[10];
+
+         Test x[5];
+         Test* ptr = &x[1];
+         int i = 1;
+
+         printf("%d\n", &x[0] - &x[1]);
+         printf("%d\n", &x[0] - (&x[1] + 1));
+         printf("%d\n", &x[0] - (&x[1] - 1));
+         printf("%d\n", &x[0] - (1 + &x[1]));
+
+         printf("%d\n", &x[0] - ptr);
+         printf("%d\n", &x[0] - (ptr + 1));
+         printf("%d\n", &x[0] - (ptr - 1));
+         printf("%d\n", &x[0] - (1 + ptr));
+
+         printf("%d\n", x - ptr);
+         printf("%d\n", x - (ptr++ + 1));
+         printf("%d\n", x - (++ptr - 1));
+         printf("%d\n", x - (1 + ptr));
+
+         printf("%d\n", &x[2] - x);
+         printf("%d\n", &x[2] - (x + 1));
+         printf("%d\n", &x[2] - (x - 1));
+         printf("%d\n", &x[2] - (1 + x));
+
+         printf("%d\n", ptr - x);
+         printf("%d\n", ptr - (x + 1));
+         printf("%d\n", ptr - (x - 1));
+         printf("%d\n", ptr - (1 + x));
+
+         printf("%d\n", ptr - (x + i));
+         printf("%d\n", ptr - (x - i));
+         printf("%d\n", ptr - (i + x));
+
+         printf("%d\n", ptr + i - x);
+         printf("%d\n", x + i - ++ptr);
+         printf("%d\n", x + 2 - ptr);
+      }"""
+
+    checkResults(code)
+  }
+
   "advanced pointer arithmetic" should "print the correct results" in {
     val code = """
 
-       int c[4] = {1, 2, 3, 4};
-       int *cp[] = {c+3, c+2, c+1, c};
-       int **cpp = cp;
+       char *c[] = {"GeksQuiz", "MCQ", "TEST", "QUIZ"};
+       char **cp[] = {c+3, c+2, c+1, c};
+       char ***cpp = cp;
 
        int main()
        {
-            printf("%d", **++cpp);
-       // 	printf("%s ", *--*++cpp+3);
-       // 	printf("%s ", *cpp[-2]+3);
-       // 	printf("%s ", cpp[-1][-1]+1);
+           printf("%s ", **++cpp);
+           printf("%s ", *--*++cpp+3);
+           printf("%s ", *cpp[-2]+3);
+           printf("%s ", cpp[-1][-1]+1);
+           return 0;
+       }"""
+
+    checkResults(code)
+  }
+
+//  "advanced pointer arithmetic 2" should "print the correct results" in {
+//    val code = """
+//
+//       int main()
+//       {
+//           int a[][3] = {1, 2, 3, 4, 5, 6};
+//           int (*ptr)[3] = a;
+//           printf("%d %d ", (*ptr)[1], (*ptr)[2]);
+//           ++ptr;
+//           printf("%d %dn", (*ptr)[1], (*ptr)[2]);
+//       }"""
+//
+//    checkResults(code)
+//  }
+
+  "advanced pointer arithmetic 3" should "print the correct results" in {
+    val code = """
+
+       int fun(int arr[]) {
+          arr = arr+1;
+          printf("%d ", arr[0]);
+       }
+       int main(void) {
+          int arr[2] = {10, 20};
+          fun(arr);
+          printf("%d", arr[0]);
+          return 0;
        }"""
 
     checkResults(code)
@@ -227,10 +307,10 @@ class PointerTest extends StandardTest {
         printf("%d\n", *x == y);
         printf("%s\n", x);
         *x++;
-        str++;
-        str++;
-        ++str;
-        str--;
+//        str++;
+//        str++;
+//        ++str;
+//        str--;
         printf("%s\n", str);
         printf("%s\n", x);
       }"""

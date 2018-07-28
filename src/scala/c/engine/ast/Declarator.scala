@@ -63,8 +63,14 @@ object Declarator {
 
         val nameBinding = decl.getName.resolveBinding()
         val name = decl.getName
-        val variable = nameBinding.asInstanceOf[IVariable]
-        val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
+
+        val theType = nameBinding match {
+          case typedef: CTypedef => TypeHelper.stripSyntheticTypeInfo(typedef)
+          case vari: IVariable => TypeHelper.stripSyntheticTypeInfo(vari.getType)
+        }
+
+        //val variable = nameBinding.asInstanceOf[IVariable]
+        //val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
         val dimensions = arrayDecl.getArrayModifiers.filter {
           _.getConstantExpression != null
         }.map { dim =>
@@ -84,6 +90,7 @@ object Declarator {
 
           val (initArray, initType) = if (TypeHelper.resolveBasic(theType).getKind == IBasicType.Kind.eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
             // e.g. char str[] = "Hello!\n";
+            println("HELLO")
             val initString = state.context.popStack.asInstanceOf[StringLiteral].value
 
             val theStr = Utils.stripQuotes(initString)
@@ -95,12 +102,13 @@ object Declarator {
 
             (withNull, inferredArrayType)
           } else {
+            println(initializer.getInitializerClause.asInstanceOf[IASTInitializerList].getClauses.toList)
             val initVals: Array[ValueType] = (0 until initializer.getInitializerClause.getChildren.size).map { x => state.context.popStack }.reverse.toArray
 
             val initialArray = initVals.map { TypeHelper.resolve }.map { x => new RValue(x.value, theType.asInstanceOf[IArrayType].getType) {}}
 
             val finalType = if (!dimensions.isEmpty) {
-              variable.getType
+              theType
             } else {
               val inferredArrayType = new CArrayType(theType.asInstanceOf[IArrayType].getType)
               inferredArrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, initialArray.size.toString.toCharArray)))
@@ -115,7 +123,7 @@ object Declarator {
 
           Seq()
         } else {
-          if (!variable.getType.asInstanceOf[CArrayType].isConst && !dimensions.isEmpty) { // an array bounded by a variable e.g x[y]
+          if (!theType.asInstanceOf[CArrayType].isConst && !dimensions.isEmpty) { // an array bounded by a variable e.g x[y]
 
             // TODO: higher dimensions
             val inferredArrayType = new CArrayType(theType.asInstanceOf[IArrayType].getType)
@@ -123,7 +131,7 @@ object Declarator {
 
             state.context.addVariable(name.getRawSignature, inferredArrayType)
           } else {
-            state.context.addVariable(name.getRawSignature, variable.getType)
+            state.context.addVariable(name.getRawSignature, theType)
           }
         }
         Seq()
