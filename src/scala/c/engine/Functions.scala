@@ -99,12 +99,11 @@ object Functions {
         def run(formattedOutputParams: Array[RValue], state: State) = {
           val numBlocks = formattedOutputParams(0).value.asInstanceOf[Int]
           val blockSize = formattedOutputParams(1).value.asInstanceOf[Int]
+
           val addr = state.allocateHeapSpace(numBlocks * blockSize)
 
-          // clear to zero
-          for (i <- (0 until (numBlocks * blockSize))) {
-            state.Stack.writeToMemory(0.toByte, addr + i, new CBasicType(IBasicType.Kind.eChar, 0))
-          }
+          state.Stack.clearMemory(addr, numBlocks * blockSize)
+
           Some(addr)
         }
       }
@@ -409,7 +408,7 @@ object Functions {
           // to-do: find a way to do this without allocating?
           val result = state.allocateHeapSpace(20)
 
-          state.setArray(array, result, 1)
+          state.writeDataBlock(array, result)(state)
           Some(result)
         }
       }

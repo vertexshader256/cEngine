@@ -79,7 +79,7 @@ case class Variable(name: String, state: State, theType: IType) extends LValue(s
   }
 
   def setArray(array: Array[RValue]): Unit = {
-    state.setArray(array, address, TypeHelper.sizeof(theType)(state))
+    state.writeDataBlock(array, address)(state)
   }
 
   def allocateSpace(state: State, aType: IType): Int = {

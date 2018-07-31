@@ -158,6 +158,28 @@ class ScopeTest extends StandardTest {
     checkResults(code)
   }
 
+  "function-scoped static string vars" should "print the correct results" in {
+    val code = """
+
+      int test() {
+        static char *metacharacters = "^$().[]*+?|\\Ssdbfnrtv";
+        printf("%s\n", metacharacters);
+        return 0;
+      }
+
+      void main()
+      {
+        test();
+        test();
+        test();
+      }
+      """
+
+    checkResults(code)
+  }
+
+
+
   "function-scoped unitialized static vars" should "print the correct results" in {
     val code = """
 

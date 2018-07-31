@@ -88,9 +88,20 @@ object Declarator {
 
         if (initializer != null) {
 
-          val (initArray, initType) = if (TypeHelper.resolveBasic(theType).getKind == IBasicType.Kind.eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
+          val (initArray, initType) = if (TypeHelper.isPointer(theType) && TypeHelper.stripSyntheticTypeInfo(TypeHelper.getPointerType(theType)).isInstanceOf[CStructure]) {
+
+            val structType = TypeHelper.stripSyntheticTypeInfo(TypeHelper.getPointerType(theType)).asInstanceOf[CStructure]
+
+            val structData = initializer.getInitializerClause.getChildren.flatMap { list =>
+              structType.getFields.map { field => TypeHelper.resolve(state.context.popStack) }
+            }.reverse
+
+            val resultType = new CArrayType(structType)
+            resultType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, structData.size.toString.toCharArray)))
+
+            (structData, resultType)
+          } else if (TypeHelper.resolveBasic(theType).getKind == IBasicType.Kind.eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
             // e.g. char str[] = "Hello!\n";
-            println("HELLO")
             val initString = state.context.popStack.asInstanceOf[StringLiteral].value
 
             val theStr = Utils.stripQuotes(initString)
@@ -102,7 +113,6 @@ object Declarator {
 
             (withNull, inferredArrayType)
           } else {
-            println(initializer.getInitializerClause.asInstanceOf[IASTInitializerList].getClauses.toList)
             val initVals: Array[ValueType] = (0 until initializer.getInitializerClause.getChildren.size).map { x => state.context.popStack }.reverse.toArray
 
             val initialArray = initVals.map { TypeHelper.resolve }.map { x => new RValue(x.value, theType.asInstanceOf[IArrayType].getType) {}}
@@ -149,7 +159,6 @@ object Declarator {
           if (!variable.isInitialized) {
 
             List(Option(decl.getInitializer)).flatten.foreach{x => Ast.step(x)}
-
 
             if (!stripped.isInstanceOf[CStructure]) {
               val initVal = Option(decl.getInitializer).map(x => state.context.popStack).getOrElse(new RValue(0, null) {})

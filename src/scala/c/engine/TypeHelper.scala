@@ -185,8 +185,12 @@ object TypeHelper {
     }
   }
 
-  def isPointer(value: ValueType) = {
-    value.theType.isInstanceOf[IPointerType] || value.theType.isInstanceOf[IArrayType] || value.isInstanceOf[Address]
+  def isPointer(value: ValueType): Boolean = {
+    isPointer(value.theType) || value.isInstanceOf[Address]
+  }
+
+  def isPointer(theType: IType): Boolean = {
+    theType.isInstanceOf[IPointerType] || theType.isInstanceOf[IArrayType]
   }
 
   def not(theVal: Any): AnyVal = theVal match {

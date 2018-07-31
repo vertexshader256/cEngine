@@ -32,6 +32,14 @@ class Memory(size: Int) {
   val tape = ByteBuffer.allocate(size)
   tape.order(ByteOrder.LITTLE_ENDIAN)
 
+  def clearMemory(startingAddress: Int, numBytes: Int) = {
+    var address = startingAddress
+    for (i <- 0 until numBytes) {
+      tape.put(address, 0.toByte)
+      address += 1
+    }
+  }
+
   // use Address type to prevent messing up argument order
   def writeToMemory(newVal: AnyVal, address: Int, theType: IType, bitOffset: Int = 0, sizeInBits: Int = 0): Unit = {
 
@@ -351,9 +359,9 @@ case object SixtyFourBits extends NumBits
 
 class State(pointerSize: NumBits) {
 
-  object Stack extends Memory(100000)
+  object Stack extends Memory(500000)
 
-  var heapInsertIndex = 50000
+  var heapInsertIndex = 250000
 
   val functionPrototypes = scala.collection.mutable.LinkedHashSet[IASTFunctionDeclarator]()
 
@@ -587,25 +595,24 @@ class State(pointerSize: NumBits) {
     }
   }
 
-  def createStringVariable(str: String, isHeap: Boolean)(implicit state: State): RValue = {
+  def createStringVariable(str: String, isHeap: Boolean)(implicit state: State): Address = {
     val theStr = Utils.stripQuotes(str)
 
     val withNull = (theStr.toCharArray() :+ 0.toChar).map{char => new RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0)) {}} // terminating null char
     val strAddr = if (isHeap) allocateHeapSpace(withNull.size) else allocateSpace(withNull.size)
 
-    setArray(withNull, strAddr, 1)
-    new RValue(strAddr, pointerType) {}
+    writeDataBlock(withNull, strAddr)
+    new Address(strAddr, pointerType) {}
   }
 
-  def setArray(array: Array[RValue], address: Int, stride: Int): Unit = {
-      var i = 0
+  def writeDataBlock(array: Array[RValue], startingAddress: Int)(implicit state: State): Unit = {
+      var address = startingAddress
       array.foreach { element =>
         element match {
           case RValue(newVal, theType) =>
-            Stack.writeToMemory(newVal, address + i, theType)
+            Stack.writeToMemory(newVal, address, theType)
+            address +=  TypeHelper.sizeof(theType)(state)
         }
-
-        i += stride
       }
   }
 }
