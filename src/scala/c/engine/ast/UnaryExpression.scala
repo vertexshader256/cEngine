@@ -11,7 +11,7 @@ object UnaryExpression {
   // per C Spec this returns a RValue
   def evaluateIncrDecr(unary: IASTUnaryExpression, value: ValueType, operator: Int)(implicit state: State): RValue = operator match {
     case `op_postFixIncr` =>
-      val newVal = BinaryExpr.evaluate(unary, value, TypeHelper.one, IASTBinaryExpression.op_plus).value
+      val newVal = BinaryExpr.evaluate(value, TypeHelper.one, IASTBinaryExpression.op_plus).value
       value match {
         case lValue: LValue =>
           // push then set
@@ -20,7 +20,7 @@ object UnaryExpression {
           pre
       }
     case `op_postFixDecr` =>
-      val newVal = BinaryExpr.evaluate(unary, value, TypeHelper.one, IASTBinaryExpression.op_minus).value
+      val newVal = BinaryExpr.evaluate(value, TypeHelper.one, IASTBinaryExpression.op_minus).value
       value match {
         case lValue: LValue =>
           // push then set
@@ -29,7 +29,7 @@ object UnaryExpression {
           pre
       }
     case `op_prefixIncr` =>
-      val newVal = BinaryExpr.evaluate(unary, value, TypeHelper.one, IASTBinaryExpression.op_plus)
+      val newVal = BinaryExpr.evaluate(value, TypeHelper.one, IASTBinaryExpression.op_plus)
       value match {
         case lValue: LValue =>
           // set then push
@@ -37,7 +37,7 @@ object UnaryExpression {
           newVal
       }
     case `op_prefixDecr` =>
-      val newVal = BinaryExpr.evaluate(unary, value, TypeHelper.one, IASTBinaryExpression.op_minus)
+      val newVal = BinaryExpr.evaluate(value, TypeHelper.one, IASTBinaryExpression.op_minus)
       value match {
         case lValue @ LValue(_, _) =>
           // set then push
@@ -54,7 +54,7 @@ object UnaryExpression {
           new RValue(~value.asInstanceOf[RValue].value.asInstanceOf[Int], null) {}
         case `op_not` => new RValue(TypeHelper.not(value), TypeHelper.one.theType) {}
         case `op_minus` =>
-          val newVal = BinaryExpr.evaluate(unary, value, TypeHelper.negativeOne, IASTBinaryExpression.op_multiply).value
+          val newVal = BinaryExpr.evaluate(value, TypeHelper.negativeOne, IASTBinaryExpression.op_multiply).value
           new RValue(newVal, value.theType) {}
         case op @ (`op_postFixIncr` | `op_postFixDecr` | `op_prefixIncr` | `op_prefixDecr`) =>
           evaluateIncrDecr(unary, value, op)

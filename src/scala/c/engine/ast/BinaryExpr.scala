@@ -10,7 +10,7 @@ object BinaryExpr {
   
   def parseAssign(node: IASTNode, op: Int, dst: LValue, op2: ValueType)(implicit state: State): LValue = {
 
-    val result = evaluate(node, dst, op2, op)
+    val result = evaluate(dst, op2, op)
 
     if (dst.theType.isInstanceOf[CStructure]) {
 
@@ -280,7 +280,7 @@ object BinaryExpr {
     }
   }
 
-  def evaluate(node: IASTNode, x: ValueType, y: ValueType, operator: Int)(implicit state: State): RValue = {
+  def evaluate(x: ValueType, y: ValueType, operator: Int)(implicit state: State): RValue = {
     val isLeftPointer = TypeHelper.isPointer(x)
     val isRightPointer = TypeHelper.isPointer(y)
 
