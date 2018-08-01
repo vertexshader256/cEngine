@@ -167,12 +167,26 @@ object Declarator {
               && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
 
               val clause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
+
               val values = clause.asInstanceOf[IASTInitializerList].getClauses.map { x => state.context.popStack }.reverse.toList
 
               val struct = stripped.asInstanceOf[CStructure]
               struct.getFields.zip(values).foreach{ case (field, newValue) =>
                 val theField = TypeHelper.offsetof(struct, variable.address, field.getName, state)
                 theField.setValue(newValue.asInstanceOf[RValue].value)
+              }
+            } else if (decl.getInitializer != null && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause != null &&
+              decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTIdExpression]) { // setting a struct equal to another struct
+
+              val otherStruct = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.asInstanceOf[IASTIdExpression]
+
+              state.context.resolveId(otherStruct.getName).map{ otherVar =>
+                val struct = otherVar.theType.asInstanceOf[CStructure]
+                struct.getFields.foreach{ field =>
+                  val baseField = TypeHelper.offsetof(struct, otherVar.address, field.getName, state)
+                  val theField = TypeHelper.offsetof(struct, variable.address, field.getName, state)
+                  theField.setValue(baseField.getValue.value)
+                }
               }
             }
 

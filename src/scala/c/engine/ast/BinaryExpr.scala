@@ -3,7 +3,7 @@ package ast
 
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 import org.eclipse.cdt.core.dom.ast._
-import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
+import org.eclipse.cdt.internal.core.dom.parser.c.{CBasicType, CStructure}
 import IBasicType.Kind._
 
 object BinaryExpr {
@@ -12,8 +12,20 @@ object BinaryExpr {
 
     val result = evaluate(node, dst, op2, op)
 
-    val casted = TypeHelper.cast(dst.theType, result.value).value
-    dst.setValue(casted)
+    if (dst.theType.isInstanceOf[CStructure]) {
+
+      val otherVar = op2.asInstanceOf[Variable]
+
+      val struct = otherVar.theType.asInstanceOf[CStructure]
+      struct.getFields.foreach{ field =>
+        val baseField = TypeHelper.offsetof(struct, otherVar.address, field.getName, state)
+        val theField = TypeHelper.offsetof(struct, dst.address, field.getName, state)
+        theField.setValue(baseField.getValue.value)
+      }
+    } else {
+      val casted = TypeHelper.cast(dst.theType, result.value).value
+      dst.setValue(casted)
+    }
 
     dst
   }

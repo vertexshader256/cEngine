@@ -17,12 +17,12 @@ object Statement {
 
       if (ret.getReturnValue != null) {
         val returnVal = Expressions.evaluate(ret.getReturnValue).head
+        val functionScope = state.getFunctionScope
 
         retVal = returnVal match {
           case info @ LValue(addr, theType) =>
-            val functionScope = state.getFunctionScope
             TypeHelper.cast(functionScope.returnType, info.value.value)
-          case value @ RValue(_, _) => value
+          case value @ RValue(_, _) => TypeHelper.cast(functionScope.returnType, value.value)
         }
       }
 
