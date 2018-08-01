@@ -460,7 +460,7 @@ class State(pointerSize: NumBits) {
               if (!stripped.isInstanceOf[CStructure]) {
                 val initVal = Option(decl.getInitializer).map(_ => state.context.popStack).getOrElse(new RValue(0, null) {})
 
-                BinaryExpr.parseAssign(decl, op_assign, variable, initVal)(state)
+                BinaryExpr.parseAssign(op_assign, variable, initVal)(state)
               } else if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
                 && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
 

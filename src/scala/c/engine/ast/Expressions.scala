@@ -113,7 +113,7 @@ object Expressions {
           val op2 = evaluate(bin.getOperand2).head
 
           val result = if (Utils.isAssignment(bin.getOperator)) {
-            BinaryExpr.parseAssign(bin, bin.getOperator, op1.asInstanceOf[LValue], op2)
+            BinaryExpr.parseAssign(bin.getOperator, op1.asInstanceOf[LValue], op2)
           } else {
             BinaryExpr.evaluate(op1, op2, bin.getOperator)
           }

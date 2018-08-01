@@ -8,7 +8,7 @@ import IBasicType.Kind._
 
 object BinaryExpr {
   
-  def parseAssign(node: IASTNode, op: Int, dst: LValue, op2: ValueType)(implicit state: State): LValue = {
+  def parseAssign(op: Int, dst: LValue, op2: ValueType)(implicit state: State): LValue = {
 
     val result = evaluate(dst, op2, op)
 
