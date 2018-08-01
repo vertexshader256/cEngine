@@ -199,7 +199,7 @@ class BinaryExpr extends StandardTest {
 
     checkResults(code)
   }
-  
+
   "A simple increment test" should "print the correct results" in {
     val code = """
       void main() {

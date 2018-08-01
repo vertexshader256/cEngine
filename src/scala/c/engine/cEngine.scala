@@ -6,7 +6,10 @@ import scala.collection.mutable.ListBuffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
+import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.op_assign
 import org.eclipse.cdt.internal.core.dom.parser.c._
+
+import scala.c.engine.ast.{Ast, BinaryExpr}
 
 
 object Interpreter {
@@ -408,8 +411,13 @@ class State(pointerSize: NumBits) {
   def init(codes: Seq[String]): IASTNode = {
     val tUnit = Utils.getTranslationUnit(codes)
 
+    val program = new FunctionScope(List(), null, null) {}
+    pushScope(program)
+
     val fcns = tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
     fcns.foreach{fcnDef => addFunctionDef(fcnDef)}
+
+    functionContexts = List[FunctionScope]()
 
     declarations ++= tUnit.getDeclarations.collect{case simp: CASTSimpleDeclaration => simp.getDeclSpecifier}
       .collect{case comp: CASTCompositeTypeSpecifier => comp}
@@ -440,7 +448,33 @@ class State(pointerSize: NumBits) {
         nameBinding match {
           case vari: IVariable =>
             if (vari.isStatic) {
-              List(Variable(decl.getName.getRawSignature, state, vari.getType))
+
+              val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
+              val stripped = TypeHelper.stripSyntheticTypeInfo(theType)
+
+              List(Option(decl.getInitializer)).flatten.foreach{x => Ast.step(x)(state)}
+
+              val variable = Variable(decl.getName.getRawSignature, state, vari.getType)
+              variable.isInitialized = true
+
+              if (!stripped.isInstanceOf[CStructure]) {
+                val initVal = Option(decl.getInitializer).map(_ => state.context.popStack).getOrElse(new RValue(0, null) {})
+
+                BinaryExpr.parseAssign(decl, op_assign, variable, initVal)(state)
+              } else if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
+                && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
+
+                val clause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
+                val values = clause.asInstanceOf[IASTInitializerList].getClauses.map { x => state.context.popStack }.reverse.toList
+
+                val struct = stripped.asInstanceOf[CStructure]
+                struct.getFields.zip(values).foreach{ case (field, newValue) =>
+                  val theField = TypeHelper.offsetof(struct, variable.address, field.getName, state)
+                  theField.setValue(newValue.asInstanceOf[RValue].value)
+                }
+              }
+
+              List(variable)
             } else {
               List()
             }

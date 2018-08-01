@@ -12,7 +12,7 @@ class VariableScope() {
   var varMap = new mutable.LinkedHashMap[String, Variable]() // linked to keep deterministic
 }
 
-class FunctionScope(staticVars: List[Variable], val parent: FunctionScope, val returnType: IType) {
+class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, val returnType: IType) {
   var variableScopes = List[VariableScope](new VariableScope()) // linked to keep deterministic
 
   private var stack = List[ValueType]()
@@ -32,11 +32,13 @@ class FunctionScope(staticVars: List[Variable], val parent: FunctionScope, val r
   }
 
   def resolveId(name: IASTName): Option[Variable] = {
-    variableScopes.flatMap{scope =>
-      scope.varMap.get(name.getRawSignature)
-    }.headOption
-      .orElse(if (parent != null) parent.resolveId(name) else None)
-      .orElse(Some(state.functionPointers(name.getRawSignature)))
+    staticVars.find{_.name == name.getRawSignature}.orElse {
+      variableScopes.flatMap { scope =>
+        scope.varMap.get(name.getRawSignature)
+      }.headOption
+        .orElse(if (parent != null) parent.resolveId(name) else None)
+        .orElse(Some(state.functionPointers(name.getRawSignature)))
+    }
   }
 
   def addVariable(name: String, theType: IType): Variable = {
@@ -91,10 +93,6 @@ class FunctionScope(staticVars: List[Variable], val parent: FunctionScope, val r
   def init(node: IASTNode, theState: State, shouldReset: Boolean) {
     if (shouldReset) {
       variableScopes.head.varMap.clear
-    }
-
-    staticVars.foreach {static =>
-      variableScopes.head.varMap += static.name -> static
     }
 
     stack = List()
