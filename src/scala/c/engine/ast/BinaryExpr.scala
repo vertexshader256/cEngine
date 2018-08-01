@@ -8,13 +8,11 @@ import IBasicType.Kind._
 
 object BinaryExpr {
   
-  def parseAssign(op: Int, dst: LValue, op2: ValueType)(implicit state: State): LValue = {
-
-    val result = evaluate(dst, op2, op)
+  def parseAssign(op: Int, dst: LValue, src: ValueType)(implicit state: State): LValue = {
 
     if (dst.theType.isInstanceOf[CStructure]) {
 
-      val otherVar = op2.asInstanceOf[Variable]
+      val otherVar = src.asInstanceOf[Variable]
 
       val struct = otherVar.theType.asInstanceOf[CStructure]
       struct.getFields.foreach{ field =>
@@ -23,6 +21,7 @@ object BinaryExpr {
         theField.setValue(baseField.getValue.value)
       }
     } else {
+      val result = evaluate(dst, src, op)
       val casted = TypeHelper.cast(dst.theType, result.value).value
       dst.setValue(casted)
     }
