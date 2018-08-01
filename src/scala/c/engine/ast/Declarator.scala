@@ -5,6 +5,8 @@ import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.op_assign
 import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.internal.core.dom.parser.c._
 
+import scala.c.engine.ast.BinaryExpr.evaluate
+
 object Declarator {
 
   def execute(decl: IASTDeclarator)(implicit state: State) = decl match {
@@ -162,7 +164,10 @@ object Declarator {
 
             if (!stripped.isInstanceOf[CStructure]) {
               val initVal = Option(decl.getInitializer).map(x => state.context.popStack).getOrElse(new RValue(0, null) {})
-              BinaryExpr.parseAssign(op_assign, variable, initVal)
+
+              val result = evaluate(variable, initVal, op_assign)
+              val casted = TypeHelper.cast(variable.theType, result.value).value
+              variable.setValue(casted)
             } else if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
               && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
 

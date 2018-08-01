@@ -9,6 +9,7 @@ import java.nio.ByteOrder
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.op_assign
 import org.eclipse.cdt.internal.core.dom.parser.c._
 
+import scala.c.engine.ast.BinaryExpr.evaluate
 import scala.c.engine.ast.{Ast, BinaryExpr}
 
 
@@ -460,7 +461,9 @@ class State(pointerSize: NumBits) {
               if (!stripped.isInstanceOf[CStructure]) {
                 val initVal = Option(decl.getInitializer).map(_ => state.context.popStack).getOrElse(new RValue(0, null) {})
 
-                BinaryExpr.parseAssign(op_assign, variable, initVal)(state)
+                val result = evaluate(variable, initVal, op_assign)(state)
+                val casted = TypeHelper.cast(variable.theType, result.value).value
+                variable.setValue(casted)
               } else if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
                 && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
 
