@@ -160,15 +160,29 @@ object Declarator {
 
           if (!variable.isInitialized) {
 
-            List(Option(decl.getInitializer)).flatten.foreach{x => Ast.step(x)}
+
 
             val initVals: List[ValueType] = if (!stripped.isInstanceOf[CStructure]) {
-              List(Option(decl.getInitializer).map(x => state.context.popStack).getOrElse(new RValue(0, null) {}))
+              val result = if (decl.getInitializer != null) {
+                Ast.step(decl.getInitializer)
+                state.context.popStack
+              } else {
+                new RValue(0, null) {}
+              }
+
+              List(result)
             } else if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
               && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
               val clause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
 
-              clause.asInstanceOf[IASTInitializerList].getClauses.map { x => state.context.popStack }.reverse.toList
+              val result = if (decl.getInitializer != null) {
+                Ast.step(decl.getInitializer)
+                clause.asInstanceOf[IASTInitializerList].getClauses.map { x => state.context.popStack }.reverse.toList
+              } else {
+                List(new RValue(0, null) {})
+              }
+
+              result
             } else if (decl.getInitializer != null && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause != null &&
               decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTIdExpression]) { // setting a struct equal to another struct
               val otherStruct = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.asInstanceOf[IASTIdExpression]
