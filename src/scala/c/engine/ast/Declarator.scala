@@ -208,8 +208,8 @@ object Declarator {
       val casted = TypeHelper.cast(dst.theType, result.value).value
       dst.setValue(casted)
     } else {
-      if (srcs.size == 1 && srcs.head.isInstanceOf[Variable]) { // setting a struct equal to another struct
-        val otherStruct = srcs.head.asInstanceOf[Variable]
+      if (srcs.size == 1 && srcs.head.isInstanceOf[LValue]) { // setting a struct equal to another struct
+        val otherStruct = srcs.head.asInstanceOf[LValue]
 
         val struct = otherStruct.theType.asInstanceOf[CStructure]
         struct.getFields.foreach{ field =>
