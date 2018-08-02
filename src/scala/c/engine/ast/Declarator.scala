@@ -162,36 +162,45 @@ object Declarator {
 
             List(Option(decl.getInitializer)).flatten.foreach{x => Ast.step(x)}
 
-            if (!stripped.isInstanceOf[CStructure]) {
-              val initVal = Option(decl.getInitializer).map(x => state.context.popStack).getOrElse(new RValue(0, null) {})
+            val initVals: List[ValueType] = if (!stripped.isInstanceOf[CStructure]) {
+              List(Option(decl.getInitializer).map(x => state.context.popStack).getOrElse(new RValue(0, null) {}))
+            } else if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
+              && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
+              val clause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
 
-              val result = evaluate(variable, initVal, op_assign)
+              clause.asInstanceOf[IASTInitializerList].getClauses.map { x => state.context.popStack }.reverse.toList
+            } else if (decl.getInitializer != null && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause != null &&
+              decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTIdExpression]) { // setting a struct equal to another struct
+              val otherStruct = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.asInstanceOf[IASTIdExpression]
+
+              List(state.context.resolveId(otherStruct.getName).get)
+            } else {
+              List()
+            }
+
+
+            if (!stripped.isInstanceOf[CStructure]) {
+              val result = evaluate(variable, initVals.head, op_assign)
               val casted = TypeHelper.cast(variable.theType, result.value).value
               variable.setValue(casted)
             } else if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
               && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
 
-              val clause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
-
-              val values = clause.asInstanceOf[IASTInitializerList].getClauses.map { x => state.context.popStack }.reverse.toList
-
               val struct = stripped.asInstanceOf[CStructure]
-              struct.getFields.zip(values).foreach{ case (field, newValue) =>
+              struct.getFields.zip(initVals).foreach{ case (field, newValue) =>
                 val theField = TypeHelper.offsetof(struct, variable.address, field.getName, state)
                 theField.setValue(newValue.asInstanceOf[RValue].value)
               }
             } else if (decl.getInitializer != null && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause != null &&
               decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTIdExpression]) { // setting a struct equal to another struct
 
-              val otherStruct = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.asInstanceOf[IASTIdExpression]
+              val otherStruct = initVals.head.asInstanceOf[Variable]
 
-              state.context.resolveId(otherStruct.getName).map{ otherVar =>
-                val struct = otherVar.theType.asInstanceOf[CStructure]
-                struct.getFields.foreach{ field =>
-                  val baseField = TypeHelper.offsetof(struct, otherVar.address, field.getName, state)
-                  val theField = TypeHelper.offsetof(struct, variable.address, field.getName, state)
-                  theField.setValue(baseField.getValue.value)
-                }
+              val struct = otherStruct.theType.asInstanceOf[CStructure]
+              struct.getFields.foreach{ field =>
+                val baseField = TypeHelper.offsetof(struct, otherStruct.address, field.getName, state)
+                val theField = TypeHelper.offsetof(struct, variable.address, field.getName, state)
+                theField.setValue(baseField.getValue.value)
               }
             }
 
