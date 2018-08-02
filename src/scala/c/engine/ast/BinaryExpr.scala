@@ -12,7 +12,7 @@ object BinaryExpr {
   def parseAssign(op: Int, dst: LValue, src: ValueType)(implicit state: State): LValue = {
 
     if (dst.theType.isInstanceOf[CStructure]) {
-      Declarator.assign(src.theType, dst, List(src))
+      Declarator.assign(src.theType, dst, List(src), op)
     } else {
       val result = evaluate(dst, src, op)
       val casted = TypeHelper.cast(dst.theType, result.value).value

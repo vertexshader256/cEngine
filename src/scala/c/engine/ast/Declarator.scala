@@ -178,7 +178,7 @@ object Declarator {
               List()
             }
 
-            assign(stripped, variable, initVals)
+            assign(stripped, variable, initVals, op_assign)
 
             variable.isInitialized = true
           }
@@ -188,9 +188,9 @@ object Declarator {
     }
   }
 
-  def assign(dstType: IType, dst: LValue, srcs: List[ValueType])(implicit state: State) = {
+  def assign(dstType: IType, dst: LValue, srcs: List[ValueType], op: Int)(implicit state: State) = {
     if (!dstType.isInstanceOf[CStructure]) {
-      val result = evaluate(dst, srcs.head, op_assign)
+      val result = evaluate(dst, srcs.head, op)
       val casted = TypeHelper.cast(dst.theType, result.value).value
       dst.setValue(casted)
     } else {
