@@ -8,10 +8,6 @@ import IBasicType.Kind._
 
 
 object BinaryExpr {
-  
-  def parseAssign(op: Int, dst: LValue, src: ValueType)(implicit state: State): LValue = {
-    Declarator.assign(src.theType, dst, List(src), op)
-  }
 
   def calculateBoolean(left: AnyVal, right: AnyVal, operator: Int): Boolean = operator match {
     case `op_greaterThan` =>
