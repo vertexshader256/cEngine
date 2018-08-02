@@ -202,7 +202,7 @@ object Declarator {
     }
   }
 
-  def assign(dstType: IType, dst: LValue, srcs: List[ValueType], op: Int)(implicit state: State) = {
+  def assign(dstType: IType, dst: LValue, srcs: List[ValueType], op: Int)(implicit state: State): ValueType = {
     if (!dstType.isInstanceOf[CStructure]) {
       val result = evaluate(dst, srcs.head, op)
       val casted = TypeHelper.cast(dst.theType, result.value).value
@@ -215,13 +215,13 @@ object Declarator {
         struct.getFields.foreach{ field =>
           val baseField = TypeHelper.offsetof(struct, otherStruct.address, field.getName, state)
           val theField = TypeHelper.offsetof(struct, dst.address, field.getName, state)
-          theField.setValue(baseField.getValue.value)
+          assign(theField.theType, theField, List(baseField.getValue), op)
         }
-      } else {
+      } else { // e.g struct Test test = {1.0, 2, "three"}
         val struct = dstType.asInstanceOf[CStructure]
         struct.getFields.zip(srcs).foreach{ case (field, newValue) =>
           val theField = TypeHelper.offsetof(struct, dst.address, field.getName, state)
-          theField.setValue(newValue.asInstanceOf[RValue].value)
+          assign(theField.theType, theField, List(newValue), op)
         }
       }
     }
