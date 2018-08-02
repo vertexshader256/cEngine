@@ -6,20 +6,13 @@ import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.internal.core.dom.parser.c.{CBasicType, CStructure}
 import IBasicType.Kind._
 
+
 object BinaryExpr {
   
   def parseAssign(op: Int, dst: LValue, src: ValueType)(implicit state: State): LValue = {
 
     if (dst.theType.isInstanceOf[CStructure]) {
-
-      val otherVar = src.asInstanceOf[Variable]
-
-      val struct = otherVar.theType.asInstanceOf[CStructure]
-      struct.getFields.foreach{ field =>
-        val baseField = TypeHelper.offsetof(struct, otherVar.address, field.getName, state)
-        val theField = TypeHelper.offsetof(struct, dst.address, field.getName, state)
-        theField.setValue(baseField.getValue.value)
-      }
+      Declarator.assign(src.theType, dst, List(src))
     } else {
       val result = evaluate(dst, src, op)
       val casted = TypeHelper.cast(dst.theType, result.value).value
