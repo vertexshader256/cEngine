@@ -10,7 +10,7 @@ import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.op_assign
 import org.eclipse.cdt.internal.core.dom.parser.c._
 
 import scala.c.engine.ast.BinaryExpr.evaluate
-import scala.c.engine.ast.{Ast, BinaryExpr}
+import scala.c.engine.ast.{Ast, BinaryExpr, Declarator}
 
 
 object Interpreter {
@@ -441,7 +441,7 @@ class State(pointerSize: NumBits) {
     functionCount += 1
   }
 
-  private def addStaticFunctionVars(node: IASTNode, state: State): List[Variable] = {
+  private def addStaticFunctionVars(node: IASTNode)(implicit state: State): List[Variable] = {
     node match {
       case decl: IASTDeclarator =>
         val nameBinding = decl.getName.resolveBinding()
@@ -449,33 +449,13 @@ class State(pointerSize: NumBits) {
         nameBinding match {
           case vari: IVariable =>
             if (vari.isStatic) {
-
               val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
-              val stripped = TypeHelper.stripSyntheticTypeInfo(theType)
-
-              List(Option(decl.getInitializer)).flatten.foreach{x => Ast.step(x)(state)}
 
               val variable = Variable(decl.getName.getRawSignature, state, vari.getType)
+              val initVals = Declarator.getRValues(decl.getInitializer, theType)
+              Declarator.assign(theType, variable, initVals, op_assign)
+
               variable.isInitialized = true
-
-              if (!stripped.isInstanceOf[CStructure]) {
-                val initVal = Option(decl.getInitializer).map(_ => state.context.popStack).getOrElse(new RValue(0, null) {})
-
-                val result = evaluate(variable, initVal, op_assign)(state)
-                val casted = TypeHelper.cast(variable.theType, result.value).value
-                variable.setValue(casted)
-              } else if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
-                && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
-
-                val clause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
-                val values = clause.asInstanceOf[IASTInitializerList].getClauses.map { x => state.context.popStack }.reverse.toList
-
-                val struct = stripped.asInstanceOf[CStructure]
-                struct.getFields.zip(values).foreach{ case (field, newValue) =>
-                  val theField = TypeHelper.offsetof(struct, variable.address, field.getName, state)
-                  theField.setValue(newValue.asInstanceOf[RValue].value)
-                }
-              }
 
               List(variable)
             } else {
@@ -483,7 +463,7 @@ class State(pointerSize: NumBits) {
             }
           case _ => List()
         }
-      case x => x.getChildren.toList.flatMap{x => addStaticFunctionVars(x, state)}
+      case x => x.getChildren.toList.flatMap{x => addStaticFunctionVars(x)}
     }
   }
 
@@ -495,7 +475,7 @@ class State(pointerSize: NumBits) {
     functionList += new Function(name.getRawSignature, true) {
       index = functionCount
       node = fcnDef
-      override val staticVars = addStaticFunctionVars(fcnDef, State.this)
+      override val staticVars = addStaticFunctionVars(fcnDef)(State.this)
       def parameters = fcnType.getParameterTypes.toList
       def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = {None}
     }
