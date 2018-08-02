@@ -158,36 +158,8 @@ object Declarator {
           val variable = state.context.addVariable(name.getRawSignature, theType)
 
           if (!variable.isInitialized) {
-            val initVals: List[ValueType] = if (!theType.isInstanceOf[CStructure]) {
-              val result = if (decl.getInitializer != null) {
-                Ast.step(decl.getInitializer)
-                state.context.popStack
-              } else {
-                new RValue(0, null) {}
-              }
 
-              List(result)
-            } else if (decl.getInitializer != null && decl.getInitializer.isInstanceOf[IASTEqualsInitializer]
-              && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
-              val clause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
-
-              val result = if (decl.getInitializer != null) {
-                Ast.step(decl.getInitializer)
-                clause.asInstanceOf[IASTInitializerList].getClauses.map { x => state.context.popStack }.reverse.toList
-              } else {
-                List(new RValue(0, null) {})
-              }
-
-              result
-            } else if (decl.getInitializer != null && decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause != null &&
-              decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTIdExpression]) { // setting a struct equal to another struct
-              val otherStruct = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause.asInstanceOf[IASTIdExpression]
-
-              List(state.context.resolveId(otherStruct.getName).get)
-            } else {
-              List()
-            }
-
+            val initVals = getRValues(decl.getInitializer, theType)
             assign(theType, variable, initVals, op_assign)
 
             variable.isInitialized = true
@@ -195,6 +167,38 @@ object Declarator {
         }
         Seq()
 
+    }
+  }
+
+  def getRValues(decl: IASTInitializer, theType: IType)(implicit state: State): List[ValueType] = {
+    if (!theType.isInstanceOf[CStructure]) {
+      val result = if (decl != null) {
+        Ast.step(decl)
+        state.context.popStack
+      } else {
+        new RValue(0, null) {}
+      }
+
+      List(result)
+    } else if (decl != null && decl.isInstanceOf[IASTEqualsInitializer]
+      && decl.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
+      val clause = decl.asInstanceOf[IASTEqualsInitializer].getInitializerClause
+
+      val result = if (decl != null) {
+        Ast.step(decl)
+        clause.asInstanceOf[IASTInitializerList].getClauses.map { x => state.context.popStack }.reverse.toList
+      } else {
+        List(new RValue(0, null) {})
+      }
+
+      result
+    } else if (decl != null && decl.asInstanceOf[IASTEqualsInitializer].getInitializerClause != null &&
+      decl.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTIdExpression]) { // setting a struct equal to another struct
+      val otherStruct = decl.asInstanceOf[IASTEqualsInitializer].getInitializerClause.asInstanceOf[IASTIdExpression]
+
+      List(state.context.resolveId(otherStruct.getName).get)
+    } else {
+      List()
     }
   }
 
