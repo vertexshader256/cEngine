@@ -154,15 +154,11 @@ object Declarator {
 
         if (nameBinding.isInstanceOf[IVariable]) {
           val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
-          val stripped = TypeHelper.stripSyntheticTypeInfo(theType)
 
           val variable = state.context.addVariable(name.getRawSignature, theType)
 
           if (!variable.isInitialized) {
-
-
-
-            val initVals: List[ValueType] = if (!stripped.isInstanceOf[CStructure]) {
+            val initVals: List[ValueType] = if (!theType.isInstanceOf[CStructure]) {
               val result = if (decl.getInitializer != null) {
                 Ast.step(decl.getInitializer)
                 state.context.popStack
@@ -192,7 +188,7 @@ object Declarator {
               List()
             }
 
-            assign(stripped, variable, initVals, op_assign)
+            assign(theType, variable, initVals, op_assign)
 
             variable.isInitialized = true
           }
