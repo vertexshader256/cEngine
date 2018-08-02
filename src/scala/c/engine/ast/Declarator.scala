@@ -178,35 +178,38 @@ object Declarator {
               List()
             }
 
-
-            if (!stripped.isInstanceOf[CStructure]) {
-              val result = evaluate(variable, initVals.head, op_assign)
-              val casted = TypeHelper.cast(variable.theType, result.value).value
-              variable.setValue(casted)
-            } else {
-              if (initVals.size == 1 && initVals.head.isInstanceOf[Variable]) { // setting a struct equal to another struct
-                val otherStruct = initVals.head.asInstanceOf[Variable]
-
-                val struct = otherStruct.theType.asInstanceOf[CStructure]
-                struct.getFields.foreach{ field =>
-                  val baseField = TypeHelper.offsetof(struct, otherStruct.address, field.getName, state)
-                  val theField = TypeHelper.offsetof(struct, variable.address, field.getName, state)
-                  theField.setValue(baseField.getValue.value)
-                }
-              } else {
-                val struct = stripped.asInstanceOf[CStructure]
-                struct.getFields.zip(initVals).foreach{ case (field, newValue) =>
-                  val theField = TypeHelper.offsetof(struct, variable.address, field.getName, state)
-                  theField.setValue(newValue.asInstanceOf[RValue].value)
-                }
-              }
-            }
+            assign(stripped, variable, initVals)
 
             variable.isInitialized = true
           }
         }
         Seq()
 
+    }
+  }
+
+  def assign(dstType: IType, dst: LValue, srcs: List[ValueType])(implicit state: State) = {
+    if (!dstType.isInstanceOf[CStructure]) {
+      val result = evaluate(dst, srcs.head, op_assign)
+      val casted = TypeHelper.cast(dst.theType, result.value).value
+      dst.setValue(casted)
+    } else {
+      if (srcs.size == 1 && srcs.head.isInstanceOf[Variable]) { // setting a struct equal to another struct
+        val otherStruct = srcs.head.asInstanceOf[Variable]
+
+        val struct = otherStruct.theType.asInstanceOf[CStructure]
+        struct.getFields.foreach{ field =>
+          val baseField = TypeHelper.offsetof(struct, otherStruct.address, field.getName, state)
+          val theField = TypeHelper.offsetof(struct, dst.address, field.getName, state)
+          theField.setValue(baseField.getValue.value)
+        }
+      } else {
+        val struct = dstType.asInstanceOf[CStructure]
+        struct.getFields.zip(srcs).foreach{ case (field, newValue) =>
+          val theField = TypeHelper.offsetof(struct, dst.address, field.getName, state)
+          theField.setValue(newValue.asInstanceOf[RValue].value)
+        }
+      }
     }
   }
 }
