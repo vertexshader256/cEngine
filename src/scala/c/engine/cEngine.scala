@@ -503,36 +503,6 @@ class State(pointerSize: NumBits) {
 
       val resolvedArgs: Array[RValue] = args.map{ TypeHelper.resolve }
 
-      val convertedArgs = functionPrototypes.find{_.getName.getRawSignature == name}.map{ proto =>
-        val params = proto.getChildren.collect{case param: CASTParameterDeclaration => param}
-        var i = -1
-        params.map{ p =>
-          i += 1
-          if (p.getDeclSpecifier.isInstanceOf[CASTSimpleDeclSpecifier]) {
-            val param = p.getDeclarator.getName.resolveBinding().asInstanceOf[IParameter]
-            TypeHelper.cast(param.getType, resolvedArgs(i).value)
-          } else {
-            resolvedArgs(i)
-          }
-        } ++ resolvedArgs.drop(i + 1)
-      }.getOrElse {
-        resolvedArgs
-      }
-
-      // printf assumes all floating point numbers are doubles
-      // and shorts are 4 bytes
-      val promoted = convertedArgs.map{arg =>
-        if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eFloat) {
-          TypeHelper.cast(new CBasicType(IBasicType.Kind.eDouble, 0), arg.value)
-        } else if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].isShort) {
-          TypeHelper.cast(new CBasicType(IBasicType.Kind.eInt, 0), arg.value)
-        } else if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eChar) {
-          TypeHelper.cast(new CBasicType(IBasicType.Kind.eInt, 0), arg.value)
-        } else {
-          arg
-        }
-      }.toList
-
       if (!function.isNative) {
         // this is a function simulated in scala
         val returnVal = function.run(resolvedArgs.reverse, this)
@@ -540,12 +510,28 @@ class State(pointerSize: NumBits) {
         returnVal.map{theVal => new RValue(theVal, null) {}}
       } else {
 
-        val newScope = scope.getOrElse {
-          if (call != null) {
-            new FunctionScope(function.staticVars, functionContexts.headOption.getOrElse(null), call.getExpressionType)
+        // printf assumes all floating point numbers are doubles
+        // and shorts are 4 bytes
+        val promoted = resolvedArgs.map{arg =>
+          if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eFloat) {
+            TypeHelper.cast(new CBasicType(IBasicType.Kind.eDouble, 0), arg.value)
+          } else if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].isShort) {
+            TypeHelper.cast(new CBasicType(IBasicType.Kind.eInt, 0), arg.value)
+          } else if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eChar) {
+            TypeHelper.cast(new CBasicType(IBasicType.Kind.eInt, 0), arg.value)
           } else {
-            new FunctionScope(function.staticVars, functionContexts.headOption.getOrElse(null), null)
+            arg
           }
+        }.toList
+
+        val newScope = scope.getOrElse {
+          val expressionType = if (call != null) {
+            call.getExpressionType
+          } else {
+            null
+          }
+
+          new FunctionScope(function.staticVars, functionContexts.headOption.getOrElse(null), expressionType)
         }
 
         newScope.init(function.node, this, !scope.isDefined)
