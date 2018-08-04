@@ -14,9 +14,11 @@ class ApiTest extends StandardTest {
       printf("what: %.1f\n", x);
       
       """
-      assert(getResults(state.stdout.toList) == (Seq("1432", "what: 2.5")))
+    assert(getResults(state.stdout.toList) == (Seq("1432", "what: 2.5")))
   }
+}
 
+class ApiTest2 extends StandardTest {
   "func interpolator" should "print the correct results" in {
     import Interpreter._
     implicit val state = new State(ThirtyTwoBits)
@@ -45,7 +47,9 @@ class ApiTest extends StandardTest {
 
     assert(getResults(state.stdout.toList).mkString == "27")
   }
+}
 
+class ApiTest3 extends StandardTest {
   "func interpolator 2" should "print the correct results" in {
     import Interpreter._
     implicit val state = new State(ThirtyTwoBits)

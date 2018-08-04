@@ -12,18 +12,22 @@ class LowLevel extends StandardTest {
 
     assert(state.Stack.insertIndex == start)
   }
+}
 
-  "ensure the stack gets popped after functions with string args" should "print the correct results" in {
-    import Interpreter._
-    implicit val state = new State(ThirtyTwoBits)
+class LowLevel2 extends StandardTest {
+    "ensure the stack gets popped after functions with string args" should "print the correct results" in {
+        import Interpreter._
+        implicit val state = new State(ThirtyTwoBits)
 
-    val start = state.Stack.insertIndex
+        val start = state.Stack.insertIndex
 
-    c"""printf("%d\n", 5);"""
+        c"""printf("%d\n", 5);"""
 
-    assert(state.Stack.insertIndex == start)
-  }
+        assert(state.Stack.insertIndex == start)
+    }
+}
 
+class LowLevel3 extends StandardTest {
   "Making sure custom functions pop stack" should "print the correct results" in {
     import Interpreter._
     implicit val state = new State(ThirtyTwoBits)
@@ -42,7 +46,9 @@ class LowLevel extends StandardTest {
 
     assert(state.Stack.insertIndex == start)
   }
+}
 
+class LowLevel4 extends StandardTest {
   "Making sure parameters are cleared from stack" should "print the correct results" in {
     import Interpreter._
     implicit val state = new State(ThirtyTwoBits)
