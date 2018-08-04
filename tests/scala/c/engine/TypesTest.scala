@@ -1,6 +1,76 @@
 package scala.c.engine
 
 class TypesTest extends StandardTest {
+
+  "All types used as a boolean" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x = 2147483647;
+        short y = 233;
+        long z = 23281238;
+        long long zz = 42342342665463;
+        float f = 2331.433;
+        double g = 4324.34234;
+
+        int x2 = 0;
+        short y2 = 0;
+        long z2 = 0;
+        long long zz2 = 0;
+        float f2 = 0.0;
+        double g2 = 0.0;
+
+        if (x) {
+          printf("HERE\n");
+        }
+
+        if (y) {
+          printf("HERE2\n");
+        }
+
+        if (z) {
+          printf("HERE3\n");
+        }
+
+        if (z) {
+          printf("HERE4\n");
+        }
+
+        if (f) {
+           printf("HERE5\n");
+        }
+
+        if (g) {
+           printf("HERE6\n");
+        }
+
+        if (x2) {
+           printf("HERE\n");
+        }
+
+        if (y2) {
+           printf("HERE2\n");
+        }
+
+        if (z2) {
+           printf("HERE3\n");
+        }
+
+        if (zz2) {
+           printf("HERE4\n");
+        }
+
+        if (f2) {
+            printf("HERE5\n");
+        }
+
+        if (g2) {
+            printf("HERE6\n");
+        }
+      }"""
+
+    checkResults(code)
+  }
+
   "Simple type test" should "print the correct results" in {
     val code = """
 

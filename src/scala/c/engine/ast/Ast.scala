@@ -6,8 +6,6 @@ import org.eclipse.cdt.internal.core.dom.parser.c._
 
 object Ast {
 
-  val NoMatch: PartialFunction[Direction, Seq[IASTNode]] = { case _ => Seq()}
-
   def step(current: Any)(implicit state: State): Unit = current match {
 
     case statement: IASTStatement =>
@@ -47,12 +45,6 @@ object Ast {
       if (result) {
         state.context.setAddress(label.address)
       }
-    case JmpToLabelIfNotEqual(expr1, expr2, label) =>
-      val raw1 = TypeHelper.resolve(Expressions.evaluate(expr1).get).value
-      val raw2 = TypeHelper.resolve(Expressions.evaluate(expr2).get).value
-      if (raw1 != raw2) {
-        state.context.setAddress(label.address)
-      }
     case JmpToLabelIfEqual(expr1, expr2, label) =>
       val raw1 = TypeHelper.resolve(Expressions.evaluate(expr1).get).value
       val raw2 = TypeHelper.resolve(Expressions.evaluate(expr2).get).value
@@ -63,14 +55,6 @@ object Ast {
       state.context.jmpRelative(lines)
     case jmp: JmpName =>
       state.context.setAddress(jmp.destAddress)
-    case ptr: IASTPointer => {
-      Seq()
-    }
-    case tUnit: IASTTranslationUnit => {
-      tUnit.getChildren.filterNot {
-        _.isInstanceOf[IASTFunctionDefinition]
-      }
-    }
     case simple: IASTSimpleDeclaration => {
       val declSpec = simple.getDeclSpecifier
 
@@ -87,11 +71,7 @@ object Ast {
       }
     }
     case enumerator: CASTEnumerator => {
-      if (enumerator.getValue != null) {
-        step(enumerator.getValue)
-      } else {
-        state.context.pushOntoStack(List(new RValue(enumerator.getParent.getChildren.indexOf(enumerator) - 1, new CBasicType(IBasicType.Kind.eInt, 0)) {}))
-      }
+      step(enumerator.getValue)
 
       val newVar = state.context.addVariable(enumerator.getName.getRawSignature, new CBasicType(IBasicType.Kind.eInt, 0))
       val value = state.context.popStack.asInstanceOf[RValue]
@@ -116,6 +96,5 @@ object Ast {
     case equals: IASTEqualsInitializer =>
       step(equals.getInitializerClause)
     case label: Label =>
-    case GotoLabel =>
   }
 }

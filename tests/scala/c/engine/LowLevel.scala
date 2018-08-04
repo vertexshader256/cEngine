@@ -81,7 +81,9 @@ class VariableLowLevelTest extends StandardTest {
 
     assert(state.Stack.insertIndex == start + 4)
   }
+}
 
+class VariableLowLevelTest2 extends StandardTest {
   "ensure doubles are 8 bytes" should "print the correct results" in {
     import Interpreter._
     implicit val state = new State(ThirtyTwoBits)
@@ -92,7 +94,9 @@ class VariableLowLevelTest extends StandardTest {
 
     assert(state.Stack.insertIndex == start + 8)
   }
+}
 
+class VariableLowLevelTest3 extends StandardTest {
   "ensure chars are 1 byte" should "print the correct results" in {
     import Interpreter._
     implicit val state = new State(ThirtyTwoBits)

@@ -314,7 +314,7 @@ class PointerArithmeticTest extends StandardTest {
 class PointerTest extends StandardTest {
   "pointer equality" should "print the correct results" in {
     val code = """
-      
+
       int *testFcn() {
         return 0;
       }
@@ -328,6 +328,23 @@ class PointerTest extends StandardTest {
 
         printf("%d\n", ptr[0] == &x);
         printf("%d\n", testFcn() == 0);
+      }"""
+
+    checkResults(code)
+  }
+
+  "pointer typedef" should "print the correct results" in {
+    val code = """
+
+      typedef int* ptrType;
+
+      void main() {
+        int x = 10;
+        ptrType y = &x;
+        x++;
+
+        printf("%d %d\n", *y, sizeof(ptrType));
+        printf("%d\n", x);
       }"""
 
     checkResults(code)

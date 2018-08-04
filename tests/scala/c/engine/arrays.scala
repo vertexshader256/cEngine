@@ -224,6 +224,20 @@ class ArrayTest extends StandardTest {
 
     checkResults(code)
   }
+
+  "An array indexed by different typed indexes" should "print the correct results" in {
+    val code = """
+      void main() {
+        long long y = 2;
+        short z = 3;
+        int x[5];
+        x[y] = 5;
+        x[z] = 10;
+        printf("%d %d\n", x[y], x[z]);
+      }"""
+
+    checkResults(code)
+  }
   
   "An array with dimensions from a binary expr" should "print the correct results" in {
     val code = """

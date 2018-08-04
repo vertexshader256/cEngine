@@ -95,11 +95,7 @@ class Memory(size: Int) {
           case int: Int => tape.put(address, int.toByte)
         }
       case basic: IBasicType if basic.getKind == eBoolean =>
-        newVal match {
-          case char: char => tape.put(address, char)
-          case int: Int => tape.putInt(address, int)
-          case bool: Boolean => tape.putInt(address, if (bool) 1 else 0)
-        }
+        tape.putInt(address, newVal.asInstanceOf[Int])
       case _: IFunctionType =>
         writePointerToMemory(newVal, address)
       case _: CStructure =>
@@ -179,7 +175,6 @@ case class ReturnFromFunction() extends Exception("returning")
 case class JmpIfNotEqual(expr: IASTExpression, relativeJump: Int)
 case class JmpToLabelIfNotZero(expr: IASTExpression, label: Label)
 case class JmpToLabelIfZero(expr: IASTExpression, label: Label)
-case class JmpToLabelIfNotEqual(expr1: IASTExpression, expr2: IASTExpression, label: Label)
 case class JmpToLabelIfEqual(expr1: IASTExpression, expr2: IASTExpression, label: Label)
 case class Jmp(relativeJump: Int)
 case class JmpLabel(label: Label)

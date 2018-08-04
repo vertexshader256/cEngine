@@ -60,7 +60,6 @@ object UnaryExpression {
 
               val result = theValue.value match {
                 case byte: Byte => ~byte
-                case char: Char => ~char
                 case int: Int => ~int
                 case short: Short => ~short
                 case long: Long => ~long

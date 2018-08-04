@@ -9,9 +9,6 @@ object Statement {
   def parse(statement: IASTStatement)(implicit state: State): Unit = statement match {
     case _: IASTNullStatement =>
       PartialFunction.empty
-    case _: IASTContinueStatement => {
-      state.context.continue()
-    }
     case ret: IASTReturnStatement => {
       var retVal: ValueType = null
 

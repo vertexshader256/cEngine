@@ -126,6 +126,10 @@ object TypeHelper {
         config |= IBasicType.IS_LONG
       }
 
+      if (simple.isShort) {
+        config |= IBasicType.IS_SHORT
+      }
+
       if (simple.isUnsigned) {
         config |= IBasicType.IS_UNSIGNED
       } else {
@@ -211,16 +215,6 @@ object TypeHelper {
     case fcn: IFunctionType       => state.pointerType
   }
 
-  def resolve(theType: IType)(implicit state: State): IType = theType match {
-    case basicType: IBasicType    => basicType
-    case struct: CStructure       => struct
-    case typedef: ITypedef        => resolve(typedef.getType)
-    case ptrType: IPointerType    => resolve(ptrType.getType)
-    case arrayType: IArrayType    => resolve(arrayType.getType)
-    case qualType: IQualifierType => resolve(qualType.getType)
-    case fcn: IFunctionType       => state.pointerType
-  }
-  
   def stripSyntheticTypeInfo(theType: IType): IType = theType match {
     case struct: CStructure       => struct
     case basicType: IBasicType    => basicType
@@ -244,6 +238,8 @@ object TypeHelper {
       case short: short => short != 0
       case char: char => char != 0
       case long: Long => long != 0
+      case float: Float => float != 0.0
+      case double: Double => double != 0.0
       case RValue(value, _) => resolveBoolean(value)
       case info @ LValue(_, _) => resolveBoolean(info.value)
   }
@@ -323,11 +319,9 @@ object TypeHelper {
         case `eInt` if basic.isShort    => 2
         case `eInt`                     => 4
         case `eFloat`                   => 4
-        case `eChar16`                  => 2
         case `eDouble`                  => 8
         case `eChar`                    => 1
-        case `eChar32`                  => 4
-        case `eVoid`                    => 4
+        case `eVoid`                    => 1
         case `eBoolean`                 => 4
       }
   }

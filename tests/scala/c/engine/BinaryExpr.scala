@@ -15,19 +15,62 @@ class RobustTests extends StandardTest {
         double d = 756.3;
         long e = 3454;
         short f = 123;
+        //long long g = 5476578934653;
         """ + {
-         def combinationWithRepeat(input: List[Char], size:Int) = {List.fill(size)(input).flatten.combinations(size).toList}
-          val perms = combinationWithRepeat(List('a', 'b', 'c', 'd', 'e', 'f'), 2).toList.flatMap{x => List(x, x.reverse)}
-          val result = perms.map{perm => 
-            if (perm(0) == 'c' || perm(1) == 'c' || perm(0) == 'd' || perm(1) == 'd') {
-              """printf("%f\n", """ + perm(0) + operator + perm(1) + ");"
+          val types = List('a', 'b', 'c', 'd', 'e', 'f')
+          val perms = types.combinations(2).toList ++ types.map(x => List(x, x))
+
+          val result = perms.map{perm =>
+            if (perm(0) == 'g' || perm(1) == 'g') {}
+            if (operator != '>' && operator != '<' && (perm(0) == 'c' || perm(1) == 'c' || perm(0) == 'd' || perm(1) == 'd')) {
+              """printf("%.4f\n", """ + perm(0) + operator + perm(1) + ");"
             } else {
-              """printf("%d\n", """ + perm(0) + operator + perm(1) + ");"
+              """printf("%d\n", """ + "(int)(" + perm(0) + operator + perm(1) + "));"
             }
           }
           result.reduce(_ + "\n" + _)
         } + "}"
     }
+
+  def binary(operator: String) = {
+    """
+       void main() {
+        int a = 5;
+        char b = 64;
+        float c = 1.5f;
+        double d = 756.3;
+        long e = 3454;
+        short f = 123;
+        long long g = 5476578934653;
+        """ + {
+      val types = List('a', 'b', 'c', 'd', 'e', 'f', 'g')
+      val perms = types.combinations(2).toList ++ types.map(x => List(x, x))
+
+      val result = perms.map{perm =>
+        """printf("%d\n", """ + perm(0) + operator + perm(1) + ");"
+      }
+      result.reduce(_ + "\n" + _)
+    } + "}"
+  }
+
+  def bitwise(operator: Char) = {
+    """
+       void main() {
+        int a = 5;
+        char b = 64;
+        long c = 3454;
+        short d = 123;
+        long long e = 5476578934653;
+        """ + {
+      val types = List('a', 'b', 'c', 'd', 'e')
+      val perms = types.combinations(2).toList ++ types.map(x => List(x, x))
+
+      val result = perms.map { perm =>
+        """printf("%d\n", """ + "(int)(" + perm(0) + operator + perm(1) + "));"
+      }
+      result.reduce(_ + "\n" + _)
+    } + "}"
+  }
   
   def robustDivide(operator: Char) = {
          """
@@ -38,11 +81,17 @@ class RobustTests extends StandardTest {
         double d = 756.3;
         long e = 3454;
         short f = 123;
+        //long long g = 5476578934653;
         """ + {
-         def combinationWithRepeat(input: List[Char], size:Int) = {List.fill(size)(input).flatten.combinations(size).toList}
-          val perms = combinationWithRepeat(List('a', 'b', 'c', 'd', 'e', 'f'), 2).toList.flatMap{x => List(x, x.reverse)}
-          val result = perms.map{perm => 
-            """printf("%f\n", """ + perm(0) + operator + perm(1) + ");"
+          val types = List('a', 'b', 'c', 'd', 'e', 'f')
+          val perms = types.combinations(2).toList ++ types.map(x => List(x, x))
+
+          val result = perms.map{perm =>
+            if (perm(0) == 'c' || perm(1) == 'c' || perm(0) == 'd' || perm(1) == 'd') {
+              """printf("%.4f\n", """ + perm(0) + operator + perm(1) + ");"
+            } else {
+              """printf("%d\n", """ + perm(0) + operator + perm(1) + ");"
+            }
           }
           result.reduce(_ + "\n" + _)
         } + "}"
@@ -63,10 +112,50 @@ class RobustTests extends StandardTest {
     checkResults(code)
   }
   
-//  "Division robustness test" should "print the correct results" in {
-//    val code = robustDivide('/')
-//    checkResults(code)
-//  }
+  "Division robustness test" should "print the correct results" in {
+    val code = robustDivide('/')
+    checkResults(code)
+  }
+
+  "Greater than robustness test" should "print the correct results" in {
+    val code = binary(">")
+    checkResults(code)
+  }
+
+  "Less than robustness test" should "print the correct results" in {
+    val code = binary("<")
+    checkResults(code)
+  }
+
+  "Greater than or equal robustness test" should "print the correct results" in {
+    val code = binary(">=")
+    checkResults(code)
+  }
+
+  "Less than or equal robustness test" should "print the correct results" in {
+    val code = binary("<=")
+    checkResults(code)
+  }
+
+  "bitwise OR robustness test" should "print the correct results" in {
+    val code = bitwise('|')
+    checkResults(code)
+  }
+
+  "bitwise AND robustness test" should "print the correct results" in {
+    val code = bitwise('&')
+    checkResults(code)
+  }
+
+  "bitwise XOR robustness test" should "print the correct results" in {
+    val code = bitwise('^')
+    checkResults(code)
+  }
+
+  "modulus robustness test" should "print the correct results" in {
+    val code = bitwise('%')
+    checkResults(code)
+  }
 }
 
 class BinaryExpr extends StandardTest {

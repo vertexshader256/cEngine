@@ -49,12 +49,6 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
     }
   }
 
-  def continue() = {
-    while (!pathStack(state.context.pathIndex).isInstanceOf[ContinueLabel]) {
-      pathIndex += 1
-    }
-  }
-
   def jmpRelative(incrementBy: Int) = {
     pathIndex += incrementBy
   }
@@ -86,7 +80,6 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
       }
     } catch {
       case ReturnFromFunction() =>
-      case x => x.printStackTrace()
     }
   }
 

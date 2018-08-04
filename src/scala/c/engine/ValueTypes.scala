@@ -132,13 +132,4 @@ case class Variable(name: String, state: State, theType: IType) extends LValue(s
   override def toString = {
     "Variable(" + name + ", " + address + ", " + theType + ")"
   }
-
-  def setValues(values: List[ValueType], state: State) = {
-    var offset = 0
-    values.foreach {
-      case RValue(value, theType) =>
-        state.Stack.writeToMemory(value, address + offset, theType)
-        offset += TypeHelper.sizeof(theType)(state)
-    }
-  }
 }

@@ -58,13 +58,13 @@ object BinaryExpr {
       val baseType = if (left.isInstanceOf[Address]) {
         left.asInstanceOf[Address].baseType
       } else {
-        TypeHelper.resolve(left.theType)
+        TypeHelper.stripSyntheticTypeInfo(left.theType)
       }
 
       val rightBaseType = if (right.isInstanceOf[Address]) {
         right.asInstanceOf[Address].baseType
       } else {
-        TypeHelper.resolve(right.theType)
+        TypeHelper.stripSyntheticTypeInfo(right.theType)
       }
 
       val ptrSize = TypeHelper.sizeof(baseType)
@@ -78,7 +78,7 @@ object BinaryExpr {
         // assume plus
         val result = left.value.asInstanceOf[Int] * rightPtrSize + right.value.asInstanceOf[Int]
         Address(result, rightBaseType)
-      } else if (isLeftPointer && !isRightPointer) {
+      } else {
         val result = if (operator == `op_minus`) {
           left.value.asInstanceOf[Int] - right.value.asInstanceOf[Int] * ptrSize
         } else {
@@ -86,8 +86,6 @@ object BinaryExpr {
         }
 
         Address(result, baseType)
-      } else {
-        new RValue(calculate(left.value, right.value, operator), left.theType) {}
       }
     } else {
       new RValue(calculate(left.value, right.value, operator), left.theType) {}
@@ -140,10 +138,12 @@ object BinaryExpr {
           case (x: Float, y: Int) => x + y
           case (x: Float, y: Float) => x + y
           case (x: Float, y: Double) => x + y
+          case (x: Float, y: Long) => x + y
 
           case (x: Double, y: Int) => x + y
           case (x: Double, y: Double) => x + y
           case (x: Double, y: Float) => x + y
+          case (x: Double, y: Long) => x + y
 
           case (x: Long, y: Int) => x + y
           case (x: Long, y: Float) => x + y
@@ -206,10 +206,14 @@ object BinaryExpr {
         (op1, op2) match {
           case (x: Long, y: Long) => if (x % y >= 0) x % y else (x % y) + y
           case (x: Long, y: Int) => if (x % y >= 0) x % y else (x % y) + y
+
           case (x: Int, y: Int) => if (x % y >= 0) x % y else (x % y) + y
-          case (x: Double, y: Int) => if (x % y >= 0) x % y else (x % y) + y
           case (x: Int, y: Double) => if (x % y >= 0) x % y else (x % y) + y
+          case (x: Int, y: Long) => if (x % y >= 0) x % y else (x % y) + y
+
+          case (x: Double, y: Int) => if (x % y >= 0) x % y else (x % y) + y
           case (x: Double, y: Double) => if (x % y >= 0) x % y else (x % y) + y
+          case (x: Double, y: Long) => if (x % y >= 0) x % y else (x % y) + y
         }
       case `op_binaryOr`  | `op_binaryOrAssign`=>
         (op1, op2) match {

@@ -123,21 +123,28 @@ class LimitsTest extends StandardTest {
 
 class SizeOfTest extends StandardTest {
 
-  "A sizeof call on an int var" should "print the correct results" in {
+  "A sizeof call on an different typed variables" should "print the correct results" in {
     val code = """
       void main() {
         int x;
         double y;
-        printf("%d %d\n", sizeof(x), sizeof(y));
+        short z;
+        char b;
+        long c;
+        long long d;
+        float e;
+        printf("%d %d %d %d %d %d %d\n", sizeof(x), sizeof(y), sizeof(z), sizeof(b), sizeof(c), sizeof(d), sizeof(e));
       }"""
 
     checkResults(code)
   }
   
-  "A sizeof call on an int type" should "print the correct results" in {
+  "A sizeof call on raw types" should "print the correct results" in {
     val code = """
       void main() {
-        printf("%d %d %d %d\n", sizeof(int), sizeof(double), sizeof(float), sizeof(char));
+        printf("%d %d %d %d %d %d %d %d %d\n", sizeof(int), sizeof(double), sizeof(short),
+                                      sizeof(float), sizeof(char), sizeof(long), sizeof(long long),
+                                      sizeof(void), sizeof(void*));
       }"""
 
     checkResults(code)
