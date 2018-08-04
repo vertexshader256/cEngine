@@ -36,8 +36,8 @@ object TypeHelper {
   // Kind of hacky; this will do whatever it needs to match gcc.  casts 'AnyVal' to 'ValueInfo'
   def cast(theType: IType, theVal: AnyVal): RValue = {
     val casted: AnyVal = theType match {
-      case typedef: CTypedef => cast(typedef.getType, theVal).value
-      case qual: IQualifierType => cast(qual.getType, theVal).value
+      case typedef: CTypedef => theVal
+      case qual: IQualifierType => theVal
       case fcn: IFunctionType => theVal
       case struct: CStructure =>  theVal
       case ptr: IPointerType => theVal
