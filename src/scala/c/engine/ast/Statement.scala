@@ -22,7 +22,9 @@ object Statement {
         retVal = returnVal match {
           case info @ LValue(addr, theType) =>
             TypeHelper.cast(functionScope.returnType, info.value.value)
-          case value @ RValue(_, _) => TypeHelper.cast(functionScope.returnType, value.value)
+          case value @ RValue(_, _) if functionScope.returnType != null =>
+            TypeHelper.cast(functionScope.returnType, value.value)
+          case value @ RValue(_, _) => value
         }
       }
 

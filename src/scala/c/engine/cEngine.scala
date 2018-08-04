@@ -576,7 +576,7 @@ class State(pointerSize: NumBits) {
           } else {
             arg
           }
-        }.toList
+        }
 
         newScope.pushOntoStack(promoted :+ new RValue(resolvedArgs.size, null) {})
 
