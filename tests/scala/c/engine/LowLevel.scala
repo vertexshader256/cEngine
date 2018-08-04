@@ -19,7 +19,7 @@ class LowLevel extends StandardTest {
 
     val start = state.Stack.insertIndex
 
-    c"""printf("%s\n", "whoaaa");"""
+    c"""printf("%d\n", 5);"""
 
     assert(state.Stack.insertIndex == start)
   }

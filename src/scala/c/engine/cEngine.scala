@@ -375,6 +375,7 @@ class State(pointerSize: NumBits) {
   val functionPointers = scala.collection.mutable.LinkedHashMap[String, Variable]()
   val stdout = new ListBuffer[Char]()
   var functionCount = 0
+  var mainFunc: IASTFunctionDefinition = null
 
   private var breakLabelStack = List[Label]()
   private var continueLabelStack = List[Label]()
@@ -411,12 +412,19 @@ class State(pointerSize: NumBits) {
 
   val program = new FunctionScope(List(), null, null) {}
   pushScope(program)
+  addMain()
 
   def init(codes: Seq[String]): IASTNode = {
     val tUnit = Utils.getTranslationUnit(codes)
 
-    val fcns = tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
+    val fcns = tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}
+                                .filter(fcn => fcn.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern && fcn.getDeclarator.getName.getRawSignature != "main")
     fcns.foreach{fcnDef => addFunctionDef(fcnDef)}
+
+    tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}
+      .find(fcn => fcn.getDeclarator.getName.getRawSignature == "main").foreach { fcn =>
+      mainFunc = fcn
+    }
 
     functionContexts = List[FunctionScope]()
 
@@ -487,6 +495,26 @@ class State(pointerSize: NumBits) {
     functionCount += 1
   }
 
+  def addMain() = {
+    val name = "main"
+
+    functionList += new Function(name, true) {
+      index = 0
+      node = null
+      override val staticVars = List()
+      def parameters = List()
+      def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = {None}
+    }
+
+    val mainType = new CFunctionType(new CBasicType(IBasicType.Kind.eVoid, 0), Array())
+
+    val newVar = Variable(name, State.this, mainType)
+    Stack.writeToMemory(functionCount, newVar.address, mainType)
+
+    functionPointers += name -> newVar
+    functionCount += 1
+  }
+
   def callFunctionFromScala(name: String, args: Array[RValue]): Seq[IASTNode] = {
 
     functionList.find(_.name == name).map { fcn =>
@@ -534,7 +562,11 @@ class State(pointerSize: NumBits) {
           new FunctionScope(function.staticVars, functionContexts.headOption.getOrElse(null), expressionType)
         }
 
-        newScope.init(function.node, this, !scope.isDefined)
+        if (function.name == "main") {
+          newScope.init(state.mainFunc, this, !scope.isDefined)
+        } else {
+          newScope.init(function.node, this, !scope.isDefined)
+        }
         newScope.pushOntoStack(promoted :+ new RValue(resolvedArgs.size, null) {})
 
         functionContexts = newScope +: functionContexts
