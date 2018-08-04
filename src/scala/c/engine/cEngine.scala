@@ -10,7 +10,8 @@ import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.op_assign
 import org.eclipse.cdt.internal.core.dom.parser.c._
 
 import scala.c.engine.ast.BinaryExpr.evaluate
-import scala.c.engine.ast.{Ast, BinaryExpr, Declarator}
+import scala.c.engine.ast.Expressions.evaluate
+import scala.c.engine.ast.{Ast, BinaryExpr, Declarator, Expressions}
 
 
 object Interpreter {
@@ -525,32 +526,20 @@ class State(pointerSize: NumBits) {
     Seq()
   }
 
-  def callTheFunction(name: String, call: IASTFunctionCallExpression, args: Array[ValueType], scope: Option[FunctionScope])(implicit state: State): Option[ValueType] = {
+  def callTheFunction(name: String, call: IASTFunctionCallExpression, scope: Option[FunctionScope])(implicit state: State): Option[ValueType] = {
 
     functionList.find(_.name == name).map{ function =>
 
-      val resolvedArgs: Array[RValue] = args.map{ TypeHelper.resolve }
-
       if (!function.isNative) {
         // this is a function simulated in scala
+
+        val stackPos = Stack.insertIndex
+        val args = call.getArguments.map{x => Expressions.evaluate(x).head}
+        val resolvedArgs: Array[RValue] = args.map{ TypeHelper.resolve }
         val returnVal = function.run(resolvedArgs.reverse, this)
-        //popFunctionContext
+        Stack.insertIndex = stackPos // pop the stack
         returnVal.map{theVal => new RValue(theVal, null) {}}
       } else {
-
-        // printf assumes all floating point numbers are doubles
-        // and shorts are 4 bytes
-        val promoted = resolvedArgs.map{arg =>
-          if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eFloat) {
-            TypeHelper.cast(new CBasicType(IBasicType.Kind.eDouble, 0), arg.value)
-          } else if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].isShort) {
-            TypeHelper.cast(new CBasicType(IBasicType.Kind.eInt, 0), arg.value)
-          } else if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eChar) {
-            TypeHelper.cast(new CBasicType(IBasicType.Kind.eInt, 0), arg.value)
-          } else {
-            arg
-          }
-        }.toList
 
         val newScope = scope.getOrElse {
           val expressionType = if (call != null) {
@@ -567,6 +556,28 @@ class State(pointerSize: NumBits) {
         } else {
           newScope.init(function.node, this, !scope.isDefined)
         }
+
+        val args: List[ValueType] = if (call != null) {
+          call.getArguments.map { x => Expressions.evaluate(x).head }.toList
+        } else {
+          List()
+        }
+        val resolvedArgs = args.map{ TypeHelper.resolve }
+
+        // printf assumes all floating point numbers are doubles
+        // and shorts are 4 bytes
+        val promoted = resolvedArgs.map{arg =>
+          if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eFloat) {
+            TypeHelper.cast(new CBasicType(IBasicType.Kind.eDouble, 0), arg.value)
+          } else if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].isShort) {
+            TypeHelper.cast(new CBasicType(IBasicType.Kind.eInt, 0), arg.value)
+          } else if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eChar) {
+            TypeHelper.cast(new CBasicType(IBasicType.Kind.eInt, 0), arg.value)
+          } else {
+            arg
+          }
+        }.toList
+
         newScope.pushOntoStack(promoted :+ new RValue(resolvedArgs.size, null) {})
 
         functionContexts = newScope +: functionContexts

@@ -23,6 +23,43 @@ class LowLevel extends StandardTest {
 
     assert(state.Stack.insertIndex == start)
   }
+
+  "Making sure custom functions pop stack" should "print the correct results" in {
+    import Interpreter._
+    implicit val state = new State(ThirtyTwoBits)
+
+    func"""
+      void add() {
+          char *s = "testtest";
+          printf("%s\n", s);
+      }"""
+
+    val start = state.Stack.insertIndex
+
+    c"""
+       printf("%d\n", add());
+     """
+
+    assert(state.Stack.insertIndex == start)
+  }
+
+  "Making sure parameters are cleared from stack" should "print the correct results" in {
+    import Interpreter._
+    implicit val state = new State(ThirtyTwoBits)
+
+    func"""
+      void add(char *s) {
+          printf("%s\n", s);
+      }"""
+
+    val start = state.Stack.insertIndex
+
+    c"""
+       printf("%d\n", add("testtest"));
+     """
+
+    assert(state.Stack.insertIndex == start)
+  }
 }
 
 class VariableLowLevelTest extends StandardTest {

@@ -76,7 +76,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
       state.context.setAddress(0)
 
       //state.context.pathStack.push(NodePath(state.getFunction("main").node, Stage1))
-      state.callTheFunction("main", null, Array(), None)(state)
+      state.callTheFunction("main", null, None)(state)
       //totalTime += (System.nanoTime - start) / 1000000000.0
       getResults(state.stdout.toList)
     }.getOrElse(List())
