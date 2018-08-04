@@ -7,7 +7,22 @@ class UnaryTest extends StandardTest {
       void main() {
         int x = 5;
         int y = 0;
-        printf("%d %d\n", !x, !y);
+        long xx = 4324832342;
+        printf("%d %d %d\n", !x, !y, !xx);
+      }"""
+
+    checkResults(code)
+  }
+
+  "A simple bitwise NOT test" should "print the correct results" in {
+    val code = """
+      void main() {
+        char x = 'd';
+        int y = 0;
+        unsigned int uuu = 54747;
+        long z = 543756734;
+        short xx = 30032;
+        printf("%d %d %d %d %d %d\n", ~x, ~y, ~z, ~xx, ~65655, ~uuu);
       }"""
 
     checkResults(code)

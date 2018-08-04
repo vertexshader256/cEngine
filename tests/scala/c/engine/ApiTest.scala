@@ -30,7 +30,7 @@ class ApiTest2 extends StandardTest {
 
     c"""
        printf("%d\n", add(4,5));
-     """
+    """
 
     assert(getResults(state.stdout.toList).mkString == "9")
 

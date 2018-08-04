@@ -51,7 +51,22 @@ object UnaryExpression {
       unary.getOperator match {
         case `op_bracketedPrimary` => value
         case `op_tilde` =>
-          new RValue(~value.asInstanceOf[RValue].value.asInstanceOf[Int], null) {}
+
+          value match {
+            case RValue(int: Int, theType) =>
+              new RValue(~value.asInstanceOf[RValue].value.asInstanceOf[Int], null) {}
+            case info @ LValue(_, _) =>
+              val theValue = info.value
+
+              val result = theValue.value match {
+                case byte: Byte => ~byte
+                case char: Char => ~char
+                case int: Int => ~int
+                case short: Short => ~short
+                case long: Long => ~long
+              }
+              TypeHelper.cast(info.theType, result)
+          }
         case `op_not` => new RValue(TypeHelper.not(value), TypeHelper.one.theType) {}
         case `op_minus` =>
           val newVal = BinaryExpr.evaluate(value, TypeHelper.negativeOne, IASTBinaryExpression.op_multiply).value
