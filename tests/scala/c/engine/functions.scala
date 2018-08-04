@@ -1,30 +1,5 @@
 package scala.c.engine
 
-//class FunctionStackTest extends StandardTest {
-//  "ensure the stack gets popped after functions" should "print the correct results" in {
-//    import Interpreter._
-//
-//    implicit val state = new State
-//
-//    val start = state.Stack.insertIndex
-//
-//    c"""isalpha('5');"""
-//
-//    assert(state.Stack.insertIndex == start)
-//  }
-//
-//  "ensure the stack gets popped after functions with string args" should "print the correct results" in {
-//    import Interpreter._
-//    implicit val state = new State
-//
-//    val start = state.Stack.insertIndex
-//
-//    c"""printf("%s\n", "whoaaa");"""
-//
-//    assert(state.Stack.insertIndex == start)
-//  }
-//}
-
 class SpecialFunctions extends StandardTest {
 
   "offsetof test" should "print the correct results" in {

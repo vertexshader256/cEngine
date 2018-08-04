@@ -303,6 +303,34 @@ class StructTest extends StandardTest {
     checkResults(code)
   }
 
+  "setting nested field test" should "print the correct results" in {
+    val code = """
+
+      struct Inner {
+           int branches;
+           int num_branches;
+      };
+
+      struct WithInner {
+          struct Inner inner;
+      };
+
+      void main() {
+        struct WithInner blah;
+        struct WithInner blah2;
+
+        blah2.inner.branches = 66;
+        blah2.inner.num_branches = 10;
+
+        //inner = blah2->inner;
+
+        printf("%d\n", blah2.inner.branches);
+        printf("%d\n", blah2.inner.num_branches);
+      }"""
+
+    checkResults(code)
+  }
+
   "basic copying structure test" should "print the correct results" in {
     val code = """
 
@@ -322,25 +350,30 @@ class StructTest extends StandardTest {
           struct Inner inner;
       };
 
-
-
       void main() {
         struct Test x = {0, 10, 15, 20};
         struct Test y = x;
         struct Test z;
 
+        struct Inner inner = {6546, 1232};
+
         z = x;
 
-//        struct WithInner blah;
-//        struct WithInner blah2;
-//
-//        blah2.inner.branches = 66;
-//        blah2.inner.num_branches = 10;
-//
-//        blah->inner = blah2->inner;
-//
-//        printf("%d\n", blah.inner.branches);
-//         printf("%d\n", blah.inner.num_branches);
+        struct WithInner blah;
+        struct WithInner blah2;
+
+        blah2.inner.branches = 66;
+        blah2.inner.num_branches = 10;
+
+        inner = blah2.inner;
+
+        blah.inner = blah2.inner;
+
+        printf("%d\n", inner.branches);
+        printf("%d\n", inner.num_branches);
+
+        printf("%d\n", blah.inner.branches);
+        printf("%d\n", blah.inner.num_branches);
 
         printf("%d\n", y.ptr);
         printf("%d\n", y.len);

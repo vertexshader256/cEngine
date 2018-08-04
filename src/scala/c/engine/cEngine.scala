@@ -409,11 +409,11 @@ class State(pointerSize: NumBits) {
     addScalaFunctionDef(fcn)
   }
 
+  val program = new FunctionScope(List(), null, null) {}
+  pushScope(program)
+
   def init(codes: Seq[String]): IASTNode = {
     val tUnit = Utils.getTranslationUnit(codes)
-
-    val program = new FunctionScope(List(), null, null) {}
-    pushScope(program)
 
     val fcns = tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}.filter(_.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
     fcns.foreach{fcnDef => addFunctionDef(fcnDef)}

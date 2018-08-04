@@ -48,29 +48,6 @@ class HashMapTest extends StandardTest {
   }
 }
 
-class RegexTestLite extends StandardTest {
-  "A simple regex" should "print the correct results" in {
-
-    val code =
-      """
-      #include <stdio.h>
-      #include <stdlib.h>
-      #include <string.h>
-      #include <assert.h>
-      #include "slre.h"
-
-      #define ASSERT(expr) if (expr) { printf("PASS\n"); } else { printf("FAIL\n"); }
-
-      void main() {
-       ASSERT(slre_match("k(xx|yy)|ca", "abcabc", 6, NULL, 0, 0) == 4);
-      }"""
-
-    val allCode =  Seq(File("tests\\scala\\c\\engine\\libds-master\\slre.c").contentAsString, code)
-
-    checkResults2(allCode)
-  }
-}
-
 class RegexTest extends StandardTest {
   "A simple regex" should "print the correct results" in {
 
@@ -111,7 +88,7 @@ class RegexTest extends StandardTest {
           ASSERT(caps[1].len == 2);
           ASSERT(memcmp(caps[1].ptr, "27", 2) == 0);
 
-         ASSERT(slre_match("tel:\\+(\\d+[\\d-]+\\d)",
+          ASSERT(slre_match("tel:\\+(\\d+[\\d-]+\\d)",
                             "tel:+1-201-555-0123;a=b", 23, caps, 10, 0) == 19);
           ASSERT(caps[0].len == 14);
           ASSERT(memcmp(caps[0].ptr, "1-201-555-0123", 14) == 0);
@@ -225,8 +202,8 @@ class RegexTest extends StandardTest {
           ASSERT(slre_match("|.", "abc", 3, NULL, 0, 0) == 1);
           ASSERT(slre_match("x|y|b", "abc", 3, NULL, 0, 0) == 2);
 
-//          ASSERT(slre_match("k(xx|yy)|ca", "abcabc", 6, NULL, 0, 0) == 4);
-//          ASSERT(slre_match("k(xx|yy)|ca|bc", "abcabc", 6, NULL, 0, 0) == 3);
+          ASSERT(slre_match("k(xx|yy)|ca", "abcabc", 6, NULL, 0, 0) == 4);
+          ASSERT(slre_match("k(xx|yy)|ca|bc", "abcabc", 6, NULL, 0, 0) == 3);
 
           ASSERT(slre_match("(|.c)", "abc", 3, caps, 10, 0) == 3);
           ASSERT(caps[0].len == 2);
@@ -261,9 +238,6 @@ class RegexTest extends StandardTest {
           ASSERT(slre_match("[a-h]+", "ABCDEFGHyyy", 11, NULL, 0, SLRE_IGNORE_CASE) == 8);
           ASSERT(slre_match("[A-H]+", "abcdefghyyy", 11, NULL, 0, SLRE_IGNORE_CASE) == 8);
       }"""
-
-
-
 
     val allCode =  Seq(File("tests\\scala\\c\\engine\\libds-master\\slre.c").contentAsString, code)
 
