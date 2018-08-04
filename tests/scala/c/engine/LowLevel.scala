@@ -48,8 +48,9 @@ class LowLevel extends StandardTest {
     implicit val state = new State(ThirtyTwoBits)
 
     func"""
-      void add(char *s) {
+      int add(char *s) {
           printf("%s\n", s);
+          return 15;
       }"""
 
     val start = state.Stack.insertIndex

@@ -534,8 +534,8 @@ class State(pointerSize: NumBits) {
         // this is a function simulated in scala
 
         val stackPos = Stack.insertIndex
-        val args = call.getArguments.map{x => Expressions.evaluate(x).head}
-        val resolvedArgs: Array[RValue] = args.map{ TypeHelper.resolve }
+        val args = call.getArguments.map{x => Expressions.evaluate(x)}
+        val resolvedArgs: Array[RValue] = args.flatten.map{ TypeHelper.resolve }
         val returnVal = function.run(resolvedArgs.reverse, this)
         Stack.insertIndex = stackPos // pop the stack
         returnVal.map{theVal => new RValue(theVal, null) {}}
