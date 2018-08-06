@@ -68,8 +68,10 @@ class StructTest extends StandardTest {
       };
 
       void main() {
-        struct Test x = {.y = 343, .x = 543, .next = 0};
+        struct Test x = {.y = 343, .x = 543, .next = 8578};
+        struct Test y = {.next = 543, .x = 785, .y = 343 };
         printf("%d %d %d\n", x.x, x.y, x.next);
+        printf("%d %d %d\n", y.x, y.y, y.next);
       }"""
 
     checkResults(code)
