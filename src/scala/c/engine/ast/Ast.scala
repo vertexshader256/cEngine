@@ -6,21 +6,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c._
 
 object Ast {
 
-  def step(current: Any)(implicit state: State): Unit = current match {
-
-    case statement: IASTStatement =>
-      Statement.parse(statement)
-    case expression: IASTExpression => {
-      Expressions.evaluate(expression).foreach { value =>
-        state.context.pushOntoStack(List(value))
-      }
-      Seq()
-    }
-    case decl: IASTDeclarator =>
-      Declarator.execute(decl)
-    case array: IASTArrayModifier => {
-      List(Option(array.getConstantExpression)).flatten.foreach(step)
-    }
+  def executeCustomInstructions(current: Any)(implicit state: State): Unit = current match {
     case PushVariableStack() =>
       state.context.pushVariableScope
     case PopVariableStack() =>
@@ -55,12 +41,33 @@ object Ast {
       state.context.jmpRelative(lines)
     case jmp: JmpName =>
       state.context.setAddress(jmp.destAddress)
+    case label: Label =>
+  }
+
+  def step(current: Any)(implicit state: State): Unit = current match {
+
+    case statement: IASTStatement =>
+      Statement.parse(statement)
+    case expression: IASTExpression => {
+      Expressions.evaluate(expression).foreach { value =>
+        state.context.pushOntoStack(List(value))
+      }
+      Seq()
+    }
+    case decl: IASTDeclarator =>
+      Declarator.execute(decl)
+    case array: IASTArrayModifier => {
+      List(Option(array.getConstantExpression)).flatten.foreach(step)
+    }
+
     case simple: IASTSimpleDeclaration => {
       val declSpec = simple.getDeclSpecifier
 
-      val isWithinFunction = Utils.getAncestors(simple).exists{_.isInstanceOf[IASTFunctionDefinition]}
+      val isWithinFunction = Utils.getAncestors(simple).exists {
+        _.isInstanceOf[IASTFunctionDefinition]
+      }
 
-      simple.getDeclarators.foreach{
+      simple.getDeclarators.foreach {
         case fcn: IASTFunctionDeclarator =>
           if (!isWithinFunction) step(fcn) else step(fcn.getNestedDeclarator)
         case x => step(x)
@@ -81,20 +88,25 @@ object Ast {
       enum.getEnumerators.foreach(step)
     }
     case fcnDef: IASTFunctionDefinition => {
-//        if (!state.context.stack.isEmpty) {
-//          val retVal = state.context.stack.pop
-//          state.context.stack.push(retVal)
-//        }
-//        Seq()
-//      case Stage2 =>
-//      step(fcnDef.getDeclarator)
-//      step(fcnDef.getBody)
+      //        if (!state.context.stack.isEmpty) {
+      //          val retVal = state.context.stack.pop
+      //          state.context.stack.push(retVal)
+      //        }
+      //        Seq()
+      //      case Stage2 =>
+      //      step(fcnDef.getDeclarator)
+      //      step(fcnDef.getBody)
     }
     case initList: IASTInitializerList => {
-      initList.getClauses.foreach{step}
+      initList.getClauses.foreach {
+        step
+      }
     }
-    case equals: IASTEqualsInitializer =>
+    case equals: IASTEqualsInitializer => {
       step(equals.getInitializerClause)
-    case label: Label =>
+    }
+    case x => {
+      executeCustomInstructions(x)
+    }
   }
 }

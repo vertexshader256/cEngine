@@ -41,7 +41,7 @@ class StructTestStaging extends StandardTest {
 
 class StructTest extends StandardTest {
   
-  "initializer list populating a pointer" should "print the correct results" in {
+  "initializing a simple structure" should "print the correct results" in {
     val code = """
       
       struct Test {
@@ -53,6 +53,23 @@ class StructTest extends StandardTest {
       void main() {
         struct Test x = {343, 543, 0};
         printf("%d %d %d\n", x.y, x.y, x.next);
+      }"""
+
+    checkResults(code)
+  }
+
+  "initializing a simple structure with named args" should "print the correct results" in {
+    val code = """
+
+      struct Test {
+        int y;
+        int x;
+        struct Test *next;
+      };
+
+      void main() {
+        struct Test x = {.y = 343, .x = 543, .next = 0};
+        printf("%d %d %d\n", x.x, x.y, x.next);
       }"""
 
     checkResults(code)
