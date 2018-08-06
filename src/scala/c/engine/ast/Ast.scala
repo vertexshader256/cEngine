@@ -88,14 +88,6 @@ object Ast {
       enum.getEnumerators.foreach(step)
     }
     case fcnDef: IASTFunctionDefinition => {
-      //        if (!state.context.stack.isEmpty) {
-      //          val retVal = state.context.stack.pop
-      //          state.context.stack.push(retVal)
-      //        }
-      //        Seq()
-      //      case Stage2 =>
-      //      step(fcnDef.getDeclarator)
-      //      step(fcnDef.getBody)
     }
     case initList: IASTInitializerList => {
       initList.getClauses.foreach {
