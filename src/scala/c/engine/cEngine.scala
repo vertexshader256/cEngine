@@ -457,7 +457,7 @@ class State(pointerSize: NumBits) {
 
               val variable = Variable(decl.getName.getRawSignature, state, vari.getType)
               val initVals = Declarator.getRValues(decl.getInitializer, theType)
-              Declarator.assign(variable, initVals, op_assign)
+              Declarator.assign(variable, initVals, decl.getInitializer, op_assign)
 
               variable.isInitialized = true
 
