@@ -159,8 +159,10 @@ object Declarator {
 
           if (!variable.isInitialized) {
 
-            val initVals = getRValues(decl.getInitializer, theType)
-            assign(variable, initVals, decl.getInitializer.asInstanceOf[IASTEqualsInitializer], op_assign)
+            if (decl.getInitializer.isInstanceOf[IASTEqualsInitializer]) {
+              val initVals = getRValues(decl.getInitializer, theType)
+              assign(variable, initVals, decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause, op_assign)
+            }
 
             variable.isInitialized = true
           }
@@ -202,7 +204,7 @@ object Declarator {
     }
   }
 
-  def assign(dst: LValue, srcs: List[ValueType], equals: IASTEqualsInitializer, op: Int)(implicit state: State): ValueType = {
+  def assign(dst: LValue, srcs: List[ValueType], equals: IASTInitializerClause, op: Int)(implicit state: State): ValueType = {
     if (!dst.theType.isInstanceOf[CStructure]) {
       val result = evaluate(dst, srcs.head, op)
       val casted = TypeHelper.cast(dst.theType, result.value).value
