@@ -456,7 +456,7 @@ class State(pointerSize: NumBits) {
               val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
 
               val variable = Variable(decl.getName.getRawSignature, state, vari.getType)
-              val initVals = Declarator.getRValues(decl.getInitializer, theType)
+              val initVals = Declarator.getRValues(decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause, theType)
               Declarator.assign(variable, initVals, null, op_assign)
 
               variable.isInitialized = true

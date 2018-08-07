@@ -160,7 +160,7 @@ object Declarator {
           if (!variable.isInitialized) {
 
             if (decl.getInitializer.isInstanceOf[IASTEqualsInitializer]) {
-              val initVals = getRValues(decl.getInitializer, theType)
+              val initVals = getRValues(decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause, theType)
               assign(variable, initVals, decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause, op_assign)
             }
 
@@ -172,7 +172,7 @@ object Declarator {
     }
   }
 
-  def getRValues(decl: IASTInitializer, theType: IType)(implicit state: State): List[ValueType] = {
+  def getRValues(decl: IASTInitializerClause, theType: IType)(implicit state: State): List[ValueType] = {
     if (!theType.isInstanceOf[CStructure]) {
       val result = if (decl != null) {
         Ast.step(decl)
@@ -182,9 +182,8 @@ object Declarator {
       }
 
       List(result)
-    } else if (decl != null && decl.isInstanceOf[IASTEqualsInitializer]
-      && decl.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTInitializerList]) {
-      val clause = decl.asInstanceOf[IASTEqualsInitializer].getInitializerClause
+    } else if (decl != null && decl.isInstanceOf[IASTInitializerList]) {
+      val clause = decl
 
       val result = if (decl != null) {
         Ast.step(decl)
@@ -194,9 +193,8 @@ object Declarator {
       }
 
       result
-    } else if (decl != null && decl.asInstanceOf[IASTEqualsInitializer].getInitializerClause != null &&
-      decl.asInstanceOf[IASTEqualsInitializer].getInitializerClause.isInstanceOf[IASTIdExpression]) { // setting a struct equal to another struct
-      val otherStruct = decl.asInstanceOf[IASTEqualsInitializer].getInitializerClause.asInstanceOf[IASTIdExpression]
+    } else if (decl != null && decl.isInstanceOf[IASTIdExpression]) { // setting a struct equal to another struct
+      val otherStruct = decl.asInstanceOf[IASTIdExpression]
 
       List(state.context.resolveId(otherStruct.getName).get)
     } else {
