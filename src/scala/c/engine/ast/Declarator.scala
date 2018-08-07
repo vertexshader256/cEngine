@@ -211,7 +211,7 @@ object Declarator {
       dst.setValue(casted)
     } else {
 
-      if (srcs.size == 1 && srcs.head.isInstanceOf[LValue]) { // setting a struct equal to another struct
+      if (equals.isInstanceOf[IASTExpression]) { // setting a struct equal to another struct
         val otherStruct = srcs.head.asInstanceOf[LValue]
 
         val struct = otherStruct.theType.asInstanceOf[CStructure]
