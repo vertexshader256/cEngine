@@ -168,7 +168,6 @@ object Declarator {
           }
         }
         Seq()
-
     }
   }
 

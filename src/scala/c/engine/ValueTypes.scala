@@ -72,7 +72,9 @@ object LValue {
   def unapply(info: LValue): Option[(Int, IType)] = Some((info.address, info.theType))
 }
 
-case class Variable(name: String, state: State, theType: IType) extends LValue(state) {
+case class Variable(name: String, state: State, aType: IType) extends LValue(state) {
+
+  val theType = TypeHelper.stripSyntheticTypeInfo(aType)
 
   def setValue(newVal: AnyVal) = {
     state.Stack.writeToMemory(newVal, address, theType)
