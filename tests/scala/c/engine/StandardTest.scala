@@ -1,9 +1,11 @@
 package scala.c.engine
 
 import java.io.{File, PrintWriter}
+import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 
 import org.scalatest._
+
 import scala.concurrent._
 import scala.collection.mutable.ListBuffer
 import scala.sys.process.Process
@@ -16,6 +18,7 @@ object StandardTest {
 
 class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
 
+  // need this to go multi-core!
   implicit override def executionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   def getResults(stdout: List[Char]): List[String] = {
@@ -59,7 +62,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
 
   def getCEngineResults(codeInFiles: Seq[String], shouldBootstrap: Boolean, pointerSize: NumBits) = {
     Try {
-      val start = System.nanoTime
+      //val start = System.nanoTime
       val state = new State(pointerSize)
       val node = if (shouldBootstrap) {
         state.init(codeInFiles)
@@ -83,29 +86,28 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
   }
 
   def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits) = {
+    val logger = new SyntaxLogger
+    val runLogger = new RunLogger
 
-    var except: Exception = null
+    val cFuture = Future { getCEngineResults(codeInFiles, shouldBootstrap, pointerSize) }
 
-    Future {
+    val gccFuture = {
 
-      var cEngineOutput: List[String] = List()
-      var gccOutput = Seq[String]()
+      val exeFile = new java.io.File(StandardTest.exeCount.incrementAndGet + ".exe")
 
-      try {
+      val cFiles = (0 until codeInFiles.size).map{ _ =>
+        new java.io.File(StandardTest.cFileCount.incrementAndGet + ".c")
+      }
 
-        val logger = new SyntaxLogger
-        val runLogger = new RunLogger
-
-        val files = codeInFiles.map{ code =>
-          val file = new java.io.File(StandardTest.cFileCount.incrementAndGet + ".c")
+      Future {
+        codeInFiles.zip(cFiles).foreach { case (code, file) =>
           val pw = new PrintWriter(file)
           pw.write(code)
           pw.close
-          file
         }
+      }.map { _ =>
 
-        val exeFile = new java.io.File(StandardTest.exeCount.incrementAndGet + ".exe")
-        val sourceFileTokens = files.flatMap{file => Seq(file.getAbsolutePath)}
+        val sourceFileTokens = cFiles.flatMap { file => Seq(file.getAbsolutePath) }
         val includeTokens = Seq("-I", Utils.mainPath,
           "-I", Utils.mainAdditionalPath)
 
@@ -119,52 +121,42 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
 
         val builder = Process(processTokens, new java.io.File("."))
         val compile = builder.run(logger.process)
-
-        // while its compiling, run the cEngine code
-
-        cEngineOutput = getCEngineResults(codeInFiles, shouldBootstrap, pointerSize)
-
         compile.exitValue()
 
-        val numErrors = logger.errors.length
-
-        gccOutput = if (numErrors == 0) {
-
-          var isDone = false
-
-          while (!isDone) {
-            try {
-              // run the actual executable
-              val runner = Process(Seq(exeFile.getAbsolutePath), new File("."))
-              val run = runner.run(runLogger.process)
-
-              // delete files while program is running
-              files.foreach{file => file.delete()}
-
-              run.exitValue()
-              isDone = true
-            } catch {
-              case e =>
-            }
-          }
-
-          runLogger.stdout
-        } else {
-          logger.errors
+        Future {
+          Try(cFiles.foreach { file => file.delete() })
         }
 
-        Future {exeFile.delete()}
+        exeFile
+      }
+    }
 
-      } catch {
-        case e: Exception => except = e
+    val gcc = gccFuture.map { exeFile =>
+
+      val numErrors = logger.errors.length
+
+      val result = if (numErrors == 0) {
+        // run the executable
+        val runner = Process(Seq(exeFile.getAbsolutePath), new File("."))
+        val run = runner.run(runLogger.process)
+        run.exitValue()
+
+        Future {Try(exeFile.delete())}
+
+        runLogger.stdout
+      } else {
+        logger.errors
       }
 
+      result
+    }
+
+    for {
+      gccOutput <- gcc
+      cEngineOutput <- cFuture
+    } yield {
       info("C_Engine output: " + cEngineOutput)
       info("Gcc      output: " + gccOutput.toList)
-
-      if (except != null) {
-        throw except
-      }
 
       assert(cEngineOutput.map{_.getBytes.toList} == gccOutput.toList.map{_.getBytes.toList})
     }
