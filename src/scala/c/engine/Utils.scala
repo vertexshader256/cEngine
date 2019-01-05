@@ -74,8 +74,8 @@ object Utils {
     Seq(node) ++ node.getChildren.flatMap{x => getDescendants(x)}
   }
 
-  val mainPath = raw"C:\Git\cEngine"
-  val mainAdditionalPath = raw"C:\Git\cEngine\tests\scala\c\engine\libds-master"
+  val mainPath = raw"."
+  val mainAdditionalPath = raw"./tests/scala/c/engine/libds-master"
   val minGWIncludes = raw"C:\MinGW\include"
 
   val minGWAdditionalIncludes = if (new File(raw"C:\MinGW\lib\gcc\mingw32\5.3.0\include").exists) {

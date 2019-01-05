@@ -1,13 +1,16 @@
 package scala.c.engine
 
+import java.nio.file.Paths
+
 import better.files.File
 
 class ListTest extends StandardTest {
   "list test" should "print the correct results" in {
 
-    val allCode = Seq(File("tests\\scala\\c\\engine\\libds-master\\list.c").contentAsString,
-      File("tests\\scala\\c\\engine\\libds-master\\listtest.c").contentAsString)
+    val list = Paths.get("tests", "scala", "c", "engine", "libds-master", "list.c")
+    val listTest = Paths.get("tests", "scala", "c", "engine", "libds-master", "listtest.c")
 
+    val allCode = Seq(File(list).contentAsString, File(listTest).contentAsString)
 
     checkResults2(allCode)
   }
@@ -16,9 +19,10 @@ class ListTest extends StandardTest {
 class VectorTest extends StandardTest {
   "vector test" should "print the correct results" in {
 
-    val allCode =  Seq(File("tests\\scala\\c\\engine\\libds-master\\vector.c").contentAsString,
-                       File("tests\\scala\\c\\engine\\libds-master\\vectest.c").contentAsString)
+    val vector = Paths.get("tests", "scala", "c", "engine", "libds-master", "vector.c")
+    val vecTest = Paths.get("tests", "scala", "c", "engine", "libds-master", "vectest.c")
 
+    val allCode =  Seq(File(vector).contentAsString, File(vecTest).contentAsString)
 
     checkResults2(allCode)
   }
@@ -27,10 +31,12 @@ class VectorTest extends StandardTest {
 class HeapTest extends StandardTest {
   "heap test" should "print the correct results" in {
 
-    val allCode =  Seq(File("tests\\scala\\c\\engine\\libds-master\\vector.c").contentAsString,
-      File("tests\\scala\\c\\engine\\libds-master\\heap.c").contentAsString,
-      File("tests\\scala\\c\\engine\\libds-master\\heaptest.c").contentAsString)
+    val vector = Paths.get("tests", "scala", "c", "engine", "libds-master", "vector.c")
+    val heap = Paths.get("tests", "scala", "c", "engine", "libds-master", "heap.c")
+    val heapTest = Paths.get("tests", "scala", "c", "engine", "libds-master", "heaptest.c")
 
+    val allCode =  Seq(File(vector).contentAsString, File(heap).contentAsString,
+      File(heapTest).contentAsString)
 
     checkResults2(allCode)
   }
@@ -39,10 +45,12 @@ class HeapTest extends StandardTest {
 class HashMapTest extends StandardTest {
   "heap test" should "print the correct results" in {
 
-    val allCode =  Seq(File("tests\\scala\\c\\engine\\libds-master\\vector.c").contentAsString,
-      File("tests\\scala\\c\\engine\\libds-master\\hashmap.c").contentAsString,
-      File("tests\\scala\\c\\engine\\libds-master\\maptest.c").contentAsString)
+    val vector = Paths.get("tests", "scala", "c", "engine", "libds-master", "vector.c")
+    val hashmap = Paths.get("tests", "scala", "c", "engine", "libds-master", "hashmap.c")
+    val maptest = Paths.get("tests", "scala", "c", "engine", "libds-master", "maptest.c")
 
+    val allCode =  Seq(File(vector).contentAsString, File(hashmap).contentAsString,
+      File(maptest).contentAsString)
 
     checkResults2(allCode)
   }
@@ -239,7 +247,9 @@ class RegexTest extends StandardTest {
           ASSERT(slre_match("[A-H]+", "abcdefghyyy", 11, NULL, 0, SLRE_IGNORE_CASE) == 8);
       }"""
 
-    val allCode =  Seq(File("tests\\scala\\c\\engine\\libds-master\\slre.c").contentAsString, code)
+    val slre = Paths.get("tests", "scala", "c", "engine", "libds-master", "slre.c")
+
+    val allCode =  Seq(File(slre).contentAsString, code)
 
     checkResults2(allCode)
   }
