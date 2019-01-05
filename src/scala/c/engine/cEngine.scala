@@ -341,8 +341,6 @@ object State {
           List(fcn)
         case enum: IASTEnumerationSpecifier =>
           List(enum)
-        case nameSpec: CASTTypedefNameSpecifier =>
-          List(nameSpec)
         case _ =>
           //println("SPLITTING: " + node.getClass.getSimpleName + " : " + node.getRawSignature)
           node +: node.getChildren.toList
@@ -456,8 +454,10 @@ class State(pointerSize: NumBits) {
               val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
 
               val variable = Variable(decl.getName.getRawSignature, state, vari.getType)
-              val initVals = Declarator.getRValues(decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause, theType)
-              Declarator.assign(variable, initVals, null, op_assign)
+              if (decl.getInitializer != null) {
+                val initVals = Declarator.getRValues(decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause, theType)
+                Declarator.assign(variable, initVals, null, op_assign)
+              }
 
               variable.isInitialized = true
 
@@ -481,7 +481,9 @@ class State(pointerSize: NumBits) {
       node = fcnDef
       override val staticVars = addStaticFunctionVars(fcnDef)(State.this)
       def parameters = fcnType.getParameterTypes.toList
-      def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = {None}
+      def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = {
+        None
+      }
     }
 
     val newVar = Variable(name.getRawSignature, State.this, fcnType)

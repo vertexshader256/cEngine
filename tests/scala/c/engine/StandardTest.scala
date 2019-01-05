@@ -58,7 +58,9 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
   def checkResults(code: String, shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits) = checkResults2(Seq(code), shouldBootstrap, pointerSize)
 
   def getCEngineResults(codeInFiles: Seq[String], shouldBootstrap: Boolean, pointerSize: NumBits) = {
-    Try {
+    var result = List[String]()
+
+    try {
       //val start = System.nanoTime
       val state = new State(pointerSize)
       val node = if (shouldBootstrap) {
@@ -78,8 +80,12 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
       //state.context.pathStack.push(NodePath(state.getFunction("main").node, Stage1))
       state.callTheFunction("main", null, None)(state)
       //totalTime += (System.nanoTime - start) / 1000000000.0
-      getResults(state.stdout.toList)
-    }.getOrElse(List())
+      result = getResults(state.stdout.toList)
+    } catch {
+      case e => e.printStackTrace()
+    }
+
+    result
   }
 
   def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits) = {
