@@ -58,7 +58,7 @@ class StructTest extends StandardTest {
     checkResults(code)
   }
 
-  "initializing a simple structure with named args" should "print the correct results" in {
+  "initializing a simple structure with designated initializers" should "print the correct results" in {
     val code = """
 
       struct Test {
@@ -70,8 +70,12 @@ class StructTest extends StandardTest {
       void main() {
         struct Test x = {.y = 343, .x = 543, .next = 8578};
         struct Test y = {.next = 543, .x = 785, .y = 343 };
+        struct Test z = {.next = 43534 };
+        struct Test z2 = {.y = -753 };
         printf("%d %d %d\n", x.x, x.y, x.next);
         printf("%d %d %d\n", y.x, y.y, y.next);
+        printf("%d %d %d\n", z.x, z.y, z.next);
+        printf("%d %d %d\n", z2.x, z2.y, z2.next);
       }"""
 
     checkResults(code)

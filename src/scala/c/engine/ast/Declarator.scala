@@ -185,8 +185,28 @@ object Declarator {
       val clause = decl
 
       val result = if (decl != null) {
-        Ast.step(decl)
-        clause.asInstanceOf[IASTInitializerList].getClauses.map { x => state.context.popStack }.reverse.toList
+
+        if (Utils.getDescendants(decl).exists{node => node.isInstanceOf[CASTDesignatedInitializer]}) {
+          // {.y = 343, .x = 543, .next = 8578}
+
+          val initializers = Utils.getDescendants(decl).collect{case des: CASTDesignatedInitializer => des}
+          val struct = theType.asInstanceOf[CStructure]
+
+          struct.getFields.map{ field =>
+            initializers.find{ init =>
+              val fieldName = init.getDesignators.toList.head.asInstanceOf[CASTFieldDesignator].getName.getRawSignature
+              fieldName == field.getName
+            }.map{ init =>
+              Ast.step(init.getOperand)
+              state.context.popStack
+            }.getOrElse{
+              TypeHelper.zero
+            }
+          }.toList
+        } else {
+          Ast.step(decl)
+          clause.asInstanceOf[IASTInitializerList].getClauses.map { x => state.context.popStack }.reverse.toList
+        }
       } else {
         List(new RValue(0, null) {})
       }
