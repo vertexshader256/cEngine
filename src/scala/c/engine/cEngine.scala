@@ -320,7 +320,22 @@ object State {
         case fcn: IASTFunctionDefinition =>
           List(fcn)
         case compound: IASTCompoundStatement =>
-          compound.getStatements.flatMap(recurse).toList
+
+          val isTypicalCompound = compound.getParent() match {
+            case x: IASTSwitchStatement => true
+            case x: CASTFunctionDefinition => true
+            case x: CASTForStatement => true
+            case x: CASTIfStatement => true
+            case x: CASTDoStatement => true
+            case x: CASTWhileStatement => true
+            case _ => false
+          }
+
+          if (isTypicalCompound) {
+            compound.getStatements.flatMap(recurse).toList
+          } else {
+            PushVariableStack() +: compound.getStatements.flatMap(recurse).toList :+ PopVariableStack()
+          }
         case decl: IASTDeclarationStatement =>
           decl.getChildren.toList.flatMap(recurse)
         case decl: CASTSimpleDeclaration =>
