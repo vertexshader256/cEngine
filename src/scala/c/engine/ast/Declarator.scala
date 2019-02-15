@@ -20,10 +20,7 @@ object Declarator {
         state.functionPrototypes += fcnDec
       }
 
-      // ignore main's params for now
-      val isInMain = fcnDec.getName.getRawSignature == "main"
-
-      if (fcnDec.getName.resolveBinding().isInstanceOf[CFunction] && !fcnDec.getName.resolveBinding().asInstanceOf[CFunction].getParameters.isEmpty && !isInMain) {
+      if (fcnDec.getName.resolveBinding().isInstanceOf[CFunction] && !fcnDec.getName.resolveBinding().asInstanceOf[CFunction].getParameters.isEmpty) {
 
         val fcn = fcnDec.getName.resolveBinding().asInstanceOf[CFunction]
         var numArgs = 0
