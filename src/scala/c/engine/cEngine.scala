@@ -426,16 +426,15 @@ class State(pointerSize: NumBits) {
     val tUnit = Utils.getTranslationUnit(codes)
 
     val fcns = tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}
-                                .filter(fcn => fcn.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern &&
-                                  fcn.getDeclarator.getName.getRawSignature != "main")
-    fcns.foreach{fcnDef => addFunctionDef(fcnDef)}
+                                .filter(fcn => fcn.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
 
-    tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}
-      .find(fcn => fcn.getDeclarator.getName.getRawSignature == "main").foreach { fcn =>
-      mainFunc = fcn
+    fcns.foreach { fcnDef =>
+      if (fcnDef.getDeclarator.getName.getRawSignature != "main") {
+        addFunctionDef(fcnDef)
+      } else {
+        addMain(fcnDef)
+      }
     }
-
-    addMain()
 
     functionContexts = List[FunctionScope]()
 
@@ -510,16 +509,18 @@ class State(pointerSize: NumBits) {
     functionCount += 1
   }
 
-  private def addMain() = {
+  private def addMain(fcnDef: IASTFunctionDefinition) = {
     val name = "main"
 
     functionList += new Function(name, true) {
       index = functionCount
-      node = null
+      node = fcnDef
       override val staticVars = List()
       def parameters = List()
       def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = {None}
     }
+
+    mainFunc = fcnDef
 
     functionCount += 1
   }
