@@ -316,7 +316,7 @@ object State {
         case _: IASTElaboratedTypeSpecifier =>
           List()
         case goto: IASTGotoStatement =>
-          List(JmpName(goto.getName.getRawSignature))
+          List(JmpName(goto.getName.toString))
         case fcn: IASTFunctionDefinition =>
           List(fcn)
         case compound: IASTCompoundStatement =>
@@ -349,7 +349,7 @@ object State {
         case eq: IASTEqualsInitializer =>
           recurse(eq.getInitializerClause)
         case label: IASTLabelStatement =>
-          GotoLabel(label.getName.getRawSignature) +: recurse(label.getNestedStatement)
+          GotoLabel(label.getName.toString) +: recurse(label.getNestedStatement)
         case exprState: CASTExpressionStatement =>
           List(exprState.getExpression)
         case fcn: IASTFunctionCallExpression =>
@@ -428,7 +428,7 @@ class State(pointerSize: NumBits) {
                                 .filter(fcn => fcn.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
 
     fcns.foreach { fcnDef =>
-      addFunctionDef(fcnDef, fcnDef.getDeclarator.getName.getRawSignature == "main")
+      addFunctionDef(fcnDef, fcnDef.getDeclarator.getName.toString == "main")
     }
 
     functionContexts = List[FunctionScope]()
@@ -487,7 +487,7 @@ class State(pointerSize: NumBits) {
 
     val fcnType = fcnDef.getDeclarator.getName.resolveBinding().asInstanceOf[IFunction].getType
 
-    functionList += new Function(name.getRawSignature, true) {
+    functionList += new Function(name.toString, true) {
       index = functionCount
       node = fcnDef
       override val staticVars = addStaticFunctionVars(fcnDef)(State.this)
@@ -498,10 +498,10 @@ class State(pointerSize: NumBits) {
     }
 
     if (!isMain) {
-      val newVar = Variable(name.getRawSignature, State.this, fcnType)
+      val newVar = Variable(name.toString, State.this, fcnType)
       Stack.writeToMemory(functionCount, newVar.address, fcnType)
 
-      functionPointers += name.getRawSignature -> newVar
+      functionPointers += name.toString -> newVar
     }
 
     functionCount += 1
