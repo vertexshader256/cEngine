@@ -32,12 +32,12 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
   }
 
   def resolveId(name: IASTName): Option[Variable] = {
-    staticVars.find{_.name == name.getRawSignature}.orElse {
+    staticVars.find{_.name == name.toString}.orElse {
       variableScopes.flatMap { scope =>
-        scope.varMap.get(name.getRawSignature)
+        scope.varMap.get(name.toString)
       }.headOption
         .orElse(if (parent != null) parent.resolveId(name) else None)
-        .orElse(Some(state.functionPointers(name.getRawSignature)))
+        .orElse(Some(state.functionPointers(name.toString)))
     }
   }
 

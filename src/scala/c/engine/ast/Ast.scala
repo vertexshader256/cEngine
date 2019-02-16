@@ -80,7 +80,7 @@ object Ast {
     case enumerator: CASTEnumerator => {
       step(enumerator.getValue)
 
-      val newVar = state.context.addVariable(enumerator.getName.getRawSignature, new CBasicType(IBasicType.Kind.eInt, 0))
+      val newVar = state.context.addVariable(enumerator.getName.toString, new CBasicType(IBasicType.Kind.eInt, 0))
       val value = state.context.popStack.asInstanceOf[RValue]
       state.Stack.writeToMemory(value.value, newVar.address, new CBasicType(IBasicType.Kind.eInt, 0))
     }

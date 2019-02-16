@@ -3,7 +3,10 @@ package scala.c.engine
 import java.io.{File, PrintWriter}
 import java.util.concurrent.atomic.AtomicInteger
 
+import org.eclipse.cdt.core.dom.ast.{IASTFunctionCallExpression, IASTLiteralExpression, IASTTranslationUnit, INodeFactory}
+import org.eclipse.cdt.internal.core.dom.parser.c.{CASTFunctionCallExpression, CASTIdExpression, CASTLiteralExpression, CASTName}
 import org.scalatest._
+
 import scala.concurrent._
 import scala.collection.mutable.ListBuffer
 import scala.sys.process.Process
@@ -63,7 +66,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
     try {
       //val start = System.nanoTime
       val state = new State(pointerSize)
-      val node = if (shouldBootstrap) {
+      val translationUnit = if (shouldBootstrap) {
         state.init(codeInFiles)
       } else {
         state.init(Seq("#define HAS_FLOAT\n" + better.files.File("./src/scala/c/engine/ee_printf.c").contentAsString) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code })
@@ -71,14 +74,27 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
 
       val program = new FunctionScope(List(), null, null) {}
       state.pushScope(program)
-      program.init(node, state, false)
+      program.init(translationUnit, state, false)
 
       state.context.run(state) // parse globals
 
       state.context.setAddress(0)
 
+      val functionCall = if (args.nonEmpty) {
+        val fcnName = new CASTIdExpression(new CASTName("main".toCharArray))
+        val factory = translationUnit.getTranslationUnit.getASTNodeFactory
+        val sizeExpr = factory.newLiteralExpression(IASTLiteralExpression.lk_integer_constant, args.size.toString)
+        val argsExpr = args.map { arg =>
+          factory.newLiteralExpression(IASTLiteralExpression.lk_string_literal, "\"" + arg + "\"")
+        }
+
+        new CASTFunctionCallExpression(fcnName, (sizeExpr +: argsExpr).toArray)
+      } else {
+        null
+      }
+
       //state.context.pathStack.push(NodePath(state.getFunction("main").node, Stage1))
-      state.callTheFunction("main", null, None)(state)
+      state.callTheFunction("main", functionCall, None)(state)
       //totalTime += (System.nanoTime - start) / 1000000000.0
       result = getResults(state.stdout.toList)
     } catch {
