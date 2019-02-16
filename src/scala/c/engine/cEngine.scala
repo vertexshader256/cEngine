@@ -567,7 +567,7 @@ class State(pointerSize: NumBits) {
             context.run(this)
             None
           } else {
-            newScope.init(state.mainFunc, this, !scope.isDefined)
+            newScope.init(function.node, this, !scope.isDefined)
             newScope.pushOntoStack(List(new RValue(0, null) {}))
             functionContexts = newScope +: functionContexts
             context.run(this)
