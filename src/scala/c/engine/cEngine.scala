@@ -565,44 +565,45 @@ class State(pointerSize: NumBits) {
 
         if (function.name == "main") {
           newScope.init(state.mainFunc, this, !scope.isDefined)
+          newScope.pushOntoStack(List(new RValue(0, null) {}))
+          functionContexts = newScope +: functionContexts
+          context.run(this)
+          None
         } else {
           newScope.init(function.node, this, !scope.isDefined)
-        }
 
-        val args: List[ValueType] = if (call != null) {
-          call.getArguments.map { x => Expressions.evaluate(x).head }.toList
-        } else {
-          List()
-        }
-        val resolvedArgs = args.map{ TypeHelper.resolve }
-
-        // printf assumes all floating point numbers are doubles
-        // and shorts are 4 bytes
-        val promoted = resolvedArgs.map{arg =>
-          if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eFloat) {
-            TypeHelper.cast(new CBasicType(IBasicType.Kind.eDouble, 0), arg.value)
-          } else if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].isShort) {
-            TypeHelper.cast(new CBasicType(IBasicType.Kind.eInt, 0), arg.value)
-          } else if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eChar) {
-            TypeHelper.cast(new CBasicType(IBasicType.Kind.eInt, 0), arg.value)
+          val args: List[ValueType] = if (call != null) {
+            call.getArguments.map { x => Expressions.evaluate(x).head }.toList
           } else {
-            arg
+            List()
           }
-        }
+          val resolvedArgs = args.map{ TypeHelper.resolve }
 
-        newScope.pushOntoStack(promoted :+ new RValue(resolvedArgs.size, null) {})
+          // printf assumes all floating point numbers are doubles
+          // and shorts are 4 bytes
+          val promoted = resolvedArgs.map{arg =>
+            if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eFloat) {
+              TypeHelper.cast(new CBasicType(IBasicType.Kind.eDouble, 0), arg.value)
+            } else if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].isShort) {
+              TypeHelper.cast(new CBasicType(IBasicType.Kind.eInt, 0), arg.value)
+            } else if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eChar) {
+              TypeHelper.cast(new CBasicType(IBasicType.Kind.eInt, 0), arg.value)
+            } else {
+              arg
+            }
+          }
 
-        functionContexts = newScope +: functionContexts
+          newScope.pushOntoStack(promoted :+ new RValue(resolvedArgs.size, null) {})
 
-        context.run(this)
+          functionContexts = newScope +: functionContexts
 
-        val returnVal = context.getReturnValue
+          context.run(this)
 
-        if (!scope.isDefined) {
+          val returnVal = context.getReturnValue
+
           popFunctionContext
+          returnVal
         }
-
-        returnVal
       }
     }.getOrElse{
       // function pointer case
