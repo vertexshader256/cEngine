@@ -55,9 +55,9 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
     }
   }
 
-  def checkResults(code: String, shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits) = checkResults2(Seq(code), shouldBootstrap, pointerSize)
+  def checkResults(code: String, shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits, args: List[String] = List()) = checkResults2(Seq(code), shouldBootstrap, pointerSize, args)
 
-  def getCEngineResults(codeInFiles: Seq[String], shouldBootstrap: Boolean, pointerSize: NumBits) = {
+  def getCEngineResults(codeInFiles: Seq[String], shouldBootstrap: Boolean, pointerSize: NumBits, args: List[String]) = {
     var result = List[String]()
 
     try {
@@ -88,7 +88,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
     result
   }
 
-  def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits) = {
+  def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits, args: List[String] = List()) = {
 
     var except: Exception = null
 
@@ -128,7 +128,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
 
         // while its compiling, run the cEngine code
 
-        cEngineOutput = getCEngineResults(codeInFiles, shouldBootstrap, pointerSize)
+        cEngineOutput = getCEngineResults(codeInFiles, shouldBootstrap, pointerSize, args)
 
         compile.exitValue()
 

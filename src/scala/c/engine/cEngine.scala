@@ -428,11 +428,7 @@ class State(pointerSize: NumBits) {
                                 .filter(fcn => fcn.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
 
     fcns.foreach { fcnDef =>
-      if (fcnDef.getDeclarator.getName.getRawSignature != "main") {
-        addFunctionDef(fcnDef)
-      } else {
-        addMain(fcnDef)
-      }
+      addFunctionDef(fcnDef, fcnDef.getDeclarator.getName.getRawSignature == "main")
     }
 
     functionContexts = List[FunctionScope]()
@@ -486,7 +482,7 @@ class State(pointerSize: NumBits) {
     }
   }
 
-  private def addFunctionDef(fcnDef: IASTFunctionDefinition) = {
+  private def addFunctionDef(fcnDef: IASTFunctionDefinition, isMain: Boolean) = {
     val name = fcnDef.getDeclarator.getName
 
     val fcnType = fcnDef.getDeclarator.getName.resolveBinding().asInstanceOf[IFunction].getType
@@ -501,22 +497,11 @@ class State(pointerSize: NumBits) {
       }
     }
 
-    val newVar = Variable(name.getRawSignature, State.this, fcnType)
-    Stack.writeToMemory(functionCount, newVar.address, fcnType)
+    if (!isMain) {
+      val newVar = Variable(name.getRawSignature, State.this, fcnType)
+      Stack.writeToMemory(functionCount, newVar.address, fcnType)
 
-    functionPointers += name.getRawSignature -> newVar
-    functionCount += 1
-  }
-
-  private def addMain(fcnDef: IASTFunctionDefinition) = {
-    val name = "main"
-
-    functionList += new Function(name, true) {
-      index = functionCount
-      node = fcnDef
-      override val staticVars = List()
-      def parameters = List()
-      def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = {None}
+      functionPointers += name.getRawSignature -> newVar
     }
 
     functionCount += 1
