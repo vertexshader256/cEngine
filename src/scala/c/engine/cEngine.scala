@@ -538,7 +538,7 @@ class State(pointerSize: NumBits) {
     Seq()
   }
 
-  def callTheFunction(name: String, call: IASTFunctionCallExpression, scope: Option[FunctionScope], shouldPop: Boolean = true)(implicit state: State): Option[ValueType] = {
+  def callTheFunction(name: String, call: IASTFunctionCallExpression, scope: Option[FunctionScope], isApi: Boolean = false)(implicit state: State): Option[ValueType] = {
 
     functionList.find(_.name == name).map{ function =>
 
@@ -564,14 +564,20 @@ class State(pointerSize: NumBits) {
         }
 
         if (function.name == "main") {
-          newScope.init(state.mainFunc, this, !scope.isDefined)
-          newScope.pushOntoStack(List(new RValue(0, null) {}))
-          functionContexts = newScope +: functionContexts
-          context.run(this)
-          if (shouldPop) {
+          if (isApi) {
+            scope.get.init(state.mainFunc, this, !scope.isDefined)
+            scope.get.pushOntoStack(List(new RValue(0, null) {}))
+            functionContexts = List(scope.get)
+            context.run(this)
+            None
+          } else {
+            newScope.init(state.mainFunc, this, !scope.isDefined)
+            newScope.pushOntoStack(List(new RValue(0, null) {}))
+            functionContexts = newScope +: functionContexts
+            context.run(this)
             popFunctionContext
+            None
           }
-          None
         } else {
           newScope.init(function.node, this, !scope.isDefined)
 
