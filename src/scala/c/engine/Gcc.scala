@@ -23,6 +23,8 @@ object Gcc {
 
       state.init(Seq(exeCode))
       state.callTheFunction("main", null, Some(program), true)(state)
+      val main = state.functionList.find{_.name == "main"}.get
+      state.functionList -= main
   }
 
   def runGlobalCode(code: String, state: State) = {

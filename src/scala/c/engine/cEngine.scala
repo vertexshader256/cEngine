@@ -562,7 +562,7 @@ class State(pointerSize: NumBits) {
 
         if (function.name == "main") {
           if (isApi) {
-            scope.get.init(state.mainFunc, this, !scope.isDefined)
+            scope.get.init(function.node, this, !scope.isDefined)
             functionContexts = List(scope.get)
             context.run(this)
             None
