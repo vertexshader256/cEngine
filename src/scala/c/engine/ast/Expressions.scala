@@ -75,8 +75,7 @@ object Expressions {
     case unary: IASTUnaryExpression =>
       Some(UnaryExpression.execute(evaluate(unary.getOperand).head, unary))
     case lit: IASTLiteralExpression =>
-        val litStr = lit.getRawSignature
-        Some(Literal.cast(lit.getRawSignature))
+        Some(Literal.cast(lit.toString))
     case id: IASTIdExpression =>
         Some(state.context.resolveId(id.getName).get)
     case typeExpr: IASTTypeIdExpression =>
