@@ -421,19 +421,21 @@ class State(pointerSize: NumBits) {
 
   val program = new FunctionScope(List(), null, null) {}
   pushScope(program)
-  addMain()
 
   def init(codes: Seq[String]): IASTNode = {
     val tUnit = Utils.getTranslationUnit(codes)
 
     val fcns = tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}
-                                .filter(fcn => fcn.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern && fcn.getDeclarator.getName.getRawSignature != "main")
+                                .filter(fcn => fcn.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern &&
+                                  fcn.getDeclarator.getName.getRawSignature != "main")
     fcns.foreach{fcnDef => addFunctionDef(fcnDef)}
 
     tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}
       .find(fcn => fcn.getDeclarator.getName.getRawSignature == "main").foreach { fcn =>
       mainFunc = fcn
     }
+
+    addMain()
 
     functionContexts = List[FunctionScope]()
 
@@ -444,7 +446,7 @@ class State(pointerSize: NumBits) {
     tUnit
   }
 
-  def addScalaFunctionDef(fcn: Function) = {
+  private def addScalaFunctionDef(fcn: Function) = {
 
     fcn.index = functionCount
 
@@ -486,7 +488,7 @@ class State(pointerSize: NumBits) {
     }
   }
 
-  def addFunctionDef(fcnDef: IASTFunctionDefinition) = {
+  private def addFunctionDef(fcnDef: IASTFunctionDefinition) = {
     val name = fcnDef.getDeclarator.getName
 
     val fcnType = fcnDef.getDeclarator.getName.resolveBinding().asInstanceOf[IFunction].getType
@@ -508,23 +510,17 @@ class State(pointerSize: NumBits) {
     functionCount += 1
   }
 
-  def addMain() = {
+  private def addMain() = {
     val name = "main"
 
     functionList += new Function(name, true) {
-      index = 0
+      index = functionCount
       node = null
       override val staticVars = List()
       def parameters = List()
       def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = {None}
     }
 
-    val mainType = new CFunctionType(new CBasicType(IBasicType.Kind.eVoid, 0), Array())
-
-    val newVar = Variable(name, State.this, mainType)
-    Stack.writeToMemory(functionCount, newVar.address, mainType)
-
-    functionPointers += name -> newVar
     functionCount += 1
   }
 
