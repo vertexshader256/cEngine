@@ -384,7 +384,6 @@ class State(pointerSize: NumBits) {
   val functionPointers = scala.collection.mutable.LinkedHashMap[String, Variable]()
   val stdout = new ListBuffer[Char]()
   var functionCount = 0
-  var mainFunc: IASTFunctionDefinition = null
 
   private var breakLabelStack = List[Label]()
   private var continueLabelStack = List[Label]()
@@ -520,8 +519,6 @@ class State(pointerSize: NumBits) {
       def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = {None}
     }
 
-    mainFunc = fcnDef
-
     functionCount += 1
   }
 
@@ -549,32 +546,23 @@ class State(pointerSize: NumBits) {
         Stack.insertIndex = stackPos // pop the stack
         returnVal.map{theVal => new RValue(theVal, null) {}}
       } else {
-
-        val newScope = scope.getOrElse {
-          val expressionType = if (call != null) {
-            call.getExpressionType
-          } else {
-            null
-          }
-
-          new FunctionScope(function.staticVars, functionContexts.headOption.getOrElse(null), expressionType)
-        }
-
-        if (function.name == "main") {
-          if (isApi) {
-            scope.get.init(function.node, this, !scope.isDefined)
-            functionContexts = List(scope.get)
-            context.run(this)
-            None
-          } else {
-            newScope.init(function.node, this, !scope.isDefined)
-            newScope.pushOntoStack(List(new RValue(0, null) {}))
-            functionContexts = newScope +: functionContexts
-            context.run(this)
-            popFunctionContext
-            None
-          }
+        if (function.name == "main" && isApi) {
+          scope.get.init(function.node, this, !scope.isDefined)
+          functionContexts = List(scope.get)
+          context.run(this)
+          None
         } else {
+
+          val newScope = scope.getOrElse {
+            val expressionType = if (call != null) {
+              call.getExpressionType
+            } else {
+              null
+            }
+
+            new FunctionScope(function.staticVars, functionContexts.headOption.getOrElse(null), expressionType)
+          }
+
           newScope.init(function.node, this, !scope.isDefined)
 
           val args: List[ValueType] = if (call != null) {
