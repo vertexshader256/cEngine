@@ -566,7 +566,6 @@ class State(pointerSize: NumBits) {
         if (function.name == "main") {
           if (isApi) {
             scope.get.init(state.mainFunc, this, !scope.isDefined)
-            scope.get.pushOntoStack(List(new RValue(0, null) {}))
             functionContexts = List(scope.get)
             context.run(this)
             None
