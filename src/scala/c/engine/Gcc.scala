@@ -22,7 +22,7 @@ object Gcc {
       """
 
       state.init(Seq(exeCode))
-      state.callTheFunction("main", null, Some(program))(state)
+      state.callTheFunction("main", null, Some(program), false)(state)
   }
 
   def runGlobalCode(code: String, state: State) = {

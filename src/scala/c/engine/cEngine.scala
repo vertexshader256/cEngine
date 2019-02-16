@@ -538,7 +538,7 @@ class State(pointerSize: NumBits) {
     Seq()
   }
 
-  def callTheFunction(name: String, call: IASTFunctionCallExpression, scope: Option[FunctionScope])(implicit state: State): Option[ValueType] = {
+  def callTheFunction(name: String, call: IASTFunctionCallExpression, scope: Option[FunctionScope], shouldPop: Boolean = true)(implicit state: State): Option[ValueType] = {
 
     functionList.find(_.name == name).map{ function =>
 
@@ -568,6 +568,9 @@ class State(pointerSize: NumBits) {
           newScope.pushOntoStack(List(new RValue(0, null) {}))
           functionContexts = newScope +: functionContexts
           context.run(this)
+          if (shouldPop) {
+            popFunctionContext
+          }
           None
         } else {
           newScope.init(function.node, this, !scope.isDefined)
