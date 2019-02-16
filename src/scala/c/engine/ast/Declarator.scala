@@ -127,7 +127,7 @@ object Declarator {
             (initialArray, finalType)
           }
 
-          val theArrayPtr = state.context.addVariable(name.getRawSignature, initType)
+          val theArrayPtr = state.context.addVariable(name.toString, initType)
           theArrayPtr.setArray(initArray)
 
           Seq()
@@ -138,9 +138,9 @@ object Declarator {
             val inferredArrayType = new CArrayType(theType.asInstanceOf[IArrayType].getType)
             inferredArrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, dimensions.head.toString.toCharArray)))
 
-            state.context.addVariable(name.getRawSignature, inferredArrayType)
+            state.context.addVariable(name.toString, inferredArrayType)
           } else {
-            state.context.addVariable(name.getRawSignature, theType)
+            state.context.addVariable(name.toString, theType)
           }
         }
         Seq()
@@ -152,7 +152,7 @@ object Declarator {
         if (nameBinding.isInstanceOf[IVariable]) {
           val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
 
-          val variable = state.context.addVariable(name.getRawSignature, theType)
+          val variable = state.context.addVariable(name.toString, theType)
 
           if (!variable.isInitialized) {
 
@@ -191,7 +191,7 @@ object Declarator {
 
           struct.getFields.map{ field =>
             initializers.find{ init =>
-              val fieldName = init.getDesignators.toList.head.asInstanceOf[CASTFieldDesignator].getName.getRawSignature
+              val fieldName = init.getDesignators.toList.head.asInstanceOf[CASTFieldDesignator].getName.toString
               fieldName == field.getName
             }.map{ init =>
               Ast.step(init.getOperand)

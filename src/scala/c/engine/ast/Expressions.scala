@@ -49,7 +49,7 @@ object Expressions {
           struct.address
         }
 
-        val field = TypeHelper.offsetof(structType, baseAddr, fieldRef.getFieldName.getRawSignature, state: State)
+        val field = TypeHelper.offsetof(structType, baseAddr, fieldRef.getFieldName.toString, state: State)
         Some(field)
     case subscript: IASTArraySubscriptExpression =>
 
