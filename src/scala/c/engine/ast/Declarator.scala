@@ -213,6 +213,10 @@ object Declarator {
       val otherStruct = decl.asInstanceOf[IASTIdExpression]
 
       List(state.context.resolveId(otherStruct.getName).get)
+    } else if (decl != null && decl.isInstanceOf[IASTFunctionCallExpression]) { // setting a struct equal to another struct
+      Ast.step(decl)
+
+      List()
     } else {
       List()
     }
