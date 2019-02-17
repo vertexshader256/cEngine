@@ -632,14 +632,14 @@ class State(pointerSize: NumBits) {
     }
   }
 
-  def createStringVariable(str: String, isHeap: Boolean): Address = {
+  def createStringVariable(str: String, isHeap: Boolean): RValue = {
     val theStr = Utils.stripQuotes(str)
 
     val withNull = (theStr.toCharArray() :+ 0.toChar).map(_.toByte) // terminating null char
     val strAddr = if (isHeap) allocateHeapSpace(withNull.size) else allocateSpace(withNull.size)
 
     writeDataBlock(withNull, strAddr)(this)
-    new Address(strAddr, pointerType) {}
+    RValue(strAddr, pointerType)
   }
 
   def writeDataBlock(array: Array[RValue], startingAddress: Int)(implicit state: State): Unit = {
