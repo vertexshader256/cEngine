@@ -7,7 +7,7 @@ abstract class ValueType {
   def theType: IType
 }
 
-abstract class LValue(state: State) extends ValueType {
+trait LValue extends ValueType {
   val address: Int
   val theType: IType
   def sizeof: Int
@@ -52,7 +52,7 @@ case class Address(avalue: Int, baseType: IType) extends RValue(avalue, baseType
   }
 }
 
-case class Field(state: State, address: Int, bitOffset: Int, theType: IType, sizeInBits: Int) extends LValue(state) {
+case class Field(state: State, address: Int, bitOffset: Int, theType: IType, sizeInBits: Int) extends LValue {
   val sizeof = sizeInBits / 8
   def getValue = state.Stack.readFromMemory(address, theType, bitOffset, sizeInBits)
   def setValue(newVal: AnyVal) = {
@@ -60,7 +60,7 @@ case class Field(state: State, address: Int, bitOffset: Int, theType: IType, siz
   }
 }
 
-case class MemoryLocation(state: State, address: Int, theType: IType) extends LValue(state) {
+case class MemoryLocation(state: State, address: Int, theType: IType) extends LValue {
   val sizeof = TypeHelper.sizeof(theType)(state)
   def getValue = state.Stack.readFromMemory(address, theType)
   def setValue(newVal: AnyVal) = {
@@ -72,7 +72,7 @@ object LValue {
   def unapply(info: LValue): Option[(Int, IType)] = Some((info.address, info.theType))
 }
 
-case class Variable(name: String, state: State, aType: IType) extends LValue(state) {
+case class Variable(name: String, state: State, aType: IType) extends LValue {
 
   val theType = TypeHelper.stripSyntheticTypeInfo(aType)
 
