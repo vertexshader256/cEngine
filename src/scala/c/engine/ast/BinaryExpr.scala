@@ -3,7 +3,7 @@ package ast
 
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 import org.eclipse.cdt.core.dom.ast._
-import org.eclipse.cdt.internal.core.dom.parser.c.{CBasicType, CStructure}
+import org.eclipse.cdt.internal.core.dom.parser.c.{CBasicType, CPointerType, CStructure}
 import IBasicType.Kind._
 
 
@@ -73,7 +73,7 @@ object BinaryExpr {
       if (isLeftPointer && isRightPointer) {
         // assume minus
         val result = (left.value.asInstanceOf[Int] - right.value.asInstanceOf[Int]) / ptrSize
-        Address(result, baseType)
+        RValue(result, new CPointerType(baseType, 0))
       } else if (!isLeftPointer && isRightPointer) {
         // assume plus
         val result = left.value.asInstanceOf[Int] * rightPtrSize + right.value.asInstanceOf[Int]
