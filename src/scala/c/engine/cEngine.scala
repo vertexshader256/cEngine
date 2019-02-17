@@ -529,7 +529,7 @@ class State(pointerSize: NumBits) {
         val resolvedArgs: Array[RValue] = args.flatten.map{ TypeHelper.resolve }
         val returnVal = function.run(resolvedArgs.reverse, this)
         Stack.insertIndex = stackPos // pop the stack
-        returnVal.map{theVal => RValue(theVal, null)}
+        returnVal.map{theVal => RValue(theVal, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))}
       } else {
         if (function.name == "main" && isApi) {
           scope.get.init(function.node, this, !scope.isDefined)
@@ -571,7 +571,7 @@ class State(pointerSize: NumBits) {
             }
           }
 
-          newScope.pushOntoStack(promoted :+ RValue(resolvedArgs.size, null))
+          newScope.pushOntoStack(promoted :+ RValue(resolvedArgs.size, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED)))
 
           functionContexts = newScope +: functionContexts
 

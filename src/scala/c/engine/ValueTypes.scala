@@ -45,7 +45,8 @@ case class TypeInfo(value: IType) extends ValueType {
 
 object RValue {
   def unapply(rvalue: RValue): Option[(AnyVal, IType)] = Some((rvalue.value, rvalue.theType))
-  def apply(theValue: AnyVal, aType: IType) = new RValue {val value = theValue; val theType = aType}
+  def apply(theValue: AnyVal, aType: IType) =
+    new RValue {val theType = TypeHelper.stripSyntheticTypeInfo(aType); val value = theValue;}
 }
 
 abstract class RValue extends ValueType {
@@ -67,10 +68,11 @@ case class Field(state: State, address: Int, bitOffset: Int, theType: IType, siz
   val sizeof = sizeInBits / 8
 }
 
-case class MemoryLocation(state: State, address: Int, theType: IType) extends LValue {
-  val sizeof = TypeHelper.sizeof(theType)(state)
+case class MemoryLocation(state: State, address: Int, aType: IType) extends LValue {
   val bitOffset = 0
   val sizeInBits = sizeof * 8
+  val theType = TypeHelper.stripSyntheticTypeInfo(aType)
+  val sizeof = TypeHelper.sizeof(theType)(state)
 }
 
 object LValue {
