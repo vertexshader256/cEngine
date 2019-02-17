@@ -61,11 +61,7 @@ object BinaryExpr {
         left.theType
       }
 
-      val rightBaseType = if (right.isInstanceOf[Address]) {
-        right.asInstanceOf[Address].theType
-      } else {
-        right.theType
-      }
+      val rightBaseType = right.theType
 
       val ptrSize = TypeHelper.sizeof(baseType)
       val rightPtrSize = TypeHelper.sizeof(rightBaseType)
