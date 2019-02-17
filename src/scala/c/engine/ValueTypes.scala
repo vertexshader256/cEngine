@@ -10,6 +10,10 @@ abstract class ValueType {
 trait LValue extends ValueType {
   val address: Int
   val theType: IType
+  val bitOffset: Int
+  val state: State
+  val sizeInBits: Int
+
   def sizeof: Int
   def value: RValue = {
     if (TypeHelper.isPointer(this)) {
@@ -19,12 +23,15 @@ trait LValue extends ValueType {
     }
   }
 
-  protected def getValue: RValue
+  def getValue = if (theType.isInstanceOf[IArrayType]) {
+    new RValue(address, theType) {}
+  } else {
+    state.Stack.readFromMemory(address, theType, bitOffset, sizeInBits)
+  }
 
-  def setValue(newVal: AnyVal)
-
-  override def toString = {
-    "AddressInfo(" + address + ", " + theType + ")"
+  //protected def getValue = state.Stack.readFromMemory(address, theType, bitOffset, sizeInBits)
+  def setValue(newVal: AnyVal) = {
+    state.Stack.writeToMemory(newVal, address, theType, bitOffset, sizeInBits)
   }
 }
 
@@ -54,18 +61,12 @@ case class Address(avalue: Int, baseType: IType) extends RValue(avalue, baseType
 
 case class Field(state: State, address: Int, bitOffset: Int, theType: IType, sizeInBits: Int) extends LValue {
   val sizeof = sizeInBits / 8
-  def getValue = state.Stack.readFromMemory(address, theType, bitOffset, sizeInBits)
-  def setValue(newVal: AnyVal) = {
-    state.Stack.writeToMemory(newVal, address, theType, bitOffset, sizeInBits)
-  }
 }
 
 case class MemoryLocation(state: State, address: Int, theType: IType) extends LValue {
   val sizeof = TypeHelper.sizeof(theType)(state)
-  def getValue = state.Stack.readFromMemory(address, theType)
-  def setValue(newVal: AnyVal) = {
-    state.Stack.writeToMemory(newVal, address, theType)
-  }
+  val bitOffset = 0
+  val sizeInBits = sizeof * 8
 }
 
 object LValue {
@@ -75,10 +76,8 @@ object LValue {
 case class Variable(name: String, state: State, aType: IType) extends LValue {
 
   val theType = TypeHelper.stripSyntheticTypeInfo(aType)
-
-  def setValue(newVal: AnyVal) = {
-    state.Stack.writeToMemory(newVal, address, theType)
-  }
+  val bitOffset = 0
+  val sizeInBits = sizeof * 8
 
   def setArray(array: Array[RValue]): Unit = {
     state.writeDataBlock(array, address)(state)
@@ -124,12 +123,6 @@ case class Variable(name: String, state: State, aType: IType) extends LValue {
 
   // need this for function-scoped static vars
   var isInitialized = false
-
-  def getValue = if (theType.isInstanceOf[IArrayType]) {
-    new RValue(address, theType) {}
-  } else {
-    state.Stack.readFromMemory(address, theType)
-  }
 
   override def toString = {
     "Variable(" + name + ", " + address + ", " + theType + ")"

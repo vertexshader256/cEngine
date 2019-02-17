@@ -236,7 +236,7 @@ object Declarator {
         struct.getFields.foreach{ field =>
           val baseField = TypeHelper.offsetof(struct, otherStruct.address, field.getName, state)
           val theField = TypeHelper.offsetof(struct, dst.address, field.getName, state)
-          assign(theField, List(baseField.getValue), equals, op)
+          assign(theField, List(baseField.value), equals, op)
         }
       } else { // e.g struct Test test = {1.0, 2, "three"}
         val struct = dst.theType.asInstanceOf[CStructure]
