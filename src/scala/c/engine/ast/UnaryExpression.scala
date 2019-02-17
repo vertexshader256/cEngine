@@ -90,10 +90,7 @@ object UnaryExpression {
             case RValue(int: Int, theType) =>
               MemoryLocation(state, int, theType)
             case info@LValue(_, _) =>
-              val nestedType = info.theType match {
-                case ptr: IPointerType => ptr.getType
-                case array: IArrayType => array.getType
-              }
+              val nestedType = TypeHelper.getPointerType(info.theType)
 
               if (!nestedType.isInstanceOf[IFunctionType]) {
                 MemoryLocation(state, info.value.value.asInstanceOf[Int], nestedType)
