@@ -105,7 +105,7 @@ object Declarator {
 
             val theStr = Utils.stripQuotes(initString)
             val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
-            val withNull = (translateLineFeed.toCharArray() :+ 0.toChar).map { char => new RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0)) {} } // terminating null char
+            val withNull = (translateLineFeed.toCharArray() :+ 0.toChar).map { char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))} // terminating null char
 
             val inferredArrayType = new CArrayType(theType.asInstanceOf[IArrayType].getType)
             inferredArrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, initString.size.toString.toCharArray)))
@@ -114,7 +114,7 @@ object Declarator {
           } else {
             val initVals: Array[ValueType] = (0 until initializer.getInitializerClause.getChildren.size).map { x => state.context.popStack }.reverse.toArray
 
-            val initialArray = initVals.map { TypeHelper.resolve }.map { x => new RValue(x.value, theType.asInstanceOf[IArrayType].getType) {}}
+            val initialArray = initVals.map { TypeHelper.resolve }.map { x => RValue(x.value, theType.asInstanceOf[IArrayType].getType)}
 
             val finalType = if (!dimensions.isEmpty) {
               theType
@@ -174,7 +174,7 @@ object Declarator {
         Ast.step(decl)
         state.context.popStack
       } else {
-        new RValue(0, null) {}
+        RValue(0, null)
       }
 
       List(result)
@@ -205,7 +205,7 @@ object Declarator {
           clause.asInstanceOf[IASTInitializerList].getClauses.map { x => state.context.popStack }.reverse.toList
         }
       } else {
-        List(new RValue(0, null) {})
+        List(RValue(0, null))
       }
 
       result

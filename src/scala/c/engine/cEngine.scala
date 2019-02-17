@@ -511,7 +511,7 @@ class State(pointerSize: NumBits) {
 
     functionList.find(_.name == name).map { fcn =>
       // this is a function simulated in scala
-      fcn.run(args.reverse, this).foreach { retVal => context.pushOntoStack(List(new RValue(retVal, null) {})) }
+      fcn.run(args.reverse, this).foreach { retVal => context.pushOntoStack(List(RValue(retVal, null))) }
     }
 
     Seq()
@@ -529,7 +529,7 @@ class State(pointerSize: NumBits) {
         val resolvedArgs: Array[RValue] = args.flatten.map{ TypeHelper.resolve }
         val returnVal = function.run(resolvedArgs.reverse, this)
         Stack.insertIndex = stackPos // pop the stack
-        returnVal.map{theVal => new RValue(theVal, null) {}}
+        returnVal.map{theVal => RValue(theVal, null)}
       } else {
         if (function.name == "main" && isApi) {
           scope.get.init(function.node, this, !scope.isDefined)
@@ -571,7 +571,7 @@ class State(pointerSize: NumBits) {
             }
           }
 
-          newScope.pushOntoStack(promoted :+ new RValue(resolvedArgs.size, null) {})
+          newScope.pushOntoStack(promoted :+ RValue(resolvedArgs.size, null))
 
           functionContexts = newScope +: functionContexts
 

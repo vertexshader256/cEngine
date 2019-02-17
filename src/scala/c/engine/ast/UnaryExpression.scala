@@ -54,7 +54,7 @@ object UnaryExpression {
 
           value match {
             case RValue(int: Int, theType) =>
-              new RValue(~value.asInstanceOf[RValue].value.asInstanceOf[Int], null) {}
+              RValue(~value.asInstanceOf[RValue].value.asInstanceOf[Int], null)
             case info @ LValue(_, _) =>
               val theValue = info.value
 
@@ -66,16 +66,16 @@ object UnaryExpression {
               }
               TypeHelper.cast(info.theType, result)
           }
-        case `op_not` => new RValue(TypeHelper.not(value), TypeHelper.one.theType) {}
+        case `op_not` => RValue(TypeHelper.not(value), TypeHelper.one.theType)
         case `op_minus` =>
           val newVal = BinaryExpr.evaluate(value, TypeHelper.negativeOne, IASTBinaryExpression.op_multiply).value
-          new RValue(newVal, value.theType) {}
+          RValue(newVal, value.theType)
         case op @ (`op_postFixIncr` | `op_postFixDecr` | `op_prefixIncr` | `op_prefixDecr`) =>
           evaluateIncrDecr(unary, value, op)
         case `op_sizeof` =>
           value match {
-            case info: LValue => new RValue(info.sizeof, new CBasicType(IBasicType.Kind.eInt, 0)) {}
-            case RValue(_, theType) => new RValue(TypeHelper.sizeof(theType), new CBasicType(IBasicType.Kind.eInt, 0)) {}
+            case info: LValue => RValue(info.sizeof, new CBasicType(IBasicType.Kind.eInt, 0))
+            case RValue(_, theType) => RValue(TypeHelper.sizeof(theType), new CBasicType(IBasicType.Kind.eInt, 0))
           }
         case `op_amper` =>
           value match {

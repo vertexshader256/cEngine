@@ -380,7 +380,7 @@ object Functions {
         val result = printf(formattedOutputParams, state)
 
         result.getBytes.foreach{char =>
-          state.callFunctionFromScala("putchar", Array(new RValue(char.toInt, new CBasicType(IBasicType.Kind.eInt, 0)) {}))
+          state.callFunctionFromScala("putchar", Array(RValue(char.toInt, new CBasicType(IBasicType.Kind.eInt, 0))))
         }
 
         None
@@ -538,7 +538,7 @@ object Functions {
           val index = result1.indexOf('.')
           val resultString = result1.replace(".", "")
 
-          val array = resultString.toCharArray.map{ char => new RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0)) {}}
+          val array = resultString.toCharArray.map{ char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))}
 
           state.Stack.writeToMemory(index, decpt, new CBasicType(IBasicType.Kind.eInt, 0))
 

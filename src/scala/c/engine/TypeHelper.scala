@@ -8,9 +8,9 @@ import scala.c.engine.ast.Expressions
 
 object TypeHelper {
 
-  val one = new RValue(1, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED)) {}
-  val zero = new RValue(0, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED)) {}
-  val negativeOne = new RValue(-1, new CBasicType(IBasicType.Kind.eInt, 0)) {}
+  val one = RValue(1, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))
+  val zero = RValue(0, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))
+  val negativeOne = RValue(-1, new CBasicType(IBasicType.Kind.eInt, 0))
   
   // 8 bytes
   val qword = new CBasicType(IBasicType.Kind.eInt , IBasicType.IS_LONG_LONG)
@@ -31,7 +31,7 @@ object TypeHelper {
       case _ => newVal
     }
 
-    new RValue(casted, theType) {}
+    RValue(casted, theType)
   }
 
   // Kind of hacky; this will do whatever it needs to match gcc.  casts 'AnyVal' to 'ValueInfo'
@@ -110,7 +110,7 @@ object TypeHelper {
         }
       }
     
-    new RValue(casted, theType) {}
+    RValue(casted, theType)
   }
 
   def getType(idExpr: IASTTypeId) = idExpr.getDeclSpecifier match {

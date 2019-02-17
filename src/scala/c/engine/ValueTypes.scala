@@ -19,12 +19,12 @@ trait LValue extends ValueType {
     if (TypeHelper.isPointer(this)) {
       Address(getValue.value.asInstanceOf[Int], TypeHelper.getPointerType(theType))
     } else {
-      new RValue(getValue.value, theType) {}
+      RValue(getValue.value, theType)
     }
   }
 
   def getValue = if (theType.isInstanceOf[IArrayType]) {
-    new RValue(address, theType) {}
+    RValue(address, theType)
   } else {
     state.Stack.readFromMemory(address, theType, bitOffset, sizeInBits)
   }
@@ -45,15 +45,19 @@ case class TypeInfo(value: IType) extends ValueType {
 
 object RValue {
   def unapply(rvalue: RValue): Option[(AnyVal, IType)] = Some((rvalue.value, rvalue.theType))
+  def apply(theValue: AnyVal, aType: IType) = new RValue {val value = theValue; val theType = aType}
 }
 
-abstract class RValue(val value: AnyVal, val theType: IType) extends ValueType {
+abstract class RValue extends ValueType {
+  val value: AnyVal
+  val theType: IType
+
   override def toString = {
     "RValue(" + value + ", " + theType + ")"
   }
 }
 
-case class Address(avalue: Int, baseType: IType) extends RValue(avalue, baseType) {
+case class Address(value: Int, theType: IType) extends RValue {
   override def toString = {
     "Address(" + value + ", " + theType + ")"
   }

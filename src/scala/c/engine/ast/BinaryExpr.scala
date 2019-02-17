@@ -56,13 +56,13 @@ object BinaryExpr {
     if (operator == `op_minus` || operator == `op_plus`) {
 
       val baseType = if (left.isInstanceOf[Address]) {
-        left.asInstanceOf[Address].baseType
+        left.asInstanceOf[Address].theType
       } else {
         TypeHelper.stripSyntheticTypeInfo(left.theType)
       }
 
       val rightBaseType = if (right.isInstanceOf[Address]) {
-        right.asInstanceOf[Address].baseType
+        right.asInstanceOf[Address].theType
       } else {
         TypeHelper.stripSyntheticTypeInfo(right.theType)
       }
@@ -88,7 +88,7 @@ object BinaryExpr {
         Address(result, baseType)
       }
     } else {
-      new RValue(calculate(left.value, right.value, operator), left.theType) {}
+      RValue(calculate(left.value, right.value, operator), left.theType)
     }
   }
 
@@ -272,7 +272,7 @@ object BinaryExpr {
         case _ => left.theType
       }
 
-      new RValue(result, resultType) {}
+      RValue(result, resultType)
     }
   }
 }

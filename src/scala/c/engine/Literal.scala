@@ -65,18 +65,18 @@ object Literal {
     val result = if (lit.head == '\"' && lit.last == '\"') {
       StringLiteral(lit)
     } else if (lit.head == '\'' && lit.last == '\'') {
-      new RValue(lit.toCharArray.apply(1).toByte, new CBasicType(IBasicType.Kind.eChar, 0)) {}
+      RValue(lit.toCharArray.apply(1).toByte, new CBasicType(IBasicType.Kind.eChar, 0))
     } else if (isLong) {
-      new RValue(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG)) {}
+      RValue(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
     } else if (isIntNumber(lit)) {
-      new RValue(lit.toInt, new CBasicType(IBasicType.Kind.eInt, 0)) {}
+      RValue(lit.toInt, new CBasicType(IBasicType.Kind.eInt, 0))
     } else if (isLongNumber(lit)) {
-      new RValue(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG)) {}
+      RValue(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
     } else if (lit.contains('F') || lit.contains('f')) {
       val num = lit.toCharArray.filter(x => x != 'f' && x != 'F').mkString
-      new RValue(num.toFloat, new CBasicType(IBasicType.Kind.eFloat, 0)) {}
+      RValue(num.toFloat, new CBasicType(IBasicType.Kind.eFloat, 0))
     } else {
-      new RValue(lit.toDouble, new CBasicType(IBasicType.Kind.eDouble, 0)) {}
+      RValue(lit.toDouble, new CBasicType(IBasicType.Kind.eDouble, 0))
     }
 
     result
