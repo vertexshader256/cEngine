@@ -77,7 +77,7 @@ object BinaryExpr {
       } else if (!isLeftPointer && isRightPointer) {
         // assume plus
         val result = left.value.asInstanceOf[Int] * rightPtrSize + right.value.asInstanceOf[Int]
-        Address(result, rightBaseType)
+        RValue(result, new CPointerType(rightBaseType, 0))
       } else {
         val result = if (operator == `op_minus`) {
           left.value.asInstanceOf[Int] - right.value.asInstanceOf[Int] * ptrSize
