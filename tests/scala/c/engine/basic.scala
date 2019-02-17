@@ -1,25 +1,28 @@
 package scala.c.engine
 
 class MainTest extends StandardTest {
+
   "a main function with arguments" should "print the correct results" in {
     val code = """
-      void main(int argc, char** args) {
+      void main(int argc, char** argv) {
         printf("%d\n", argc);
-        printf("%s\n", args[0]);
+        printf("%s\n", argv[1]);
+        printf("%s\n", argv[2]);
       }"""
 
     checkResults(code, args = List("Hello", "Okay"))
   }
 
-//  "a main function with arguments" should "print the correct results" in {
-//    val code = """
-//      void main(int argc, char** args) {
-//        printf("%d\n", argc);
-//        printf("%s\n", args[0]);
-//      }"""
-//
-//    checkResults(code, args = List("Hello", "Okay"))
-//  }
+  "a main function with arguments with format 2" should "print the correct results" in {
+    val code = """
+      void main(int argc, char* argv[]) {
+        printf("%d\n", argc);
+        printf("%s\n", argv[1]);
+        printf("%s\n", argv[2]);
+      }"""
+
+    checkResults(code, args = List("Hello2", "Okay2"))
+  }
 }
 
 class AssignmentTest extends StandardTest {

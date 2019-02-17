@@ -557,8 +557,6 @@ class State(pointerSize: NumBits) {
           }
           val resolvedArgs = args.map{ TypeHelper.resolve }
 
-          resolvedArgs.foreach(println)
-
           // printf assumes all floating point numbers are doubles
           // and shorts are 4 bytes
           val promoted = resolvedArgs.map{arg =>
@@ -646,7 +644,9 @@ class State(pointerSize: NumBits) {
 
   def writeDataBlock(array: Array[RValue], startingAddress: Int)(implicit state: State): Unit = {
       var address = startingAddress
+
       array.foreach { element =>
+
         element match {
           case RValue(newVal, theType) =>
             Stack.writeToMemory(newVal, address, theType)

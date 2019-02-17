@@ -60,7 +60,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
 
   def checkResults(code: String, shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits, args: List[String] = List()) = checkResults2(Seq(code), shouldBootstrap, pointerSize, args)
 
-  def getCEngineResults(codeInFiles: Seq[String], shouldBootstrap: Boolean, pointerSize: NumBits, args: List[String]) = {
+  def getCEngineResults(codeInFiles: Seq[String], shouldBootstrap: Boolean, pointerSize: NumBits, arguments: List[String]) = {
     var result = List[String]()
 
     try {
@@ -80,26 +80,27 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
 
       state.context.setAddress(0)
 
+      val args = List(".") ++ arguments
+
       val functionCall = if (args.nonEmpty) {
         val fcnName = new CASTIdExpression(new CASTName("main".toCharArray))
         val factory = translationUnit.getTranslationUnit.getASTNodeFactory
         val sizeExpr = factory.newLiteralExpression(IASTLiteralExpression.lk_integer_constant, args.size.toString)
 
+        val stringType = new CPointerType(new CBasicType(IBasicType.Kind.eChar, IBasicType.IS_UNSIGNED), 0)
+
         val stringAddresses = args.map { arg =>
           val addr = state.createStringVariable("\"" + arg + "\"", false).avalue
-          new RValue(addr, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED)) {}
+          new RValue(addr, stringType) {}
         }.toArray
 
-        val theType = new CPointerType(new CBasicType(IBasicType.Kind.eInt, 0), 0)
+        val theType = new CPointerType(stringType, 0)
         val newVar = program.addVariable("mainInfo", theType)
+        val start = state.allocateSpace(stringAddresses.size * 4)
+        state.writeDataBlock(stringAddresses, start)(state)
+        newVar.setValue(start)
 
-        newVar.setArray(stringAddresses)
-
-        val theType2 = new CPointerType(new CBasicType(IBasicType.Kind.eInt, 0), 0)
-        val finalPtr = program.addVariable("mainArgPtr", theType2)
-        finalPtr.setValue(newVar.address)
-
-        val varExpr = factory.newIdExpression(factory.newName("mainArgPtr"))
+        val varExpr = factory.newIdExpression(factory.newName("mainInfo"))
 
         new CASTFunctionCallExpression(fcnName, List(sizeExpr, varExpr).toArray)
       } else {
@@ -170,7 +171,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
           while (!isDone) {
             try {
               // run the actual executable
-              val runner = Process(Seq(exeFile.getAbsolutePath), new File("."))
+              val runner = Process(Seq(exeFile.getAbsolutePath) ++ args, new File("."))
               val run = runner.run(runLogger.process)
 
               // delete files while program is running
