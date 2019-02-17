@@ -852,7 +852,7 @@ class AmicablePairsTest extends StandardTest {
        return 0;
       }"""
 
-    checkResults(code, args = List("5000"))
+    checkResults(code, args = List("1500"))
   }
 }
 
