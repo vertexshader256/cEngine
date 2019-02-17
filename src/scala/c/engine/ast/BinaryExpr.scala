@@ -55,12 +55,7 @@ object BinaryExpr {
 
     if (operator == `op_minus` || operator == `op_plus`) {
 
-      val baseType = if (left.isInstanceOf[Address]) {
-        left.asInstanceOf[Address].theType
-      } else {
-        left.theType
-      }
-
+      val baseType = left.theType
       val rightBaseType = right.theType
 
       val ptrSize = TypeHelper.sizeof(baseType)
