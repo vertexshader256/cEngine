@@ -654,4 +654,13 @@ class State(pointerSize: NumBits) {
         }
       }
   }
+
+  def writeDataBlock(array: Array[Byte], startingAddress: Int)(implicit state: State): Unit = {
+    var address = startingAddress
+
+    array.foreach { byte =>
+      Stack.tape.put(address, byte)
+      address += 1
+    }
+  }
 }
