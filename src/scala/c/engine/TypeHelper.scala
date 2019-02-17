@@ -228,8 +228,8 @@ object TypeHelper {
 
   def getPointerType(theType: IType): IType = theType match {
     case typedef: ITypedef        => getPointerType(typedef.getType)
-    case ptrType: IPointerType    => ptrType.getType
-    case arrayType: IArrayType    => arrayType.getType
+    case ptrType: IPointerType    => TypeHelper.stripSyntheticTypeInfo(ptrType.getType)
+    case arrayType: IArrayType    => TypeHelper.stripSyntheticTypeInfo(arrayType.getType)
     case qualType: IQualifierType => getPointerType(qualType.getType)
   }
   

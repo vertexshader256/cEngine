@@ -65,11 +65,9 @@ object Declarator {
 
         val theType = nameBinding match {
           case typedef: CTypedef => TypeHelper.stripSyntheticTypeInfo(typedef)
-          case vari: IVariable => TypeHelper.stripSyntheticTypeInfo(vari.getType)
+          case vari: IVariable => vari.getType
         }
-
-        //val variable = nameBinding.asInstanceOf[IVariable]
-        //val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
+      
         val dimensions = arrayDecl.getArrayModifiers.filter {
           _.getConstantExpression != null
         }.map { dim =>
@@ -87,9 +85,9 @@ object Declarator {
 
         if (initializer != null) {
 
-          val (initArray, initType) = if (TypeHelper.isPointer(theType) && TypeHelper.stripSyntheticTypeInfo(TypeHelper.getPointerType(theType)).isInstanceOf[CStructure]) {
+          val (initArray, initType) = if (TypeHelper.isPointer(theType) && TypeHelper.getPointerType(theType).isInstanceOf[CStructure]) {
 
-            val structType = TypeHelper.stripSyntheticTypeInfo(TypeHelper.getPointerType(theType)).asInstanceOf[CStructure]
+            val structType = TypeHelper.getPointerType(theType).asInstanceOf[CStructure]
 
             val structData = initializer.getInitializerClause.getChildren.flatMap { list =>
               structType.getFields.map { field => TypeHelper.resolve(state.context.popStack) }
