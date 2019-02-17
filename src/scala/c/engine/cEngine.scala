@@ -557,6 +557,8 @@ class State(pointerSize: NumBits) {
           }
           val resolvedArgs = args.map{ TypeHelper.resolve }
 
+          resolvedArgs.foreach(println)
+
           // printf assumes all floating point numbers are doubles
           // and shorts are 4 bytes
           val promoted = resolvedArgs.map{arg =>
@@ -632,13 +634,13 @@ class State(pointerSize: NumBits) {
     }
   }
 
-  def createStringVariable(str: String, isHeap: Boolean)(implicit state: State): Address = {
+  def createStringVariable(str: String, isHeap: Boolean): Address = {
     val theStr = Utils.stripQuotes(str)
 
     val withNull = (theStr.toCharArray() :+ 0.toChar).map{char => new RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0)) {}} // terminating null char
     val strAddr = if (isHeap) allocateHeapSpace(withNull.size) else allocateSpace(withNull.size)
 
-    writeDataBlock(withNull, strAddr)
+    writeDataBlock(withNull, strAddr)(this)
     new Address(strAddr, pointerType) {}
   }
 

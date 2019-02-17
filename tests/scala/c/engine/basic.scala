@@ -5,11 +5,21 @@ class MainTest extends StandardTest {
     val code = """
       void main(int argc, char** args) {
         printf("%d\n", argc);
-        //printf("%s\n", args);
+        printf("%s\n", args[0]);
       }"""
 
-    checkResults(code, args = List("Hello"))
+    checkResults(code, args = List("Hello", "Okay"))
   }
+
+//  "a main function with arguments" should "print the correct results" in {
+//    val code = """
+//      void main(int argc, char** args) {
+//        printf("%d\n", argc);
+//        printf("%s\n", args[0]);
+//      }"""
+//
+//    checkResults(code, args = List("Hello", "Okay"))
+//  }
 }
 
 class AssignmentTest extends StandardTest {
