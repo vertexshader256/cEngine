@@ -425,7 +425,7 @@ void init_dct_lookup()
  * the discrete cosine transform per 8x8 block - outputs floating point values
  * optimized by using lookup tables and splitting the terms
  */
-inline void dct_block(int gap, int in[], double out[])
+void dct_block(int gap, int in[], double out[])
 {
 	int x_f, y_f; // frequency domain coordinates
 	int x_t, y_t; // time domain coordinates

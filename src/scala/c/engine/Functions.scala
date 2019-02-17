@@ -232,106 +232,126 @@ object Functions {
       None
     }
    }
-   
-   scalaFunctions += new Function("printf", false) {
-        def run(formattedOutputParams: Array[RValue], state: State) = {
 
-          val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(state)
-          val formatString = str.replaceAll("^\"|\"$", "").replaceAll("%ld", "%d").replaceAll("%l", "%d")
+  def printf(formattedOutputParams: Array[RValue], state: State): String = {
+    val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(state)
+    val formatString = str.replaceAll("^\"|\"$", "").replaceAll("%ld", "%d").replaceAll("%l", "%d")
 
-          val buffer = new StringBuffer()
-          val formatter = new Formatter(buffer, Locale.US)
+    val buffer = new StringBuffer()
+    val formatter = new Formatter(buffer, Locale.US)
 
-          var percentFound = false
-          var paramCount = 0
+    var percentFound = false
+    var paramCount = 0
 
-          val resolved = new ListBuffer[Object]()
+    val resolved = new ListBuffer[Object]()
 
-          val varArgs = formattedOutputParams.reverse.tail.toList
+    val varArgs = formattedOutputParams.reverse.tail.toList
 
-          var resultingFormatString = ""
-          var formatFound = ""
+    var resultingFormatString = ""
+    var formatFound = ""
 
-          str.toCharArray.foreach{ c =>
-            if (!percentFound && c == '%') {
-              resultingFormatString += c
-              formatFound = ""
-              percentFound = true
-            } else if (percentFound && c == 's') {
-              percentFound = false
-              val theVal = varArgs(paramCount).value
-              val stringAddr = theVal.asInstanceOf[Int]
+    str.toCharArray.foreach{ c =>
+      if (!percentFound && c == '%') {
+        resultingFormatString += c
+        formatFound = ""
+        percentFound = true
+      } else if (percentFound && c == 's') {
+        percentFound = false
+        val theVal = varArgs(paramCount).value
+        val stringAddr = theVal.asInstanceOf[Int]
 
-              if (stringAddr != 0) {
-                val str = Utils.readString(stringAddr)(state)
-                resolved += str.split(System.lineSeparator()).mkString.asInstanceOf[Object]
-              } else {
-                resolved += "(null)".asInstanceOf[Object]
-              }
-              formatFound += c
-              resultingFormatString += formatFound
-              paramCount += 1
-            } else if (percentFound && c == 'd') {
-              formatFound += c
-
-              val x = TypeHelper.resolve(varArgs(paramCount))(state).value
-              resolved += (if (x.isInstanceOf[Boolean]) {
-                if (x.asInstanceOf[Boolean]) 1 else 0
-              } else {
-                x
-              }).asInstanceOf[Object]
-
-              if (formatFound != "ld") {
-                resultingFormatString += formatFound
-              } else {
-                resultingFormatString += 'd'
-              }
-
-              percentFound = false
-              paramCount += 1
-            } else if (percentFound && c == 'c') {
-              resolved += TypeHelper.resolve(varArgs(paramCount))(state).value.asInstanceOf[Object]
-              percentFound = false
-              formatFound += c
-              resultingFormatString += formatFound
-              paramCount += 1
-            } else if (percentFound && c == 'f') {
-              formatFound += c
-
-              val buffer2 = new StringBuffer()
-              val formatter2 = new Formatter(buffer2, Locale.US)
-
-              val base = TypeHelper.resolve(varArgs(paramCount))(state).value.asInstanceOf[Object]
-
-              formatter2.format("%f", List(base): _*)
-
-              if (buffer2.toString.contains("Infinity") || buffer2.toString.contains("NaN")) {
-                resultingFormatString += 's'
-                resolved += buffer2.toString.replace("Infinity", "1.#INF00")
-                  .replace("NaN", "-1.#IND00")
-              } else {
-                resultingFormatString += formatFound
-                resolved += base
-              }
-
-              percentFound = false
-              paramCount += 1
-            } else if (percentFound) {
-              formatFound += c
-            } else {
-              resultingFormatString += c
-            }
-          }
-
-          formatter.format(resultingFormatString, resolved: _*)
-
-          buffer.toString.getBytes.foreach{char =>
-            state.callFunctionFromScala("putchar", Array(new RValue(char.toInt, new CBasicType(IBasicType.Kind.eInt, 0)) {}))
-          }
-
-          None
+        if (stringAddr != 0) {
+          val str = Utils.readString(stringAddr)(state)
+          resolved += str.split(System.lineSeparator()).mkString.asInstanceOf[Object]
+        } else {
+          resolved += "(null)".asInstanceOf[Object]
         }
+        formatFound += c
+        resultingFormatString += formatFound
+        paramCount += 1
+      } else if (percentFound && c == 'd') {
+        formatFound += c
+
+        val x = TypeHelper.resolve(varArgs(paramCount))(state).value
+        resolved += (if (x.isInstanceOf[Boolean]) {
+          if (x.asInstanceOf[Boolean]) 1 else 0
+        } else {
+          x
+        }).asInstanceOf[Object]
+
+        if (formatFound != "ld") {
+          resultingFormatString += formatFound
+        } else {
+          resultingFormatString += 'd'
+        }
+
+        percentFound = false
+        paramCount += 1
+      } else if (percentFound && c == 'c') {
+        resolved += TypeHelper.resolve(varArgs(paramCount))(state).value.asInstanceOf[Object]
+        percentFound = false
+        formatFound += c
+        resultingFormatString += formatFound
+        paramCount += 1
+      } else if (percentFound && c == 'f') {
+        formatFound += c
+
+        val buffer2 = new StringBuffer()
+        val formatter2 = new Formatter(buffer2, Locale.US)
+
+        val base = TypeHelper.resolve(varArgs(paramCount))(state).value.asInstanceOf[Object]
+
+        formatter2.format("%f", List(base): _*)
+
+        if (buffer2.toString.contains("Infinity") || buffer2.toString.contains("NaN")) {
+          resultingFormatString += 's'
+          resolved += buffer2.toString.replace("Infinity", "1.#INF00")
+            .replace("NaN", "-1.#IND00")
+        } else {
+          resultingFormatString += formatFound
+          resolved += base
+        }
+
+        percentFound = false
+        paramCount += 1
+      } else if (percentFound) {
+        formatFound += c
+      } else {
+        resultingFormatString += c
       }
+    }
+
+    formatter.format(resultingFormatString, resolved: _*)
+
+    buffer.toString
+  }
+
+   scalaFunctions += new Function("sscanf", false) {
+     def run(formattedOutputParams: Array[RValue], state: State) = {
+       val resultBuffer = formattedOutputParams.last.value.asInstanceOf[Int]
+
+       val varArgs = formattedOutputParams.drop(2).toList
+
+       val result = printf(formattedOutputParams, state)
+
+       state.writeDataBlock(result.getBytes, resultBuffer)(state)
+
+       Some(varArgs.size)
+     }
+   }
+
+   scalaFunctions += new Function("printf", false) {
+      def run(formattedOutputParams: Array[RValue], state: State) = {
+
+        val result = printf(formattedOutputParams, state)
+
+        result.getBytes.foreach{char =>
+          state.callFunctionFromScala("putchar", Array(new RValue(char.toInt, new CBasicType(IBasicType.Kind.eInt, 0)) {}))
+        }
+
+        None
+      }
+    }
 
    scalaFunctions += new Function("strlen", false) {
         def run(formattedOutputParams: Array[RValue], state: State) = {

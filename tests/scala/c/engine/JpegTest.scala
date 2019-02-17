@@ -15,6 +15,6 @@ class JpegTest extends StandardTest {
 
     val allCode =  Seq(File(slre).contentAsString)
 
-    checkResults2(allCode, args = List("testImage.jpg", "10"))
+    checkResults2(allCode, args = List("test.ppm", "10"))
   }
 }
