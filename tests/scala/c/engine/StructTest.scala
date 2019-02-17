@@ -498,6 +498,26 @@ class StructTest extends StandardTest {
 
     checkResults(code)
   }
+
+  "struct from function test" should "print the correct results" in {
+    val code = """
+
+      typedef struct Test {
+        int y;
+      } Test;
+
+      Test returnStruct(int x) {
+         Test result = {x};
+         return result;
+      }
+
+      void main() {
+        struct Test x = returnStruct(6345);
+        printf("%d\n", x.y);
+      }"""
+
+    checkResults(code)
+  }
   
   "struct test multiple members" should "print the correct results" in {
     val code = """
