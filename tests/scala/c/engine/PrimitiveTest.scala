@@ -138,6 +138,17 @@ class SizeOfTest extends StandardTest {
 
     checkResults(code)
   }
+
+  "A variable self reference using sizeof" should "print the correct results" in {
+    val code = """
+      void main() {
+        int blah = sizeof(blah);
+        int *blah2 = malloc(sizeof(*blah2));
+        printf("%d %d\n", blah, sizeof(blah2));
+      }"""
+
+    checkResults(code)
+  }
   
   "A sizeof call on raw types" should "print the correct results" in {
     val code = """

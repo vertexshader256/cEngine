@@ -790,3 +790,118 @@ class CholskeyTest extends StandardTest {
     checkResults(code)
   }
 }
+
+class AmicablePairsTest extends StandardTest {
+  "Amicable Pairs test" should "print the correct results" in {
+    val code =
+      """
+     #include <stdio.h>
+     #include <stdlib.h>
+
+     typedef unsigned int uint;
+
+     int main(int argc, char **argv)
+     {
+       uint top = atoi(argv[1]);
+       uint *divsum = malloc((top + 1) * sizeof(*divsum));
+       uint pows[32] = {1, 0};
+
+       for (uint i = 0; i <= top; i++) divsum[i] = 1;
+
+       // sieve
+       // only sieve within lower half , the modification starts at 2*p
+       for (uint p = 2; p+p <= top; p++) {
+         if (divsum[p] > 1) {
+           divsum[p] -= p;// subtract number itself from divisor sum ('proper')
+           continue;}     // p not prime
+
+         uint x; // highest power of p we need
+         //checking x <= top/y instead of x*y <= top to avoid overflow
+         for (x = 1; pows[x - 1] <= top/p; x++)
+           pows[x] = p*pows[x - 1];
+
+         //counter where n is not a*p with a = ?*p, useful for most p.
+         //think of p>31 seldom divisions or p>sqrt(top) than no division is needed
+         //n = 2*p, so the prime itself is left unchanged => k=p-1
+         uint k= p-1;
+         for (uint n = p+p; n <= top; n += p) {
+           uint s=1+pows[1];
+           k--;
+           // search the right power only if needed
+           if ( k==0) {
+             for (uint i = 2; i < x && !(n%pows[i]); s += pows[i++]);
+             k = p; }
+           divsum[n] *= s;
+         }
+       }
+
+       //now correct the upper half
+       for (uint p = (top >> 1)+1; p <= top; p++) {
+         if (divsum[p] > 1){
+           divsum[p] -= p;}
+       }
+
+       uint cnt = 0;
+       for (uint a = 1; a <= top; a++) {
+         uint b = divsum[a];
+         if (b > a && b <= top && divsum[b] == a){
+           printf("%u %u\n", a, b);
+           cnt++;}
+       }
+       printf("\nTop %u count : %u\n",top,cnt);
+       return 0;
+      }"""
+
+    checkResults(code, args = List("5000"))
+  }
+}
+
+class SimpsonIntegrationTest extends StandardTest {
+  "Simpson Integration test" should "print the correct results" in {
+    val code =
+      """
+     #include <stdio.h>
+     #include <math.h>
+
+     typedef struct { double m; double fm; double simp; } triple;
+
+     /* "structured" adaptive version, translated from Racket */
+     triple _quad_simpsons_mem(double (*f)(double), double a, double fa, double b, double fb) {
+         // Evaluates Simpson's Rule, also returning m and f(m) to reuse.
+         double m = (a + b) / 2;
+         double fm = f(m);
+         double simp = fabs(b - a) / 6 * (fa + 4*fm + fb);
+         triple t = {m, fm, simp};
+         return t;
+     }
+
+     double _quad_asr(double (*f)(double), double a, double fa, double b, double fb, double eps, double whole, double m, double fm) {
+         // Efficient recursive implementation of adaptive Simpson's rule.
+         // Function values at the start, middle, end of the intervals are retained.
+         triple lt = _quad_simpsons_mem(f, a, fa, m, fm);
+         triple rt = _quad_simpsons_mem(f, m, fm, b, fb);
+         double delta = lt.simp + rt.simp - whole;
+         if (fabs(delta) <= eps * 15) return lt.simp + rt.simp + delta/15;
+         return _quad_asr(f, a, fa, m, fm, eps/2, lt.simp, lt.m, lt.fm) +
+                _quad_asr(f, m, fm, b, fb, eps/2, rt.simp, rt.m, rt.fm);
+     }
+
+     double quad_asr(double (*f)(double), double a, double b, double eps) {
+         // Integrate f from a to b using ASR with max error of eps.
+         double fa = f(a);
+         double fb = f(b);
+         triple t = _quad_simpsons_mem(f, a, fa, b, fb);
+         return _quad_asr(f, a, fa, b, fb, eps, t.simp, t.m, t.fm);
+     }
+
+     int main(){
+         double a = 0.0, b = 1.0;
+         double sinx = quad_asr(sin, a, b, 1e-09);
+         printf("Simpson's integration of sine from %g to %g = %f\n", a, b, sinx);
+         return 0;
+     }
+    """
+
+    checkResults(code)
+  }
+}

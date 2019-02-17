@@ -269,7 +269,21 @@ object Functions {
         formatFound += c
         resultingFormatString += formatFound
         paramCount += 1
-      } else if (percentFound && c == 'd') {
+      } else if (percentFound && (c == 'u')) {
+        formatFound += 'd'
+
+        val x = TypeHelper.resolve(varArgs(paramCount))(state).value
+        resolved += (if (x.isInstanceOf[Boolean]) {
+          if (x.asInstanceOf[Boolean]) 1 else 0
+        } else {
+          x
+        }).asInstanceOf[Object]
+
+        resultingFormatString += 'd'
+
+        percentFound = false
+        paramCount += 1
+      } else if (percentFound && (c == 'd')) {
         formatFound += c
 
         val x = TypeHelper.resolve(varArgs(paramCount))(state).value
@@ -324,6 +338,26 @@ object Functions {
     formatter.format(resultingFormatString, resolved: _*)
 
     buffer.toString
+  }
+
+  scalaFunctions += new Function("atoi", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(state)
+      println("STRING: " + str)
+      Some(str.toInt)
+    }
+  }
+
+  scalaFunctions += new Function("fabs", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      Some(Math.abs(formattedOutputParams.last.value.asInstanceOf[Double]))
+    }
+  }
+
+  scalaFunctions += new Function("sin", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      Some(Math.sin(formattedOutputParams.last.value.asInstanceOf[Double]))
+    }
   }
 
    scalaFunctions += new Function("sscanf", false) {
