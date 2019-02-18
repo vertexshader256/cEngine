@@ -81,19 +81,19 @@ object UnaryExpression {
           value match {
             case info@LValue(_, _) =>
               info.theType match {
-                case fcn: CFunctionType => MemoryLocation(state, info.address, fcn)
+                case _: CFunctionType => info
                 case theType: IType => Address(info.address, theType)
               }
           }
         case `op_star` =>
           value match {
             case RValue(int: Int, theType) =>
-              MemoryLocation(state, int, theType)
+              LValue(state, int, theType)
             case info@LValue(_, _) =>
               val nestedType = TypeHelper.getPointerType(info.theType)
 
               if (!nestedType.isInstanceOf[IFunctionType]) {
-                MemoryLocation(state, info.value.value.asInstanceOf[Int], nestedType)
+                LValue(state, info.value.value.asInstanceOf[Int], nestedType)
               } else {
                 // function pointers can ignore the star
                 info

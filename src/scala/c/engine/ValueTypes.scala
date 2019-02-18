@@ -35,6 +35,18 @@ trait LValue extends ValueType {
   }
 }
 
+object LValue {
+  def unapply(info: LValue): Option[(Int, IType)] = Some((info.address, info.theType))
+  def apply(theState: State, addr: Int, aType: IType) =
+    new LValue {
+      val address = addr
+      val state = theState
+      val bitOffset = 0
+      val sizeInBits = sizeof * 8
+      val theType = TypeHelper.stripSyntheticTypeInfo(aType)
+      val sizeof = TypeHelper.sizeof(theType)(state)}
+}
+
 case class StringLiteral(value: String) extends ValueType {
   val theType = new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0)
 }
@@ -66,17 +78,6 @@ case class Address(value: Int, theType: IType) extends RValue {
 
 case class Field(state: State, address: Int, bitOffset: Int, theType: IType, sizeInBits: Int) extends LValue {
   val sizeof = sizeInBits / 8
-}
-
-case class MemoryLocation(state: State, address: Int, aType: IType) extends LValue {
-  val bitOffset = 0
-  val sizeInBits = sizeof * 8
-  val theType = TypeHelper.stripSyntheticTypeInfo(aType)
-  val sizeof = TypeHelper.sizeof(theType)(state)
-}
-
-object LValue {
-  def unapply(info: LValue): Option[(Int, IType)] = Some((info.address, info.theType))
 }
 
 case class Variable(name: String, state: State, aType: IType) extends LValue {

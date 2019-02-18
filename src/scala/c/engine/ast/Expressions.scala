@@ -32,13 +32,13 @@ object Expressions {
               case ptr: IPointerType if aType.isInstanceOf[IArrayType] =>
                 val newAddr = state.allocateSpace(4)
                 state.Stack.writeToMemory(addr, newAddr, theType)
-                MemoryLocation(state, newAddr, theType)
-              case _ => MemoryLocation(state, addr, theType)
+                LValue(state, newAddr, theType)
+              case _ => LValue(state, addr, theType)
             }
           case RValue(value, _) =>
             val newAddr = state.allocateSpace(TypeHelper.sizeof(theType))
             state.Stack.writeToMemory(TypeHelper.cast(theType, value).value, newAddr, theType)
-            MemoryLocation(state, newAddr, theType)
+            LValue(state, newAddr, theType)
         })
     case fieldRef: IASTFieldReference =>
         val struct = evaluate(fieldRef.getFieldOwner).get.asInstanceOf[LValue]
@@ -73,7 +73,7 @@ object Expressions {
 
       // state.readPtrVal(
 
-      Some(MemoryLocation(state, offset, aType))
+      Some(LValue(state, offset, aType))
     case unary: IASTUnaryExpression =>
       Some(UnaryExpression.execute(evaluate(unary.getOperand).head, unary))
     case lit: IASTLiteralExpression =>
