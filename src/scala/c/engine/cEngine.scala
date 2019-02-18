@@ -575,9 +575,9 @@ class State(pointerSize: NumBits) {
 
           functionContexts = newScope +: functionContexts
 
-          context.run(this)
+          newScope.run(this)
 
-          val returnVal = context.getReturnValue
+          val returnVal = newScope.getReturnValue
 
           popFunctionContext
           returnVal
