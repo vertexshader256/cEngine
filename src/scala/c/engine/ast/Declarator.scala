@@ -178,7 +178,6 @@ object Declarator {
       List(result)
     } else if (decl != null && decl.isInstanceOf[IASTInitializerList]) {
       val clause = decl
-
       val result = if (decl != null) {
 
         if (Utils.getDescendants(decl).exists{node => node.isInstanceOf[CASTDesignatedInitializer]}) {
@@ -209,11 +208,15 @@ object Declarator {
       result
     } else if (decl != null && decl.isInstanceOf[IASTIdExpression]) { // setting a struct equal to another struct
       val otherStruct = decl.asInstanceOf[IASTIdExpression]
-
       List(state.context.resolveId(otherStruct.getName).get)
-    } else if (decl != null && decl.isInstanceOf[IASTFunctionCallExpression]) { // setting a struct equal to another struct
+    } else if (decl != null && decl.isInstanceOf[IASTFunctionCallExpression]) { // setting a struct equal to function return
+      val struct = theType.asInstanceOf[CStructure]
       Ast.step(decl)
-
+      state.context.popStack
+      struct.getFields.map{ field =>
+        state.context.popStack
+      }.toList.reverse
+    } else if (decl.isInstanceOf[IASTFunctionCallExpression]) {
       List()
     } else {
       List()
@@ -227,7 +230,16 @@ object Declarator {
       dst.setValue(casted)
     } else {
 
-      if (equals.isInstanceOf[IASTExpression]) { // setting a struct equal to another struct
+      if (equals.isInstanceOf[IASTFunctionCallExpression]) {
+        val struct = dst.theType.asInstanceOf[CStructure]
+        var i = 0
+        struct.getFields.foreach{ field =>
+          val baseField = srcs(i)
+          val theField = TypeHelper.offsetof(struct, dst.address, field.getName, state)
+          assign(theField, List(baseField), equals, op)
+          i += 1
+        }
+      } else if (equals.isInstanceOf[IASTExpression]) { // setting a struct equal to another struct
         val otherStruct = srcs.head.asInstanceOf[LValue]
 
         val struct = otherStruct.theType.asInstanceOf[CStructure]

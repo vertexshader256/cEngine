@@ -507,13 +507,42 @@ class StructTest extends StandardTest {
       } Test;
 
       Test returnStruct(int x) {
-         Test result = {x};
+         Test result;
+         result.y = x;
          return result;
       }
 
       void main() {
         struct Test x = returnStruct(6345);
         printf("%d\n", x.y);
+      }"""
+
+    checkResults(code)
+  }
+
+  "advanced struct from function test" should "print the correct results" in {
+    val code = """
+
+      typedef struct Test {
+        int y;
+        float z;
+        double zz;
+      } Test;
+
+      Test returnStruct() {
+         Test result;
+         result.y = 3456;
+         result.z = 8678.137;
+         result.zz = 111.324278;
+
+         return result;
+      }
+
+      void main() {
+        struct Test x = returnStruct();
+        printf("%d\n", x.y);
+        printf("%f\n", x.z);
+        printf("%f\n", x.zz);
       }"""
 
     checkResults(code)

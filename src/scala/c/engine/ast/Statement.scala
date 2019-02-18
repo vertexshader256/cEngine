@@ -2,6 +2,9 @@ package scala.c.engine
 package ast
 
 import org.eclipse.cdt.core.dom.ast._
+import org.eclipse.cdt.internal.core.dom.parser.c.CStructure
+
+import scala.c.engine.ast.Declarator.assign
 import scala.collection.mutable.{ListBuffer, Stack}
 
 object Statement {
@@ -15,7 +18,9 @@ object Statement {
         val functionScope = state.getFunctionScope
 
         val retVal = returnVal match {
-          case info @ LValue(addr, theType) =>
+          case structure @ LValue(addr, struct: CStructure) =>
+            structure
+          case info @ LValue(_, _) =>
             TypeHelper.cast(functionScope.returnType, info.rValue.value)
           case value @ RValue(_, _) if functionScope.returnType != null =>
             TypeHelper.cast(functionScope.returnType, value.value)

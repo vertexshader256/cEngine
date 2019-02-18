@@ -577,9 +577,28 @@ class State(pointerSize: NumBits) {
           functionContexts = newScope +: functionContexts
 
           newScope.run(this)
+          newScope.getReturnValue.map{ retVal =>
+            val valuesToPush: List[ValueType] = retVal match {
+              case LValue(addr, struct: CStructure) =>
+                // push structure fields onto the return stack
+                struct.getFields.map{ field =>
+                  TypeHelper.offsetof(struct, addr, field.getName, state)
+                }.toList
+              case _ =>
+                List()
+            }
 
-          popFunctionContext
-          newScope.getReturnValue
+            popFunctionContext
+
+            valuesToPush.foreach { x =>
+              state.context.pushOntoStack(x)
+            }
+
+            retVal
+          }.orElse{
+            popFunctionContext
+            None
+          }
         }
       }
     }.getOrElse{
