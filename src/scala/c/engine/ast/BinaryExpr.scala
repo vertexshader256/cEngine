@@ -54,29 +54,27 @@ object BinaryExpr {
     val isRightPointer = TypeHelper.isPointer(right)
 
     if (operator == `op_minus` || operator == `op_plus`) {
-
-      val baseType = left.theType
-      val rightBaseType = right.theType
-
-      val ptrSize = TypeHelper.sizeof(baseType)
-      val rightPtrSize = TypeHelper.sizeof(rightBaseType)
+      val ptrSize = TypeHelper.sizeof(left.theType)
 
       if (isLeftPointer && isRightPointer) {
         // assume minus
         val result = (left.value.asInstanceOf[Int] - right.value.asInstanceOf[Int]) / ptrSize
-        RValue(result, new CPointerType(baseType, 0))
+        RValue(result, new CPointerType(left.theType, 0))
       } else if (!isLeftPointer && isRightPointer) {
         // assume plus
+        val rightBaseType = right.theType
+        val rightPtrSize = TypeHelper.sizeof(rightBaseType)
         val result = left.value.asInstanceOf[Int] * rightPtrSize + right.value.asInstanceOf[Int]
         RValue(result, new CPointerType(rightBaseType, 0))
       } else {
-        val result = if (operator == `op_minus`) {
-          left.value.asInstanceOf[Int] - right.value.asInstanceOf[Int] * ptrSize
+        val value = right.value.asInstanceOf[Int] * ptrSize
+        val offset = if (operator == `op_minus`) {
+          -value
         } else {
-          left.value.asInstanceOf[Int] + right.value.asInstanceOf[Int] * ptrSize
+          +value
         }
 
-        Address(result, baseType)
+        Address(left.value.asInstanceOf[Int] + offset, left.theType)
       }
     } else {
       RValue(calculate(left.value, right.value, operator), left.theType)
