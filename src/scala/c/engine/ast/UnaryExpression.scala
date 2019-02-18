@@ -54,7 +54,7 @@ object UnaryExpression {
 
           value match {
             case RValue(int: Int, theType) =>
-              RValue(~value.asInstanceOf[RValue].value.asInstanceOf[Int], new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))
+              RValue(~value.asInstanceOf[RValue].value.asInstanceOf[Int], TypeHelper.unsignedIntType)
             case info @ LValue(_, _) =>
               val theValue = info.value
 

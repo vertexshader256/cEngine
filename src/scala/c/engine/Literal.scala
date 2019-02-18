@@ -74,9 +74,9 @@ object Literal {
       RValue(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
     } else if (lit.contains('F') || lit.contains('f')) {
       val num = lit.toCharArray.filter(x => x != 'f' && x != 'F').mkString
-      RValue(num.toFloat, new CBasicType(IBasicType.Kind.eFloat, 0))
+      RValue(num.toFloat, TypeHelper.floatType)
     } else {
-      RValue(lit.toDouble, new CBasicType(IBasicType.Kind.eDouble, 0))
+      RValue(lit.toDouble, TypeHelper.doubleType)
     }
 
     result

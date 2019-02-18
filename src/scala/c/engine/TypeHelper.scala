@@ -9,9 +9,12 @@ import scala.c.engine.ast.Expressions
 object TypeHelper {
 
   val intType = new CBasicType(IBasicType.Kind.eInt, 0)
+  val unsignedIntType = new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED)
+  val doubleType = new CBasicType(IBasicType.Kind.eDouble, 0)
+  val floatType = new CBasicType(IBasicType.Kind.eFloat, 0)
 
-  val one = RValue(1, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))
-  val zero = RValue(0, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))
+  val one = RValue(1, unsignedIntType)
+  val zero = RValue(0, unsignedIntType)
   val negativeOne = RValue(-1, TypeHelper.intType)
 
   // 8 bytes

@@ -529,7 +529,7 @@ class State(pointerSize: NumBits) {
         val resolvedArgs: Array[RValue] = args.flatten.map{ TypeHelper.resolve }
         val returnVal = function.run(resolvedArgs.reverse, this)
         Stack.insertIndex = stackPos // pop the stack
-        returnVal.map{theVal => RValue(theVal, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))}
+        returnVal.map{theVal => RValue(theVal, TypeHelper.unsignedIntType)}
       } else {
         if (function.name == "main" && isApi) {
           scope.get.init(function.node, this, !scope.isDefined)
@@ -561,7 +561,7 @@ class State(pointerSize: NumBits) {
           // and shorts are 4 bytes
           val promoted = resolvedArgs.map{arg =>
             if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eFloat) {
-              TypeHelper.cast(new CBasicType(IBasicType.Kind.eDouble, 0), arg.value)
+              TypeHelper.cast(TypeHelper.doubleType, arg.value)
             } else if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].isShort) {
               TypeHelper.cast(TypeHelper.intType, arg.value)
             } else if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eChar) {
@@ -571,7 +571,7 @@ class State(pointerSize: NumBits) {
             }
           }
 
-          newScope.pushOntoStack(promoted :+ RValue(resolvedArgs.size, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED)))
+          newScope.pushOntoStack(promoted :+ RValue(resolvedArgs.size, TypeHelper.unsignedIntType))
 
           functionContexts = newScope +: functionContexts
 

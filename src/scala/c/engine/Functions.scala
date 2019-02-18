@@ -483,9 +483,9 @@ object Functions {
         val str = Utils.readString(argTypeStr)(state)
 
         val (offset, theType) = (str match {
-          case "unsigned int" => (4, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))
+          case "unsigned int" => (4, TypeHelper.unsignedIntType)
           case "int" => (4, TypeHelper.intType)
-          case "double" => (8, new CBasicType(IBasicType.Kind.eDouble, 0))
+          case "double" => (8, TypeHelper.doubleType)
           case "char" => (1, new CBasicType(IBasicType.Kind.eChar, 0))
           case "char *" => (4, new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0))
           case "unsigned long" => (8, new CPointerType(new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG), 0))
