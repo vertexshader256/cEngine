@@ -577,10 +577,8 @@ class State(pointerSize: NumBits) {
 
           newScope.run(this)
 
-          val returnVal = newScope.getReturnValue
-
           popFunctionContext
-          returnVal
+          newScope.getReturnValue
         }
       }
     }.getOrElse{
