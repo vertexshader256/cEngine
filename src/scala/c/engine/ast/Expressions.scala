@@ -55,8 +55,8 @@ object Expressions {
 
       val arrayVarPtr = evaluate(subscript.getArrayExpression).head.asInstanceOf[LValue]
       val index = evaluate(subscript.getArgument).get match {
-        case RValue(value, _) => TypeHelper.cast(new CBasicType(IBasicType.Kind.eInt, 0), value).value.asInstanceOf[Int]
-        case x @ LValue(_, _) => TypeHelper.cast(new CBasicType(IBasicType.Kind.eInt, 0), x.value.value).value.asInstanceOf[Int]
+        case RValue(value, _) => TypeHelper.cast(TypeHelper.intType, value).value.asInstanceOf[Int]
+        case x @ LValue(_, _) => TypeHelper.cast(TypeHelper.intType, x.value.value).value.asInstanceOf[Int]
       }
 
       val aType = TypeHelper.getPointerType(arrayVarPtr.theType)
@@ -81,7 +81,7 @@ object Expressions {
     case typeExpr: IASTTypeIdExpression =>
       // used for sizeof calls on a type
         val theType = TypeHelper.getType(typeExpr.getTypeId).theType
-        Some(RValue(TypeHelper.sizeof(theType), new CBasicType(IBasicType.Kind.eInt, 0)))
+        Some(RValue(TypeHelper.sizeof(theType), TypeHelper.intType))
     case call: IASTFunctionCallExpression =>
         val pop = evaluate(call.getFunctionNameExpression).head
 

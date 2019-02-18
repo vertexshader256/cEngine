@@ -74,8 +74,8 @@ object UnaryExpression {
           evaluateIncrDecr(unary, value, op)
         case `op_sizeof` =>
           value match {
-            case info: LValue => RValue(info.sizeof, new CBasicType(IBasicType.Kind.eInt, 0))
-            case RValue(_, theType) => RValue(TypeHelper.sizeof(theType), new CBasicType(IBasicType.Kind.eInt, 0))
+            case info: LValue => RValue(info.sizeof, TypeHelper.intType)
+            case RValue(_, theType) => RValue(TypeHelper.sizeof(theType), TypeHelper.intType)
           }
         case `op_amper` =>
           value match {

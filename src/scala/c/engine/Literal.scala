@@ -69,7 +69,7 @@ object Literal {
     } else if (isLong) {
       RValue(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
     } else if (isIntNumber(lit)) {
-      RValue(lit.toInt, new CBasicType(IBasicType.Kind.eInt, 0))
+      RValue(lit.toInt, TypeHelper.intType)
     } else if (isLongNumber(lit)) {
       RValue(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
     } else if (lit.contains('F') || lit.contains('f')) {

@@ -80,9 +80,9 @@ object Ast {
     case enumerator: CASTEnumerator => {
       step(enumerator.getValue)
 
-      val newVar = state.context.addVariable(enumerator.getName.toString, new CBasicType(IBasicType.Kind.eInt, 0))
+      val newVar = state.context.addVariable(enumerator.getName.toString, TypeHelper.intType)
       val value = state.context.popStack.asInstanceOf[RValue]
-      state.Stack.writeToMemory(value.value, newVar.address, new CBasicType(IBasicType.Kind.eInt, 0))
+      state.Stack.writeToMemory(value.value, newVar.address, TypeHelper.intType)
     }
     case enum: IASTEnumerationSpecifier => {
       enum.getEnumerators.foreach(step)

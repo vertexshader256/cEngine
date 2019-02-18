@@ -8,10 +8,12 @@ import scala.c.engine.ast.Expressions
 
 object TypeHelper {
 
+  val intType = new CBasicType(IBasicType.Kind.eInt, 0)
+
   val one = RValue(1, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))
   val zero = RValue(0, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))
-  val negativeOne = RValue(-1, new CBasicType(IBasicType.Kind.eInt, 0))
-  
+  val negativeOne = RValue(-1, TypeHelper.intType)
+
   // 8 bytes
   val qword = new CBasicType(IBasicType.Kind.eInt , IBasicType.IS_LONG_LONG)
 

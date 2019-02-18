@@ -162,7 +162,7 @@ object Functions {
           val fraction = formattedOutputParams(0).value.asInstanceOf[Double]
           val intPart = formattedOutputParams(1).value.asInstanceOf[Int]
           
-          state.Stack.writeToMemory(fraction.toInt, intPart, new CBasicType(IBasicType.Kind.eInt, 0))
+          state.Stack.writeToMemory(fraction.toInt, intPart, TypeHelper.intType)
           
           Some(fraction % 1.0)
         }
@@ -217,7 +217,7 @@ object Functions {
 
       val location = state.readPtrVal(fp)
 
-      var index = state.Stack.readFromMemory(location, new CBasicType(IBasicType.Kind.eInt, 0)).value.asInstanceOf[Int]
+      var index = state.Stack.readFromMemory(location, TypeHelper.intType).value.asInstanceOf[Int]
 
       val result = (0 until numMembers).map { offset =>
         val result = state.Stack.readFromMemory(location + index + 4, new CBasicType(IBasicType.Kind.eChar, 0))
@@ -380,7 +380,7 @@ object Functions {
         val result = printf(formattedOutputParams, state)
 
         result.getBytes.foreach{char =>
-          state.callFunctionFromScala("putchar", Array(RValue(char.toInt, new CBasicType(IBasicType.Kind.eInt, 0))))
+          state.callFunctionFromScala("putchar", Array(RValue(char.toInt, TypeHelper.intType)))
         }
 
         None
@@ -484,7 +484,7 @@ object Functions {
 
         val (offset, theType) = (str match {
           case "unsigned int" => (4, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED))
-          case "int" => (4, new CBasicType(IBasicType.Kind.eInt, 0))
+          case "int" => (4, TypeHelper.intType)
           case "double" => (8, new CBasicType(IBasicType.Kind.eDouble, 0))
           case "char" => (1, new CBasicType(IBasicType.Kind.eChar, 0))
           case "char *" => (4, new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0))
@@ -523,7 +523,7 @@ object Functions {
           val ndigits = formattedOutputParams(3).value.asInstanceOf[Int]
           val arg = formattedOutputParams(4).value.asInstanceOf[Double]
           
-          state.Stack.writeToMemory(1, decpt, new CBasicType(IBasicType.Kind.eInt, 0))
+          state.Stack.writeToMemory(1, decpt, TypeHelper.intType)
           
           val buffer = new StringBuffer();
           val formatter = new Formatter(buffer, Locale.US);
@@ -540,7 +540,7 @@ object Functions {
 
           val array = resultString.toCharArray.map{ char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))}
 
-          state.Stack.writeToMemory(index, decpt, new CBasicType(IBasicType.Kind.eInt, 0))
+          state.Stack.writeToMemory(index, decpt, TypeHelper.intType)
 
           // to-do: find a way to do this without allocating?
           val result = state.allocateHeapSpace(20)

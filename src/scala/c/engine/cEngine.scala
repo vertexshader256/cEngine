@@ -393,7 +393,7 @@ class State(pointerSize: NumBits) {
   def numScopes = functionContexts.size
 
   val pointerType = pointerSize match {
-    case ThirtyTwoBits => new CBasicType(IBasicType.Kind.eInt, 0)
+    case ThirtyTwoBits => TypeHelper.intType
     case SixtyFourBits => new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
   }
 
@@ -563,9 +563,9 @@ class State(pointerSize: NumBits) {
             if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eFloat) {
               TypeHelper.cast(new CBasicType(IBasicType.Kind.eDouble, 0), arg.value)
             } else if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].isShort) {
-              TypeHelper.cast(new CBasicType(IBasicType.Kind.eInt, 0), arg.value)
+              TypeHelper.cast(TypeHelper.intType, arg.value)
             } else if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eChar) {
-              TypeHelper.cast(new CBasicType(IBasicType.Kind.eInt, 0), arg.value)
+              TypeHelper.cast(TypeHelper.intType, arg.value)
             } else {
               arg
             }
