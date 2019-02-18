@@ -62,10 +62,9 @@ object BinaryExpr {
         RValue(result, new CPointerType(left.theType, 0))
       } else if (!isLeftPointer && isRightPointer) {
         // assume plus
-        val rightBaseType = right.theType
-        val rightPtrSize = TypeHelper.sizeof(rightBaseType)
+        val rightPtrSize = TypeHelper.sizeof(right.theType)
         val result = left.value.asInstanceOf[Int] * rightPtrSize + right.value.asInstanceOf[Int]
-        RValue(result, new CPointerType(rightBaseType, 0))
+        RValue(result, new CPointerType(right.theType, 0))
       } else {
         val value = right.value.asInstanceOf[Int] * ptrSize
         val offset = if (operator == `op_minus`) {
@@ -233,34 +232,23 @@ object BinaryExpr {
   }
 
   def evaluate(x: ValueType, y: ValueType, operator: Int)(implicit state: State): RValue = {
-    val isLeftPointer = TypeHelper.isPointer(x)
-    val isRightPointer = TypeHelper.isPointer(y)
-
     val left = TypeHelper.resolve(x)
     val right = TypeHelper.resolve(y)
 
-    if (isLeftPointer || isRightPointer) {
+    if (TypeHelper.isPointer(x) || TypeHelper.isPointer(y)) {
       evaluatePointerArithmetic(left, right, operator)
     } else {
-      val result = calculate(left.value,  right.value, operator)
 
-      // offical conversion rules
+      // conversion rules
       val resultType = (left.theType, right.theType) match {
         case (l: IBasicType, r: IBasicType) => (l.getKind, r.getKind) match {
-          case (`eDouble`, _) if (l.isLong) => new CBasicType(eDouble, IBasicType.IS_LONG)
-          case (_, `eDouble`) if (r.isLong) => new CBasicType(eDouble, IBasicType.IS_LONG)
-          case (`eDouble`, _) => new CBasicType(eDouble, 0)
-          case (_, `eDouble`) => new CBasicType(eDouble, 0)
-          case (`eFloat`, _) => new CBasicType(eFloat, 0)
-          case (_, `eFloat`) => new CBasicType(eFloat, 0)
-          case (_, _) if (l.isLong && l.isUnsigned) || (r.isLong && r.isUnsigned) => new CBasicType(eInt, IBasicType.IS_UNSIGNED | IBasicType.IS_LONG)
-          case (_, _) if (l.isLong || r.isLong) => new CBasicType(eInt, IBasicType.IS_LONG)
-          case (_, _) if (l.isUnsigned || r.isUnsigned) => new CBasicType(eInt, IBasicType.IS_UNSIGNED)
-          case _ => new CBasicType(eInt, 0)
+          case (`eDouble` | `eFloat`, `eDouble` | `eFloat`) => new CBasicType(eDouble, 0)
+          case _ => TypeHelper.intType
         }
         case _ => left.theType
       }
 
+      val result = calculate(left.value,  right.value, operator)
       RValue(result, resultType)
     }
   }
