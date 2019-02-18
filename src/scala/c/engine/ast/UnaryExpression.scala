@@ -9,41 +9,27 @@ import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 object UnaryExpression {
 
   // per C Spec this returns a RValue
-  def evaluateIncrDecr(unary: IASTUnaryExpression, value: ValueType, operator: Int)(implicit state: State): RValue = operator match {
-    case `op_postFixIncr` =>
-      val newVal = BinaryExpr.evaluate(value, TypeHelper.one, IASTBinaryExpression.op_plus).value
-      value match {
-        case lValue: LValue =>
-          // push then set
-          val pre = lValue.rValue
-          state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
-          pre
-      }
-    case `op_postFixDecr` =>
-      val newVal = BinaryExpr.evaluate(value, TypeHelper.one, IASTBinaryExpression.op_minus).value
-      value match {
-        case lValue: LValue =>
-          // push then set
-          val pre = lValue.rValue
-          state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
-          pre
-      }
-    case `op_prefixIncr` =>
-      val newVal = BinaryExpr.evaluate(value, TypeHelper.one, IASTBinaryExpression.op_plus)
-      value match {
-        case lValue: LValue =>
-          // set then push
-          state.Stack.writeToMemory(newVal.value, lValue.address, lValue.theType)
-          newVal
-      }
-    case `op_prefixDecr` =>
-      val newVal = BinaryExpr.evaluate(value, TypeHelper.one, IASTBinaryExpression.op_minus)
-      value match {
-        case lValue @ LValue(_, _) =>
-          // set then push
-          state.Stack.writeToMemory(newVal.value, lValue.address, lValue.theType)
-          newVal
-      }
+  def evaluateIncrDecr(unary: IASTUnaryExpression, value: ValueType, operator: Int)(implicit state: State): RValue = {
+    val op = operator match {
+      case `op_postFixIncr` | `op_prefixIncr` => IASTBinaryExpression.op_plus
+      case `op_postFixDecr` | `op_prefixDecr` => IASTBinaryExpression.op_minus
+    }
+
+    value match {
+      case lValue: LValue =>
+        val newVal = BinaryExpr.evaluate(value, TypeHelper.one, op)
+        val pre = lValue.rValue
+        state.Stack.writeToMemory(newVal.value, lValue.address, lValue.theType)
+
+        operator match {
+          case `op_postFixIncr` | `op_postFixDecr` =>
+            // push then set
+            pre
+          case `op_prefixIncr` | `op_prefixDecr` =>
+            // set then push
+            newVal
+        }
+    }
   }
 
   def execute(value: ValueType, unary: IASTUnaryExpression)(implicit state: State): ValueType = {
@@ -53,8 +39,8 @@ object UnaryExpression {
         case `op_tilde` =>
 
           value match {
-            case RValue(int: Int, theType) =>
-              RValue(~value.asInstanceOf[RValue].value.asInstanceOf[Int], TypeHelper.unsignedIntType)
+            case RValue(rValue, _) =>
+              RValue(~rValue.asInstanceOf[Int], TypeHelper.unsignedIntType)
             case info @ LValue(_, _) =>
               val theValue = info.rValue
 
@@ -64,22 +50,24 @@ object UnaryExpression {
                 case short: Short => ~short
                 case long: Long => ~long
               }
+
               TypeHelper.cast(info.theType, result)
           }
         case `op_not` => RValue(TypeHelper.not(value), TypeHelper.one.theType)
         case `op_minus` =>
-          val newVal = BinaryExpr.evaluate(value, TypeHelper.negativeOne, IASTBinaryExpression.op_multiply).value
-          RValue(newVal, value.theType)
+          BinaryExpr.evaluate(value, TypeHelper.negativeOne, IASTBinaryExpression.op_multiply)
         case op @ (`op_postFixIncr` | `op_postFixDecr` | `op_prefixIncr` | `op_prefixDecr`) =>
           evaluateIncrDecr(unary, value, op)
         case `op_sizeof` =>
-          value match {
-            case info: LValue => RValue(info.sizeof, TypeHelper.intType)
-            case RValue(_, theType) => RValue(TypeHelper.sizeof(theType), TypeHelper.intType)
+          val size = value match {
+            case info: LValue => info.sizeof
+            case RValue(_, theType) => TypeHelper.sizeof(theType)
           }
+
+          RValue(size, TypeHelper.intType)
         case `op_amper` =>
           value match {
-            case info@LValue(_, _) =>
+            case info @ LValue(_, _) =>
               info.theType match {
                 case _: CFunctionType => info
                 case theType: IType => Address(info.address, theType)
@@ -89,7 +77,7 @@ object UnaryExpression {
           value match {
             case RValue(int: Int, theType) =>
               LValue(state, int, theType)
-            case info@LValue(_, _) =>
+            case info @ LValue(_, aType) =>
               val nestedType = TypeHelper.getPointerType(info.theType)
 
               if (!nestedType.isInstanceOf[IFunctionType]) {
