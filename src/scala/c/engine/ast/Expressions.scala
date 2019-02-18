@@ -14,11 +14,13 @@ object Expressions {
     case ternary: IASTConditionalExpression =>
       val result = TypeHelper.resolveBoolean (evaluate(ternary.getLogicalConditionExpression).get)
 
-      if (result) {
-        evaluate(ternary.getPositiveResultExpression)
+      val expr = if (result) {
+        ternary.getPositiveResultExpression
       } else {
-        evaluate(ternary.getNegativeResultExpression)
+        ternary.getNegativeResultExpression
       }
+
+      evaluate(expr)
     case cast: IASTCastExpression =>
         val theType = TypeHelper.getType(cast.getTypeId).theType
         val operand = evaluate(cast.getOperand).get
