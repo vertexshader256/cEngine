@@ -511,7 +511,7 @@ class State(pointerSize: NumBits) {
 
     functionList.find(_.name == name).map { fcn =>
       // this is a function simulated in scala
-      fcn.run(args.reverse, this).foreach { retVal => context.pushOntoStack(List(RValue(retVal, null))) }
+      fcn.run(args.reverse, this).foreach { retVal => context.pushOntoStack(RValue(retVal, null)) }
     }
 
     Seq()
@@ -571,7 +571,8 @@ class State(pointerSize: NumBits) {
             }
           }
 
-          newScope.pushOntoStack(promoted :+ RValue(resolvedArgs.size, TypeHelper.unsignedIntType))
+          newScope.pushOntoStack(promoted)
+          newScope.pushOntoStack(RValue(resolvedArgs.size, TypeHelper.unsignedIntType))
 
           functionContexts = newScope +: functionContexts
 

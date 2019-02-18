@@ -50,7 +50,7 @@ object Ast {
       Statement.parse(statement)
     case expression: IASTExpression => {
       Expressions.evaluate(expression).foreach { value =>
-        state.context.pushOntoStack(List(value))
+        state.context.pushOntoStack(value)
       }
       Seq()
     }

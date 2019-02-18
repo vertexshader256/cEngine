@@ -26,7 +26,7 @@ object Statement {
       }
 
       if (retVal != null) {
-        state.context.pushOntoStack(List(retVal))
+        state.context.pushOntoStack(retVal)
       }
 
       throw ReturnFromFunction()
