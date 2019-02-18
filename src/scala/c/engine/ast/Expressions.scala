@@ -58,7 +58,7 @@ object Expressions {
       val arrayVarPtr = evaluate(subscript.getArrayExpression).head.asInstanceOf[LValue]
       val index = evaluate(subscript.getArgument).get match {
         case RValue(value, _) => TypeHelper.cast(TypeHelper.intType, value).value.asInstanceOf[Int]
-        case x @ LValue(_, _) => TypeHelper.cast(TypeHelper.intType, x.value.value).value.asInstanceOf[Int]
+        case x @ LValue(_, _) => TypeHelper.cast(TypeHelper.intType, x.rValue.value).value.asInstanceOf[Int]
       }
 
       val aType = TypeHelper.getPointerType(arrayVarPtr.theType)
@@ -93,7 +93,7 @@ object Expressions {
           val info = pop.asInstanceOf[LValue]
           val resolved = TypeHelper.stripSyntheticTypeInfo(info.theType)
           resolved match {
-            case ptr: IPointerType => state.getFunctionByIndex(info.value.value.asInstanceOf[Int]).name
+            case ptr: IPointerType => state.getFunctionByIndex(info.rValue.value.asInstanceOf[Int]).name
           }
         }
 

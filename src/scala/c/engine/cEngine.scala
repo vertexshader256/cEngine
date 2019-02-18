@@ -586,7 +586,7 @@ class State(pointerSize: NumBits) {
     }.getOrElse{
       // function pointer case
       val fcnPointer = functionContexts.head.resolveId(new CASTName(name.toCharArray)).get
-      val function = getFunctionByIndex(fcnPointer.value.asInstanceOf[Int])
+      val function = getFunctionByIndex(fcnPointer.rValue.asInstanceOf[Int])
       val scope = new FunctionScope(function.staticVars, functionContexts.head, call.getExpressionType)
       functionContexts = functionContexts :+ scope
       scope.init(call, this, false)

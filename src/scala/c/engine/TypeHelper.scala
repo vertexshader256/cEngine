@@ -189,7 +189,7 @@ object TypeHelper {
   // resolves 'ValueType' to 'RValue'
   def resolve(any: ValueType)(implicit state: State): RValue = {
     any match {
-      case info @ LValue(_, _) => info.value
+      case info @ LValue(_, _) => info.rValue
       case rValue @ RValue(_, _) => rValue
       case StringLiteral(str) => state.createStringVariable(str, false)
     }
@@ -204,7 +204,7 @@ object TypeHelper {
   }
 
   def not(theVal: Any): AnyVal = theVal match {
-    case info @ LValue(_, _) => not(info.value)
+    case info @ LValue(_, _) => not(info.rValue)
     case RValue(theVal, _) => not(theVal)
     case int: Int => if (int == 0) 1 else 0
     case long: Long => if (long == 0) 1 else 0
@@ -247,7 +247,7 @@ object TypeHelper {
       case float: Float => float != 0.0
       case double: Double => double != 0.0
       case RValue(value, _) => resolveBoolean(value)
-      case info @ LValue(_, _) => resolveBoolean(info.value)
+      case info @ LValue(_, _) => resolveBoolean(info.rValue)
   }
 
   def offsetof(struct: CStructure, memberName: String, state: State): Int = {

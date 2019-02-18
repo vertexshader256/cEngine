@@ -74,7 +74,7 @@ object Declarator {
           state.context.popStack match {
             // can we can assume dimensions are integers
             case RValue(value, _) => value.asInstanceOf[Int]
-            case info@LValue(_, _) => info.value.value.asInstanceOf[Int]
+            case info@LValue(_, _) => info.rValue.value.asInstanceOf[Int]
           }
         }
 
@@ -220,7 +220,7 @@ object Declarator {
     }
   }
 
-  def assign(dst: LValue, srcs: List[ValueType], equals: IASTInitializerClause, op: Int)(implicit state: State): ValueType = {
+  def assign(dst: LValue, srcs: List[ValueType], equals: IASTInitializerClause, op: Int)(implicit state: State): LValue = {
     if (!dst.theType.isInstanceOf[CStructure]) {
       val result = evaluate(dst, srcs.head, op)
       val casted = TypeHelper.cast(dst.theType, result.value).value
@@ -234,7 +234,7 @@ object Declarator {
         struct.getFields.foreach{ field =>
           val baseField = TypeHelper.offsetof(struct, otherStruct.address, field.getName, state)
           val theField = TypeHelper.offsetof(struct, dst.address, field.getName, state)
-          assign(theField, List(baseField.value), equals, op)
+          assign(theField, List(baseField.rValue), equals, op)
         }
       } else { // e.g struct Test test = {1.0, 2, "three"}
         val struct = dst.theType.asInstanceOf[CStructure]

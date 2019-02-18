@@ -15,7 +15,7 @@ trait LValue extends ValueType {
   val sizeInBits: Int
 
   def sizeof: Int
-  def value: RValue = {
+  def rValue: RValue = {
     if (TypeHelper.isPointer(this)) {
       Address(getValue.value.asInstanceOf[Int], TypeHelper.getPointerType(theType))
     } else {

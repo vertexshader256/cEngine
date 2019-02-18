@@ -15,7 +15,7 @@ object UnaryExpression {
       value match {
         case lValue: LValue =>
           // push then set
-          val pre = lValue.value
+          val pre = lValue.rValue
           state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
           pre
       }
@@ -24,7 +24,7 @@ object UnaryExpression {
       value match {
         case lValue: LValue =>
           // push then set
-          val pre = lValue.value
+          val pre = lValue.rValue
           state.Stack.writeToMemory(newVal, lValue.address, lValue.theType)
           pre
       }
@@ -56,7 +56,7 @@ object UnaryExpression {
             case RValue(int: Int, theType) =>
               RValue(~value.asInstanceOf[RValue].value.asInstanceOf[Int], TypeHelper.unsignedIntType)
             case info @ LValue(_, _) =>
-              val theValue = info.value
+              val theValue = info.rValue
 
               val result = theValue.value match {
                 case byte: Byte => ~byte
@@ -93,7 +93,7 @@ object UnaryExpression {
               val nestedType = TypeHelper.getPointerType(info.theType)
 
               if (!nestedType.isInstanceOf[IFunctionType]) {
-                LValue(state, info.value.value.asInstanceOf[Int], nestedType)
+                LValue(state, info.rValue.value.asInstanceOf[Int], nestedType)
               } else {
                 // function pointers can ignore the star
                 info
