@@ -213,9 +213,7 @@ object Declarator {
       val struct = theType.asInstanceOf[CStructure]
       Ast.step(decl)
       state.context.popStack
-      struct.getFields.map{ field =>
-        state.context.popStack
-      }.toList.reverse
+      List()
     } else if (decl.isInstanceOf[IASTFunctionCallExpression]) {
       List()
     } else {
@@ -231,14 +229,7 @@ object Declarator {
     } else {
 
       if (equals.isInstanceOf[IASTFunctionCallExpression]) {
-        val struct = dst.theType.asInstanceOf[CStructure]
-        var i = 0
-        struct.getFields.foreach{ field =>
-          val baseField = srcs(i)
-          val theField = TypeHelper.offsetof(struct, dst.address, field.getName, state)
-          assign(theField, List(baseField), equals, op)
-          i += 1
-        }
+        state.copy(dst.address, state.Stack.insertIndex - dst.sizeof, dst.sizeof)
       } else if (equals.isInstanceOf[IASTExpression]) { // setting a struct equal to another struct
         val otherStruct = srcs.head.asInstanceOf[LValue]
 

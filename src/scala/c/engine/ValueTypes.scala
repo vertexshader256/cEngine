@@ -33,6 +33,8 @@ trait LValue extends ValueType {
   def setValue(newVal: AnyVal) = {
     state.Stack.writeToMemory(newVal, address, theType, bitOffset, sizeInBits)
   }
+
+  def toByteArray = state.readDataBlock(address, sizeof)(state)
 }
 
 object LValue {

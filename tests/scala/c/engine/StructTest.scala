@@ -523,10 +523,17 @@ class StructTest extends StandardTest {
   "advanced struct from function test" should "print the correct results" in {
     val code = """
 
+      typedef struct NestedTest {
+         float z;
+         char name[15];
+       } NestedTest;
+
       typedef struct Test {
         int y;
         float z;
+        NestedTest nested;
         double zz;
+        char name[10];
       } Test;
 
       Test returnStruct() {
@@ -534,6 +541,18 @@ class StructTest extends StandardTest {
          result.y = 3456;
          result.z = 8678.137;
          result.zz = 111.324278;
+         result.nested.z = 58484.54853;
+
+         int i = 0;
+
+         for(i = 0;i < 15; i++) {
+            result.nested.name[i] = 14-i;
+         }
+
+         for(i = 0;i < 10; i++) {
+           result.name[i] = i;
+         }
+         result.name[9] = 0;
 
          return result;
       }
@@ -543,6 +562,16 @@ class StructTest extends StandardTest {
         printf("%d\n", x.y);
         printf("%f\n", x.z);
         printf("%f\n", x.zz);
+
+        int i = 0;
+        for(i = 0;i < 10; i++) {
+          printf("%d\n", x.name[i]);
+        }
+
+        for(i = 0;i < 15; i++) {
+           printf("%d\n", x.nested.name[i]);
+}
+
       }"""
 
     checkResults(code)

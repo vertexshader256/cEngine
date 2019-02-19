@@ -578,20 +578,17 @@ class State(pointerSize: NumBits) {
 
           newScope.run(this)
           newScope.getReturnValue.map{ retVal =>
-            val valuesToPush: List[ValueType] = retVal match {
-              case LValue(addr, struct: CStructure) =>
-                // push structure fields onto the return stack
-                struct.getFields.map{ field =>
-                  TypeHelper.offsetof(struct, addr, field.getName, state)
-                }.toList
-              case _ =>
-                List()
+            val valuesToPush: Option[Array[Byte]] = retVal match {
+              case structure @ LValue(_, _: CStructure) =>
+                Some(structure.toByteArray)
+              case _ => None
             }
 
             popFunctionContext
 
-            valuesToPush.foreach { x =>
-              state.context.pushOntoStack(x)
+            valuesToPush.foreach { byteArray =>
+              val newAddr = state.allocateSpace(byteArray.size)
+              state.writeDataBlock(byteArray, newAddr)
             }
 
             retVal
@@ -680,5 +677,11 @@ class State(pointerSize: NumBits) {
       Stack.tape.put(address, byte)
       address += 1
     }
+  }
+
+  def readDataBlock(startingAddress: Int, length: Int)(implicit state: State): Array[Byte] = {
+    (0 until length).map { index =>
+      Stack.tape.get(startingAddress + index)
+    }.toArray
   }
 }
