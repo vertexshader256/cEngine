@@ -232,13 +232,7 @@ object Declarator {
         state.copy(dst.address, state.Stack.insertIndex - dst.sizeof, dst.sizeof)
       } else if (equals.isInstanceOf[IASTExpression]) { // setting a struct equal to another struct
         val otherStruct = srcs.head.asInstanceOf[LValue]
-
-        val struct = otherStruct.theType.asInstanceOf[CStructure]
-        struct.getFields.foreach{ field =>
-          val baseField = TypeHelper.offsetof(struct, otherStruct.address, field.getName, state)
-          val theField = TypeHelper.offsetof(struct, dst.address, field.getName, state)
-          assign(theField, List(baseField.rValue), equals, op)
-        }
+        state.copy(dst.address, otherStruct.address, dst.sizeof)
       } else { // e.g struct Test test = {1.0, 2, "three"}
         val struct = dst.theType.asInstanceOf[CStructure]
         struct.getFields.zip(srcs).foreach{ case (field, newValue) =>
