@@ -897,7 +897,7 @@ class SimpsonIntegrationTest extends StandardTest {
      int main(){
          double a = 0.0, b = 1.0;
          double sinx = quad_asr(sin, a, b, 1e-09);
-         printf("Simpson's integration of sine from %g to %g = %f\n", a, b, sinx);
+         printf("Simpson's integration of sine from %f to %f = %f\n", a, b, sinx);
          return 0;
      }
     """
