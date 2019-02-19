@@ -12,7 +12,7 @@ class ListTest extends StandardTest {
 
     val allCode = Seq(File(list).contentAsString, File(listTest).contentAsString)
 
-    checkResults2(allCode)
+    checkResults2(allCode,  includePaths = List(raw"./tests/scala/c/engine/libds-master"))
   }
 }
 
@@ -24,7 +24,7 @@ class VectorTest extends StandardTest {
 
     val allCode =  Seq(File(vector).contentAsString, File(vecTest).contentAsString)
 
-    checkResults2(allCode)
+    checkResults2(allCode, includePaths = List(raw"./tests/scala/c/engine/libds-master"))
   }
 }
 
@@ -38,7 +38,7 @@ class HeapTest extends StandardTest {
     val allCode =  Seq(File(vector).contentAsString, File(heap).contentAsString,
       File(heapTest).contentAsString)
 
-    checkResults2(allCode)
+    checkResults2(allCode, includePaths = List(raw"./tests/scala/c/engine/libds-master"))
   }
 }
 
@@ -52,7 +52,7 @@ class HashMapTest extends StandardTest {
     val allCode =  Seq(File(vector).contentAsString, File(hashmap).contentAsString,
       File(maptest).contentAsString)
 
-    checkResults2(allCode)
+    checkResults2(allCode, includePaths = List(raw"./tests/scala/c/engine/libds-master"))
   }
 }
 
@@ -251,6 +251,6 @@ class RegexTest extends StandardTest {
 
     val allCode =  Seq(File(slre).contentAsString, code)
 
-    checkResults2(allCode)
+    checkResults2(allCode, includePaths = List(raw"./tests/scala/c/engine/libds-master"))
   }
 }

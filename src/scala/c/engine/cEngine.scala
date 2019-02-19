@@ -19,11 +19,11 @@ object Interpreter {
 
     // Define functions that we want to use with string interpolation syntax
     def c(args: Any*)(implicit state: State): Unit = {
-      Gcc.runCode(sc.parts.iterator.next, state)
+      Gcc.runCode(sc.parts.iterator.next, state, List())
     }
 
     def func(args: Any*)(implicit state: State): Unit = {
-      Gcc.runGlobalCode(sc.parts.iterator.next, state)
+      Gcc.runGlobalCode(sc.parts.iterator.next, state, List())
     }
   }
 }
@@ -421,8 +421,8 @@ class State(pointerSize: NumBits) {
   val program = new FunctionScope(List(), null, null) {}
   pushScope(program)
 
-  def init(codes: Seq[String]): IASTNode = {
-    val tUnit = Utils.getTranslationUnit(codes)
+  def init(codes: Seq[String], includePaths: List[String]): IASTNode = {
+    val tUnit = Utils.getTranslationUnit(codes, includePaths)
 
     val fcns = tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}
                                 .filter(fcn => fcn.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)

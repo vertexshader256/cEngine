@@ -360,6 +360,98 @@ object Functions {
     }
   }
 
+  scalaFunctions += new Function("cos", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      Some(Math.cos(formattedOutputParams.last.value.asInstanceOf[Double]))
+    }
+  }
+
+  scalaFunctions += new Function("tan", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      Some(Math.tan(formattedOutputParams.last.value.asInstanceOf[Double]))
+    }
+  }
+
+  scalaFunctions += new Function("acos", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      Some(Math.acos(formattedOutputParams.last.value.asInstanceOf[Double]))
+    }
+  }
+
+  scalaFunctions += new Function("cosh", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      Some(Math.cosh(formattedOutputParams.last.value.asInstanceOf[Double]))
+    }
+  }
+
+  scalaFunctions += new Function("asin", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      Some(Math.asin(formattedOutputParams.last.value.asInstanceOf[Double]))
+    }
+  }
+
+  scalaFunctions += new Function("sinh", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      Some(Math.sinh(formattedOutputParams.last.value.asInstanceOf[Double]))
+    }
+  }
+
+  scalaFunctions += new Function("atan", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      Some(Math.atan(formattedOutputParams.last.value.asInstanceOf[Double]))
+    }
+  }
+
+  scalaFunctions += new Function("tanh", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      Some(Math.tanh(formattedOutputParams.last.value.asInstanceOf[Double]))
+    }
+  }
+
+  scalaFunctions += new Function("atan2", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      Some(Math.atan2(formattedOutputParams.last.value.asInstanceOf[Double],
+        formattedOutputParams.head.value.asInstanceOf[Double]))
+    }
+  }
+
+  scalaFunctions += new Function("exp", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      Some(Math.exp(formattedOutputParams.last.value.asInstanceOf[Double]))
+    }
+  }
+
+  scalaFunctions += new Function("ceil", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      Some(Math.ceil(formattedOutputParams.last.value.asInstanceOf[Double]))
+    }
+  }
+
+  scalaFunctions += new Function("floor", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      Some(Math.floor(formattedOutputParams.last.value.asInstanceOf[Double]))
+    }
+  }
+
+  scalaFunctions += new Function("log", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      Some(Math.log(formattedOutputParams.last.value.asInstanceOf[Double]))
+    }
+  }
+
+  scalaFunctions += new Function("log10", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      Some(Math.log10(formattedOutputParams.last.value.asInstanceOf[Double]))
+    }
+  }
+
+  scalaFunctions += new Function("pow", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      Some(Math.pow(formattedOutputParams.last.value.asInstanceOf[Double],
+        formattedOutputParams.head.value.asInstanceOf[Double]))
+    }
+  }
+
    scalaFunctions += new Function("sscanf", false) {
      def run(formattedOutputParams: Array[RValue], state: State) = {
        val resultBuffer = formattedOutputParams.last.value.asInstanceOf[Int]

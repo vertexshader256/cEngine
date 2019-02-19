@@ -58,18 +58,20 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
     }
   }
 
-  def checkResults(code: String, shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits, args: List[String] = List()) = checkResults2(Seq(code), shouldBootstrap, pointerSize, args)
+  def checkResults(code: String, shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits,
+                   args: List[String] = List(), includePaths: List[String] = List()) =
+    checkResults2(Seq(code), shouldBootstrap, pointerSize, args, includePaths)
 
-  def getCEngineResults(codeInFiles: Seq[String], shouldBootstrap: Boolean, pointerSize: NumBits, arguments: List[String]) = {
+  def getCEngineResults(codeInFiles: Seq[String], shouldBootstrap: Boolean, pointerSize: NumBits, arguments: List[String], includePaths: List[String]) = {
     var result = List[String]()
 
     try {
       //val start = System.nanoTime
       val state = new State(pointerSize)
       val translationUnit = if (shouldBootstrap) {
-        state.init(codeInFiles)
+        state.init(codeInFiles, includePaths)
       } else {
-        state.init(Seq("#define HAS_FLOAT\n" + better.files.File("./src/scala/c/engine/ee_printf.c").contentAsString) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code })
+        state.init(Seq("#define HAS_FLOAT\n" + better.files.File("./src/scala/c/engine/ee_printf.c").contentAsString) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }, includePaths)
       }
 
       val program = new FunctionScope(List(), null, null) {}
@@ -118,7 +120,8 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
     result
   }
 
-  def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits, args: List[String] = List()) = {
+  def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits,
+                    args: List[String] = List(), includePaths: List[String] = List()) = {
 
     var except: Exception = null
 
@@ -140,10 +143,13 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
           file
         }
 
+        val moreIncludes = includePaths.flatMap{inc =>
+          Seq("-I", inc)
+        }
+
         val exeFile = new java.io.File(StandardTest.exeCount.incrementAndGet + ".exe")
         val sourceFileTokens = files.flatMap{file => Seq(file.getAbsolutePath)}
-        val includeTokens = Seq("-I", Utils.mainPath,
-          "-I", Utils.mainAdditionalPath)
+        val includeTokens = Seq("-I", Utils.mainPath) ++ moreIncludes
 
         val size = pointerSize match {
           case ThirtyTwoBits => Seq("gcc")
@@ -158,7 +164,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
 
         // while its compiling, run the cEngine code
 
-        cEngineOutput = getCEngineResults(codeInFiles, shouldBootstrap, pointerSize, args)
+        cEngineOutput = getCEngineResults(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
 
         compile.exitValue()
 

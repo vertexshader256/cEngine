@@ -75,7 +75,6 @@ object Utils {
   }
 
   val mainPath = raw"."
-  val mainAdditionalPath = raw"./tests/scala/c/engine/libds-master"
   val minGWIncludes = raw"C:\MinGW\include"
 
   val minGWAdditionalIncludes = if (new File(raw"C:\MinGW\lib\gcc\mingw32\5.3.0\include").exists) {
@@ -86,7 +85,7 @@ object Utils {
 
   val minGWMoreIncludes = raw"C:\MinGW\include\GL"
   
-  def getTranslationUnit(codes: Seq[String]): IASTTranslationUnit = {
+  def getTranslationUnit(codes: Seq[String], includePaths: List[String]): IASTTranslationUnit = {
 
 		val preprocessResults = new StringBuilder
 		
@@ -121,7 +120,10 @@ object Utils {
   		pp.getSystemIncludePath.add(minGWAdditionalIncludes)
   		pp.addMacro("__cdecl", "")
   		pp.getQuoteIncludePath.add(minGWIncludes)
-  		pp.getQuoteIncludePath.add(mainAdditionalPath)
+			includePaths.foreach{ include =>
+				pp.getQuoteIncludePath.add(include)
+			}
+
   		//pp.addMacro("ALLOC_TESTING");
 
   		val stream = new ByteArrayInputStream(code.getBytes(StandardCharsets.UTF_8))

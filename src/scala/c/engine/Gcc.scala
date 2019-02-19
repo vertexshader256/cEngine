@@ -14,25 +14,25 @@ object Gcc {
 
   val program = new FunctionScope(List(), null, null) {}
 
-  def runCode(code: String, state: State) = {
+  def runCode(code: String, state: State, includePaths: List[String]) = {
       val exeCode = s"""
         void main() {
            $code
         }
       """
 
-      state.init(Seq(exeCode))
+      state.init(Seq(exeCode), includePaths)
       state.callTheFunction("main", null, Some(program), true)(state)
       val main = state.functionList.find{_.name == "main"}.get
       state.functionList -= main
   }
 
-  def runGlobalCode(code: String, state: State) = {
+  def runGlobalCode(code: String, state: State, includePaths: List[String]) = {
     val exeCode = s"""
        $code
     """
 
-    state.init(Seq(exeCode))
+    state.init(Seq(exeCode), includePaths)
   }
 }
 
