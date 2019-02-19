@@ -77,16 +77,24 @@ object Ast {
         step(simple.getDeclSpecifier)
       }
     }
-    case enumerator: CASTEnumerator => {
-      step(enumerator.getValue)
-
-      val newVar = state.context.addVariable(enumerator.getName.toString, TypeHelper.intType)
-      val value = state.context.popStack.asInstanceOf[RValue]
-      state.Stack.writeToMemory(value.value, newVar.address, TypeHelper.intType)
-    }
     case enum: IASTEnumerationSpecifier => {
-      enum.getEnumerators.foreach(step)
-    }
+      var current = 0
+      enum.getEnumerators.foreach{ enum => enum match {
+        case enumerator: CASTEnumerator =>
+          if (enumerator.getValue != null) {
+            step(enumerator.getValue)
+
+            val newVar = state.context.addVariable(enumerator.getName.toString, TypeHelper.intType)
+            val value = state.context.popStack.asInstanceOf[RValue]
+            current = value.value.asInstanceOf[Int] + 1
+            state.Stack.writeToMemory(value.value, newVar.address, TypeHelper.intType)
+          } else {
+            val newVar = state.context.addVariable(enumerator.getName.toString, TypeHelper.intType)
+            state.Stack.writeToMemory(current, newVar.address, TypeHelper.intType)
+            current += 1
+          }
+      }
+    }}
     case fcnDef: IASTFunctionDefinition => {
     }
     case initList: IASTInitializerList => {
