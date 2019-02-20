@@ -48,16 +48,17 @@ object BinaryExpr {
       !calculateBoolean(left, right, op_greaterThan)
   }
 
-  def evaluatePointerArithmetic(left: RValue, right: RValue, operator: Int)(implicit state: State): RValue = {
+  def evaluatePointerArithmetic(left: RValue, offset: Int, operator: Int)(implicit state: State): RValue = {
     val ptrSize = TypeHelper.sizeof(left.theType)
-    val value = right.value.asInstanceOf[Int] * ptrSize
-    val offset = if (operator == `op_minus`) {
+    println(ptrSize)
+    val value = offset * ptrSize
+    val computedOffset = if (operator == `op_minus`) {
       -value
     } else {
       +value
     }
 
-    Address(left.value.asInstanceOf[Int] + offset, left.theType)
+    Address(left.value.asInstanceOf[Int] + computedOffset, left.theType)
   }
 
   def calculate(left: AnyVal, right: AnyVal, operator: Int)(implicit state: State): AnyVal = {
@@ -234,7 +235,7 @@ object BinaryExpr {
           val result = left.value.asInstanceOf[Int] * rightPtrSize + right.value.asInstanceOf[Int]
           RValue(result, new CPointerType(right.theType, 0))
         } else {
-          evaluatePointerArithmetic(left, right, operator)
+          evaluatePointerArithmetic(left, right.value.asInstanceOf[Int], operator)
         }
       } else {
         RValue(calculate(left.value, right.value, operator), left.theType)
