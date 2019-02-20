@@ -89,7 +89,32 @@ case class Variable(name: String, state: State, aType: IType) extends LValue {
   val sizeInBits = sizeof * 8
 
   def setArray(array: Array[RValue]): Unit = {
-    state.writeDataBlock(array, address)(state)
+    def recursiveWrite(aType: IType, theAddress: Int, values: Array[RValue]): Unit = aType match {
+      case theArray: IArrayType =>
+
+        if (theArray.hasSize) {
+          if (theArray.getType.isInstanceOf[IArrayType]) { // e.g int blah[2][3]
+            val dataStart = state.readPtrVal(theAddress)
+            state.writeDataBlock(values, dataStart)(state)
+          } else {
+            state.writeDataBlock(values, theAddress)(state)
+          }
+        } else {
+          if (theArray.getType.isInstanceOf[IArrayType]) { // e.g int blah[][3]
+            val size = theArray.getType.asInstanceOf[CArrayType].getSize.numericalValue().toInt
+            for (i <- (0 until size)) {
+              val dataStart = state.readPtrVal(theAddress + i * 4)
+              val result = values.drop(i * size)
+              recursiveWrite(theArray.getType, dataStart, result.take(size))
+            }
+          } else {
+            state.writeDataBlock(values, theAddress)(state)
+          }
+        }
+      case ptr: CPointerType => state.writeDataBlock(values, theAddress)(state)
+    }
+
+    recursiveWrite(aType, address, array)
   }
 
   def allocateSpace(state: State, aType: IType): Int = {

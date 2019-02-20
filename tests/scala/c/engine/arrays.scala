@@ -98,12 +98,46 @@ class SimpleHigherDimArrays extends StandardTest {
 
 class HigherDimArrays extends StandardTest {
 
-  "A different rectangular 2d array" should "print the correct results" in {
+  "Initialize a 2d array" should "print the correct results" in {
+    val code = """
+      void main() {
+        int a[2][3] = {1, 2, 3, 4, 5, 6};
+        printf("%d\n", a[0][0]);
+        printf("%d\n", a[0][1]);
+        printf("%d\n", a[0][2]);
+        printf("%d\n", a[1][0]);
+        printf("%d\n", a[1][1]);
+        printf("%d\n", a[1][2]);
+        printf("%d\n", *a[0]);
+        printf("%d\n", *a[1]);
+      }"""
+
+    checkResults(code, true)
+  }
+
+  "Initialize a boundless 2d array" should "print the correct results" in {
     val code = """
       void main() {
         int a[][3] = {1, 2, 3, 4, 5, 6};
+        printf("%d\n", a[0][0]);
+        printf("%d\n", a[0][1]);
+        printf("%d\n", a[0][2]);
+        printf("%d\n", a[1][0]);
+        printf("%d\n", a[1][1]);
+        printf("%d\n", a[1][2]);
         printf("%d\n", *a[0]);
         printf("%d\n", *a[1]);
+      }"""
+
+    checkResults(code, true)
+  }
+
+  "access a pointer to a array" should "print the correct results" in {
+    val code = """
+      void main() {
+        int a[][3] = {1, 2, 3, 4, 5, 6};
+        int (*ptr)[3] = a;
+        printf("%d %d ", (*ptr)[1], (*ptr)[2]);
       }"""
 
     checkResults(code, true)
