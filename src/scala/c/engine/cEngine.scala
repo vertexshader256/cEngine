@@ -640,6 +640,14 @@ class State(pointerSize: NumBits) {
     }
   }
 
+  def set(dst: Int, value: Byte, numBytes: Int) = {
+    if (numBytes != 0) {
+      for (i <- (0 until numBytes)) {
+        Stack.tape.put(dst + i, value)
+      }
+    }
+  }
+
   def readPtrVal(address: Int): Int = {
     Stack.readFromMemory(address, pointerType).value match {
       case int: Int => int

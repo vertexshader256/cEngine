@@ -143,8 +143,8 @@ class TypesTest extends StandardTest {
 
     checkResults(code)
   }
-  
-  "deeply nested struct type test with inner array" should "print the correct results" in {
+
+  "deeply nested anonymous struct type test with inner array" should "print the correct results" in {
     val code = """
 
       typedef struct {
@@ -156,15 +156,15 @@ class TypesTest extends StandardTest {
             } y;
             int x;
           } y;
-        }
+        } y;
       } Test;
       
       void main() {
         Test x;
-        x.x = 465;
         x.y.x = 234;
-        x.y.y.y[4] = 5.4673f;
-        printf("%d %d %f\n", x.x, x.y.x, x.y.y.y[4]);
+        x.y.y.x = 674654;
+        x.y.y.y.y[4] = 5.4673f;
+        printf("%d %d %f\n", x.y.x, x.y.y.x, x.y.y.y.y[4]);
       }"""
 
     checkResults(code)

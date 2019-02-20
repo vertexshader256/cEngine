@@ -69,7 +69,7 @@ object Ast {
 
       simple.getDeclarators.foreach {
         case fcn: IASTFunctionDeclarator =>
-          if (!isWithinFunction) step(fcn) else step(fcn.getNestedDeclarator)
+          if (!isWithinFunction) step(fcn) else if (fcn.getNestedDeclarator != null) step(fcn.getNestedDeclarator)
         case x => step(x)
       }
 

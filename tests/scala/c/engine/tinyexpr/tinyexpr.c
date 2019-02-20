@@ -512,53 +512,45 @@ static te_expr *list(state *s) {
     return ret;
 }
 
-
-#define TE_FUN(...) ((double(*)(__VA_ARGS__))n->function)
-#define M(e) te_eval(n->parameters[e])
-
-
 double te_eval(const te_expr *n) {
-    if (!n) return NAN;
+    if (!n) return __builtin_nan("");
 
-    switch(TYPE_MASK(n->type)) {
+    switch(((n->type)&0x0000001F)) {
         case TE_CONSTANT: return n->value;
         case TE_VARIABLE: return *n->bound;
 
         case TE_FUNCTION0: case TE_FUNCTION1: case TE_FUNCTION2: case TE_FUNCTION3:
         case TE_FUNCTION4: case TE_FUNCTION5: case TE_FUNCTION6: case TE_FUNCTION7:
-            switch(ARITY(n->type)) {
-                case 0: return TE_FUN(void)();
-                case 1: return TE_FUN(double)(M(0));
-                case 2: return TE_FUN(double, double)(M(0), M(1));
-                case 3: return TE_FUN(double, double, double)(M(0), M(1), M(2));
-                case 4: return TE_FUN(double, double, double, double)(M(0), M(1), M(2), M(3));
-                case 5: return TE_FUN(double, double, double, double, double)(M(0), M(1), M(2), M(3), M(4));
-                case 6: return TE_FUN(double, double, double, double, double, double)(M(0), M(1), M(2), M(3), M(4), M(5));
-                case 7: return TE_FUN(double, double, double, double, double, double, double)(M(0), M(1), M(2), M(3), M(4), M(5), M(6));
-                default: return NAN;
+            switch(( ((n->type) & (TE_FUNCTION0 | TE_CLOSURE0)) ? ((n->type) & 0x00000007) : 0 )) {
+                case 0: return ((double(*)(void))n->function)();
+                case 1: return ((double(*)(double))n->function)(te_eval(n->parameters[0]));
+                case 2: return ((double(*)(double, double))n->function)(te_eval(n->parameters[0]), te_eval(n->parameters[1]));
+                case 3: return ((double(*)(double, double, double))n->function)(te_eval(n->parameters[0]), te_eval(n->parameters[1]), te_eval(n->parameters[2]));
+                case 4: return ((double(*)(double, double, double, double))n->function)(te_eval(n->parameters[0]), te_eval(n->parameters[1]), te_eval(n->parameters[2]), te_eval(n->parameters[3]));
+                case 5: return ((double(*)(double, double, double, double, double))n->function)(te_eval(n->parameters[0]), te_eval(n->parameters[1]), te_eval(n->parameters[2]), te_eval(n->parameters[3]), te_eval(n->parameters[4]));
+                case 6: return ((double(*)(double, double, double, double, double, double))n->function)(te_eval(n->parameters[0]), te_eval(n->parameters[1]), te_eval(n->parameters[2]), te_eval(n->parameters[3]), te_eval(n->parameters[4]), te_eval(n->parameters[5]));
+                case 7: return ((double(*)(double, double, double, double, double, double, double))n->function)(te_eval(n->parameters[0]), te_eval(n->parameters[1]), te_eval(n->parameters[2]), te_eval(n->parameters[3]), te_eval(n->parameters[4]), te_eval(n->parameters[5]), te_eval(n->parameters[6]));
+                default: return __builtin_nan("");
             }
 
         case TE_CLOSURE0: case TE_CLOSURE1: case TE_CLOSURE2: case TE_CLOSURE3:
         case TE_CLOSURE4: case TE_CLOSURE5: case TE_CLOSURE6: case TE_CLOSURE7:
-            switch(ARITY(n->type)) {
-                case 0: return TE_FUN(void*)(n->parameters[0]);
-                case 1: return TE_FUN(void*, double)(n->parameters[1], M(0));
-                case 2: return TE_FUN(void*, double, double)(n->parameters[2], M(0), M(1));
-                case 3: return TE_FUN(void*, double, double, double)(n->parameters[3], M(0), M(1), M(2));
-                case 4: return TE_FUN(void*, double, double, double, double)(n->parameters[4], M(0), M(1), M(2), M(3));
-                case 5: return TE_FUN(void*, double, double, double, double, double)(n->parameters[5], M(0), M(1), M(2), M(3), M(4));
-                case 6: return TE_FUN(void*, double, double, double, double, double, double)(n->parameters[6], M(0), M(1), M(2), M(3), M(4), M(5));
-                case 7: return TE_FUN(void*, double, double, double, double, double, double, double)(n->parameters[7], M(0), M(1), M(2), M(3), M(4), M(5), M(6));
-                default: return NAN;
+            switch(( ((n->type) & (TE_FUNCTION0 | TE_CLOSURE0)) ? ((n->type) & 0x00000007) : 0 )) {
+                case 0: return ((double(*)(void*))n->function)(n->parameters[0]);
+                case 1: return ((double(*)(void*, double))n->function)(n->parameters[1], te_eval(n->parameters[0]));
+                case 2: return ((double(*)(void*, double, double))n->function)(n->parameters[2], te_eval(n->parameters[0]), te_eval(n->parameters[1]));
+                case 3: return ((double(*)(void*, double, double, double))n->function)(n->parameters[3], te_eval(n->parameters[0]), te_eval(n->parameters[1]), te_eval(n->parameters[2]));
+                case 4: return ((double(*)(void*, double, double, double, double))n->function)(n->parameters[4], te_eval(n->parameters[0]), te_eval(n->parameters[1]), te_eval(n->parameters[2]), te_eval(n->parameters[3]));
+                case 5: return ((double(*)(void*, double, double, double, double, double))n->function)(n->parameters[5], te_eval(n->parameters[0]), te_eval(n->parameters[1]), te_eval(n->parameters[2]), te_eval(n->parameters[3]), te_eval(n->parameters[4]));
+                case 6: return ((double(*)(void*, double, double, double, double, double, double))n->function)(n->parameters[6], te_eval(n->parameters[0]), te_eval(n->parameters[1]), te_eval(n->parameters[2]), te_eval(n->parameters[3]), te_eval(n->parameters[4]), te_eval(n->parameters[5]));
+                case 7: return ((double(*)(void*, double, double, double, double, double, double, double))n->function)(n->parameters[7], te_eval(n->parameters[0]), te_eval(n->parameters[1]), te_eval(n->parameters[2]), te_eval(n->parameters[3]), te_eval(n->parameters[4]), te_eval(n->parameters[5]), te_eval(n->parameters[6]));
+                default: return __builtin_nan("");
             }
 
-        default: return NAN;
+        default: return __builtin_nan("");
     }
 
 }
-
-#undef TE_FUN
-#undef M
 
 static void optimize(te_expr *n) {
     /* Evaluates as much as possible. */

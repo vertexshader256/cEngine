@@ -174,35 +174,36 @@ class StrandSort extends StandardTest {
           node_t all[len];
 
           // array to list
-          for (int i = 0; i < len; i++)
+          int i = 0;
+          for (i = 0; i < len; i++)
             all[i].v = ar[i], all[i].next = i < len - 1 ? all + i + 1 : 0;
 
           slist list = {all, all + len - 1}, rem, strand = {0},  res = {0};
 
-          for (node e = 0; list.head; list = rem) {
+          node e = 0;
+          for (e = 0; list.head; list = rem) {
 
             rem.head = rem.tail = 0;
 
             while ((e = removehead(&list)))
               push((!strand.head || e->v >= strand.tail->v) ? &strand : &rem, e);
 
-
-
             merge(&res, &strand);
 
-            int i = 0;   // FOR SOME REASON NEED THIS FOR NO ERRORS
+            int hh = 0;   // FOR SOME REASON NEED THIS FOR NO ERRORS
           }
 
-
           // list to array
-          for (int i = 0; res.head; i++, res.head = res.head->next)
-            ar[i] = res.head->v;
+          int z = 0;
+          for (z = 0; res.head; z++, res.head = res.head->next)
+            ar[z] = res.head->v;
         }
 
         void show(const char *title, int *x, int len)
         {
           printf("%s ", title);
-          for (int i = 0; i < len; i++)
+          int i = 0;
+          for (i = 0; i < len; i++)
             printf("%3d ", x[i]);
           putchar('\n');
         }

@@ -62,6 +62,13 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
                    args: List[String] = List(), includePaths: List[String] = List()) =
     checkResults2(Seq(code), shouldBootstrap, pointerSize, args, includePaths)
 
+  private def getErrors(node: IASTNode, errors: List[String]): List[String] = {
+    node match {
+      case prob: CASTProblemDeclaration => List("Error on: " + prob.getFileLocation.getFileName + ".c:" + prob.getFileLocation.getStartingLineNumber + ":" + prob.getRawSignature)
+      case _ => errors ++ node.getChildren.flatMap{x => getErrors(x, errors)}
+    }
+  }
+
   def getCEngineResults(codeInFiles: Seq[String], shouldBootstrap: Boolean, pointerSize: NumBits, arguments: List[String], includePaths: List[String]) = {
     var result = List[String]()
 
@@ -74,45 +81,51 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
         state.init(Seq("#define HAS_FLOAT\n" + better.files.File("./src/scala/c/engine/ee_printf.c").contentAsString) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }, includePaths)
       }
 
-      val program = new FunctionScope(List(), null, null) {}
-      state.pushScope(program)
-      program.init(translationUnit, state, false)
+      val errors = getErrors(translationUnit, List())
 
-      state.context.run(state) // parse globals
+      if (errors.isEmpty) {
+        val program = new FunctionScope(List(), null, null) {}
+        state.pushScope(program)
+        program.init(translationUnit, state, false)
 
-      state.context.setAddress(0)
+        state.context.run(state) // parse globals
 
-      val args = List(".") ++ arguments
+        state.context.setAddress(0)
 
-      val functionCall = if (args.nonEmpty) {
-        val fcnName = new CASTIdExpression(new CASTName("main".toCharArray))
-        val factory = translationUnit.getTranslationUnit.getASTNodeFactory
-        val sizeExpr = factory.newLiteralExpression(IASTLiteralExpression.lk_integer_constant, args.size.toString)
+        val args = List(".") ++ arguments
 
-        val stringType = new CPointerType(new CBasicType(IBasicType.Kind.eChar, IBasicType.IS_UNSIGNED), 0)
+        val functionCall = if (args.nonEmpty) {
+          val fcnName = new CASTIdExpression(new CASTName("main".toCharArray))
+          val factory = translationUnit.getTranslationUnit.getASTNodeFactory
+          val sizeExpr = factory.newLiteralExpression(IASTLiteralExpression.lk_integer_constant, args.size.toString)
 
-        val stringAddresses = args.map { arg =>
-          val addr = state.createStringVariable("\"" + arg + "\"", false).value
-          RValue(addr, stringType)
-        }.toArray
+          val stringType = new CPointerType(new CBasicType(IBasicType.Kind.eChar, IBasicType.IS_UNSIGNED), 0)
 
-        val theType = new CPointerType(stringType, 0)
-        val newVar = program.addVariable("mainInfo", theType)
-        val start = state.allocateSpace(stringAddresses.size * 4)
-        state.writeDataBlock(stringAddresses, start)(state)
-        newVar.setValue(start)
+          val stringAddresses = args.map { arg =>
+            val addr = state.createStringVariable("\"" + arg + "\"", false).value
+            RValue(addr, stringType)
+          }.toArray
 
-        val varExpr = factory.newIdExpression(factory.newName("mainInfo"))
+          val theType = new CPointerType(stringType, 0)
+          val newVar = program.addVariable("mainInfo", theType)
+          val start = state.allocateSpace(stringAddresses.size * 4)
+          state.writeDataBlock(stringAddresses, start)(state)
+          newVar.setValue(start)
 
-        new CASTFunctionCallExpression(fcnName, List(sizeExpr, varExpr).toArray)
+          val varExpr = factory.newIdExpression(factory.newName("mainInfo"))
+
+          new CASTFunctionCallExpression(fcnName, List(sizeExpr, varExpr).toArray)
+        } else {
+          null
+        }
+
+        //state.context.pathStack.push(NodePath(state.getFunction("main").node, Stage1))
+        state.callTheFunction("main", functionCall, Some(program))(state)
+        //totalTime += (System.nanoTime - start) / 1000000000.0
+        result = getResults(state.stdout.toList)
       } else {
-        null
+        result = errors
       }
-
-      //state.context.pathStack.push(NodePath(state.getFunction("main").node, Stage1))
-      state.callTheFunction("main", functionCall, Some(program))(state)
-      //totalTime += (System.nanoTime - start) / 1000000000.0
-      result = getResults(state.stdout.toList)
     } catch {
       case e => e.printStackTrace()
     }
@@ -147,7 +160,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
           Seq("-I", inc)
         }
 
-        val exeFile = new java.io.File(StandardTest.exeCount.incrementAndGet + ".exe")
+        val exeFile = new java.io.File("a" + StandardTest.exeCount.incrementAndGet + ".exe")
         val sourceFileTokens = files.flatMap{file => Seq(file.getAbsolutePath)}
         val includeTokens = Seq("-I", Utils.mainPath) ++ moreIncludes
 
@@ -155,6 +168,15 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
           case ThirtyTwoBits => Seq("gcc")
           case SixtyFourBits => Seq("gcc64")
         }
+
+//        val preprocessTokens =
+//          Seq("gcc", "-E") ++ List("tinyexpr.c") ++ includeTokens ++ Seq(">", "results.c")
+//
+//        println(preprocessTokens.reduce{_ + " " + _})
+//
+//        val prebuilder = Process(preprocessTokens, new java.io.File("."))
+//        val precompile = prebuilder.run(logger.process)
+//        precompile.exitValue()
 
         val processTokens =
           size ++ sourceFileTokens ++ includeTokens ++ Seq("-o", exeFile.getAbsolutePath) ++ Seq("-D", "ALLOC_TESTING")
@@ -168,7 +190,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
 
         compile.exitValue()
 
-        val numErrors = logger.errors.length
+        val numErrors = 0//logger.errors.length
 
         gccOutput = if (numErrors == 0) {
 

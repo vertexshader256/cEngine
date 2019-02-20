@@ -148,6 +148,22 @@ object Functions {
           None
         }
       }
+
+    scalaFunctions += new Function("memset", false) {
+      def run(formattedOutputParams: Array[RValue], state: State) = {
+        val numBytes = formattedOutputParams(0).value match {
+          case int: Int => int
+          case long: Long => long.toInt
+        }
+        val value = formattedOutputParams(1).value.asInstanceOf[Int].toByte
+        println("VALUE: " + value)
+        println("NUM BYTES: " + numBytes)
+        val dst = formattedOutputParams(2).value.asInstanceOf[Int]
+
+        state.set(dst, value, numBytes)
+        None
+      }
+    }
   
    scalaFunctions += new Function("_assert", false) {
         def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = {
