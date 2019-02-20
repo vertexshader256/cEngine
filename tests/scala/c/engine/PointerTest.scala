@@ -293,6 +293,21 @@ class PointerArithmeticTest extends StandardTest {
     checkResults(code)
   }
 
+  "advanced pointer arithmetic 5" should "print the correct results" in {
+    val code = """
+
+       int main()
+       {
+           int a[2][3] = {1, 2, 3, 4, 5, 6};
+           int (*ptr)[3] = a;
+           int start = ptr;
+           ++ptr;
+           printf("%d", ((int)ptr - (int)start));
+       }"""
+
+    checkResults(code)
+  }
+
   "advanced pointer arithmetic 3" should "print the correct results" in {
     val code = """
 
