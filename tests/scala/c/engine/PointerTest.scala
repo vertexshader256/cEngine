@@ -285,9 +285,9 @@ class PointerArithmeticTest extends StandardTest {
        {
            int a[][3] = {1, 2, 3, 4, 5, 6};
            int (*ptr)[3] = a;
-           printf("%d %d ", (*ptr)[1], (*ptr)[2]);
+           printf("%d %d\n", (*ptr)[1], (*ptr)[2]);
            ++ptr;
-           printf("%d %dn", (*ptr)[1], (*ptr)[2]);
+           printf("%d %d\n", (*ptr)[1], (*ptr)[2]);
        }"""
 
     checkResults(code)
@@ -300,9 +300,9 @@ class PointerArithmeticTest extends StandardTest {
        {
            int a[2][3] = {1, 2, 3, 4, 5, 6};
            int (*ptr)[3] = a;
-           int start = ptr;
+           printf("%d %d\n", (*ptr)[1], (*ptr)[2]);
            ++ptr;
-           printf("%d", ((int)ptr - (int)start));
+           printf("%d %d\n", (*ptr)[1], (*ptr)[2]);
        }"""
 
     checkResults(code)
