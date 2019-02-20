@@ -48,18 +48,7 @@ object LValue {
       val theType = TypeHelper.stripSyntheticTypeInfo(aType)
       //def sizeof = TypeHelper.sizeof(theType)(state)}
       val sizeof = {
-        if (TypeHelper.isPointer(theType)) {
-          val nestedSize = TypeHelper.sizeof(TypeHelper.getPointerType(theType))(theState)
-
-          val result = theType match {
-            case array: IArrayType => nestedSize * array.getSize.numericalValue().toInt
-            case _ => nestedSize
-          }
-
-          result
-        } else {
-          TypeHelper.sizeof(theType)(state)
-        }
+        TypeHelper.getPointerSize(theType)(state)
       }
     }
 }

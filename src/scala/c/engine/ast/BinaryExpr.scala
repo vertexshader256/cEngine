@@ -49,7 +49,7 @@ object BinaryExpr {
   }
 
   def evaluatePointerArithmetic(left: RValue, offset: Int, operator: Int)(implicit state: State): RValue = {
-    val ptrSize = TypeHelper.sizeof(left.theType)
+    val ptrSize = TypeHelper.getPointerSize(left.theType)
     println(ptrSize)
     val value = offset * ptrSize
     val computedOffset = if (operator == `op_minus`) {
