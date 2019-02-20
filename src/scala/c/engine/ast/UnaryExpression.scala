@@ -62,26 +62,13 @@ object UnaryExpression {
         case op@(`op_postFixIncr` | `op_postFixDecr` | `op_prefixIncr` | `op_prefixDecr`) =>
           evaluateIncrDecr(unary, value, op)
         case `op_sizeof` =>
-          if (value.isInstanceOf[LValue] && TypeHelper.isPointer(value.theType)) {
-            value match {
-              case _ @ LValue(_, aType) =>
-                val nestedSize = TypeHelper.sizeof(TypeHelper.getPointerType(aType))
 
-                val result = aType match {
-                  case array: IArrayType => nestedSize * array.getSize.numericalValue().toInt
-                  case _ => nestedSize
-                }
-
-                RValue(result, TypeHelper.intType)
-            }
-          } else {
             val size = value match {
               case info: LValue => info.sizeof
               case RValue(_, theType) => TypeHelper.sizeof(theType)
             }
 
             RValue(size, TypeHelper.intType)
-          }
         case `op_amper` =>
           value match {
             case info@LValue(_, _) =>

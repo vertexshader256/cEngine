@@ -46,7 +46,22 @@ object LValue {
       val bitOffset = 0
       val sizeInBits = sizeof * 8
       val theType = TypeHelper.stripSyntheticTypeInfo(aType)
-      val sizeof = TypeHelper.sizeof(theType)(state)}
+      //def sizeof = TypeHelper.sizeof(theType)(state)}
+      val sizeof = {
+        if (TypeHelper.isPointer(theType)) {
+          val nestedSize = TypeHelper.sizeof(TypeHelper.getPointerType(theType))(theState)
+
+          val result = theType match {
+            case array: IArrayType => nestedSize * array.getSize.numericalValue().toInt
+            case _ => nestedSize
+          }
+
+          result
+        } else {
+          TypeHelper.sizeof(theType)(state)
+        }
+      }
+    }
 }
 
 case class StringLiteral(value: String) extends ValueType {
