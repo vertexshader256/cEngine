@@ -230,6 +230,51 @@ class SizeOfTest extends StandardTest {
 
     checkResults(code)
   }
+
+  "A sizeof call on a pointer to array variable" should "print the correct results" in {
+    val code = """
+
+       int main()
+       {
+           int a[][3] = {1, 2, 3, 4, 5, 6};
+           int (*ptr)[3] = a;
+           printf("%d %d", sizeof(ptr), sizeof(*ptr));
+       }"""
+
+    checkResults(code)
+  }
+
+  "A sizeof call on an uninitialized pointer to array variable 2" should "print the correct results" in {
+    val code = """
+
+       int main()
+       {
+           int (*ptr)[3];
+           printf("%d %d", sizeof(ptr), sizeof(*ptr));
+       }"""
+
+    checkResults(code)
+  }
+
+  "array typedefs" should "print the correct results" in {
+    val code =
+      """
+      void main() {
+
+         typedef int Test[10];
+
+         Test x;
+         x[1] = 10;
+         printf("%d\n", x[1]);
+         printf("%d\n", sizeof(Test));
+         printf("%d\n", sizeof(x));
+         printf("%d\n", sizeof(&x));
+         printf("%d\n", sizeof(&x[1]));
+         printf("%d\n", sizeof(++x[1]));
+      }"""
+
+    checkResults(code)
+  }
 }
 
 class RolloverTest extends StandardTest {

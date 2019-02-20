@@ -278,20 +278,20 @@ class PointerArithmeticTest extends StandardTest {
     checkResults(code)
   }
 
-//  "advanced pointer arithmetic 2" should "print the correct results" in {
-//    val code = """
-//
-//       int main()
-//       {
-//           int a[][3] = {1, 2, 3, 4, 5, 6};
-//           int (*ptr)[3] = a;
-//           printf("%d %d ", (*ptr)[1], (*ptr)[2]);
-//           ++ptr;
-//           printf("%d %dn", (*ptr)[1], (*ptr)[2]);
-//       }"""
-//
-//    checkResults(code)
-//  }
+  "advanced pointer arithmetic 2" should "print the correct results" in {
+    val code = """
+
+       int main()
+       {
+           int a[][3] = {1, 2, 3, 4, 5, 6};
+           int (*ptr)[3] = a;
+           printf("%d %d ", (*ptr)[1], (*ptr)[2]);
+           ++ptr;
+           printf("%d %dn", (*ptr)[1], (*ptr)[2]);
+       }"""
+
+    checkResults(code)
+  }
 
   "advanced pointer arithmetic 3" should "print the correct results" in {
     val code = """
