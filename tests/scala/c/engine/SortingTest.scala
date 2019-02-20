@@ -182,15 +182,13 @@ class StrandSort extends StandardTest {
 
           node e = 0;
           for (e = 0; list.head; list = rem) {
-
+            int hh = 0;   // FOR SOME REASON NEED THIS FOR NO ERRORS (clobbering?)
             rem.head = rem.tail = 0;
 
             while ((e = removehead(&list)))
               push((!strand.head || e->v >= strand.tail->v) ? &strand : &rem, e);
 
             merge(&res, &strand);
-
-            int hh = 0;   // FOR SOME REASON NEED THIS FOR NO ERRORS
           }
 
           // list to array
