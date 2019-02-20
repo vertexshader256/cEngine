@@ -96,28 +96,6 @@ class SimpleHigherDimArrays extends StandardTest {
   }
 }
 
-class AdvancedArrays extends StandardTest {
-  "array typedefs" should "print the correct results" in {
-    val code =
-      """
-      void main() {
-
-         typedef int Test[10];
-
-         Test x;
-         x[1] = 10;
-         printf("%d\n", x[1]);
-         printf("%d\n", sizeof(Test));
-         printf("%d\n", sizeof(x));
-         printf("%d\n", sizeof(&x));
-         printf("%d\n", sizeof(&x[1]));
-         printf("%d\n", sizeof(++x[1]));
-      }"""
-
-      checkResults(code)
-  }
-}
-
 class HigherDimArrays extends StandardTest {
    
   "A rectangular 2d array" should "print the correct results" in {
