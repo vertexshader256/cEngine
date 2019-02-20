@@ -60,14 +60,19 @@ object Declarator {
         List(Option(decl.getInitializer)).flatten.foreach{Ast.step}
         arrayDecl.getArrayModifiers.foreach{Ast.step}
 
-        val nameBinding = decl.getName.resolveBinding()
-        val name = decl.getName
+        val name = if (arrayDecl.getNestedDeclarator != null) {
+          arrayDecl.getNestedDeclarator.getName
+        } else {
+          arrayDecl.getName
+        }
+
+        val nameBinding = name.resolveBinding()
 
         val theType = nameBinding match {
           case typedef: CTypedef => TypeHelper.stripSyntheticTypeInfo(typedef)
           case vari: IVariable => vari.getType
         }
-      
+
         val dimensions = arrayDecl.getArrayModifiers.filter {
           _.getConstantExpression != null
         }.map { dim =>
@@ -112,7 +117,7 @@ object Declarator {
           } else {
             val initVals: Array[ValueType] = (0 until initializer.getInitializerClause.getChildren.size).map { x => state.context.popStack }.reverse.toArray
 
-            val initialArray = initVals.map { TypeHelper.resolve }.map { x => RValue(x.value, theType.asInstanceOf[IArrayType].getType)}
+            val initialArray = initVals.map { TypeHelper.resolve }.map { x => RValue(x.value, TypeHelper.getPointerType(theType))}
 
             val finalType = if (!dimensions.isEmpty) {
               theType

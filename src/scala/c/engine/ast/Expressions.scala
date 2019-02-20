@@ -75,7 +75,7 @@ object Expressions {
 
       Some(LValue(state, offset, aType))
     case unary: IASTUnaryExpression =>
-      Some(UnaryExpression.execute(evaluate(unary.getOperand).head, unary))
+      Some(UnaryExpression.execute(unary))
     case lit: IASTLiteralExpression =>
         Some(Literal.cast(lit.toString))
     case id: IASTIdExpression =>

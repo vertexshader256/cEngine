@@ -6,6 +6,8 @@ import org.eclipse.cdt.internal.core.dom.parser.c.{CBasicType, CFunctionType}
 import org.eclipse.cdt.core.dom.ast.IASTUnaryExpression._
 import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 
+import scala.c.engine.ast.Expressions.evaluate
+
 object UnaryExpression {
 
   // per C Spec this returns a RValue
@@ -32,7 +34,8 @@ object UnaryExpression {
     }
   }
 
-  def execute(value: ValueType, unary: IASTUnaryExpression)(implicit state: State): ValueType = {
+  def execute(unary: IASTUnaryExpression)(implicit state: State): ValueType = {
+      val value = evaluate(unary.getOperand).head
 
       unary.getOperator match {
         case `op_bracketedPrimary` => value
