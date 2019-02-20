@@ -37,77 +37,76 @@ object UnaryExpression {
   def execute(unary: IASTUnaryExpression)(implicit state: State): ValueType = {
       val value = evaluate(unary.getOperand).head
 
-      if (unary.getOperand.isInstanceOf[IASTUnaryExpression] &&
-        unary.getOperator == `op_sizeof` &&
-        unary.getOperand.asInstanceOf[IASTUnaryExpression].getOperator == `op_bracketedPrimary` &&
-        value.isInstanceOf[LValue] && TypeHelper.isPointer(value.asInstanceOf[LValue].theType)) {
-        value match {
-          case _ @ LValue(_, aType) =>
-            val nestedType = TypeHelper.getPointerType(aType)
+      unary.getOperator match {
+        case `op_bracketedPrimary` => value
+        case `op_tilde` =>
 
-            val result = aType match {
-              case array: IArrayType => TypeHelper.sizeof(nestedType) * array.getSize.numericalValue().toInt
-              case _ => TypeHelper.sizeof(nestedType)
-            }
+          value match {
+            case RValue(rValue, _) =>
+              RValue(~rValue.asInstanceOf[Int], TypeHelper.unsignedIntType)
+            case info@LValue(_, _) =>
+              val theValue = info.rValue
 
-            RValue(result, TypeHelper.intType)
-        }
-      } else {
+              val result = theValue.value match {
+                case byte: Byte => ~byte
+                case int: Int => ~int
+                case short: Short => ~short
+                case long: Long => ~long
+              }
 
-        unary.getOperator match {
-          case `op_bracketedPrimary` => value
-          case `op_tilde` =>
+              TypeHelper.cast(info.theType, result)
+          }
+        case `op_not` => RValue(TypeHelper.not(value), TypeHelper.one.theType)
+        case `op_minus` =>
+          BinaryExpr.evaluate(value, TypeHelper.negativeOne, IASTBinaryExpression.op_multiply)
+        case op@(`op_postFixIncr` | `op_postFixDecr` | `op_prefixIncr` | `op_prefixDecr`) =>
+          evaluateIncrDecr(unary, value, op)
+        case `op_sizeof` =>
 
+          if (unary.getOperand.isInstanceOf[IASTUnaryExpression] &&
+            unary.getOperand.asInstanceOf[IASTUnaryExpression].getOperator == `op_bracketedPrimary` &&
+            value.isInstanceOf[LValue] && TypeHelper.isPointer(value.theType)) {
             value match {
-              case RValue(rValue, _) =>
-                RValue(~rValue.asInstanceOf[Int], TypeHelper.unsignedIntType)
-              case info@LValue(_, _) =>
-                val theValue = info.rValue
+              case _ @ LValue(_, aType) =>
+                val nestedSize = TypeHelper.sizeof(TypeHelper.getPointerType(aType))
 
-                val result = theValue.value match {
-                  case byte: Byte => ~byte
-                  case int: Int => ~int
-                  case short: Short => ~short
-                  case long: Long => ~long
+                val result = aType match {
+                  case array: IArrayType => nestedSize * array.getSize.numericalValue().toInt
+                  case _ => nestedSize
                 }
 
-                TypeHelper.cast(info.theType, result)
+                RValue(result, TypeHelper.intType)
             }
-          case `op_not` => RValue(TypeHelper.not(value), TypeHelper.one.theType)
-          case `op_minus` =>
-            BinaryExpr.evaluate(value, TypeHelper.negativeOne, IASTBinaryExpression.op_multiply)
-          case op@(`op_postFixIncr` | `op_postFixDecr` | `op_prefixIncr` | `op_prefixDecr`) =>
-            evaluateIncrDecr(unary, value, op)
-          case `op_sizeof` =>
+          } else {
             val size = value match {
               case info: LValue => info.sizeof
               case RValue(_, theType) => TypeHelper.sizeof(theType)
             }
 
             RValue(size, TypeHelper.intType)
-          case `op_amper` =>
-            value match {
-              case info@LValue(_, _) =>
-                info.theType match {
-                  case _: CFunctionType => info
-                  case theType: IType => Address(info.address, theType)
-                }
-            }
-          case `op_star` =>
-            value match {
-              case RValue(int: Int, theType) =>
-                LValue(state, int, theType)
-              case info@LValue(_, aType) =>
-                val nestedType = TypeHelper.getPointerType(aType)
+          }
+        case `op_amper` =>
+          value match {
+            case info@LValue(_, _) =>
+              info.theType match {
+                case _: CFunctionType => info
+                case theType: IType => Address(info.address, theType)
+              }
+          }
+        case `op_star` =>
+          value match {
+            case RValue(int: Int, theType) =>
+              LValue(state, int, theType)
+            case info@LValue(_, aType) =>
+              val nestedType = TypeHelper.getPointerType(aType)
 
-                if (!nestedType.isInstanceOf[IFunctionType]) {
-                  LValue(state, info.rValue.value.asInstanceOf[Int], nestedType)
-                } else {
-                  // function pointers can ignore the star
-                  info
-                }
-            }
-        }
+              if (!nestedType.isInstanceOf[IFunctionType]) {
+                LValue(state, info.rValue.value.asInstanceOf[Int], nestedType)
+              } else {
+                // function pointers can ignore the star
+                info
+              }
+          }
       }
   }
 }
