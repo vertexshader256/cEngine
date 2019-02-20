@@ -97,26 +97,13 @@ class SimpleHigherDimArrays extends StandardTest {
 }
 
 class HigherDimArrays extends StandardTest {
-   
-  "A rectangular 2d array" should "print the correct results" in {
+
+  "A different rectangular 2d array" should "print the correct results" in {
     val code = """
       void main() {
-        int x[3][9];
-        int i, j = 0;
-        int count = 0;
-        
-        for (i = 0; i < 3; i++) {
-          for (j = 0; j < 9; j++) {
-            x[i][j] = count;
-            count += 1;
-          }
-        }
-        
-        for (i = 0; i < 3; i++) {
-          for (j = 0; j < 9; j++) {
-            printf("%d\n", x[i][j]);
-          }
-        }  
+        int a[][3] = {1, 2, 3, 4, 5, 6};
+        printf("%d\n", *a[0]);
+        printf("%d\n", *a[1]);
       }"""
 
     checkResults(code, true)

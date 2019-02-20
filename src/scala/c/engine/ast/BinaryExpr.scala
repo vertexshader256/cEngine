@@ -3,7 +3,7 @@ package ast
 
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 import org.eclipse.cdt.core.dom.ast._
-import org.eclipse.cdt.internal.core.dom.parser.c.{CBasicType, CPointerType, CStructure}
+import org.eclipse.cdt.internal.core.dom.parser.c.{CArrayType, CBasicType, CPointerType, CStructure}
 import IBasicType.Kind._
 
 
@@ -54,6 +54,7 @@ object BinaryExpr {
     val isRightPointer = TypeHelper.isPointer(right)
 
     if (operator == `op_minus` || operator == `op_plus`) {
+
       val ptrSize = TypeHelper.sizeof(left.theType)
 
       if (isLeftPointer && isRightPointer) {

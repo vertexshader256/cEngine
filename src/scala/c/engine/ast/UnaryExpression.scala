@@ -62,7 +62,6 @@ object UnaryExpression {
         case op@(`op_postFixIncr` | `op_postFixDecr` | `op_prefixIncr` | `op_prefixDecr`) =>
           evaluateIncrDecr(unary, value, op)
         case `op_sizeof` =>
-
           if (unary.getOperand.isInstanceOf[IASTUnaryExpression] &&
             unary.getOperand.asInstanceOf[IASTUnaryExpression].getOperator == `op_bracketedPrimary` &&
             value.isInstanceOf[LValue] && TypeHelper.isPointer(value.theType)) {
