@@ -49,36 +49,15 @@ object BinaryExpr {
   }
 
   def evaluatePointerArithmetic(left: RValue, right: RValue, operator: Int)(implicit state: State): RValue = {
-
-    val isLeftPointer = TypeHelper.isPointer(left)
-    val isRightPointer = TypeHelper.isPointer(right)
-
-    if (operator == `op_minus` || operator == `op_plus`) {
-
-      val ptrSize = TypeHelper.sizeof(left.theType)
-
-      if (isLeftPointer && isRightPointer) {
-        // assume minus
-        val result = (left.value.asInstanceOf[Int] - right.value.asInstanceOf[Int]) / ptrSize
-        RValue(result, new CPointerType(left.theType, 0))
-      } else if (!isLeftPointer && isRightPointer) {
-        // assume plus
-        val rightPtrSize = TypeHelper.sizeof(right.theType)
-        val result = left.value.asInstanceOf[Int] * rightPtrSize + right.value.asInstanceOf[Int]
-        RValue(result, new CPointerType(right.theType, 0))
-      } else {
-        val value = right.value.asInstanceOf[Int] * ptrSize
-        val offset = if (operator == `op_minus`) {
-          -value
-        } else {
-          +value
-        }
-
-        Address(left.value.asInstanceOf[Int] + offset, left.theType)
-      }
+    val ptrSize = TypeHelper.sizeof(left.theType)
+    val value = right.value.asInstanceOf[Int] * ptrSize
+    val offset = if (operator == `op_minus`) {
+      -value
     } else {
-      RValue(calculate(left.value, right.value, operator), left.theType)
+      +value
     }
+
+    Address(left.value.asInstanceOf[Int] + offset, left.theType)
   }
 
   def calculate(left: AnyVal, right: AnyVal, operator: Int)(implicit state: State): AnyVal = {
@@ -237,7 +216,30 @@ object BinaryExpr {
     val right = TypeHelper.resolve(y)
 
     if (TypeHelper.isPointer(x) || TypeHelper.isPointer(y)) {
-      evaluatePointerArithmetic(left, right, operator)
+
+      val isLeftPointer = TypeHelper.isPointer(left)
+      val isRightPointer = TypeHelper.isPointer(right)
+
+      if (operator == `op_minus` || operator == `op_plus`) {
+
+        val ptrSize = TypeHelper.sizeof(left.theType)
+
+        if (isLeftPointer && isRightPointer) {
+          // assume minus
+          val result = (left.value.asInstanceOf[Int] - right.value.asInstanceOf[Int]) / ptrSize
+          RValue(result, new CPointerType(left.theType, 0))
+        } else if (!isLeftPointer && isRightPointer) {
+          // assume plus
+          val rightPtrSize = TypeHelper.sizeof(right.theType)
+          val result = left.value.asInstanceOf[Int] * rightPtrSize + right.value.asInstanceOf[Int]
+          RValue(result, new CPointerType(right.theType, 0))
+        } else {
+          evaluatePointerArithmetic(left, right, operator)
+        }
+      } else {
+        RValue(calculate(left.value, right.value, operator), left.theType)
+      }
+
     } else {
 
       // conversion rules
