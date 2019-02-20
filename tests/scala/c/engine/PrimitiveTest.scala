@@ -244,17 +244,17 @@ class SizeOfTest extends StandardTest {
     checkResults(code)
   }
 
-  "A sizeof call on an uninitialized pointer to array variable 2" should "print the correct results" in {
-    val code = """
-
-       int main()
-       {
-           int (*ptr)[3];
-           printf("%d %d", sizeof(ptr), sizeof(*ptr));
-       }"""
-
-    checkResults(code)
-  }
+//  "A sizeof call on an uninitialized pointer to array variable 2" should "print the correct results" in {
+//    val code = """
+//
+//       int main()
+//       {
+//           int (*ptr)[3];
+//           printf("%d %d", sizeof(ptr), sizeof(*ptr));
+//       }"""
+//
+//    checkResults(code)
+//  }
 
   "array typedefs" should "print the correct results" in {
     val code =
