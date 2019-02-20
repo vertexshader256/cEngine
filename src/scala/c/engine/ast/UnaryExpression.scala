@@ -6,6 +6,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c.{CBasicType, CFunctionType, CP
 import org.eclipse.cdt.core.dom.ast.IASTUnaryExpression._
 import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 
+import scala.c.engine.ast.BinaryExpr.evaluatePointerArithmetic
 import scala.c.engine.ast.Expressions.evaluate
 
 object UnaryExpression {
@@ -19,7 +20,13 @@ object UnaryExpression {
 
     value match {
       case lValue: LValue =>
-        val newVal = BinaryExpr.evaluate(value, TypeHelper.one, op)
+
+        val newVal = if (TypeHelper.isPointer(lValue.theType)) {
+          evaluatePointerArithmetic(TypeHelper.resolve(lValue), TypeHelper.resolve(TypeHelper.one), op)
+        } else {
+          BinaryExpr.evaluate(value, TypeHelper.one, op)
+        }
+
         val pre = lValue.rValue
         state.Stack.writeToMemory(newVal.value, lValue.address, lValue.theType)
 
