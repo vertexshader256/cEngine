@@ -90,7 +90,7 @@ object Declarator {
 
         if (initializer != null) {
 
-          val (initArray, initType) = if (TypeHelper.isPointer(theType) && TypeHelper.getPointerType(theType).isInstanceOf[CStructure]) {
+          if (TypeHelper.isPointer(theType) && TypeHelper.getPointerType(theType).isInstanceOf[CStructure]) {
 
             val structType = TypeHelper.getPointerType(theType).asInstanceOf[CStructure]
 
@@ -101,7 +101,8 @@ object Declarator {
             val resultType = new CArrayType(structType)
             resultType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, structData.size.toString.toCharArray)))
 
-            (structData, resultType)
+            val theArrayPtr = state.context.addVariable(name.toString, resultType)
+            theArrayPtr.setArray(structData)
           } else if (TypeHelper.resolveBasic(theType).getKind == IBasicType.Kind.eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
             // e.g. char str[] = "Hello!\n";
             val initString = state.context.popStack.asInstanceOf[StringLiteral].value
@@ -113,25 +114,41 @@ object Declarator {
             val inferredArrayType = new CArrayType(theType.asInstanceOf[IArrayType].getType)
             inferredArrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, initString.size.toString.toCharArray)))
 
-            (withNull, inferredArrayType)
-          } else {
+            val theArrayPtr = state.context.addVariable(name.toString, inferredArrayType)
+            theArrayPtr.setArray(withNull)
+
+          } else { // e.g '= {1,2,3,4,5}' or '= variable'
             val initVals: Array[ValueType] = (0 until initializer.getInitializerClause.getChildren.size).map { x => state.context.popStack }.reverse.toArray
+            println(initializer.getInitializerClause.getRawSignature)
 
-            val initialArray = initVals.map { TypeHelper.resolve }.map { x => RValue(x.value, TypeHelper.getPointerType(theType))}
+            if (initVals.size > 1) {
+              val initialArray = initVals.map { TypeHelper.resolve }.map { x => RValue(x.value, TypeHelper.getPointerType(theType))}
 
-            val finalType = if (!dimensions.isEmpty) {
-              theType
+              val finalType = if (!dimensions.isEmpty) {
+                theType
+              } else {
+                val inferredArrayType = new CArrayType(theType.asInstanceOf[IArrayType].getType)
+                inferredArrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, initialArray.size.toString.toCharArray)))
+                inferredArrayType
+              }
+
+              val theArrayPtr = state.context.addVariable(name.toString, finalType)
+              theArrayPtr.setArray(initialArray)
+            } else if (initVals.head.isInstanceOf[RValue]) {
+              val rValue = initVals.head.asInstanceOf[RValue]
+              val theArrayPtr = state.context.addVariable(name.toString, theType)
+              theArrayPtr.setArray(Array(rValue))
             } else {
-              val inferredArrayType = new CArrayType(theType.asInstanceOf[IArrayType].getType)
-              inferredArrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, initialArray.size.toString.toCharArray)))
-              inferredArrayType
+              println("....")
+              val lValue = initVals.head.asInstanceOf[LValue]
+              val theArrayPtr = state.context.addVariable(name.toString, theType)
+              state.copy(theArrayPtr.address, lValue.address, lValue.sizeof)
             }
 
-            (initialArray, finalType)
+
           }
 
-          val theArrayPtr = state.context.addVariable(name.toString, initType)
-          theArrayPtr.setArray(initArray)
+
 
           Seq()
         } else {
