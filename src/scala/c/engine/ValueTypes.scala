@@ -124,14 +124,16 @@ case class Variable(name: String, state: State, aType: IType) extends LValue {
   def allocateSpace(state: State, aType: IType): Int = {
     def recurse(aType: IType): Int = aType match {
       case array: IArrayType =>
-
-        val size = if (array.hasSize) {
-          array.getSize.numericalValue().toInt
-        } else {
-          1
-        }
-
         if (array.getType.isInstanceOf[IArrayType]) { // multi-dimensional array
+
+          val innerArray = array.getType.asInstanceOf[IArrayType]
+
+          val size = if (innerArray.hasSize) {
+            innerArray.getSize.numericalValue().toInt
+          } else {
+            1
+          }
+
           val addr = state.allocateSpace(TypeHelper.sizeof(array)(state) * size)
           for (i <- (0 until size)) {
             val subaddr = recurse(array.getType)
@@ -139,6 +141,14 @@ case class Variable(name: String, state: State, aType: IType) extends LValue {
           }
           addr
         } else {
+
+          val size = if (array.hasSize) {
+            array.getSize.numericalValue().toInt
+          } else {
+            1
+          }
+
+
           state.allocateSpace(TypeHelper.sizeof(array.getType)(state) * size)
         }
       case x =>
