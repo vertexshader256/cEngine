@@ -232,11 +232,10 @@ object BinaryExpr {
       val isLeftPointer = TypeHelper.isPointer(left)
       val isRightPointer = TypeHelper.isPointer(right)
 
-      val ptrSize = TypeHelper.sizeof(left.theType)
-
       if (isLeftPointer && isRightPointer) {
         // assume minus
-        val result = (left.value.asInstanceOf[Int] - right.value.asInstanceOf[Int]) / ptrSize
+        val leftSize = TypeHelper.sizeof(left.theType)
+        val result = left.value.asInstanceOf[Int] / leftSize - right.value.asInstanceOf[Int] / leftSize
         RValue(result, new CPointerType(left.theType, 0))
       } else if (!isLeftPointer && isRightPointer) {
         // assume plus
