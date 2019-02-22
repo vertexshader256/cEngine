@@ -50,7 +50,8 @@ object BinaryExpr {
 
   def evaluatePointerArithmetic(left: ValueType, offset: Int, operator: Int)(implicit state: State): RValue = {
     println(left.getClass.getSimpleName)
-    val ptrSize = if (left.isInstanceOf[Address]) {
+    // For some reason double pointers should only use sizeof().  Not sure why.
+    val ptrSize = if (left.isInstanceOf[Address] || (TypeHelper.isDoublePointer(left.theType))) {
       TypeHelper.sizeof(left.theType)
     } else {
       TypeHelper.getPointerSize(left.asInstanceOf[LValue].rValue.theType)
