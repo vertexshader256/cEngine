@@ -56,13 +56,11 @@ object BinaryExpr {
       TypeHelper.getPointerSize(left.asInstanceOf[LValue].rValue.theType)
     }
 
-
-    println(ptrSize)
     val value = offset * ptrSize
     val computedOffset = if (operator == `op_minus`) {
       -value
     } else {
-      +value
+      value
     }
 
     left match {
@@ -236,12 +234,12 @@ object BinaryExpr {
         // assume minus
         val leftSize = TypeHelper.sizeof(left.theType)
         val result = left.value.asInstanceOf[Int] / leftSize - right.value.asInstanceOf[Int] / leftSize
-        RValue(result, new CPointerType(left.theType, 0))
+        Address(result, left.theType)
       } else if (!isLeftPointer && isRightPointer) {
         // assume plus
         val rightPtrSize = TypeHelper.sizeof(right.theType)
         val result = left.value.asInstanceOf[Int] * rightPtrSize + right.value.asInstanceOf[Int]
-        RValue(result, new CPointerType(right.theType, 0))
+        Address(result, right.theType)
       } else {
         evaluatePointerArithmetic(left, right.value.asInstanceOf[Int], operator)
       }
