@@ -275,6 +275,21 @@ class PointerArithmeticTest extends StandardTest {
     checkResults(code)
   }
 
+  "tricky pointer arithmetic with pointers case 3" should "print the correct results" in {
+    val code = """
+      void main() {
+
+         typedef int Test[10];
+
+         Test x[5];
+
+         printf("%d\n", x - ++x);
+
+      }"""
+
+    checkResults(code)
+  }
+
   "tricky pointer arithmetic with pointers case 2" should "print the correct results" in {
     val code = """
       void main() {
