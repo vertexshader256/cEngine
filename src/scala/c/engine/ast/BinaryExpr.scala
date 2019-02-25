@@ -55,8 +55,8 @@ object BinaryExpr {
     }
 
     // For some reason double pointers should only use sizeof().  Not sure why.
-    val value = if (left.isInstanceOf[LValue] && !left.theType.asInstanceOf[CPointerType].getType.isInstanceOf[CPointerType]) {
-      val ptrType = left.theType.asInstanceOf[CPointerType].getType
+    val value = if (left.isInstanceOf[LValue] && !TypeHelper.getPointerType(left.theType).isInstanceOf[CPointerType]) {
+      val ptrType = TypeHelper.getPointerType(left.theType)
       TypeHelper.getPointerSize(ptrType)
     } else {
       TypeHelper.sizeof(left.theType)
