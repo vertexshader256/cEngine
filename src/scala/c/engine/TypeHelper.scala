@@ -292,17 +292,12 @@ object TypeHelper {
   }
 
   def getPointerSize(theType: IType)(implicit state: State): Int = {
-    if (TypeHelper.isPointer(theType)) {
-      val nestedSize = TypeHelper.sizeof(TypeHelper.getPointerType(theType))
-
-      val result = theType match {
-        case array: IArrayType => nestedSize * array.getSize.numericalValue().toInt
-        case _ => nestedSize
-      }
-
-      result
-    } else {
-      TypeHelper.sizeof(theType)(state)
+    theType match {
+      case ptr: IPointerType =>
+        TypeHelper.sizeof(ptr.getType)
+      case array: IArrayType if array.hasSize =>
+        TypeHelper.sizeof(array.getType) * array.getSize.numericalValue().toInt
+      case _ => TypeHelper.sizeof(theType)(state)
     }
   }
 

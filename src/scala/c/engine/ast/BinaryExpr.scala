@@ -49,26 +49,26 @@ object BinaryExpr {
   }
 
   def evaluatePointerArithmetic(left: ValueType, offset: Int, operator: Int)(implicit state: State): RValue = {
-    println(left.getClass.getSimpleName)
-    // For some reason double pointers should only use sizeof().  Not sure why.
-    val ptrSize = if (left.isInstanceOf[Address] || (TypeHelper.isDoublePointer(left.theType))) {
-      TypeHelper.sizeof(left.theType)
-    } else {
-      TypeHelper.getPointerSize(left.asInstanceOf[LValue].rValue.theType)
+    val rValue = left match {
+      case left @ LValue(_, _) => left.rValue
+      case rValue @ RValue(_, _) => rValue
     }
 
-    val value = offset * ptrSize
+    // For some reason double pointers should only use sizeof().  Not sure why.
+    val value = if (left.isInstanceOf[LValue] && !left.theType.asInstanceOf[CPointerType].getType.isInstanceOf[CPointerType]) {
+      val ptrType = left.theType.asInstanceOf[CPointerType].getType
+      TypeHelper.getPointerSize(ptrType)
+    } else {
+      TypeHelper.sizeof(left.theType)
+    } * offset
+
     val computedOffset = if (operator == `op_minus`) {
       -value
     } else {
       value
     }
 
-    left match {
-      case left @ LValue(_, theType) => Address(left.rValue.value.asInstanceOf[Int] + computedOffset, TypeHelper.getPointerType(left.theType))
-      case RValue(value, theType) => Address(value.asInstanceOf[Int] + computedOffset, theType)
-    }
-
+    Address(rValue.value.asInstanceOf[Int] + computedOffset, rValue.theType)
   }
 
   def calculate(left: AnyVal, right: AnyVal, operator: Int)(implicit state: State): AnyVal = {
