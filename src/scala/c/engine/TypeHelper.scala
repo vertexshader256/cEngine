@@ -203,10 +203,6 @@ object TypeHelper {
     theType.isInstanceOf[IPointerType] || theType.isInstanceOf[IArrayType]
   }
 
-  def isDoublePointer(theType: IType): Boolean = {
-    theType.isInstanceOf[CPointerType] && theType.asInstanceOf[CPointerType].getType.isInstanceOf[CPointerType]
-  }
-
   def not(theVal: Any): AnyVal = theVal match {
     case info @ LValue(_, _) => not(info.rValue)
     case RValue(theVal, _) => not(theVal)
