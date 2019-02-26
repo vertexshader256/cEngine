@@ -194,22 +194,17 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
 
         gccOutput = if (numErrors == 0) {
 
-          var isDone = false
+          try {
+            // run the actual executable
+            val runner = Process(Seq(exeFile.getAbsolutePath) ++ args, new File("."))
+            val run = runner.run(runLogger.process)
 
-          while (!isDone) {
-            try {
-              // run the actual executable
-              val runner = Process(Seq(exeFile.getAbsolutePath) ++ args, new File("."))
-              val run = runner.run(runLogger.process)
+            // delete files while program is running
+            files.foreach{file => file.delete()}
 
-              // delete files while program is running
-              files.foreach{file => file.delete()}
-
-              run.exitValue()
-              isDone = true
-            } catch {
-              case e =>
-            }
+            run.exitValue()
+          } catch {
+            case e =>
           }
 
           runLogger.stdout

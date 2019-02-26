@@ -275,35 +275,6 @@ class PointerArithmeticTest extends StandardTest {
     checkResults(code)
   }
 
-//  "tricky pointer arithmetic with pointers case 3" should "print the correct results" in {
-//    val code = """
-//      void main() {
-//
-//         typedef int Test[10];
-//
-//         Test x[5];
-//
-//         printf("%d\n", x - ++x);
-//
-//      }"""
-//
-//    checkResults(code)
-//  }
-
-//  "ptr arithmetic case which seems to lock up the engine" should "print the correct results" in {
-//    val code = """
-//      void main() {
-//
-//         int x[5];
-//         int *x2 = x++;
-//
-//         printf("DONE\n");
-//
-//      }"""
-//
-//    checkResults(code)
-//  }
-
   "tricky pointer arithmetic with pointers case 2" should "print the correct results" in {
     val code = """
       void main() {
