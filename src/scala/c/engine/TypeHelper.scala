@@ -231,6 +231,17 @@ object TypeHelper {
     case fcn: IFunctionType       => fcn
   }
 
+  def printType(theType: IType): String = theType match {
+    case struct: CStructure       => "CStructure()"
+    case basicType: IBasicType    => s"BasicType(${basicType.getKind}, ${basicType.getModifiers})"
+    case typedef: ITypedef        => s"TypeDef(${printType(typedef.getType)})"
+    case ptrType: IPointerType    => s"CPointerType(${printType(ptrType.getType)})"
+    case arrayType: IArrayType    => s"CArrayType(${printType(arrayType.getType)})"
+    case qualType: IQualifierType => s"QualifiedType(${printType(qualType.getType)})"
+    case fcn: IFunctionType       => s"FunctionType(${fcn.getParameterTypes.map(printType).reduce{_ + ", " + _}})"
+    case _ => "null"
+  }
+
   def getPointerType(theType: IType): IType = theType match {
     case typedef: ITypedef        => getPointerType(typedef.getType)
     case ptrType: IPointerType    => TypeHelper.stripSyntheticTypeInfo(ptrType.getType)
