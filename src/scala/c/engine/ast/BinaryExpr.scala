@@ -62,11 +62,9 @@ object BinaryExpr {
       TypeHelper.sizeof(ptr.theType)
     } * offset
 
-    val computedOffset = if (operator == `op_minus`) {
-      -value
-    } else {
-      value
-    }
+    val bias = if (operator == `op_minus`) -1 else 1
+
+    val computedOffset = value * bias
 
     Address(rValue.value.asInstanceOf[Int] + computedOffset, rValue.theType)
   }
