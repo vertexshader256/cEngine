@@ -244,6 +244,18 @@ class SizeOfTest extends StandardTest {
     checkResults(code)
   }
 
+  "A sizeof on a 2d array variable" should "print the correct results" in {
+    val code = """
+
+       int main()
+       {
+           int a[2][3] = {1, 2, 3, 4, 5, 6};
+           printf("%d", sizeof(a));
+       }"""
+
+    checkResults(code)
+  }
+
 //  "A sizeof call on an uninitialized pointer to array variable 2" should "print the correct results" in {
 //    val code = """
 //
