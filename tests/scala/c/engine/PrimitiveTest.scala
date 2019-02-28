@@ -250,7 +250,8 @@ class SizeOfTest extends StandardTest {
        int main()
        {
            int a[2][3] = {1, 2, 3, 4, 5, 6};
-           printf("%d", sizeof(a));
+           printf("%d\n", sizeof(a));
+           printf("%d\n", sizeof(a[0]));
        }"""
 
     checkResults(code)
