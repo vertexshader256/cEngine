@@ -126,6 +126,20 @@ class HigherDimArrays extends StandardTest {
     checkResults(code)
   }
 
+  "2d array addressing" should "print the correct results" in {
+    val code = """
+      void main() {
+        int a[2][3] = {1, 2, 3, 4, 5, 6};
+        printf("%d\n", &(a[0][0]) - &(a[0][0]));
+        printf("%d\n", &(a[0][0]) - &(a[0][1]));
+        printf("%d\n", &(a[0][0]) - &(a[0][2]));
+        printf("%d\n", &(a[0][0]) - &(a[1][0]));
+        printf("%d\n", &(a[0][0]) - &(a[1][1]));
+      }"""
+
+    checkResults(code, true)
+  }
+
   "Initialize a 2d array" should "print the correct results" in {
     val code = """
       void main() {
