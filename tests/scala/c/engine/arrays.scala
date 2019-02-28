@@ -1,11 +1,29 @@
 package scala.c.engine
 
 class ArrayStagingArea extends StandardTest {
-  "An array addressing check" should "print the correct results" in {
+
+  "An 1d array addressing check" should "print the correct results" in {
     val code = """
       void main() {
-        int x[2][2];
+        int x[2];
         printf("%d\n", &x[1] - x);
+      }"""
+
+    checkResults(code)
+  }
+
+  "2d array pointer arithmetic" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x[2][2] = {1,2,3,4};
+        int *ptr = x;
+        printf("%d\n", *ptr);
+        ptr++;
+        printf("%d\n", *ptr);
+        ptr++;
+        printf("%d\n", *ptr);
+        ptr++;
+        printf("%d\n", *ptr);
       }"""
 
     checkResults(code)
