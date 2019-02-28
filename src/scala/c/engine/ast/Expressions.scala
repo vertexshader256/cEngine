@@ -62,18 +62,17 @@ object Expressions {
       }
 
       val aType = TypeHelper.getPointerType(arrayVarPtr.theType)
-      val offset = arrayVarPtr.theType match {
+      arrayVarPtr.theType match {
         case x: IArrayType if x.getType.isInstanceOf[IArrayType] =>
-          state.readPtrVal(arrayVarPtr.address + index * 4)
+          val offset = state.readPtrVal(arrayVarPtr.address + index * 4)
+          Some(LValue(state, offset, aType))
         case x: IPointerType  =>
-          state.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
+          val offset = state.readPtrVal(arrayVarPtr.address) + index * TypeHelper.sizeof(aType)
+          Some(LValue(state, offset, aType))
         case _ =>
-          arrayVarPtr.address + index * TypeHelper.sizeof(aType)
+          val offset = arrayVarPtr.address + index * TypeHelper.sizeof(aType)
+          Some(LValue(state, offset, aType))
       }
-
-      // state.readPtrVal(
-
-      Some(LValue(state, offset, aType))
     case unary: IASTUnaryExpression =>
       Some(UnaryExpression.execute(unary))
     case lit: IASTLiteralExpression =>

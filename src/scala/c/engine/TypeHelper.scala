@@ -329,14 +329,12 @@ object TypeHelper {
       }
 
       Math.ceil(Math.max(numBits, 32) / 32.0).toInt * 4
+    case array: IArrayType if array.hasSize =>
+      sizeof(array.getType) * array.getSize.numericalValue().toInt
     case array: IArrayType =>
       sizeof(array.getType)
     case typedef: CTypedef =>
-      if (typedef.getType.isInstanceOf[IArrayType]) {
-        sizeof(typedef.getType) * typedef.getType.asInstanceOf[IArrayType].getSize.numericalValue().toInt
-      } else {
-        sizeof(typedef.getType)
-      }
+      sizeof(typedef.getType)
     case qual: IQualifierType =>
       sizeof(qual.getType)
     case basic: IBasicType =>
