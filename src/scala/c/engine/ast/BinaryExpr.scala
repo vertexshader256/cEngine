@@ -224,11 +224,10 @@ object BinaryExpr {
     val left = TypeHelper.resolve(x)
     val right = TypeHelper.resolve(y)
 
-    if ((TypeHelper.isPointer(x) || TypeHelper.isPointer(y)) && (operator == `op_minus` || operator == `op_plus`)) {
+    val isLeftPointer = TypeHelper.isPointer(x)
+    val isRightPointer = TypeHelper.isPointer(y)
 
-      val isLeftPointer = TypeHelper.isPointer(left)
-      val isRightPointer = TypeHelper.isPointer(right)
-
+    if ((isLeftPointer || isRightPointer) && (operator == `op_minus` || operator == `op_plus`)) {
       if (isLeftPointer && isRightPointer) {
         // assume minus
         val leftSize = TypeHelper.sizeof(left.theType)
