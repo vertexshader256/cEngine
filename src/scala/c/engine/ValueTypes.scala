@@ -5,6 +5,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c._
 
 abstract class ValueType {
   def theType: IType
+  def rawType: IType
 }
 
 trait LValue extends ValueType {
@@ -46,6 +47,7 @@ object LValue {
       val bitOffset = 0
       val sizeInBits = sizeof * 8
       val theType = TypeHelper.stripSyntheticTypeInfo(aType)
+      val rawType = aType
       //def sizeof = TypeHelper.sizeof(theType)(state)}
       val sizeof = {
         TypeHelper.getPointerSize(theType)(state)
@@ -55,16 +57,18 @@ object LValue {
 
 case class StringLiteral(value: String) extends ValueType {
   val theType = new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0)
+  val rawType = theType
 }
 
 case class TypeInfo(value: IType) extends ValueType {
   val theType = value
+  val rawType = theType
 }
 
 object RValue {
   def unapply(rvalue: RValue): Option[(AnyVal, IType)] = Some((rvalue.value, rvalue.theType))
   def apply(theValue: AnyVal, aType: IType) =
-    new RValue {val theType = TypeHelper.stripSyntheticTypeInfo(aType); val value = theValue;}
+    new RValue {val theType = TypeHelper.stripSyntheticTypeInfo(aType); val rawType = aType; val value = theValue;}
 }
 
 abstract class RValue extends ValueType {
@@ -80,15 +84,18 @@ case class Address(value: Int, theType: IType) extends RValue {
   override def toString = {
     "Address(" + value + ", " + theType + ")"
   }
+  val rawType = theType
 }
 
 case class Field(state: State, address: Int, bitOffset: Int, theType: IType, sizeInBits: Int) extends LValue {
   val sizeof = sizeInBits / 8
+  val rawType = theType
 }
 
 case class Variable(name: String, state: State, aType: IType) extends LValue {
 
   val theType = TypeHelper.stripSyntheticTypeInfo(aType)
+  val rawType = aType
   val bitOffset = 0
   val sizeInBits = sizeof * 8
 
