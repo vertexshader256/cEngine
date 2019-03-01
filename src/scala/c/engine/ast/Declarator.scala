@@ -96,7 +96,7 @@ object Declarator {
 
             val structData = initializer.getInitializerClause.getChildren.flatMap { list =>
               structType.getFields.map { field => TypeHelper.resolve(state.context.popStack) }
-            }.reverse
+            }.reverse.toList
 
             val resultType = new CArrayType(structType)
             resultType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, structData.size.toString.toCharArray)))
@@ -109,7 +109,8 @@ object Declarator {
 
             val theStr = Utils.stripQuotes(initString)
             val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
-            val withNull = (translateLineFeed.toCharArray() :+ 0.toChar).map { char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))} // terminating null char
+            val withNull = (translateLineFeed.toCharArray() :+ 0.toChar)
+              .map { char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))}.toList // terminating null char
 
             val inferredArrayType = new CArrayType(theType.asInstanceOf[IArrayType].getType)
             inferredArrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, initString.size.toString.toCharArray)))
@@ -122,7 +123,7 @@ object Declarator {
             println(initializer.getInitializerClause.getRawSignature)
 
             if (initVals.size > 1) {
-              val initialArray = initVals.map { TypeHelper.resolve }.map { x => RValue(x.value, TypeHelper.getPointerType(theType))}
+              val initialArray = initVals.map { TypeHelper.resolve }.map { x => RValue(x.value, TypeHelper.getPointerType(theType))}.toList
 
               val finalType = if (!dimensions.isEmpty) {
                 theType
@@ -137,7 +138,7 @@ object Declarator {
             } else if (initVals.head.isInstanceOf[RValue]) {
               val rValue = initVals.head.asInstanceOf[RValue]
               val theArrayPtr = state.context.addVariable(name.toString, theType)
-              theArrayPtr.setArray(Array(rValue))
+              theArrayPtr.setArray(List(rValue))
             } else {
               println("....")
               val lValue = initVals.head.asInstanceOf[LValue]

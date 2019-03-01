@@ -99,8 +99,8 @@ case class Variable(name: String, state: State, aType: IType) extends LValue {
   val bitOffset = 0
   val sizeInBits = sizeof * 8
 
-  def setArray(array: Array[RValue]): Unit = {
-    def recursiveWrite(aType: IType, theAddress: Int, values: Array[RValue]): Unit = aType match {
+  def setArray(array: List[RValue]): Unit = {
+    def recursiveWrite(aType: IType, theAddress: Int, values: List[RValue]): Unit = aType match {
       case theArray: IArrayType =>
 
         if (theArray.hasSize) {

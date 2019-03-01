@@ -239,7 +239,7 @@ object Functions {
         val result = state.Stack.readFromMemory(location + index + 4, new CBasicType(IBasicType.Kind.eChar, 0))
         index += size
         result
-      }.toArray
+      }.toList
 
       state.Stack.tape.putInt(location, index) // index space
 
@@ -646,7 +646,7 @@ object Functions {
           val index = result1.indexOf('.')
           val resultString = result1.replace(".", "")
 
-          val array = resultString.toCharArray.map{ char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))}
+          val array = resultString.toCharArray.map{ char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))}.toList
 
           state.Stack.writeToMemory(index, decpt, TypeHelper.intType)
 

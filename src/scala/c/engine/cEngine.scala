@@ -665,7 +665,7 @@ class State(pointerSize: NumBits) {
     RValue(strAddr, pointerType)
   }
 
-  def writeDataBlock(array: Array[RValue], startingAddress: Int)(implicit state: State): Unit = {
+  def writeDataBlock(array: List[RValue], startingAddress: Int)(implicit state: State): Unit = {
       var address = startingAddress
 
       array.foreach { element =>
