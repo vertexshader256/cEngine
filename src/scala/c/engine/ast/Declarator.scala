@@ -120,10 +120,10 @@ object Declarator {
 
           } else { // e.g '= {1,2,3,4,5}' or '= variable'
             val initVals: Array[ValueType] = (0 until initializer.getInitializerClause.getChildren.size).map { x => state.context.popStack }.reverse.toArray
-            println(initializer.getInitializerClause.getRawSignature)
 
             if (initVals.size > 1) {
-              val initialArray = initVals.map { TypeHelper.resolve }.map { x => RValue(x.value, TypeHelper.getPointerType(theType))}.toList
+              val baseType = TypeHelper.resolveBasic(theType)
+              val initialArray = initVals.map { TypeHelper.resolve }.map { x => TypeHelper.cast(baseType, x.value)}.toList
 
               val finalType = if (!dimensions.isEmpty) {
                 theType
