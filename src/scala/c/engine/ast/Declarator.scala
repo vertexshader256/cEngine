@@ -73,14 +73,10 @@ object Declarator {
           case vari: IVariable => vari.getType
         }
 
-        val dimensions = arrayDecl.getArrayModifiers.filter {
+        val dimensions = arrayDecl.getArrayModifiers.toList.filter {
           _.getConstantExpression != null
-        }.map { dim =>
-          state.context.popStack match {
-            // can we can assume dimensions are integers
-            case RValue(value, _) => value.asInstanceOf[Int]
-            case info@LValue(_, _) => info.rValue.value.asInstanceOf[Int]
-          }
+        }.map { _ =>
+          TypeHelper.resolve(state.context.popStack).value.asInstanceOf[Int]
         }
 
         val initializer = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
@@ -123,7 +119,7 @@ object Declarator {
 
             if (initVals.size > 1) {
               val baseType = TypeHelper.resolveBasic(theType)
-              val initialArray = initVals.map { TypeHelper.resolve }.map { x => TypeHelper.cast(baseType, x.value)}.toList
+              val initialArray = initVals.map { x => TypeHelper.cast(baseType, TypeHelper.resolve(x).value)}.toList
 
               val finalType = if (!dimensions.isEmpty) {
                 theType
@@ -140,16 +136,11 @@ object Declarator {
               val theArrayPtr = state.context.addVariable(name.toString, theType)
               theArrayPtr.setArray(List(rValue))
             } else {
-              println("....")
               val lValue = initVals.head.asInstanceOf[LValue]
               val theArrayPtr = state.context.addVariable(name.toString, theType)
               state.copy(theArrayPtr.address, lValue.address, lValue.sizeof)
             }
-
-
           }
-
-
 
           Seq()
         } else {

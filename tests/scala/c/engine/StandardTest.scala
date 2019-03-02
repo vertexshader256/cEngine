@@ -178,41 +178,64 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
 //        val precompile = prebuilder.run(logger.process)
 //        precompile.exitValue()
 
+        // 3/1/19: It seems to help reliability if we DONT run this concurrently with gcc
+
+
         val processTokens =
           size ++ sourceFileTokens ++ includeTokens ++ Seq("-o", exeFile.getAbsolutePath) ++ Seq("-D", "ALLOC_TESTING")
 
         val builder = Process(processTokens, new java.io.File("."))
         val compile = builder.run(logger.process)
 
-        // while its compiling, run the cEngine code
-
         cEngineOutput = getCEngineResults(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
 
-        compile.exitValue()
+        while (compile.isAlive()) {
+          Thread.sleep(50)
+        }
+
+        Thread.sleep(100) // time for SSD to write file *NEEDED*
 
         val numErrors = 0//logger.errors.length
 
         gccOutput = if (numErrors == 0) {
 
-          try {
-            // run the actual executable
-            val runner = Process(Seq(exeFile.getAbsolutePath) ++ args, new File("."))
-            val run = runner.run(runLogger.process)
+          var isDone = false
+          val maxTries = 50 // 50 is proven to work
+          var i = 0
+          var result: Seq[String] = null
 
-            // delete files while program is running
-            files.foreach{file => file.delete()}
+          files.foreach { _.delete()}
 
-            run.exitValue()
-          } catch {
-            case e =>
+          // 3/1/19: Protip - This helps tests run reliably!
+          while (!isDone && i < maxTries) {
+
+            i += 1
+            try {
+              // run the actual executable
+              val runner = Process(Seq(exeFile.getAbsolutePath) ++ args, new File("."))
+              val run = runner.run(runLogger.process)
+
+              while (run.isAlive()) {
+                Thread.sleep(50)
+              }
+
+              result = runLogger.stdout
+
+              // for some reason, gcc seems to return empty results from time to time (1 in 600 chance?)
+              if (result.nonEmpty) {
+                isDone = true
+              }
+            } catch {
+              case e => e.printStackTrace()
+            }
           }
 
-          runLogger.stdout
+          result
         } else {
           logger.errors
         }
 
-        Future {exeFile.delete()}
+        exeFile.delete()
 
       } catch {
         case e: Exception => except = e
