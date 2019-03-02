@@ -1,6 +1,7 @@
 package scala.c.engine
 
 import java.io.{File, PrintWriter}
+import java.nio.file.{Files, Path}
 import java.util.concurrent.atomic.AtomicInteger
 
 import org.eclipse.cdt.core.dom.ast._
@@ -190,10 +191,16 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
         cEngineOutput = getCEngineResults(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
 
         while (compile.isAlive()) {
-          Thread.sleep(50)
+          Thread.sleep(5)
         }
 
-        Thread.sleep(100) // time for SSD to write file *NEEDED*
+        val exe = new File(exeFile.getAbsolutePath).toPath
+
+        var i = 0
+        while (!Files.exists(exe) && i < 100) {
+          Thread.sleep(10)
+          i += 1
+        }
 
         val numErrors = 0//logger.errors.length
 
@@ -216,17 +223,20 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
               val run = runner.run(runLogger.process)
 
               while (run.isAlive()) {
-                Thread.sleep(50)
+                Thread.sleep(20)
               }
+
+              Thread.sleep(20) // give stdout time to settle
 
               result = runLogger.stdout
 
-              // for some reason, gcc seems to return empty results from time to time (1 in 600 chance?)
               if (result.nonEmpty) {
                 isDone = true
               }
             } catch {
-              case e => e.printStackTrace()
+              case e =>
+                //e.printStackTrace()
+                Thread.sleep(50)
             }
           }
 
@@ -248,7 +258,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
         throw except
       }
 
-      assert(cEngineOutput.map{_.getBytes.toList} == gccOutput.toList.map{_.getBytes.toList})
+      assert(cEngineOutput.map{_.getBytes.toList} === gccOutput.toList.map{_.getBytes.toList})
     }
   }
 }
