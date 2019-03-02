@@ -51,8 +51,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 
   def addArrayVariable(name: String, theType: IType, initVals: List[RValue]): Variable = {
     staticVars.find{_.name == name}.getOrElse {
-      val newVar = Variable(name, state, theType)
-      newVar.setArray(initVals)
+      val newVar = Variable(name, state, theType, initVals)
       variableScopes.head.varMap += newVar.name -> newVar
       newVar
     }

@@ -92,31 +92,28 @@ case class Field(state: State, address: Int, bitOffset: Int, theType: IType, siz
   val rawType = theType
 }
 
-case class Variable(name: String, state: State, aType: IType) extends LValue {
+object Variable {
+  def apply(name: String, state: State, aType: IType, initVals: List[RValue]): Variable = {
+    val size = TypeHelper.sizeof(aType)(state)
+    val variable = Variable(name: String, state: State, aType: IType, size)
+    state.writeDataBlock(initVals, variable.address)(state)
+    variable
+  }
+
+  def apply(name: String, state: State, aType: IType): Variable = {
+    val size = TypeHelper.sizeof(aType)(state)
+    Variable(name: String, state: State, aType: IType, size)
+  }
+}
+
+case class Variable(name: String, state: State, aType: IType, sizeof: Int) extends LValue {
 
   val theType = TypeHelper.stripSyntheticTypeInfo(aType)
   val rawType = aType
   val bitOffset = 0
   val sizeInBits = sizeof * 8
 
-  def setArray(values: List[RValue]): Unit = {
-    state.writeDataBlock(values, address)(state)
-  }
-
-  def allocateSpace(state: State, aType: IType): Int = {
-    state.allocateSpace(TypeHelper.sizeof(theType)(state))
-  }
-
-  val (allocate, theSize) = {
-    val current = state.Stack.insertIndex
-    val result = allocateSpace(state, theType)
-    val size = state.Stack.insertIndex - current
-    (result, size)
-  }
-
-  val address = allocate
-
-  def sizeof = theSize
+  val address = state.allocateSpace(sizeof)
 
   // need this for function-scoped static vars
   var isInitialized = false
