@@ -192,7 +192,7 @@ object TypeHelper {
     any match {
       case info @ LValue(_, _) => info.rValue
       case rValue @ RValue(_, _) => rValue
-      case StringLiteral(str) => state.createStringVariable(str, false)
+      case StringLiteral(str) => state.getString(str)
     }
   }
 
@@ -202,6 +202,13 @@ object TypeHelper {
 
   def isPointer(theType: IType): Boolean = {
     theType.isInstanceOf[IPointerType] || theType.isInstanceOf[IArrayType]
+  }
+
+  def getBindingType(binding: IBinding) = {
+    binding match {
+      case typedef: CTypedef => TypeHelper.stripSyntheticTypeInfo(typedef)
+      case vari: IVariable => TypeHelper.stripSyntheticTypeInfo(vari.getType)
+    }
   }
 
   def not(theVal: Any): AnyVal = theVal match {

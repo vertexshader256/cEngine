@@ -655,14 +655,28 @@ class State(pointerSize: NumBits) {
     }
   }
 
-  def createStringVariable(str: String, isHeap: Boolean): RValue = {
+  def getString(str: String): RValue = {
     val theStr = Utils.stripQuotes(str)
 
     val withNull = (theStr.toCharArray() :+ 0.toChar).map(_.toByte) // terminating null char
-    val strAddr = if (isHeap) allocateHeapSpace(withNull.size) else allocateSpace(withNull.size)
+    val strAddr = allocateSpace(withNull.size)
 
     writeDataBlock(withNull, strAddr)(this)
     RValue(strAddr, pointerType)
+  }
+
+  def createStringArrayVariable(varName: String, str: String): Variable = {
+    val theStr = Utils.stripQuotes(str)
+    val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
+    val withNull = (translateLineFeed.toCharArray() :+ 0.toChar)
+      .map { char => RValue(char.toByte, TypeHelper.charType)}.toList // terminating null char
+
+    val inferredArrayType = new CArrayType(TypeHelper.charType)
+    inferredArrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, str.size.toString.toCharArray)))
+
+    val theArrayPtr = context.addVariable(varName, inferredArrayType)
+    theArrayPtr.setArray(withNull)
+    theArrayPtr
   }
 
   def writeDataBlock(array: List[RValue], startingAddress: Int)(implicit state: State): Unit = {

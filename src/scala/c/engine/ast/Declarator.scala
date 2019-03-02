@@ -66,12 +66,7 @@ object Declarator {
           arrayDecl.getName
         }
 
-        val nameBinding = name.resolveBinding()
-
-        val theType = nameBinding match {
-          case typedef: CTypedef => TypeHelper.stripSyntheticTypeInfo(typedef)
-          case vari: IVariable => vari.getType
-        }
+        val theType = TypeHelper.getBindingType(name.resolveBinding())
 
         val dimensions = arrayDecl.getArrayModifiers.toList.filter {
           _.getConstantExpression != null
@@ -102,18 +97,7 @@ object Declarator {
           } else if (TypeHelper.resolveBasic(theType).getKind == IBasicType.Kind.eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
             // e.g. char str[] = "Hello!\n";
             val initString = state.context.popStack.asInstanceOf[StringLiteral].value
-
-            val theStr = Utils.stripQuotes(initString)
-            val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
-            val withNull = (translateLineFeed.toCharArray() :+ 0.toChar)
-              .map { char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0))}.toList // terminating null char
-
-            val inferredArrayType = new CArrayType(theType.asInstanceOf[IArrayType].getType)
-            inferredArrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, initString.size.toString.toCharArray)))
-
-            val theArrayPtr = state.context.addVariable(name.toString, inferredArrayType)
-            theArrayPtr.setArray(withNull)
-
+            state.createStringArrayVariable(name.toString, initString)
           } else { // e.g '= {1,2,3,4,5}' or '= variable'
             val initVals: Array[ValueType] = (0 until initializer.getInitializerClause.getChildren.size).map { x => state.context.popStack }.reverse.toArray
 
@@ -168,8 +152,9 @@ object Declarator {
           if (!variable.isInitialized) {
 
             if (decl.getInitializer.isInstanceOf[IASTEqualsInitializer]) {
-              val initVals = getRValues(decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause, theType)
-              assign(variable, initVals, decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause, op_assign)
+              val initClause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
+              val initVals = getRValues(initClause, theType)
+              assign(variable, initVals, initClause, op_assign)
             }
 
             variable.isInitialized = true

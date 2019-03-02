@@ -103,7 +103,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
           val stringType = new CPointerType(new CBasicType(IBasicType.Kind.eChar, IBasicType.IS_UNSIGNED), 0)
 
           val stringAddresses = args.map { arg =>
-            val addr = state.createStringVariable("\"" + arg + "\"", false).value
+            val addr = state.getString("\"" + arg + "\"").value
             RValue(addr, stringType)
           }
 
