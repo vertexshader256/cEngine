@@ -94,7 +94,7 @@ class SimpleInitTest extends StandardTest {
   }
 }
 
-class ComplexInitTest extends StandardTest {
+class LessSimpleInitTest extends StandardTest {
   "A simple function-scoped multi-var init" should "print the correct results" in {
     val code = """
       void main() {
@@ -111,6 +111,22 @@ class ComplexInitTest extends StandardTest {
         int x, y, z;
         x = y = z = 30;
         printf("%d %d %d\n", x, y, z);
+      }"""
+
+    checkResults(code)
+  }
+}
+
+class StringTest extends StandardTest {
+  "a simple string test" should "print the correct results" in {
+    val code =
+      """
+      int main(int argc, char *argv[])
+      {
+        char array[] = "This is a string assigned to an array";
+        char *ptr = "This is a string assigned to an pointer";
+      	printf("%s %s\n", array, ptr);
+      	return 0;
       }"""
 
     checkResults(code)

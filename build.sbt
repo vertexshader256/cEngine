@@ -4,7 +4,7 @@ lazy val root = (project in file("."))
   .settings(
     name         := "cEngine",
     organization := "com.github.bdwashbu",
-    scalaVersion := "2.12.7",
+    scalaVersion := "2.12.8",
     version      := "0.0.5",
     test in assembly := {}
   )
@@ -13,7 +13,7 @@ scalaSource in Compile := baseDirectory.value / "src"
 
 scalaSource in Test := baseDirectory.value / "tests"
 
-scalaVersion := "2.12.7"
+scalaVersion := "2.12.8"
 
 parallelExecution in Test := true
 testOptions in Test += Tests.Argument("-P")
