@@ -244,7 +244,12 @@ object TypeHelper {
     case basicType: IBasicType    => s"BasicType(${basicType.getKind}, ${basicType.getModifiers})"
     case typedef: ITypedef        => s"TypeDef(${printType(typedef.getType)})"
     case ptrType: IPointerType    => s"CPointerType(${printType(ptrType.getType)})"
-    case arrayType: IArrayType    => s"CArrayType(${printType(arrayType.getType)})"
+    case arrayType: IArrayType    =>
+      if (arrayType.hasSize) {
+        s"CArrayType(${printType(arrayType.getType)})[${arrayType.getSize.numericalValue().toInt}]"
+      } else {
+        s"CArrayType(${printType(arrayType.getType)})[]"
+      }
     case qualType: IQualifierType => s"QualifiedType(${printType(qualType.getType)})"
     case fcn: IFunctionType       => s"FunctionType(${fcn.getParameterTypes.map(printType).reduce{_ + ", " + _}})"
     case _ => "null"
