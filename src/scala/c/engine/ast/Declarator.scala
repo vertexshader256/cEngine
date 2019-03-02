@@ -92,8 +92,7 @@ object Declarator {
             val resultType = new CArrayType(structType)
             resultType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, structData.size.toString.toCharArray)))
 
-            val theArrayPtr = state.context.addVariable(name.toString, resultType)
-            theArrayPtr.setArray(structData)
+            state.context.addArrayVariable(name.toString, resultType, structData)
           } else if (TypeHelper.resolveBasic(theType).getKind == IBasicType.Kind.eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
             // e.g. char str[] = "Hello!\n";
             val initString = state.context.popStack.asInstanceOf[StringLiteral].value
@@ -113,12 +112,10 @@ object Declarator {
                 inferredArrayType
               }
 
-              val theArrayPtr = state.context.addVariable(name.toString, finalType)
-              theArrayPtr.setArray(initialArray)
+              state.context.addArrayVariable(name.toString, finalType, initialArray)
             } else if (initVals.head.isInstanceOf[RValue]) {
               val rValue = initVals.head.asInstanceOf[RValue]
-              val theArrayPtr = state.context.addVariable(name.toString, theType)
-              theArrayPtr.setArray(List(rValue))
+              state.context.addArrayVariable(name.toString, theType, List(rValue))
             } else {
               val lValue = initVals.head.asInstanceOf[LValue]
               val theArrayPtr = state.context.addVariable(name.toString, theType)

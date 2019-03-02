@@ -49,6 +49,15 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
     }
   }
 
+  def addArrayVariable(name: String, theType: IType, initVals: List[RValue]): Variable = {
+    staticVars.find{_.name == name}.getOrElse {
+      val newVar = Variable(name, state, theType)
+      newVar.setArray(initVals)
+      variableScopes.head.varMap += newVar.name -> newVar
+      newVar
+    }
+  }
+
   def jmpRelative(incrementBy: Int) = {
     pathIndex += incrementBy
   }

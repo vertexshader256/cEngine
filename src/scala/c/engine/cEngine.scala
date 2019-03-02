@@ -674,8 +674,7 @@ class State(pointerSize: NumBits) {
     val inferredArrayType = new CArrayType(TypeHelper.charType)
     inferredArrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, str.size.toString.toCharArray)))
 
-    val theArrayPtr = context.addVariable(varName, inferredArrayType)
-    theArrayPtr.setArray(withNull)
+    val theArrayPtr = context.addArrayVariable(varName, inferredArrayType, withNull)
     theArrayPtr
   }
 
