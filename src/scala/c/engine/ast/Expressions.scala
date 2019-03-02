@@ -57,9 +57,8 @@ object Expressions {
 
       val arrayVarPtr = evaluate(subscript.getArrayExpression).head.asInstanceOf[LValue]
 
-      val theValue = TypeHelper.resolve(evaluate(subscript.getArgument).get)
-
-      val index = TypeHelper.cast(TypeHelper.intType, theValue.value).value.asInstanceOf[Int]
+      val base = TypeHelper.resolve(evaluate(subscript.getArgument).get)
+      val index = TypeHelper.cast(TypeHelper.intType, base.value).value.asInstanceOf[Int]
 
       val aType = TypeHelper.getPointerType(arrayVarPtr.theType)
       val indexOffset = index * TypeHelper.sizeof(aType)
@@ -71,7 +70,7 @@ object Expressions {
         case x: IPointerType  =>
           val offset = state.readPtrVal(arrayVarPtr.address) + indexOffset
           Some(LValue(state, offset, aType))
-        case _ =>
+        case x: IArrayType =>
           val offset = arrayVarPtr.address + indexOffset
           Some(LValue(state, offset, aType))
       }
