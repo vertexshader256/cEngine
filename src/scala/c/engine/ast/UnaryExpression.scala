@@ -71,7 +71,7 @@ object UnaryExpression {
         case `op_sizeof` =>
 
             val size = value match {
-              case info: LValue => TypeHelper.sizeof(info.theType)
+              case info: LValue => info.sizeof
               case Address(_, _) => 4
               case RValue(_, theType) => TypeHelper.sizeof(theType)
             }

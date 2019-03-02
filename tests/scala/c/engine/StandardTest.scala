@@ -202,12 +202,14 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
           i += 1
         }
 
+        Thread.sleep(50) // give file output time to settle
+
         val numErrors = 0//logger.errors.length
 
         gccOutput = if (numErrors == 0) {
 
           var isDone = false
-          val maxTries = 50 // 50 is proven to work
+          val maxTries = 200 // 50 is proven to work
           var i = 0
           var result: Seq[String] = null
 
@@ -223,15 +225,16 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
               val run = runner.run(runLogger.process)
 
               while (run.isAlive()) {
-                Thread.sleep(20)
+                Thread.sleep(50)
               }
 
-              Thread.sleep(20) // give stdout time to settle
+              Thread.sleep(50) // give stdout time to settle
 
               result = runLogger.stdout
 
               if (result.nonEmpty) {
                 isDone = true
+                exeFile.delete()
               }
             } catch {
               case e =>
@@ -244,8 +247,6 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
         } else {
           logger.errors
         }
-
-        exeFile.delete()
 
       } catch {
         case e: Exception => except = e

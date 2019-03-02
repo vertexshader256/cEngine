@@ -97,22 +97,17 @@ object Declarator {
             // e.g. char str[] = "Hello!\n";
             val initString = state.context.popStack.asInstanceOf[StringLiteral].value
             state.createStringArrayVariable(name.toString, initString)
-          } else { // e.g '= {1,2,3,4,5}' or '= variable'
+          } else {
             val initVals: Array[ValueType] = (0 until initializer.getInitializerClause.getChildren.size).map { x => state.context.popStack }.reverse.toArray
 
-            if (initVals.size > 1) {
+            if (initVals.size == 1 && theType.isInstanceOf[CArrayType]) { // zero out array e.g '= {0}'
+              val newVar = state.context.addVariable(name.toString, theType)
+              val zeroArray = (0 until newVar.sizeof).map{x => 0.toByte}.toArray
+              state.writeDataBlock(zeroArray, newVar.address)
+            } else if (initVals.size > 1) { // e.g '= {1,2,3,4,5}'
               val baseType = TypeHelper.resolveBasic(theType)
               val initialArray = initVals.map { x => TypeHelper.cast(baseType, TypeHelper.resolve(x).value)}.toList
-
-              val finalType = if (!dimensions.isEmpty) {
-                theType
-              } else {
-                val inferredArrayType = new CArrayType(theType.asInstanceOf[IArrayType].getType)
-                inferredArrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, initialArray.size.toString.toCharArray)))
-                inferredArrayType
-              }
-
-              state.context.addArrayVariable(name.toString, finalType, initialArray)
+              state.context.addArrayVariable(name.toString, theType, initialArray)
             } else if (initVals.head.isInstanceOf[RValue]) {
               val rValue = initVals.head.asInstanceOf[RValue]
               state.context.addArrayVariable(name.toString, theType, List(rValue))

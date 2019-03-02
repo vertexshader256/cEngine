@@ -94,7 +94,7 @@ case class Field(state: State, address: Int, bitOffset: Int, theType: IType, siz
 
 object Variable {
   def apply(name: String, state: State, aType: IType, initVals: List[RValue]): Variable = {
-    val size = TypeHelper.sizeof(aType)(state)
+    val size = initVals.map{init => TypeHelper.sizeof(init.theType)(state)}.sum
     val variable = Variable(name: String, state: State, aType: IType, size)
     state.writeDataBlock(initVals, variable.address)(state)
     variable
