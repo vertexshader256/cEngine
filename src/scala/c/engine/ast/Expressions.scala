@@ -65,7 +65,7 @@ object Expressions {
 
       arrayVarPtr.theType match {
         case x: IArrayType if x.getType.isInstanceOf[IArrayType] =>
-          val offset = state.readPtrVal(arrayVarPtr.address + index * 4)
+          val offset = arrayVarPtr.address + index * TypeHelper.sizeof(x.getType)
           Some(LValue(state, offset, aType))
         case x: IPointerType  =>
           val offset = state.readPtrVal(arrayVarPtr.address) + indexOffset

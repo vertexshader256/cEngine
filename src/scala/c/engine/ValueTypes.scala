@@ -99,70 +99,12 @@ case class Variable(name: String, state: State, aType: IType) extends LValue {
   val bitOffset = 0
   val sizeInBits = sizeof * 8
 
-  def setArray(array: List[RValue]): Unit = {
-    def recursiveWrite(aType: IType, theAddress: Int, values: List[RValue]): Unit = aType match {
-      case theArray: IArrayType =>
-
-        if (theArray.hasSize) {
-          if (theArray.getType.isInstanceOf[IArrayType]) { // e.g int blah[2][3]
-            val dataStart = state.readPtrVal(theAddress)
-            state.writeDataBlock(values, dataStart)(state)
-          } else {
-            state.writeDataBlock(values, theAddress)(state)
-          }
-        } else {
-          if (theArray.getType.isInstanceOf[IArrayType]) { // e.g int blah[][3]
-            val size = theArray.getType.asInstanceOf[CArrayType].getSize.numericalValue().toInt
-            for (i <- (0 until size)) {
-              val dataStart = state.readPtrVal(theAddress + i * 4)
-              val result = values.drop(i * size)
-              recursiveWrite(theArray.getType, dataStart, result.take(size))
-            }
-          } else {
-            state.writeDataBlock(values, theAddress)(state)
-          }
-        }
-      case ptr: CPointerType => state.writeDataBlock(values, theAddress)(state)
-    }
-
-    recursiveWrite(aType, address, array)
+  def setArray(values: List[RValue]): Unit = {
+    state.writeDataBlock(values, address)(state)
   }
 
   def allocateSpace(state: State, aType: IType): Int = {
-    def recurse(aType: IType): Int = aType match {
-      case array: IArrayType =>
-        if (array.getType.isInstanceOf[IArrayType]) { // multi-dimensional array
-
-          val innerArray = array.getType.asInstanceOf[IArrayType]
-
-          val size = if (innerArray.hasSize) {
-            innerArray.getSize.numericalValue().toInt
-          } else {
-            1
-          }
-
-          val addr = state.allocateSpace(TypeHelper.sizeof(array)(state) * size)
-          for (i <- (0 until size)) {
-            val subaddr = recurse(array.getType)
-            state.Stack.writeToMemory(subaddr, addr + i * 4, state.pointerType) // write pointer
-          }
-          addr
-        } else {
-
-          val size = if (array.hasSize) {
-            array.getSize.numericalValue().toInt
-          } else {
-            1
-          }
-
-
-          state.allocateSpace(TypeHelper.sizeof(array.getType)(state) * size)
-        }
-      case x =>
-        state.allocateSpace(TypeHelper.sizeof(x)(state))
-    }
-
-    recurse(aType)
+    state.allocateSpace(TypeHelper.sizeof(theType)(state))
   }
 
   val (allocate, theSize) = {
