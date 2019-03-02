@@ -238,7 +238,7 @@ class SizeOfTest extends StandardTest {
        {
            int a[][3] = {1, 2, 3, 4, 5, 6};
            int (*ptr)[3] = a;
-           printf("%d %d", sizeof(ptr), sizeof(*ptr));
+           printf("%d %d %d", sizeof(a), sizeof(ptr), sizeof(*ptr));
        }"""
 
     checkResults(code)
