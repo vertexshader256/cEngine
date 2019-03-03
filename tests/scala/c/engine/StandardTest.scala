@@ -231,7 +231,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
 
               Thread.sleep(100) // give stdout time to settle
 
-              result = runLogger.stdout
+              result = runLogger.stdout.clone().toList
 
               if (result.nonEmpty) {
                 isDone = true
