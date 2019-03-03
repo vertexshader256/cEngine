@@ -706,7 +706,7 @@ class PointerTest extends StandardTest {
       void main() {
         char str[] = "Hello!\n";
         char *x = str;
-        printf("%s\n", str++[0]);
+        printf("%c\n", x++[2]);
       }"""
 
     checkResults(code)
