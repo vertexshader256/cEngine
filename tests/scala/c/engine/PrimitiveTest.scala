@@ -18,7 +18,8 @@ class RobustPrimitiveTest extends StandardTest {
   "robust primitive test" should "print the correct results" in {
 
 
-    val perms = List('a', 'b', 'e', 'f', 'g', 'h').combinations(2).flatMap{x => x.permutations}.toList
+    val combo = List('a', 'b', 'e', 'f', 'g', 'h').combinations(2).toList
+    val perms = combo.flatMap{case List(x,y) => List((x,y),(y,x))}
     val uniques = perms.toSet.toList
 
     val code = """

@@ -682,9 +682,7 @@ class PointerTest extends StandardTest {
     
     checkResults(code4)
   }
-  
-  
-  
+
   "some incremental pointer arithmetic" should "print the correct results" in {
     val code = """
       void main() {
@@ -702,11 +700,17 @@ class PointerTest extends StandardTest {
 
     checkResults(code)
   }
-  
-  
- 
-  
-  
+
+  "pointer with postincrement followed by subindex" should "print the correct results" in {
+    val code = """
+      void main() {
+        char str[] = "Hello!\n";
+        char *x = str;
+        printf("%s", str++[0]);
+      }"""
+
+    checkResults(code)
+  }
 }
 
 class DoublePointer extends StandardTest {
