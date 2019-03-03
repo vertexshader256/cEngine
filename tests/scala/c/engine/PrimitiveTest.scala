@@ -18,8 +18,7 @@ class RobustPrimitiveTest extends StandardTest {
   "robust primitive test" should "print the correct results" in {
 
 
-    val combo = List('a', 'b', 'e', 'f', 'g', 'h').combinations(2).toList
-    val perms = combo.flatMap{case List(x,y) => List((x,y),(y,x))}
+    val perms = List('a', 'b', 'e', 'f', 'g', 'h').combinations(2).flatMap{x => x.permutations}.toList
     val uniques = perms.toSet.toList
 
     val code = """
@@ -257,17 +256,17 @@ class SizeOfTest extends StandardTest {
     checkResults(code)
   }
 
-//  "A sizeof call on an uninitialized pointer to array variable 2" should "print the correct results" in {
-//    val code = """
-//
-//       int main()
-//       {
-//           int (*ptr)[3];
-//           printf("%d %d", sizeof(ptr), sizeof(*ptr));
-//       }"""
-//
-//    checkResults(code)
-//  }
+  "A sizeof call on an uninitialized pointer to array variable 2" should "print the correct results" in {
+    val code = """
+
+       int main()
+       {
+           int (*ptr)[3];
+           printf("%d %d", sizeof(ptr), sizeof(*ptr));
+       }"""
+
+    checkResults(code)
+  }
 
   "array typedefs" should "print the correct results" in {
     val code =

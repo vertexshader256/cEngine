@@ -133,7 +133,7 @@ object Declarator {
 
           Seq()
         } else {
-          if (!theType.asInstanceOf[CArrayType].isConst && !dimensions.isEmpty) { // an array bounded by a variable e.g x[y]
+          if (theType.isInstanceOf[CArrayType] && !theType.asInstanceOf[CArrayType].isConst && !dimensions.isEmpty) { // an array bounded by a variable e.g x[y]
             // TODO: higher dimensions
             val inferredArrayType = new CArrayType(theType.asInstanceOf[IArrayType].getType)
             inferredArrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, dimensions.head.toString.toCharArray)))
