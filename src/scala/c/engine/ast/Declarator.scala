@@ -106,8 +106,12 @@ object Declarator {
               state.writeDataBlock(zeroArray, newVar.address)
             } else if (initVals.size > 1) { // e.g '= {1,2,3,4,5}'
 
-              if (theType.isInstanceOf[CArrayType] && theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType]) {
+              if (theType.isInstanceOf[CArrayType] && theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType] &&
+                initVals.head.isInstanceOf[StringLiteral]) {
                 val initialArray = initVals.map { x => state.getString(x.asInstanceOf[StringLiteral].value)}.toList
+                state.context.addArrayVariable(name.toString, theType, initialArray)
+              } else if (theType.isInstanceOf[CArrayType] && theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType]) {
+                val initialArray = initVals.map { x => TypeHelper.resolve(x)}.toList
                 state.context.addArrayVariable(name.toString, theType, initialArray)
               } else {
                 val baseType = TypeHelper.resolveBasic(theType)
