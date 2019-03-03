@@ -42,7 +42,7 @@ object TypeHelper {
 
   // Kind of hacky; this will do whatever it needs to match gcc.  casts 'AnyVal' to 'ValueInfo'
   def cast(theType: IType, theVal: AnyVal): RValue = {
-    val casted: AnyVal = theType match {
+    val cast: AnyVal = theType match {
       case typedef: CTypedef => theVal
       case qual: IQualifierType => theVal
       case fcn: IFunctionType => theVal
@@ -116,7 +116,7 @@ object TypeHelper {
         }
       }
     
-    RValue(casted, theType)
+    RValue(cast, theType)
   }
 
   def getType(idExpr: IASTTypeId) = idExpr.getDeclSpecifier match {
