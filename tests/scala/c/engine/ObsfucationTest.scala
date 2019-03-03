@@ -46,13 +46,15 @@ class ObsfucationTest extends StandardTest {
 
 //  "obsfucation 3" should "print the correct results" in {
 //    val code = """
-//   int m=1711276033,N=1,t[1<<25]={2},a,*p,i,e=39717691,s,c,U=1;g(d,h)
-//   {for(i=s;i<1<< 24;i*=2)d=d*1LL*d%m;for(p=t;p<t+N;p+=s)for(i=s,c=1;i;i--)a=p[s]*
-//     (h?c:1LL)%m,p[s] =(m*1U+*p-a)*(h?1LL:c)%m,*p=
-//     (a*1U+*p)%m,p++,c=c*1LL*d%m;}main(){while(e/=2){N*=2 ;U=U*1LL*(m+1)/2%m;
-//     for(s=N;s/=2;)g(40,0);for(p=t;p<t+N;p++)*p=*p*1LL**p%m*U%m; for(s=1;
-//     s<N;s*=2)g(983983719,1);for(a=0,p=t;p<t+N;)a+=*p<<(e&1),*p++=a%10,a/=10;
-//   }while(!*--p);for(t[0]--;p>=t;)putchar(48+*p--);}
+//         #define P(X)j=write(1,X,1)
+//       #define C 39
+//       int M[5000]={2},*u=M,N[5000],R=22,a[4],l[]={0,-1,C-1,-1},m[]={1,-C,-1,C},*b=N,
+//       *d=N,c,e,f,g,i,j,k,s;main(){for(M[i=C*R-1]=24;f|d>=b;){c=M[g=i];i=e;for(s=f=0;
+//       s<4;s++)if((k=m[s]+g)>=0&&k<C*R&&l[s]!=k%C&&(!M[k]||!j&&c>=16!=M[k]>=16))a[f++
+//       ]=s;if(f){f=M[e=m[s=a[rand()/(1+2147483647/f)]]+g];j=j<f?f:j;f+=c&-16*!j;M[g]=
+//       c|1<<s;M[*d++=e]=f|1<<(s+2)%4;}else e=d>b++?b[-1]:e;}P(" ");for(s=C;--s;P("_")
+//       )P(" ");for(;P("\n"),R--;P("|"))for(e=C;e--;P("_ "+(*u++/8)%2))P("| "+(*u/4)%2
+//       );}
 //   """
 //
 //    checkResults(code)
