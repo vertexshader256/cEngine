@@ -147,7 +147,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
       try {
 
         val logger = new SyntaxLogger
-        val runLogger = new RunLogger
+
 
         val files = codeInFiles.map{ code =>
           val file = new java.io.File(StandardTest.cFileCount.incrementAndGet + ".c")
@@ -220,6 +220,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
 
             i += 1
             try {
+              val runLogger = new RunLogger
               // run the actual executable
               val runner = Process(Seq(exeFile.getAbsolutePath) ++ args, new File("."))
               val run = runner.run(runLogger.process)
@@ -228,7 +229,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
                 Thread.sleep(50)
               }
 
-              Thread.sleep(50) // give stdout time to settle
+              Thread.sleep(100) // give stdout time to settle
 
               result = runLogger.stdout
 
