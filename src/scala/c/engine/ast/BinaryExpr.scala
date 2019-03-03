@@ -224,8 +224,8 @@ object BinaryExpr {
     val left = TypeHelper.resolve(x)
     val right = TypeHelper.resolve(y)
 
-    val isLeftPointer = TypeHelper.isPointer(x)
-    val isRightPointer = TypeHelper.isPointer(y)
+    val isLeftPointer = TypeHelper.isPointerOrArray(x)
+    val isRightPointer = TypeHelper.isPointerOrArray(y)
 
     if (isLeftPointer && isRightPointer && operator == `op_minus`) {
       // can only subtract pointers when the addresses are from the same array

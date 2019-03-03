@@ -17,7 +17,7 @@ trait LValue extends ValueType {
 
   def sizeof: Int
   def rValue: RValue = {
-    if (TypeHelper.isPointer(this)) {
+    if (TypeHelper.isPointerOrArray(this)) {
       Address(getValue.value.asInstanceOf[Int], TypeHelper.getPointerType(theType))
     } else {
       RValue(getValue.value, theType)
@@ -30,7 +30,6 @@ trait LValue extends ValueType {
     state.Stack.readFromMemory(address, theType, bitOffset, sizeInBits)
   }
 
-  //protected def getValue = state.Stack.readFromMemory(address, theType, bitOffset, sizeInBits)
   def setValue(newVal: AnyVal) = {
     state.Stack.writeToMemory(newVal, address, theType, bitOffset, sizeInBits)
   }

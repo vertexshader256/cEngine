@@ -197,10 +197,14 @@ object TypeHelper {
   }
 
   def isPointer(value: ValueType): Boolean = {
-    isPointer(value.theType) || value.isInstanceOf[Address]
+    value.theType.isInstanceOf[IPointerType] || value.isInstanceOf[Address]
   }
 
-  def isPointer(theType: IType): Boolean = {
+  def isPointerOrArray(value: ValueType): Boolean = {
+    isPointerOrArray(value.theType) || value.isInstanceOf[Address]
+  }
+
+  def isPointerOrArray(theType: IType): Boolean = {
     theType.isInstanceOf[IPointerType] || theType.isInstanceOf[IArrayType]
   }
 

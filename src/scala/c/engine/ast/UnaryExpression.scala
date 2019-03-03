@@ -21,7 +21,7 @@ object UnaryExpression {
     value match {
       case lValue: LValue =>
 
-        val newVal = if (TypeHelper.isPointer(lValue.theType)) {
+        val newVal = if (TypeHelper.isPointerOrArray(lValue.theType)) {
           evaluatePointerArithmetic(lValue, 1, op)
         } else {
           BinaryExpr.evaluate(value, TypeHelper.one, op)
