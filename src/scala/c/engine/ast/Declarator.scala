@@ -114,7 +114,12 @@ object Declarator {
             } else {
               val lValue = initVals.head.asInstanceOf[LValue]
               val theArrayPtr = state.context.addVariable(name.toString, theType)
-              state.copy(theArrayPtr.address, lValue.address, lValue.sizeof)
+
+              if (theType.isInstanceOf[CPointerType]) {
+                theArrayPtr.setValue(lValue.rValue.value)
+              } else {
+                state.copy(theArrayPtr.address, lValue.address, lValue.sizeof)
+              }
             }
           }
 
