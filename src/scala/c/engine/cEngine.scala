@@ -82,7 +82,6 @@ class Memory(size: Int) {
         }
       case basic: IBasicType if basic.getKind == eDouble =>
         newVal match {
-          case int: Int => tape.putDouble(address, int.toDouble)
           case double: Double => tape.putDouble(address, double)
         }
       case basic: IBasicType if basic.getKind == eFloat =>
@@ -153,15 +152,10 @@ class Memory(size: Int) {
           tape.getFloat(address)
         } else if (basic.getKind == eChar) {
           tape.get(address) // a C 'char' is a Java 'byte'
-        } else if (basic.getKind == eVoid) {
-          tape.getInt(address)
-        } else {
-          throw new Exception("Bad read val: " + basic.getKind)
         }
       case ptr: IPointerType => tape.getInt(address)
       case fcn: IFunctionType => tape.getInt(address)
       case struct: CStructure => tape.getInt(address)
-      case qual: IQualifierType => readFromMemory(address, qual.getType).value
       case typedef: CTypedef => readFromMemory(address, typedef.getType).value
     }
 
@@ -311,8 +305,6 @@ object State {
           List(JmpLabel(state.continueLabelStack.head))
         case _: IASTBreakStatement =>
           List(JmpLabel(state.breakLabelStack.head))
-        case _: IASTCompositeTypeSpecifier =>
-          List()
         case _: IASTElaboratedTypeSpecifier =>
           List()
         case goto: IASTGotoStatement =>
@@ -346,16 +338,10 @@ object State {
           List()
         case decl: IASTDeclarator =>
           List(decl)
-        case eq: IASTEqualsInitializer =>
-          recurse(eq.getInitializerClause)
         case label: IASTLabelStatement =>
           GotoLabel(label.getName.toString) +: recurse(label.getNestedStatement)
         case exprState: CASTExpressionStatement =>
           List(exprState.getExpression)
-        case fcn: IASTFunctionCallExpression =>
-          List(fcn)
-        case enum: IASTEnumerationSpecifier =>
-          List(enum)
         case _ =>
           //println("SPLITTING: " + node.getClass.getSimpleName + " : " + node.getRawSignature)
           node +: node.getChildren.toList
@@ -390,8 +376,6 @@ class State(pointerSize: NumBits) {
 
   val declarations = new ListBuffer[CStructure]()
 
-  def numScopes = functionContexts.size
-
   val pointerType = pointerSize match {
     case ThirtyTwoBits => TypeHelper.intType
     case SixtyFourBits => new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
@@ -411,7 +395,6 @@ class State(pointerSize: NumBits) {
   }
 
   def hasFunction(name: String): Boolean = functionList.exists{fcn => fcn.name == name}
-  def getFunction(name: String): Function = functionList.find{fcn => fcn.name == name}.get
   def getFunctionByIndex(index: Int): Function = functionList.find{fcn => fcn.index == index}.get
 
   Functions.scalaFunctions.foreach{fcn =>
@@ -539,22 +522,13 @@ class State(pointerSize: NumBits) {
         } else {
 
           val newScope = scope.getOrElse {
-            val expressionType = if (call != null) {
-              call.getExpressionType
-            } else {
-              null
-            }
-
+            val expressionType = call.getExpressionType
             new FunctionScope(function.staticVars, functionContexts.headOption.getOrElse(null), expressionType)
           }
 
           newScope.init(function.node, this, !scope.isDefined)
 
-          val args: List[ValueType] = if (call != null) {
-            call.getArguments.map { x => Expressions.evaluate(x).head }.toList
-          } else {
-            List()
-          }
+          val args: List[ValueType] = call.getArguments.map { x => Expressions.evaluate(x).head }.toList
           val resolvedArgs = args.map{ TypeHelper.resolve }
 
           // printf assumes all floating point numbers are doubles
@@ -599,37 +573,20 @@ class State(pointerSize: NumBits) {
         }
       }
     }.getOrElse{
-      // function pointer case
-      val fcnPointer = functionContexts.head.resolveId(new CASTName(name.toCharArray)).get
-      val function = getFunctionByIndex(fcnPointer.rValue.asInstanceOf[Int])
-      val scope = new FunctionScope(function.staticVars, functionContexts.head, call.getExpressionType)
-      functionContexts = functionContexts :+ scope
-      scope.init(call, this, false)
-      //context.pathStack.push(NodePath(function.node, Stage1))
-      context.run(this)
-      popFunctionContext
       None
     }
   }
 
   def allocateSpace(numBytes: Int): Int = {
-    if (numBytes > 0) {
-      val result = Stack.insertIndex
-      Stack.insertIndex += numBytes
-      result
-    } else {
-      0
-    }
+    val result = Stack.insertIndex
+    Stack.insertIndex += Math.max(0, numBytes)
+    result
   }
 
   def allocateHeapSpace(numBytes: Int): Int = {
-    if (numBytes > 0) {
-      val result = heapInsertIndex
-      heapInsertIndex += numBytes
-      result
-    } else {
-      0
-    }
+    val result = heapInsertIndex
+    heapInsertIndex += Math.max(0, numBytes)
+    result
   }
 
   def copy(dst: Int, src: Int, numBytes: Int) = {
@@ -649,10 +606,7 @@ class State(pointerSize: NumBits) {
   }
 
   def readPtrVal(address: Int): Int = {
-    Stack.readFromMemory(address, pointerType).value match {
-      case int: Int => int
-      case double: Double => double.toInt
-    }
+    Stack.readFromMemory(address, pointerType).value.asInstanceOf[Int]
   }
 
   def getString(str: String): RValue = {

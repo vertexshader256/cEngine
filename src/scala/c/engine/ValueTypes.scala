@@ -94,8 +94,18 @@ case class Field(state: State, address: Int, bitOffset: Int, theType: IType, siz
 
 object Variable {
   def apply(name: String, state: State, aType: IType, initVals: List[RValue]): Variable = {
-    val size = initVals.map{init => TypeHelper.sizeof(init.theType)(state)}.sum
+
+    val typeSize = TypeHelper.sizeof(aType)(state)
+    val initValSize = initVals.map{init => TypeHelper.sizeof(init.theType)(state)}.sum
+
+    val size = Math.max(typeSize, initValSize)
     val variable = Variable(name: String, state: State, aType: IType, size)
+
+    // first clear the memory
+    val zeroArray = (0 until TypeHelper.sizeof(aType)(state)).map{x => 0.toByte}.toArray
+    state.writeDataBlock(zeroArray, variable.address)(state)
+
+    // now, write the initial values
     state.writeDataBlock(initVals, variable.address)(state)
     variable
   }
