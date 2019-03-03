@@ -351,6 +351,14 @@ class ArrayTest extends StandardTest {
 
     checkResults(code)
   }
-  
- 
+
+  "An array being set to a single non-zero value" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x[5] = {3};
+        printf("%d %d %d %d\n", x[0], x[1], x[2], x[3], x[4]);
+      }"""
+
+    checkResults(code)
+  }
 }

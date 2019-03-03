@@ -100,7 +100,7 @@ object Declarator {
           } else {
             val initVals: Array[ValueType] = (0 until initializer.getInitializerClause.getChildren.size).map { x => state.context.popStack }.reverse.toArray
 
-            if (initVals.size == 1 && theType.isInstanceOf[CArrayType]) { // zero out array e.g '= {0}'
+            if (initVals.size == 1 && theType.isInstanceOf[CArrayType] && initVals.head.asInstanceOf[RValue].value.asInstanceOf[Int] == 0) { // zero out array e.g '= {0}'
               val newVar = state.context.addVariable(name.toString, theType)
               val zeroArray = (0 until newVar.sizeof).map{x => 0.toByte}.toArray
               state.writeDataBlock(zeroArray, newVar.address)
