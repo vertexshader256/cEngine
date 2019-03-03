@@ -18,7 +18,7 @@ class RobustTests extends StandardTest {
         //long long g = 5476578934653;
         """ + {
           val types = List('a', 'b', 'c', 'd', 'e', 'f')
-          val perms = types.combinations(2).toList ++ types.map(x => List(x, x))
+          val perms = types.combinations(2).flatMap{x => x.permutations}.toList ++ types.map(x => List(x, x))
 
           val result = perms.map{perm =>
             if (perm(0) == 'g' || perm(1) == 'g') {}
@@ -44,7 +44,7 @@ class RobustTests extends StandardTest {
         long long g = 5476578934653;
         """ + {
       val types = List('a', 'b', 'c', 'd', 'e', 'f', 'g')
-      val perms = types.combinations(2).toList ++ types.map(x => List(x, x))
+      val perms = types.combinations(2).flatMap{x => x.permutations}.toList ++ types.map(x => List(x, x))
 
       val result = perms.map{perm =>
         """printf("%d\n", """ + perm(0) + operator + perm(1) + ");"
@@ -63,7 +63,7 @@ class RobustTests extends StandardTest {
         long long e = 5476578934653;
         """ + {
       val types = List('a', 'b', 'c', 'd', 'e')
-      val perms = types.combinations(2).toList ++ types.map(x => List(x, x))
+      val perms = types.combinations(2).flatMap{x => x.permutations}.toList ++ types.map(x => List(x, x))
 
       val result = perms.map { perm =>
         """printf("%d\n", """ + "(int)(" + perm(0) + operator + perm(1) + "));"
@@ -84,7 +84,7 @@ class RobustTests extends StandardTest {
         //long long g = 5476578934653;
         """ + {
           val types = List('a', 'b', 'c', 'd', 'e', 'f')
-          val perms = types.combinations(2).toList ++ types.map(x => List(x, x))
+          val perms = types.combinations(2).flatMap{x => x.permutations}.toList ++ types.map(x => List(x, x))
 
           val result = perms.map{perm =>
             if (perm(0) == 'c' || perm(1) == 'c' || perm(0) == 'd' || perm(1) == 'd') {
