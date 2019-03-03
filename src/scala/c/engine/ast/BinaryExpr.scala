@@ -227,33 +227,20 @@ object BinaryExpr {
     val isLeftPointer = TypeHelper.isPointer(x)
     val isRightPointer = TypeHelper.isPointer(y)
 
-    if ((isLeftPointer || isRightPointer) && (operator == `op_minus` || operator == `op_plus`)) {
-      if (isLeftPointer && isRightPointer) {
-        // assume minus
-        val leftSize = TypeHelper.sizeof(left.theType)
-        val result = left.value.asInstanceOf[Int] / leftSize - right.value.asInstanceOf[Int] / leftSize
-        Address(result, left.theType)
-      } else if (!isLeftPointer && isRightPointer) {
-        // assume plus
-        val rightPtrSize = TypeHelper.sizeof(right.theType)
-        val result = left.value.asInstanceOf[Int] * rightPtrSize + right.value.asInstanceOf[Int]
-        Address(result, right.theType)
-      } else {
-        evaluatePointerArithmetic(left, right.value.asInstanceOf[Int], operator)
-      }
+    if (isLeftPointer && isRightPointer && operator == `op_minus`) {
+      // can only subtract pointers when the addresses are from the same array
+      val leftSize = TypeHelper.sizeof(left.theType)
+      val result = left.value.asInstanceOf[Int] / leftSize - right.value.asInstanceOf[Int] / leftSize
+      Address(result, left.theType)
+    } else if (!isLeftPointer && isRightPointer && operator == `op_plus`) {
+      val rightPtrSize = TypeHelper.sizeof(right.theType)
+      val result = left.value.asInstanceOf[Int] * rightPtrSize + right.value.asInstanceOf[Int]
+      Address(result, right.theType)
+    } else if (isLeftPointer && !isRightPointer && (operator == `op_minus` || operator == `op_plus` )) {
+      evaluatePointerArithmetic(left, right.value.asInstanceOf[Int], operator)
     } else {
-
-      // conversion rules
-      val resultType = (left.theType, right.theType) match {
-        case (l: IBasicType, r: IBasicType) => (l.getKind, r.getKind) match {
-          case (`eDouble` | `eFloat`, `eDouble` | `eFloat`) => new CBasicType(eDouble, 0)
-          case _ => TypeHelper.intType
-        }
-        case _ => left.theType
-      }
-
       val result = calculate(left.value,  right.value, operator)
-      RValue(result, resultType)
+      RValue(result, left.theType)
     }
   }
 }
