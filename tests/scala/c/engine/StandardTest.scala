@@ -191,14 +191,14 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
         cEngineOutput = getCEngineResults(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
 
         while (compile.isAlive()) {
-          Thread.sleep(5)
+          Thread.sleep(20)
         }
 
         val exe = new File(exeFile.getAbsolutePath).toPath
 
         var i = 0
         while (!Files.exists(exe) && i < 100) {
-          Thread.sleep(10)
+          Thread.sleep(20)
           i += 1
         }
 

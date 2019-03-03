@@ -105,9 +105,16 @@ object Declarator {
               val zeroArray = (0 until newVar.sizeof).map{x => 0.toByte}.toArray
               state.writeDataBlock(zeroArray, newVar.address)
             } else if (initVals.size > 1) { // e.g '= {1,2,3,4,5}'
-              val baseType = TypeHelper.resolveBasic(theType)
-              val initialArray = initVals.map { x => TypeHelper.cast(baseType, TypeHelper.resolve(x).value)}.toList
-              state.context.addArrayVariable(name.toString, theType, initialArray)
+
+              if (theType.isInstanceOf[CArrayType] && theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType]) {
+                val initialArray = initVals.map { x => state.getString(x.asInstanceOf[StringLiteral].value)}.toList
+                state.context.addArrayVariable(name.toString, theType, initialArray)
+              } else {
+                val baseType = TypeHelper.resolveBasic(theType)
+                val initialArray = initVals.map { x => TypeHelper.cast(baseType, TypeHelper.resolve(x).value)}.toList
+                state.context.addArrayVariable(name.toString, theType, initialArray)
+              }
+
             } else if (initVals.head.isInstanceOf[RValue]) {
               val rValue = initVals.head.asInstanceOf[RValue]
               state.context.addArrayVariable(name.toString, theType, List(rValue))
@@ -116,6 +123,7 @@ object Declarator {
               val theArrayPtr = state.context.addVariable(name.toString, theType)
 
               if (theType.isInstanceOf[CPointerType]) {
+                println("HERE")
                 theArrayPtr.setValue(lValue.rValue.value)
               } else {
                 state.copy(theArrayPtr.address, lValue.address, lValue.sizeof)

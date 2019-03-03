@@ -398,6 +398,8 @@ class PointerTest extends StandardTest {
     val code = """
       void main() {
         const char *alpha[2] = { "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
+        printf("%s\n", alpha[0]);
+        printf("%s\n", alpha[1]);
         printf("%c\n", alpha[0][0]);
         printf("%c\n", alpha[1][10]);
         //printf("%d\n", strlen(alpha[0]));
