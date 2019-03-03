@@ -704,8 +704,9 @@ class PointerTest extends StandardTest {
   "pointer with postincrement followed by subindex" should "print the correct results" in {
     val code = """
       void main() {
-        char str[] = "Hello!\n";
-        char *x = str;
+        char *x = "Hello!\n";
+        printf("%c\n", x++[2]);
+        printf("%c\n", x++[2]);
         printf("%c\n", x++[2]);
       }"""
 
