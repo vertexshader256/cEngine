@@ -96,6 +96,8 @@ class ForLooptest extends StandardTest {
         for (i = 5; i < 5; i++) {
           printf("HERE\n");
         }
+
+        printf("Done!\n");
       }"""
 
     checkResults(code)

@@ -234,6 +234,8 @@ class SwitchStatement extends StandardTest {
              printf("3\n");
              break;
          }
+
+         printf("Done!\n");
       }"""
 
     checkResults(code)
@@ -589,6 +591,8 @@ class IfStatement extends StandardTest {
         if (0) {
           printf("1\n");
         }
+
+        printf("Done!\n");
       }"""
 
     checkResults(code)
