@@ -9,9 +9,7 @@ import java.nio.ByteOrder
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.op_assign
 import org.eclipse.cdt.internal.core.dom.parser.c._
 
-import scala.c.engine.ast.BinaryExpr.evaluate
-import scala.c.engine.ast.Expressions.evaluate
-import scala.c.engine.ast.{Ast, BinaryExpr, Declarator, Expressions}
+import scala.c.engine.ast.{Declarator, Expressions}
 
 
 object Interpreter {
@@ -502,7 +500,7 @@ class State(pointerSize: NumBits) {
 
   def callTheFunction(name: String, call: IASTFunctionCallExpression, scope: Option[FunctionScope], isApi: Boolean = false)(implicit state: State): Option[ValueType] = {
 
-    functionList.find(_.name == name).map{ function =>
+    functionList.find(_.name == name).flatMap{ function =>
 
       if (!function.isNative) {
         // this is a function simulated in scala
@@ -572,8 +570,6 @@ class State(pointerSize: NumBits) {
           }
         }
       }
-    }.getOrElse{
-      None
     }
   }
 
@@ -635,13 +631,10 @@ class State(pointerSize: NumBits) {
   def writeDataBlock(array: List[RValue], startingAddress: Int)(implicit state: State): Unit = {
       var address = startingAddress
 
-      array.foreach { element =>
-
-        element match {
-          case RValue(newVal, theType) =>
-            Stack.writeToMemory(newVal, address, theType)
-            address +=  TypeHelper.sizeof(theType)(state)
-        }
+      array.foreach {
+        case RValue(newVal, theType) =>
+          Stack.writeToMemory(newVal, address, theType)
+          address += TypeHelper.sizeof(theType)(state)
       }
   }
 
