@@ -455,6 +455,25 @@ class PointerTest extends StandardTest {
 
     checkResults(code)
   }
+
+  "some basic pointer arithmetic 2" should "print the correct results" in {
+    val code = """
+    void main() {
+      char str[] = "Hello!\n";
+      char *x = str + 1;
+
+      switch (x++[0]) {
+         case 'H': printf("H\n"); break;
+         case 'e': printf("e\n"); break;
+         case 'l': printf("l\n"); break;
+         case 'o': printf("o\n"); break;
+      }
+
+      printf("DONE\n");
+    }"""
+
+    checkResults(code)
+  }
   
   "pointers of all types" should "print the correct results" in {
     val code = """
