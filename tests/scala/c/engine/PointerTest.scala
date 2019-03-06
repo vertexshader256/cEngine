@@ -460,7 +460,7 @@ class PointerTest extends StandardTest {
     val code = """
     void main() {
       char str[] = "Hello!\n";
-      char *x = str + 1;
+      char *x = str;
 
       switch (x++[0]) {
          case 'H': printf("H\n"); break;

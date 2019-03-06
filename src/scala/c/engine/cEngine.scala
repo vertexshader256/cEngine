@@ -164,10 +164,14 @@ class Memory(size: Int) {
 
 case class ReturnFromFunction() extends Exception("returning")
 
+case class CachedRValue(expr2: IASTExpression) {
+  var cachedValue: RValue = null
+}
+
 case class JmpIfNotEqual(expr: IASTExpression, relativeJump: Int)
 case class JmpToLabelIfNotZero(expr: IASTExpression, label: Label)
 case class JmpToLabelIfZero(expr: IASTExpression, label: Label)
-case class JmpToLabelIfEqual(expr1: IASTExpression, expr2: IASTExpression, label: Label)
+case class JmpToLabelIfEqual(expr1: IASTExpression, expr2: CachedRValue, label: Label)
 case class Jmp(relativeJump: Int)
 case class JmpLabel(label: Label)
 case class JmpName(label: String) {
@@ -281,9 +285,11 @@ object State {
             }
           }
 
+          val cached = CachedRValue(switch.getControllerExpression)
+
           val jumpTable = descendants.flatMap{
             case x @ CaseLabel(caseStatement) if (switch.getBody == getParentSwitchBody(caseStatement)) =>
-              List(JmpToLabelIfEqual(caseStatement.getExpression, switch.getControllerExpression, x))
+              List(JmpToLabelIfEqual(caseStatement.getExpression, cached, x))
             case x @ DefaultLabel(default) if (switch.getBody == getParentSwitchBody(default)) =>
               List(JmpLabel(x))
             case _ =>
@@ -292,7 +298,7 @@ object State {
 
           state.breakLabelStack = state.breakLabelStack.tail
 
-          val result = jumpTable ++ descendants :+ breakLabel
+          val result = cached +: (jumpTable ++ descendants :+ breakLabel)
 
           PushVariableStack() +: result :+ PopVariableStack()
         case x: IASTCaseStatement =>
