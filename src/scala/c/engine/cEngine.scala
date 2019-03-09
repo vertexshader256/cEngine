@@ -364,16 +364,14 @@ class State(pointerSize: NumBits) {
 
   object Stack extends Memory(500000)
 
-  var heapInsertIndex = 250000
-
-  val functionPrototypes = scala.collection.mutable.LinkedHashSet[IASTFunctionDeclarator]()
+  private var heapInsertIndex = 250000
 
   var functionContexts = List[FunctionScope]()
   def context: FunctionScope = functionContexts.head
   val functionList = new ListBuffer[Function]()
   val functionPointers = scala.collection.mutable.LinkedHashMap[String, Variable]()
   val stdout = new ListBuffer[Char]()
-  var functionCount = 0
+  private var functionCount = 0
 
   private var breakLabelStack = List[Label]()
   private var continueLabelStack = List[Label]()
@@ -405,8 +403,7 @@ class State(pointerSize: NumBits) {
     addScalaFunctionDef(fcn)
   }
 
-  val program = new FunctionScope(List(), null, null) {}
-  pushScope(program)
+  pushScope(new FunctionScope(List(), null, null) {})
 
   def init(codes: Seq[String], includePaths: List[String]): IASTNode = {
     val tUnit = Utils.getTranslationUnit(codes, includePaths)

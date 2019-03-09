@@ -16,10 +16,6 @@ object Declarator {
         _.isInstanceOf[IASTFunctionDefinition]
       }
 
-      if (isInFunctionPrototype) {
-        state.functionPrototypes += fcnDec
-      }
-
       if (fcnDec.getName.resolveBinding().isInstanceOf[CFunction] && !fcnDec.getName.resolveBinding().asInstanceOf[CFunction].getParameters.isEmpty) {
 
         val fcn = fcnDec.getName.resolveBinding().asInstanceOf[CFunction]
