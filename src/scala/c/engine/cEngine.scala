@@ -503,6 +503,8 @@ class State(pointerSize: NumBits) {
 
   def callTheFunction(name: String, call: IASTFunctionCallExpression, scope: Option[FunctionScope], isApi: Boolean = false)(implicit state: State): Option[ValueType] = {
 
+
+
     functionList.find(_.name == name).flatMap{ function =>
 
       if (!function.isNative) {
@@ -510,14 +512,15 @@ class State(pointerSize: NumBits) {
 
         val stackPos = Stack.insertIndex
         val args = call.getArguments.map{x => Expressions.evaluate(x)}
-        println(args.toList)
+
         val resolvedArgs: Array[RValue] = args.flatten.map{ TypeHelper.resolve }
+
         val returnVal = function.run(resolvedArgs.reverse, this)
         Stack.insertIndex = stackPos // pop the stack
 
         returnVal.map{ rVal =>
           rVal match {
-            case file@FileRValue(_) => file
+            case file @ FileRValue(_) => println("RETURNING FILE: "); file
             case rValue => RValue(rValue.value, TypeHelper.unsignedIntType)
           }
         }
@@ -537,6 +540,7 @@ class State(pointerSize: NumBits) {
           newScope.init(function.node, this, !scope.isDefined)
 
           val args: List[ValueType] = call.getArguments.map { x => Expressions.evaluate(x).head }.toList
+
           val resolvedArgs = args.map{ TypeHelper.resolve }
 
           // printf assumes all floating point numbers are doubles

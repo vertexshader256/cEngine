@@ -154,8 +154,6 @@ object Functions {
           case long: Long => long.toInt
         }
         val value = formattedOutputParams(1).value.asInstanceOf[Int].toByte
-        println("VALUE: " + value)
-        println("NUM BYTES: " + numBytes)
         val dst = formattedOutputParams(2).value.asInstanceOf[Int]
 
         state.set(dst, value, numBytes)
@@ -204,21 +202,8 @@ object Functions {
 
    scalaFunctions += new Function("fopen", false) {
      def run(formattedOutputParams: Array[RValue], state: State) = {
-       val fileName = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(state)
-
-       import java.nio.file.{Files, Paths}
-
-       val byteArray = Files.readAllBytes(Paths.get(fileName))
-
-       val fileData = state.allocateSpace(byteArray.size + 4) // extra space for index
-
-       state.Stack.tape.putInt(fileData, 0) // index space
-       state.writeDataBlock(byteArray, fileData + 4)(state)
-
-       val pointer = state.allocateSpace(4)
-       state.Stack.tape.putInt(pointer, fileData)
-
-       Some(RValue(pointer))
+       val path = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(state)
+       Some(FileRValue(path))
      }
    }
 
@@ -227,23 +212,10 @@ object Functions {
       val resultBuffer = formattedOutputParams(3).value.asInstanceOf[Int]
       val size = formattedOutputParams(2).value.asInstanceOf[Int]
       val numMembers = formattedOutputParams(1).value.asInstanceOf[Int]
-      val fp = formattedOutputParams(0).value.asInstanceOf[Int]
+      val fp = formattedOutputParams(0).asInstanceOf[FileRValue]
 
-      val location = state.readPtrVal(fp)
-
-      var index = state.Stack.readFromMemory(location, TypeHelper.intType).value.asInstanceOf[Int]
-
-      val result = (0 until numMembers).map { offset =>
-        val result = state.Stack.readFromMemory(location + index + 4, new CBasicType(IBasicType.Kind.eChar, 0))
-        index += size
-        result
-      }.toList
-
-      state.Stack.tape.putInt(location, index) // index space
-
-      state.writeDataBlock(result, resultBuffer)(state)
-
-      None
+      state.writeDataBlock(fp.fread(numMembers * size), resultBuffer)(state)
+      Some(RValue(numMembers))
     }
    }
 
@@ -357,7 +329,6 @@ object Functions {
   scalaFunctions += new Function("atoi", false) {
     def run(formattedOutputParams: Array[RValue], state: State) = {
       val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(state)
-      println("STRING: " + str)
       Some(RValue(str.toInt))
     }
   }

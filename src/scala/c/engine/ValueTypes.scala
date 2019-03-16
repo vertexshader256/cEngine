@@ -1,6 +1,7 @@
 package scala.c.engine
 
 import java.io.File
+import java.nio.file.{Files, Paths}
 
 import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.internal.core.dom.parser.c._
@@ -99,7 +100,14 @@ case class FileRValue(path: String) extends RValue {
   val value: AnyVal = 0
   val theType = null
   val rawType = theType
-  val file: File = new File(path)
+  //val file: File = new File(path)
+  val byteArray = Files.readAllBytes(Paths.get(path))
+  var currentPosition = 0
+  def fread(numBytes: Int): Array[Byte] = {
+    val result = byteArray.drop(currentPosition).take(numBytes)
+    currentPosition += numBytes
+    result
+  }
 }
 
 case class Field(state: State, address: Int, bitOffset: Int, theType: IType, sizeInBits: Int) extends LValue {

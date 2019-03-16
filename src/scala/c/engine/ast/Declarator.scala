@@ -235,9 +235,11 @@ object Declarator {
 
   def assign(dst: LValue, srcs: List[ValueType], equals: IASTInitializerClause, op: Int)(implicit state: State): LValue = {
     if (!dst.theType.isInstanceOf[CStructure]) {
-      val result = evaluate(dst, srcs.head, op)
-      val casted = TypeHelper.cast(dst.theType, result.value)
-      dst.setValue(casted)
+      val result = evaluate(dst, srcs.head, op) match {
+        case file @ FileRValue(_) => file
+        case x => TypeHelper.cast(dst.theType, x.value)
+      }
+      dst.setValue(result)
     } else if (equals.isInstanceOf[IASTFunctionCallExpression]) {
       state.copy(dst.address, state.Stack.insertIndex - dst.sizeof, dst.sizeof)
     } else if (equals.isInstanceOf[IASTExpression]) { // setting a struct equal to another struct

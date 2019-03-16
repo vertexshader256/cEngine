@@ -240,7 +240,12 @@ object BinaryExpr {
       evaluatePointerArithmetic(left, right.value.asInstanceOf[Int], operator)
     } else {
       val result = calculate(left.value,  right.value, operator)
-      RValue(result, left.theType)
+
+      if (right.isInstanceOf[FileRValue]) {
+        right
+      } else {
+        RValue(result, left.theType)
+      }
     }
   }
 }
