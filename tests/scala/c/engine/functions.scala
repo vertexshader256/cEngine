@@ -79,8 +79,6 @@ class FunctionPointerTest extends StandardTest {
   "a function pointer that is initialized" should "print the correct results" in {
     val code = """
 
-      #include "string.h"
-
       int blah2(int x, int y) {
         return x * y;
       }
