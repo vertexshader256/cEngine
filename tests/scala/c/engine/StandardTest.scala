@@ -111,7 +111,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
           val newVar = program.addVariable("mainInfo", theType)
           val start = state.allocateSpace(stringAddresses.size * 4)
           state.writeDataBlock(stringAddresses, start)(state)
-          newVar.setValue(start)
+          newVar.setValue(RValue(start, TypeHelper.intType))
 
           val varExpr = factory.newIdExpression(factory.newName("mainInfo"))
 

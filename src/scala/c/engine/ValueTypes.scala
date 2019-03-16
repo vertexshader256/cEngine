@@ -17,23 +17,28 @@ trait LValue extends ValueType {
   val state: State
   val sizeInBits: Int
 
+  private var rVal: RValue = RValue(0, TypeHelper.intType)
+
   def sizeof: Int
   def rValue: RValue = {
-    if (TypeHelper.isPointerOrArray(this)) {
+    if (rVal.isInstanceOf[FileRValue]) {
+      rVal
+    } else if (TypeHelper.isPointerOrArray(this)) {
       Address(getValue.value.asInstanceOf[Int], TypeHelper.getPointerType(theType))
     } else {
       RValue(getValue.value, theType)
     }
   }
 
-  def getValue = if (theType.isInstanceOf[IArrayType]) {
+  private def getValue = if (theType.isInstanceOf[IArrayType]) {
     RValue(address, theType)
   } else {
     state.Stack.readFromMemory(address, theType, bitOffset, sizeInBits)
   }
 
-  def setValue(newVal: AnyVal) = {
-    state.Stack.writeToMemory(newVal, address, theType, bitOffset, sizeInBits)
+  def setValue(newVal: RValue) = {
+    rVal = newVal
+    state.Stack.writeToMemory(newVal.value, address, theType, bitOffset, sizeInBits)
   }
 
   def toByteArray = state.readDataBlock(address, sizeof)(state)

@@ -22,7 +22,7 @@ object Declarator {
           val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
           val variable = state.context.addVariable(name.toString, theType)
           Ast.step(fcnDec.getInitializer)
-          variable.setValue(TypeHelper.resolve(state.context.popStack).value)
+          variable.setValue(TypeHelper.resolve(state.context.popStack))
         }
       } else {
 
@@ -134,7 +134,7 @@ object Declarator {
               val theArrayPtr = state.context.addVariable(name.toString, theType)
 
               if (theType.isInstanceOf[CPointerType]) {
-                theArrayPtr.setValue(lValue.rValue.value)
+                theArrayPtr.setValue(lValue.rValue)
               } else {
                 state.copy(theArrayPtr.address, lValue.address, lValue.sizeof)
               }
@@ -236,7 +236,7 @@ object Declarator {
   def assign(dst: LValue, srcs: List[ValueType], equals: IASTInitializerClause, op: Int)(implicit state: State): LValue = {
     if (!dst.theType.isInstanceOf[CStructure]) {
       val result = evaluate(dst, srcs.head, op)
-      val casted = TypeHelper.cast(dst.theType, result.value).value
+      val casted = TypeHelper.cast(dst.theType, result.value)
       dst.setValue(casted)
     } else if (equals.isInstanceOf[IASTFunctionCallExpression]) {
       state.copy(dst.address, state.Stack.insertIndex - dst.sizeof, dst.sizeof)
