@@ -51,27 +51,48 @@ class FunctionPointerTest extends StandardTest {
   "a function pointer test" should "print the correct results" in {
     val code = """
       //#include <stdio.h>
-      void my_int_func(int x)
+      int my_int_func(int x, int y)
       {
-          printf( "%d\n", x );
+          printf( "%d\n", x * y);
+          return 0;
       }
       
       
       int main()
       {
-          void (*foo)(int);
+          int (*foo)(int, int);
           foo = &my_int_func;
       
-          /* call my_int_func (note that you do not need to write (*foo)(2) ) */
-          foo( 2 );
+          /* call my_int_func (note that you do not need to write (*foo)(2, 4) ) */
+          foo(2, 7);
           /* but if you want to, you may */
-          (*foo)( 2 );
+          (*foo)(3, 8);
       
           return 0;
       }
       
     """
     
+    checkResults(code)
+  }
+
+  "a function pointer that is initialized" should "print the correct results" in {
+    val code = """
+
+      #include "string.h"
+
+      int blah2(int x, int y) {
+        return x * y;
+      }
+
+      int main(int argc, void* argv[])
+      {
+          int (*funcPtr2)(int, int) = blah2;
+          printf("%d\n", funcPtr2(5, 6));
+      }
+
+    """
+
     checkResults(code)
   }
   
@@ -141,8 +162,6 @@ class FunctionPointerTest extends StandardTest {
     
     checkResults(code)
   }
-  
-  
 }
 
 class VarArgFunction extends StandardTest {
