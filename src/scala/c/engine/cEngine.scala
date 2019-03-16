@@ -17,7 +17,7 @@ object Interpreter {
 
     // Define functions that we want to use with string interpolation syntax
     def c(args: Any*)(implicit state: State): Unit = {
-      Gcc.runCode(sc.parts.iterator.next, state, List())
+      Gcc.runCode(sc.parts.iterator.next, state, Iterator())
     }
 
     def func(args: Any*)(implicit state: State): Unit = {

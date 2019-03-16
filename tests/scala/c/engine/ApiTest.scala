@@ -2,6 +2,23 @@ package scala.c.engine
 
 import Interpreter._
 
+class JavaApiTest extends StandardTest {
+  "java api test one" should "print the correct results" in {
+
+    val state = new State(ThirtyTwoBits)
+    val api = new JavaAPI()
+    api.runC("""int i = 1432;""", state)
+    api.runC("""printf("%d\n", i);""", state)
+    api.runC("""
+      float x = 2.5f;
+      printf("what: %.1f\n", x);
+
+      """, state)
+
+    assert(getResults(state.stdout.toList) == (Seq("1432", "what: 2.5")))
+  }
+}
+
 class ApiTest extends StandardTest {
   "interp test one" should "print the correct results" in {
 

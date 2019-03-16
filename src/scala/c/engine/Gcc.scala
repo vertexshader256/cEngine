@@ -14,14 +14,14 @@ object Gcc {
 
   val program = new FunctionScope(List(), null, null) {}
 
-  def runCode(code: String, state: State, includePaths: List[String]) = {
+  def runCode(code: String, state: State, includePaths: Iterator[String]) = {
       val exeCode = s"""
         void main() {
            $code
         }
       """
 
-      state.init(Seq(exeCode), includePaths)
+      state.init(Seq(exeCode), includePaths.toList)
       state.callTheFunction("main", null, Some(program), true)(state)
       val main = state.functionList.find{_.name == "main"}.get
       state.functionList -= main
