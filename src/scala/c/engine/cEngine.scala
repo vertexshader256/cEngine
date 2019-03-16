@@ -476,7 +476,7 @@ class State(pointerSize: NumBits) {
       node = fcnDef
       override val staticVars = addStaticFunctionVars(fcnDef)(State.this)
       def parameters = fcnType.getParameterTypes.toList
-      def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = {
+      def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
         None
       }
     }
@@ -495,7 +495,7 @@ class State(pointerSize: NumBits) {
 
     functionList.find(_.name == name).map { fcn =>
       // this is a function simulated in scala
-      fcn.run(args.reverse, this).foreach { retVal => context.pushOntoStack(RValue(retVal, null)) }
+      fcn.run(args.reverse, this).foreach(context.pushOntoStack)
     }
 
     Seq()
@@ -510,10 +510,17 @@ class State(pointerSize: NumBits) {
 
         val stackPos = Stack.insertIndex
         val args = call.getArguments.map{x => Expressions.evaluate(x)}
+        println(args.toList)
         val resolvedArgs: Array[RValue] = args.flatten.map{ TypeHelper.resolve }
         val returnVal = function.run(resolvedArgs.reverse, this)
         Stack.insertIndex = stackPos // pop the stack
-        returnVal.map{theVal => RValue(theVal, TypeHelper.unsignedIntType)}
+
+        returnVal.map{ rVal =>
+          rVal match {
+            case file@FileRValue(_) => file
+            case rValue => RValue(rValue.value, TypeHelper.unsignedIntType)
+          }
+        }
       } else {
         if (function.name == "main" && isApi) {
           scope.get.init(function.node, this, !scope.isDefined)

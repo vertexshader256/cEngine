@@ -9,12 +9,23 @@ import scala.c.engine.ast.BinaryExpr.evaluate
 
 object Declarator {
 
-  def execute(decl: IASTDeclarator)(implicit state: State) = decl match {
+  def execute(decl: IASTDeclarator)(implicit state: State): Any = decl match {
 
     case fcnDec: IASTFunctionDeclarator => {
       if (Utils.getDescendants(fcnDec).exists{x => x.isInstanceOf[IASTEqualsInitializer]}) {
-        println("IS EQUALS")
+        // when you're initializing a function pointer: int (*funcPtr2)(int, int) = blah2;
+
+        val nameBinding = fcnDec.getNestedDeclarator.getName.resolveBinding()
+        val name = fcnDec.getNestedDeclarator.getName
+
+        if (nameBinding.isInstanceOf[IVariable]) {
+          val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
+          val variable = state.context.addVariable(name.toString, theType)
+          Ast.step(fcnDec.getInitializer)
+          variable.setValue(TypeHelper.resolve(state.context.popStack).value)
+        }
       } else {
+
         val isInFunctionPrototype = !Utils.getAncestors(fcnDec).exists {
           _.isInstanceOf[IASTFunctionDefinition]
         }
@@ -123,7 +134,6 @@ object Declarator {
               val theArrayPtr = state.context.addVariable(name.toString, theType)
 
               if (theType.isInstanceOf[CPointerType]) {
-                println("HERE")
                 theArrayPtr.setValue(lValue.rValue.value)
               } else {
                 state.copy(theArrayPtr.address, lValue.address, lValue.sizeof)
@@ -155,8 +165,8 @@ object Declarator {
           val variable = state.context.addVariable(name.toString, theType)
 
           if (!variable.isInitialized) {
-
             if (decl.getInitializer.isInstanceOf[IASTEqualsInitializer]) {
+
               val initClause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
               val initVals = getRValues(initClause, theType)
               assign(variable, initVals, initClause, op_assign)

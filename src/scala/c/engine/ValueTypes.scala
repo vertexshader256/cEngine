@@ -1,5 +1,7 @@
 package scala.c.engine
 
+import java.io.File
+
 import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.internal.core.dom.parser.c._
 
@@ -68,6 +70,8 @@ object RValue {
   def unapply(rvalue: RValue): Option[(AnyVal, IType)] = Some((rvalue.value, rvalue.theType))
   def apply(theValue: AnyVal, aType: IType) =
     new RValue {val theType = TypeHelper.stripSyntheticTypeInfo(aType); val rawType = aType; val value = theValue;}
+  def apply(theValue: AnyVal) =
+    new RValue {val theType = null; val rawType = null; val value = theValue;}
 }
 
 abstract class RValue extends ValueType {
@@ -84,6 +88,13 @@ case class Address(value: Int, theType: IType) extends RValue {
     "Address(" + value + ", " + theType + ")"
   }
   val rawType = theType
+}
+
+case class FileRValue(path: String) extends RValue {
+  val value: AnyVal = 0
+  val theType = null
+  val rawType = theType
+  val file: File = new File(path)
 }
 
 case class Field(state: State, address: Int, bitOffset: Int, theType: IType, sizeInBits: Int) extends LValue {

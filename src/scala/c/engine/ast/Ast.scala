@@ -65,7 +65,19 @@ object Ast {
     case simple: IASTSimpleDeclaration => {
       val declSpec = simple.getDeclSpecifier
 
-      simple.getDeclarators.foreach(step)
+      val isWithinFunction = Utils.getAncestors(simple).exists {
+        _.isInstanceOf[IASTFunctionDefinition]
+      }
+
+      simple.getDeclarators.foreach {
+        case fcn: IASTFunctionDeclarator =>
+          if (!isWithinFunction || fcn.getInitializer != null) {
+            step(fcn)
+          } else {
+            step(fcn.getNestedDeclarator)
+          }
+        case x => step(x)
+      }
 
       if (declSpec.isInstanceOf[IASTEnumerationSpecifier]) {
         step(simple.getDeclSpecifier)

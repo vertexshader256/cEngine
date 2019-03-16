@@ -13,10 +13,8 @@ import scala.collection.mutable.ListBuffer
 abstract case class Function(name: String, isNative: Boolean) {
   var index = -1
   var node: IASTNode = null
-
   val staticVars: List[Variable] = List()
-
-  def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal]
+  def run(formattedOutputParams: Array[RValue], state: State): Option[RValue]
 }
 
 object Functions {
@@ -27,14 +25,14 @@ object Functions {
   
   scalaFunctions += new Function("rand", false) {
         def run(formattedOutputParams: Array[RValue], state: State) = {
-          Some(Math.abs(scala.util.Random.nextInt))
+          Some(RValue(Math.abs(scala.util.Random.nextInt)))
         }
       }
   
   scalaFunctions += new Function("isalpha", false) {
         def run(formattedOutputParams: Array[RValue], state: State) = {
           val theChar = formattedOutputParams.head.value.asInstanceOf[char].toChar
-          Some(if (theChar.isLetter) 1 else 0)
+          Some(RValue(if (theChar.isLetter) 1 else 0))
         }
       }
 
@@ -44,7 +42,7 @@ object Functions {
         case c: char => c.toChar
         case int: Int => int.toChar
       }
-      Some(if (theChar.isDigit) 1 else 0)
+      Some(RValue(if (theChar.isDigit) 1 else 0))
     }
   }
 
@@ -54,7 +52,7 @@ object Functions {
         case c: char => c.toChar
         case int: Int => int.toChar
       }
-      Some(if (theChar.toString.matches("^[0-9a-fA-F]+$")) 1 else 0)
+      Some(RValue(if (theChar.toString.matches("^[0-9a-fA-F]+$")) 1 else 0))
     }
   }
   
@@ -64,14 +62,14 @@ object Functions {
             case c: char => c.toChar
             case int: Int => int.toChar
           }
-          Some(theChar.toLower.toByte)
+          Some(RValue(theChar.toLower.toByte))
         }
       }
   
   scalaFunctions += new Function("toupper", false) {
         def run(formattedOutputParams: Array[RValue], state: State) = {
           val theChar = formattedOutputParams.head.value.asInstanceOf[char].toChar
-          Some(theChar.toUpper.toByte)
+          Some(RValue(theChar.toUpper.toByte))
         }
       }
   
@@ -81,7 +79,7 @@ object Functions {
             case int: int => int.toChar
             case char: char => char.toChar
           }
-          Some(if (theChar.isUpper) 1 else 0)
+          Some(RValue(if (theChar.isUpper) 1 else 0))
         }
       }
 
@@ -91,7 +89,7 @@ object Functions {
         case c: char => c.toChar
         case int: Int => int.toChar
       }
-      Some(if (theChar.isSpaceChar || theChar.toInt == 13 || theChar.toInt == 10) 1 else 0)
+      Some(RValue(if (theChar.isSpaceChar || theChar.toInt == 13 || theChar.toInt == 10) 1 else 0))
     }
   }
   
@@ -104,7 +102,7 @@ object Functions {
 
           state.Stack.clearMemory(addr, numBlocks * blockSize)
 
-          Some(addr)
+          Some(RValue(addr))
         }
       }
   
@@ -114,13 +112,13 @@ object Functions {
             case long: Long => state.allocateHeapSpace(long.toInt)
             case int: Int => state.allocateHeapSpace(int)
           }
-          Some(returnVal)
+          Some(RValue(returnVal))
         }
       }
   
  scalaFunctions += new Function("realloc", false) {
         def run(formattedOutputParams: Array[RValue], state: State) = {
-          Some(state.allocateHeapSpace(formattedOutputParams.head.value.asInstanceOf[Long].toInt))
+          Some(RValue(state.allocateHeapSpace(formattedOutputParams.head.value.asInstanceOf[Long].toInt)))
         }
       }
  
@@ -166,7 +164,7 @@ object Functions {
     }
   
    scalaFunctions += new Function("_assert", false) {
-        def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = {
+        def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
           val addy = formattedOutputParams(0).value.asInstanceOf[Int]
           println(Utils.readString(addy)(state) + " FAILED")
           None
@@ -180,14 +178,14 @@ object Functions {
           
           state.Stack.writeToMemory(fraction.toInt, intPart, TypeHelper.intType)
           
-          Some(fraction % 1.0)
+          Some(RValue(fraction % 1.0))
         }
       }
 
   scalaFunctions += new Function("sqrt", false) {
     def run(formattedOutputParams: Array[RValue], state: State) = {
       val num = formattedOutputParams(0).value.asInstanceOf[Double]
-      Some(Math.sqrt(num))
+      Some(RValue(Math.sqrt(num)))
     }
   }
    
@@ -220,7 +218,7 @@ object Functions {
        val pointer = state.allocateSpace(4)
        state.Stack.tape.putInt(pointer, fileData)
 
-       Some(pointer)
+       Some(RValue(pointer))
      }
    }
 
@@ -360,111 +358,111 @@ object Functions {
     def run(formattedOutputParams: Array[RValue], state: State) = {
       val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(state)
       println("STRING: " + str)
-      Some(str.toInt)
+      Some(RValue(str.toInt))
     }
   }
 
   scalaFunctions += new Function("fabs", false) {
     def run(formattedOutputParams: Array[RValue], state: State) = {
-      Some(Math.abs(formattedOutputParams.last.value.asInstanceOf[Double]))
+      Some(RValue(Math.abs(formattedOutputParams.last.value.asInstanceOf[Double])))
     }
   }
 
   scalaFunctions += new Function("sin", false) {
     def run(formattedOutputParams: Array[RValue], state: State) = {
-      Some(Math.sin(formattedOutputParams.last.value.asInstanceOf[Double]))
+      Some(RValue(Math.sin(formattedOutputParams.last.value.asInstanceOf[Double])))
     }
   }
 
   scalaFunctions += new Function("cos", false) {
     def run(formattedOutputParams: Array[RValue], state: State) = {
-      Some(Math.cos(formattedOutputParams.last.value.asInstanceOf[Double]))
+      Some(RValue(Math.cos(formattedOutputParams.last.value.asInstanceOf[Double])))
     }
   }
 
   scalaFunctions += new Function("tan", false) {
     def run(formattedOutputParams: Array[RValue], state: State) = {
-      Some(Math.tan(formattedOutputParams.last.value.asInstanceOf[Double]))
+      Some(RValue(Math.tan(formattedOutputParams.last.value.asInstanceOf[Double])))
     }
   }
 
   scalaFunctions += new Function("acos", false) {
     def run(formattedOutputParams: Array[RValue], state: State) = {
-      Some(Math.acos(formattedOutputParams.last.value.asInstanceOf[Double]))
+      Some(RValue(Math.acos(formattedOutputParams.last.value.asInstanceOf[Double])))
     }
   }
 
   scalaFunctions += new Function("cosh", false) {
     def run(formattedOutputParams: Array[RValue], state: State) = {
-      Some(Math.cosh(formattedOutputParams.last.value.asInstanceOf[Double]))
+      Some(RValue(Math.cosh(formattedOutputParams.last.value.asInstanceOf[Double])))
     }
   }
 
   scalaFunctions += new Function("asin", false) {
     def run(formattedOutputParams: Array[RValue], state: State) = {
-      Some(Math.asin(formattedOutputParams.last.value.asInstanceOf[Double]))
+      Some(RValue(Math.asin(formattedOutputParams.last.value.asInstanceOf[Double])))
     }
   }
 
   scalaFunctions += new Function("sinh", false) {
     def run(formattedOutputParams: Array[RValue], state: State) = {
-      Some(Math.sinh(formattedOutputParams.last.value.asInstanceOf[Double]))
+      Some(RValue(Math.sinh(formattedOutputParams.last.value.asInstanceOf[Double])))
     }
   }
 
   scalaFunctions += new Function("atan", false) {
     def run(formattedOutputParams: Array[RValue], state: State) = {
-      Some(Math.atan(formattedOutputParams.last.value.asInstanceOf[Double]))
+      Some(RValue(Math.atan(formattedOutputParams.last.value.asInstanceOf[Double])))
     }
   }
 
   scalaFunctions += new Function("tanh", false) {
     def run(formattedOutputParams: Array[RValue], state: State) = {
-      Some(Math.tanh(formattedOutputParams.last.value.asInstanceOf[Double]))
+      Some(RValue(Math.tanh(formattedOutputParams.last.value.asInstanceOf[Double])))
     }
   }
 
   scalaFunctions += new Function("atan2", false) {
     def run(formattedOutputParams: Array[RValue], state: State) = {
-      Some(Math.atan2(formattedOutputParams.last.value.asInstanceOf[Double],
-        formattedOutputParams.head.value.asInstanceOf[Double]))
+      Some(RValue(Math.atan2(formattedOutputParams.last.value.asInstanceOf[Double],
+        formattedOutputParams.head.value.asInstanceOf[Double])))
     }
   }
 
   scalaFunctions += new Function("exp", false) {
     def run(formattedOutputParams: Array[RValue], state: State) = {
-      Some(Math.exp(formattedOutputParams.last.value.asInstanceOf[Double]))
+      Some(RValue(Math.exp(formattedOutputParams.last.value.asInstanceOf[Double])))
     }
   }
 
   scalaFunctions += new Function("ceil", false) {
     def run(formattedOutputParams: Array[RValue], state: State) = {
-      Some(Math.ceil(formattedOutputParams.last.value.asInstanceOf[Double]))
+      Some(RValue(Math.ceil(formattedOutputParams.last.value.asInstanceOf[Double])))
     }
   }
 
   scalaFunctions += new Function("floor", false) {
     def run(formattedOutputParams: Array[RValue], state: State) = {
-      Some(Math.floor(formattedOutputParams.last.value.asInstanceOf[Double]))
+      Some(RValue(Math.floor(formattedOutputParams.last.value.asInstanceOf[Double])))
     }
   }
 
   scalaFunctions += new Function("log", false) {
     def run(formattedOutputParams: Array[RValue], state: State) = {
-      Some(Math.log(formattedOutputParams.last.value.asInstanceOf[Double]))
+      Some(RValue(Math.log(formattedOutputParams.last.value.asInstanceOf[Double])))
     }
   }
 
   scalaFunctions += new Function("log10", false) {
     def run(formattedOutputParams: Array[RValue], state: State) = {
-      Some(Math.log10(formattedOutputParams.last.value.asInstanceOf[Double]))
+      Some(RValue(Math.log10(formattedOutputParams.last.value.asInstanceOf[Double])))
     }
   }
 
   scalaFunctions += new Function("pow", false) {
     def run(formattedOutputParams: Array[RValue], state: State) = {
-      Some(Math.pow(formattedOutputParams.last.value.asInstanceOf[Double],
-        formattedOutputParams.head.value.asInstanceOf[Double]))
+      Some(RValue(Math.pow(formattedOutputParams.last.value.asInstanceOf[Double],
+        formattedOutputParams.head.value.asInstanceOf[Double])))
     }
   }
 
@@ -473,7 +471,7 @@ object Functions {
       val first = TypeHelper.cast(TypeHelper.doubleType, formattedOutputParams.last.value).value.asInstanceOf[Double]
       val second = TypeHelper.cast(TypeHelper.doubleType, formattedOutputParams.head.value).value.asInstanceOf[Double]
 
-      Some(first % second)
+      Some(RValue(first % second))
     }
   }
 
@@ -487,7 +485,7 @@ object Functions {
 
        state.writeDataBlock(result.getBytes, resultBuffer)(state)
 
-       Some(varArgs.size)
+       Some(RValue(varArgs.size))
      }
   }
 
@@ -518,7 +516,7 @@ object Functions {
               i += 1
             }
           } while (current != 0)
-          Some(i)
+          Some(RValue(i))
         }
       }
    
@@ -532,9 +530,9 @@ object Functions {
         val offset = str.indexOf(char.toChar)
 
         if (offset != -1) {
-          Some(straddy + offset)
+          Some(RValue(straddy + offset))
         } else {
-          Some(0)
+          Some(RValue(0))
         }
       }
     }
@@ -551,7 +549,7 @@ object Functions {
 
         val struct = structs.find{x => ("struct " + x.getName) == stuctName}.get
 
-        Some(TypeHelper.offsetof(struct, memberName, state))
+        Some(RValue(TypeHelper.offsetof(struct, memberName, state)))
       }
     }
   
@@ -564,7 +562,7 @@ object Functions {
         val str2 = Utils.readString(straddy2)(state)
 
         val same = str1 == str2
-        Some((if (same) 0 else 1))
+        Some(RValue((if (same) 0 else 1)))
       }
     }
  
@@ -583,12 +581,12 @@ object Functions {
           same &= state.Stack.readFromMemory(memaddy + i, new CBasicType(IBasicType.Kind.eChar, 0)).value == state.Stack.readFromMemory(memaddy2 + i, new CBasicType(IBasicType.Kind.eChar, 0)).value
         }
 
-        Some((if (same) 0 else 1))
+        Some(RValue((if (same) 0 else 1)))
       }
     }
   
   scalaFunctions += new Function("free", false) {
-        def run(formattedOutputParams: Array[RValue], state: State): Option[AnyVal] = {
+        def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
           None
         }
       }
@@ -613,7 +611,7 @@ object Functions {
         val result = state.Stack.readFromMemory(current, theType).value
         varArgStartingAddr = (current + offset) +: varArgStartingAddr
 
-        Some(result)
+        Some(RValue(result))
       }
     }
   
@@ -663,7 +661,7 @@ object Functions {
           val result = state.allocateHeapSpace(20)
 
           state.writeDataBlock(array, result)(state)
-          Some(result)
+          Some(RValue(result))
         }
       }
 }

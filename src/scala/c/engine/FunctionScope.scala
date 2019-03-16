@@ -126,10 +126,10 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
     if (current != null) {
 
 //      if (current.isInstanceOf[IASTNode]) {
-//        println(current.getClass.getSimpleName + ":" + index + ":" + current.asInstanceOf[IASTNode].getRawSignature)
+//        println(current.getClass.getSimpleName + ":" + current.asInstanceOf[IASTNode].getRawSignature)
 //        println(Utils.getDescendants(current.asInstanceOf[IASTNode]).map(_.getClass.getSimpleName))
 //      } else {
-//        println(current.getClass.getSimpleName + ":" + index)
+//        println(current.getClass.getSimpleName)
 //      }
 
       ast.Ast.step(current)(state)
