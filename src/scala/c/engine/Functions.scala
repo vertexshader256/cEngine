@@ -468,7 +468,16 @@ object Functions {
     }
   }
 
-   scalaFunctions += new Function("sscanf", false) {
+  scalaFunctions += new Function("fmod", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      val first = TypeHelper.cast(TypeHelper.doubleType, formattedOutputParams.last.value).value.asInstanceOf[Double]
+      val second = TypeHelper.cast(TypeHelper.doubleType, formattedOutputParams.head.value).value.asInstanceOf[Double]
+
+      Some(first % second)
+    }
+  }
+
+  scalaFunctions += new Function("sscanf", false) {
      def run(formattedOutputParams: Array[RValue], state: State) = {
        val resultBuffer = formattedOutputParams.last.value.asInstanceOf[Int]
 
@@ -480,7 +489,7 @@ object Functions {
 
        Some(varArgs.size)
      }
-   }
+  }
 
    scalaFunctions += new Function("printf", false) {
       def run(formattedOutputParams: Array[RValue], state: State) = {

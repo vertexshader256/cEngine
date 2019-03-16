@@ -1,5 +1,22 @@
 package scala.c.engine
 
+class MathFunctions extends StandardTest {
+
+  "fmod test" should "print the correct results" in {
+    val code = """
+      #include <math.h>
+
+      int main()
+      {
+          printf("%f\n", fmod(4.5, 1.2));
+          printf("%f\n", fmod(1454.2, 675465.0));
+          printf("%f\n", fmod(-37453, 123));
+      }"""
+
+    checkResults(code)
+  }
+}
+
 class SpecialFunctions extends StandardTest {
 
   "offsetof test" should "print the correct results" in {
