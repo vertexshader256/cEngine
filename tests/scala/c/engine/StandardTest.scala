@@ -120,9 +120,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
           null
         }
 
-        //state.context.pathStack.push(NodePath(state.getFunction("main").node, Stage1))
         state.callTheFunction("main", functionCall, Some(program))(state)
-        //totalTime += (System.nanoTime - start) / 1000000000.0
         result = getResults(state.stdout.toList)
       } else {
         result = errors
@@ -236,14 +234,13 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
               }
             } catch {
               case e =>
-                //e.printStackTrace()
                 Thread.sleep(50)
             }
           }
 
           result
         } else {
-          logger.errors.toSeq
+          logger.errors
         }
 
       } catch {
