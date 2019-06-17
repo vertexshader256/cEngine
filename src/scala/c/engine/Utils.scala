@@ -13,7 +13,6 @@ import java.nio.charset.StandardCharsets
 import org.anarres.cpp.InputLexerSource
 import java.io.ByteArrayInputStream
 import org.anarres.cpp.Token
-import better.files._
 import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
 
 sealed abstract class Direction
@@ -89,7 +88,7 @@ object Utils {
 
 		val preprocessResults = new StringBuilder
 		
-		val newCodes = codes///List(better.files.File("app\\ee_printf.c").contentAsString) ++ codes
+		val newCodes = codes
 		
 		newCodes.map{theCode =>
 		  

@@ -1,9 +1,5 @@
 package scala.c.engine
 
-import java.nio.file.Paths
-
-import better.files.File
-
 class TinyExprTest extends StandardTest {
 
 //  "tinyexpr test 2" should "print the correct results" in {

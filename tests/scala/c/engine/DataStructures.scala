@@ -2,7 +2,7 @@ package scala.c.engine
 
 import java.nio.file.Paths
 
-import better.files.File
+import scala.io.Source
 
 class ListTest extends StandardTest {
   "list test" should "print the correct results" in {
@@ -10,7 +10,10 @@ class ListTest extends StandardTest {
     val list = Paths.get("tests", "scala", "c", "engine", "libds-master", "list.c")
     val listTest = Paths.get("tests", "scala", "c", "engine", "libds-master", "listtest.c")
 
-    val allCode = Seq(File(list).contentAsString, File(listTest).contentAsString)
+    val listText = Source.fromFile(list.toFile, "utf-8").mkString
+    val listTestText = Source.fromFile(listTest.toFile, "utf-8").mkString
+
+    val allCode = Seq(listText, listTestText)
 
     checkResults2(allCode,  includePaths = List(raw"./tests/scala/c/engine/libds-master"))
   }
@@ -22,7 +25,10 @@ class VectorTest extends StandardTest {
     val vector = Paths.get("tests", "scala", "c", "engine", "libds-master", "vector.c")
     val vecTest = Paths.get("tests", "scala", "c", "engine", "libds-master", "vectest.c")
 
-    val allCode =  Seq(File(vector).contentAsString, File(vecTest).contentAsString)
+    val vectorText = Source.fromFile(vector.toFile, "utf-8").mkString
+    val vecTestText = Source.fromFile(vecTest.toFile, "utf-8").mkString
+
+    val allCode =  Seq(vectorText, vecTestText)
 
     checkResults2(allCode, includePaths = List(raw"./tests/scala/c/engine/libds-master"))
   }
@@ -35,8 +41,11 @@ class HeapTest extends StandardTest {
     val heap = Paths.get("tests", "scala", "c", "engine", "libds-master", "heap.c")
     val heapTest = Paths.get("tests", "scala", "c", "engine", "libds-master", "heaptest.c")
 
-    val allCode =  Seq(File(vector).contentAsString, File(heap).contentAsString,
-      File(heapTest).contentAsString)
+    val vectorText = Source.fromFile(vector.toFile, "utf-8").mkString
+    val heapText = Source.fromFile(heap.toFile, "utf-8").mkString
+    val heapTestText = Source.fromFile(heapTest.toFile, "utf-8").mkString
+
+    val allCode =  Seq(vectorText, heapText, heapTestText)
 
     checkResults2(allCode, includePaths = List(raw"./tests/scala/c/engine/libds-master"))
   }
@@ -49,8 +58,11 @@ class HashMapTest extends StandardTest {
     val hashmap = Paths.get("tests", "scala", "c", "engine", "libds-master", "hashmap.c")
     val maptest = Paths.get("tests", "scala", "c", "engine", "libds-master", "maptest.c")
 
-    val allCode =  Seq(File(vector).contentAsString, File(hashmap).contentAsString,
-      File(maptest).contentAsString)
+    val vectorText = Source.fromFile(vector.toFile, "utf-8").mkString
+    val hashmapText = Source.fromFile(hashmap.toFile, "utf-8").mkString
+    val maptestText = Source.fromFile(maptest.toFile, "utf-8").mkString
+
+    val allCode =  Seq(vectorText, hashmapText, maptestText)
 
     checkResults2(allCode, includePaths = List(raw"./tests/scala/c/engine/libds-master"))
   }
@@ -249,7 +261,9 @@ class RegexTest extends StandardTest {
 
     val slre = Paths.get("tests", "scala", "c", "engine", "libds-master", "slre.c")
 
-    val allCode =  Seq(File(slre).contentAsString, code)
+    val slreText = Source.fromFile(slre.toFile, "utf-8").mkString
+
+    val allCode =  Seq(slreText, code)
 
     checkResults2(allCode, includePaths = List(raw"./tests/scala/c/engine/libds-master"))
   }

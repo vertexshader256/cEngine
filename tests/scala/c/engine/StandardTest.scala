@@ -1,7 +1,7 @@
 package scala.c.engine
 
 import java.io.{File, PrintWriter}
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files}
 import java.util.concurrent.atomic.AtomicInteger
 
 import org.eclipse.cdt.core.dom.ast._
@@ -10,8 +10,8 @@ import org.scalatest._
 
 import scala.concurrent._
 import scala.collection.mutable.ListBuffer
+import scala.io.Source
 import scala.sys.process.Process
-import scala.util.Try
 
 object StandardTest {
   val cFileCount = new AtomicInteger()
@@ -79,7 +79,8 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
       val translationUnit = if (shouldBootstrap) {
         state.init(codeInFiles, includePaths)
       } else {
-        state.init(Seq("#define HAS_FLOAT\n" + better.files.File("./src/scala/c/engine/ee_printf.c").contentAsString) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }, includePaths)
+        val eePrint = Source.fromFile("./src/scala/c/engine/ee_printf.c", "utf-8").mkString
+        state.init(Seq("#define HAS_FLOAT\n" + eePrint) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }, includePaths)
       }
 
       val errors = getErrors(translationUnit, List())

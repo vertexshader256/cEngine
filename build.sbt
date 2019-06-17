@@ -19,8 +19,7 @@ scalaVersion := "2.12.8"
 //testOptions in Test += Tests.Argument("-P")
 
 libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % "3.0.5" % "test",
-  "com.github.pathikrit" %% "better-files" % "2.17.1"
+  "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 )
 
 assemblyMergeStrategy in assembly := {

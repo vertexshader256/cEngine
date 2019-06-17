@@ -1,7 +1,5 @@
 package scala.c.engine
 
-import better.files.File
-
 class LinkedListTest extends StandardTest {
   "Linked list test" should "print the correct results" in {
     val code = """
