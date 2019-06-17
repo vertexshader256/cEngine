@@ -321,7 +321,7 @@ object Functions {
       }
     }
 
-    formatter.format(resultingFormatString, resolved: _*)
+    formatter.format(resultingFormatString, resolved.toSeq: _*)
 
     buffer.toString
   }

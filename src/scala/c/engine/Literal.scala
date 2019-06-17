@@ -38,7 +38,7 @@ object Literal {
           case ('\\', '\\') => result += '\\'; index += 2
           case ('\\', 'n') => result += '\n'; index += 2
           case ('\\', 'r') => result += '\r'; index += 2
-          case ('\\', '0') => result += '\0'; index += 2
+          case ('\\', '0') => result += '\u0000'; index += 2
           case x => result += x._1; index += 1
         }
       }

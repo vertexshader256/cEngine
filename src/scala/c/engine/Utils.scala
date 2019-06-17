@@ -36,7 +36,7 @@ object Utils {
       results += current
       current = current.getParent
     }
-    results
+    results.toSeq
   }
   
   def readString(address: Int)(implicit state: State): String = {
@@ -70,7 +70,7 @@ object Utils {
     }
 
   def getDescendants(node: IASTNode): Seq[IASTNode] = {
-    Seq(node) ++ node.getChildren.flatMap{x => getDescendants(x)}
+    Seq(node) ++ node.getChildren.toList.flatMap{x => getDescendants(x)}
   }
 
   val mainPath = raw"."

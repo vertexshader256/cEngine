@@ -47,7 +47,6 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
           writeLast = true
           index += 1
         }
-
       }
 
       if (writeLast) {
@@ -66,7 +65,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
   private def getErrors(node: IASTNode, errors: List[String]): List[String] = {
     node match {
       case prob: CASTProblemDeclaration => List("Error on: " + prob.getFileLocation.getFileName + ".c:" + prob.getFileLocation.getStartingLineNumber + ":" + prob.getRawSignature)
-      case _ => errors ++ node.getChildren.flatMap{x => getErrors(x, errors)}
+      case _ => errors ++ node.getChildren.toList.flatMap{x => getErrors(x, errors)}
     }
   }
 
@@ -141,14 +140,11 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
     var except: Exception = null
 
     Future {
-
       var cEngineOutput: List[String] = List()
       var gccOutput = Seq[String]()
 
       try {
-
         val logger = new SyntaxLogger
-
 
         val files = codeInFiles.map{ code =>
           val file = new java.io.File(StandardTest.cFileCount.incrementAndGet + ".c")
@@ -247,7 +243,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
 
           result
         } else {
-          logger.errors
+          logger.errors.toSeq
         }
 
       } catch {
