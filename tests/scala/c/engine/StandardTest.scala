@@ -240,7 +240,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
 
           result
         } else {
-          logger.errors
+          logger.errors.toSeq
         }
 
       } catch {
