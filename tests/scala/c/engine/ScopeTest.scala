@@ -21,6 +21,27 @@ class ScopeTest extends StandardTest {
     checkResults(code)
   }
 
+  "shadowy escape" should "print the correct results" in {
+    val code = """
+      int x = 42;
+
+      int func() {
+        int x = 3840;
+        {
+          extern int x;
+          return x;
+        }
+      }
+
+      void main()
+      {
+        printf("%d\n", func(5));
+      }
+      """
+
+    checkResults(code)
+  }
+
   "scope of a block" should "print the correct results" in {
     val code = """
 

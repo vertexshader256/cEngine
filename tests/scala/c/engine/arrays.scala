@@ -361,4 +361,16 @@ class ArrayTest extends StandardTest {
 
     checkResults(code)
   }
+
+  "indexes are the plus operator" should "print the correct results" in {
+    val code = """
+      void main() {
+        int spong[5] = {1,2,3,4,5};
+        int x = 2;
+
+        printf("%d %d\n", spong[x], x[spong]);
+      }"""
+
+    checkResults(code)
+  }
 }
