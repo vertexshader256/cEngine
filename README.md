@@ -1,6 +1,6 @@
 # cEngine
 
-Run C on the JVM.
+C interpreter which runs on the JVM.
 <img align="right" src="cEngineLogo.png" width="100">
 
 Supports:
