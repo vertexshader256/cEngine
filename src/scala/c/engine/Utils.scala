@@ -76,11 +76,9 @@ object Utils {
   val mainPath = raw"."
   val minGWIncludes = raw"C:\MinGW\include"
 
-  val minGWAdditionalIncludes = if (new File(raw"C:\MinGW\lib\gcc\mingw32\5.3.0\include").exists) {
-		raw"C:\MinGW\lib\gcc\mingw32\5.3.0\include"
-	} else {
-		raw"C:\MinGW\lib\gcc\mingw32\4.6.2\include"
-	}
+	val includeDir = new File(raw"C:\MinGW\lib\gcc\mingw32").listFiles().head.getAbsolutePath
+
+  val minGWAdditionalIncludes = includeDir + raw"\include"
 
   val minGWMoreIncludes = raw"C:\MinGW\include\GL"
   
