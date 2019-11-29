@@ -55,39 +55,37 @@ object Expressions {
         Some(field)
     case subscript: IASTArraySubscriptExpression =>
 
-      val left = evaluate(subscript.getArrayExpression).get
-      val right = evaluate(subscript.getArgument).get
+      var left = evaluate(subscript.getArrayExpression).get
+      var right = evaluate(subscript.getArgument).get
 
       val isLeftPointer = TypeHelper.isPointerOrArray(left)
 
-      if (isLeftPointer) {
-        val rightValue = TypeHelper.resolve(right).value
-        val index = TypeHelper.cast(TypeHelper.intType, rightValue).value.asInstanceOf[Int]
-
-        val base = left match {
-          case Address(addr, _) =>
-            addr
-          case lValue@LValue(_, theType) =>
-            theType match {
-              case _: IPointerType =>
-                state.readPtrVal(lValue.address)
-              case _: IArrayType =>
-                lValue.address
-            }
-        }
-
-        val indexType = left match {
-          case Address(_, theType) =>
-            theType
-          case LValue(_, theType) =>
-            TypeHelper.getPointerType(theType)
-        }
-
-        val offset = base + index * TypeHelper.sizeof(indexType)
-        Some(LValue(state, offset, indexType))
-      } else {
-        Some(LValue(state, 0, left.theType))
+      // in the case of weird stuff like 2[x], just swap the two operands
+      if (!isLeftPointer) {
+        val temp = left
+        left = right
+        right = temp
       }
+
+      val base = left match {
+        case rValue: RValue =>
+          rValue.value.asInstanceOf[Int]
+        case lValue: LValue =>
+          lValue.rValue.value.asInstanceOf[Int]
+      }
+
+      val indexType = left match {
+        case RValue(_, theType) =>
+          theType
+        case LValue(_, theType) =>
+          TypeHelper.getPointerType(theType)
+      }
+
+      val rightValue = TypeHelper.resolve(right).value
+      val index = rightValue.toString.toInt
+      val offset = base + index * TypeHelper.sizeof(indexType)
+
+      Some(LValue(state, offset, indexType))
     case unary: IASTUnaryExpression =>
       Some(UnaryExpression.execute(unary))
     case lit: IASTLiteralExpression =>
