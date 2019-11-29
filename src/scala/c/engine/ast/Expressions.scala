@@ -58,30 +58,36 @@ object Expressions {
       val left = evaluate(subscript.getArrayExpression).get
       val right = evaluate(subscript.getArgument).get
 
-      val rightValue = TypeHelper.resolve(right).value
-      val index = TypeHelper.cast(TypeHelper.intType, rightValue).value.asInstanceOf[Int]
+      val isLeftPointer = TypeHelper.isPointerOrArray(left)
 
-      val base = left match {
-        case Address(addr, _) =>
-          addr
-        case lValue @ LValue(_, theType) =>
-          theType match {
-            case _: IPointerType  =>
-              state.readPtrVal(lValue.address)
-            case _: IArrayType =>
-              lValue.address
-          }
+      if (isLeftPointer) {
+        val rightValue = TypeHelper.resolve(right).value
+        val index = TypeHelper.cast(TypeHelper.intType, rightValue).value.asInstanceOf[Int]
+
+        val base = left match {
+          case Address(addr, _) =>
+            addr
+          case lValue@LValue(_, theType) =>
+            theType match {
+              case _: IPointerType =>
+                state.readPtrVal(lValue.address)
+              case _: IArrayType =>
+                lValue.address
+            }
+        }
+
+        val indexType = left match {
+          case Address(_, theType) =>
+            theType
+          case LValue(_, theType) =>
+            TypeHelper.getPointerType(theType)
+        }
+
+        val offset = base + index * TypeHelper.sizeof(indexType)
+        Some(LValue(state, offset, indexType))
+      } else {
+        Some(LValue(state, 0, left.theType))
       }
-
-      val indexType = left match {
-        case Address(_, theType) =>
-          theType
-        case LValue(_, theType) =>
-          TypeHelper.getPointerType(theType)
-      }
-
-      val offset = base + index * TypeHelper.sizeof(indexType)
-      Some(LValue(state, offset, indexType))
     case unary: IASTUnaryExpression =>
       Some(UnaryExpression.execute(unary))
     case lit: IASTLiteralExpression =>
