@@ -365,10 +365,10 @@ class ArrayTest extends StandardTest {
   "indexes are the plus operator" should "print the correct results" in {
     val code = """
       void main() {
-        int spong[5] = {1,2,3,4,5};
+        int z[5] = {1,2,3,4,5};
         int x = 2;
 
-        printf("%d %d\n", spong[x], x[spong]);
+        printf("%d %d %d\n", z[x], x[z], 2[z]);
       }"""
 
     checkResults(code)
