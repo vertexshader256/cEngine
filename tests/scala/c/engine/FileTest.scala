@@ -1,11 +1,9 @@
 package scala.c.engine
 
-import java.io.{BufferedWriter, FileWriter}
+import java.io.{BufferedWriter, File, FileWriter}
 import java.nio.file.Paths
 
 class FileTest extends StandardTest {
-
-
 
   "file test" should "print the correct results" in {
 
@@ -35,6 +33,32 @@ class FileTest extends StandardTest {
 
     checkResults(code).map{result =>
       new File("file.txt" ).delete()
+      result
+    }
+  }
+
+  "create file test" should "print the correct results" in {
+
+    val code = """
+
+      #include <stdio.h>
+
+      void main() {
+          FILE *passwd_text=fopen("passwd.txt", "w");
+          int rec_num;
+          fprintf(passwd_text, "test!\n");
+          fclose(passwd_text);
+
+          char buff[100];
+          FILE *f = fopen("passwd.txt", "r");
+          fgets(buff, 100, f);
+          printf("String read: %s\n", buff);
+          fclose(f);
+
+      }"""
+
+    checkResults(code).map{result =>
+      new File("passwd.txt" ).delete()
       result
     }
   }

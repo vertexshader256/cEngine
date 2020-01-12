@@ -6,6 +6,8 @@ import java.nio.file.{Files, Paths}
 import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.internal.core.dom.parser.c._
 
+import scala.collection.mutable.ListBuffer
+
 abstract class ValueType {
   def theType: IType
   def rawType: IType
@@ -100,13 +102,58 @@ case class FileRValue(path: String) extends RValue {
   val value: AnyVal = 0
   val theType = null
   val rawType = theType
-  //val file: File = new File(path)
-  val byteArray = Files.readAllBytes(Paths.get(path))
+
+  val file: File = new File(path)
+
+  if (!file.exists()) {
+    file.createNewFile()
+  }
+
+  var byteArray = Files.readAllBytes(Paths.get(path))
+
   var currentPosition = 0
+
   def fread(numBytes: Int): Array[Byte] = {
     val result = byteArray.drop(currentPosition).take(numBytes)
     currentPosition += numBytes
     result
+  }
+
+  def readString: String = {
+    var found = false
+    var result = new ListBuffer[Char]()
+
+    while (!found && byteArray.nonEmpty) {
+      val value = byteArray.take(1).head.toChar
+      if (value == '\n') {
+        found = true
+      } else {
+        result += value
+      }
+
+      byteArray = byteArray.drop(1)
+      currentPosition += 1
+    }
+
+    result.mkString
+  }
+
+  def fwrite(bytes: Array[Byte], numBytes: Int) = {
+    val head = byteArray.take(currentPosition)
+    val tail = byteArray.drop(currentPosition)
+
+    head ++ bytes ++ tail
+
+    currentPosition += numBytes
+  }
+
+  def fprintf(str: String) = {
+    import java.io._
+    val pw = new PrintWriter(file)
+    pw.write(str)
+    pw.close
+
+    byteArray ++= str.getBytes
   }
 }
 

@@ -207,6 +207,72 @@ object Functions {
      }
    }
 
+   scalaFunctions += new Function("fgets", false) {
+     def run(formattedOutputParams: Array[RValue], state: State) = {
+       val resultBuffer = formattedOutputParams(2).value.asInstanceOf[Int]
+       val size = formattedOutputParams(1).value.asInstanceOf[Int]
+       val fp = formattedOutputParams(0).asInstanceOf[FileRValue]
+
+       var result = new ListBuffer[Byte]()
+       var count = 0
+       var lastRead: Byte = 0
+       var isDone = false
+
+       while (count < size && lastRead.toChar != '\n' && !isDone) {
+         val z = fp.fread(1)
+         if (z.isEmpty) {
+           isDone = true
+         } else {
+           lastRead = z.head
+           result += lastRead
+           count += 1
+         }
+       }
+
+       state.writeDataBlock(result.toArray, resultBuffer)(state)
+
+       None
+     }
+   }
+
+   scalaFunctions += new Function("fclose", false) {
+     def run(formattedOutputParams: Array[RValue], state: State) = {
+       None
+     }
+   }
+
+   scalaFunctions += new Function("fprintf", false) {
+     def run(formattedOutputParams: Array[RValue], state: State) = {
+       val fp = formattedOutputParams.last.asInstanceOf[FileRValue]
+
+       val formattedStr = printf(formattedOutputParams.drop(1), state)
+       fp.fprintf(formattedStr)
+       None
+     }
+   }
+
+  scalaFunctions += new Function("sprintf", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      val strAddr = formattedOutputParams.last.value.asInstanceOf[Int]
+
+      val formattedStr = printf(formattedOutputParams.drop(1), state)
+      state.writeDataBlock(formattedStr.getBytes, strAddr)(state)
+      None
+    }
+  }
+
+  // TODO: Complete this
+  scalaFunctions += new Function("fscanf", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      val fp = formattedOutputParams(3).asInstanceOf[FileRValue]
+      val dst = formattedOutputParams(1).value.asInstanceOf[Int]
+
+      //val str = fp.readString
+      //state.writeDataBlock(str.getBytes, dst)(state)
+      None
+    }
+  }
+
    scalaFunctions += new Function("fread", false) {
     def run(formattedOutputParams: Array[RValue], state: State) = {
       val resultBuffer = formattedOutputParams(3).value.asInstanceOf[Int]
@@ -218,6 +284,21 @@ object Functions {
       Some(RValue(numMembers))
     }
    }
+
+  scalaFunctions += new Function("fwrite", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      val buffer = formattedOutputParams(3).value.asInstanceOf[Int] // write this to fp
+      val size = formattedOutputParams(2).value.asInstanceOf[Int]
+      val numMembers = formattedOutputParams(1).value.asInstanceOf[Int]
+      val fp = formattedOutputParams(0).asInstanceOf[FileRValue]
+
+      val bytes = state.readDataBlock(buffer, size * numMembers)(state)
+
+      fp.fwrite(bytes, size * numMembers)
+
+      None
+    }
+  }
 
   def printf(formattedOutputParams: Array[RValue], state: State): String = {
     val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(state)

@@ -4,7 +4,7 @@ lazy val root = (project in file("."))
   .settings(
     name         := "cEngine",
     organization := "com.github.bdwashbu",
-    scalaVersion := "2.12.9",
+    scalaVersion := "2.13.1",
     version      := "0.0.5"
   )
 
@@ -12,13 +12,13 @@ scalaSource in Compile := baseDirectory.value / "src"
 
 scalaSource in Test := baseDirectory.value / "tests"
 
-scalaVersion := "2.12.9"
+scalaVersion := "2.13.1"
 
 //parallelExecution in Test := true
 //testOptions in Test += Tests.Argument("-P")
 
 libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % "3.0.8" % "test"
+  "org.scalatest" %% "scalatest" % "3.1.0" % "test"
 )
 
 //assemblyMergeStrategy in assembly := {
