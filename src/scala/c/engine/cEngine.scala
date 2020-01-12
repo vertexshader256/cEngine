@@ -115,23 +115,14 @@ class Memory(size: Int) {
     val result: AnyVal = theType match {
       case basic: IBasicType =>
         if (basic.getKind == eInt && basic.isShort) {
-          var result = tape.getShort(address)
-          if (sizeInBits != 0) {
-            result = (result << (16 - sizeInBits - bitOffset) >>> (16 - sizeInBits)).toShort
-          }
-          result
+          val result = tape.getShort(address)
+          (result << (16 - sizeInBits - bitOffset) >>> (16 - sizeInBits)).toShort
         } else if (basic.getKind == eInt && basic.isLongLong) {
-          var result = tape.getLong(address)
-          if (sizeInBits != 0) {
-            result = result << (64 - sizeInBits - bitOffset) >>> (64 - sizeInBits)
-          }
-          result
+          val result = tape.getLong(address)
+          result << (64 - sizeInBits - bitOffset) >>> (64 - sizeInBits)
         } else if (basic.getKind == eInt || basic.getKind == eBoolean) {
-          var result = tape.getInt(address)
-          if (sizeInBits != 0) {
-            result = result << (32 - sizeInBits - bitOffset) >>> (32 - sizeInBits)
-          }
-          result
+          val result = tape.getInt(address)
+          result << (32 - sizeInBits - bitOffset) >>> (32 - sizeInBits)
         } else if (basic.getKind == eDouble) {
           tape.getDouble(address)
         } else if (basic.getKind == eFloat) {
