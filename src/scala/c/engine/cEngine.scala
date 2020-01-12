@@ -126,22 +126,10 @@ class Memory(size: Int) {
             result = result << (64 - sizeInBits - bitOffset) >>> (64 - sizeInBits)
           }
           result
-        } else if (basic.getKind == eInt && basic.isLong) {
+        } else if (basic.getKind == eInt || basic.getKind == eBoolean) {
           var result = tape.getInt(address)
           if (sizeInBits != 0) {
             result = result << (32 - sizeInBits - bitOffset) >>> (32 - sizeInBits)
-          }
-          result
-        } else if (basic.getKind == eInt) {
-          var result = tape.getInt(address)
-          if (sizeInBits != 0) {
-            result = result << (32 - sizeInBits - bitOffset) >>> (32 - sizeInBits)
-          }
-          result
-        } else if (basic.getKind == eBoolean) {
-          var result = tape.getInt(address)
-          if (sizeInBits != 0) {
-            result = result << (32 - sizeInBits - bitOffset) >> (32 - sizeInBits)
           }
           result
         } else if (basic.getKind == eDouble) {
@@ -151,10 +139,8 @@ class Memory(size: Int) {
         } else if (basic.getKind == eChar) {
           tape.get(address) // a C 'char' is a Java 'byte'
         }
-      case ptr: IPointerType => tape.getInt(address)
-      case fcn: IFunctionType => tape.getInt(address)
-      case struct: CStructure => tape.getInt(address)
       case typedef: CTypedef => readFromMemory(address, typedef.getType).value
+      case _ => tape.getInt(address)
     }
 
 
