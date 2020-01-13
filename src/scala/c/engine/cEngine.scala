@@ -262,11 +262,10 @@ object State {
             }
           }
 
-          val cached = CachedRValue(switch.getControllerExpression)
-
           val jumpTable = descendants.flatMap{
             case x @ CaseLabel(caseStatement) if (switch.getBody == getParentSwitchBody(caseStatement)) =>
-              List(JmpToLabelIfEqual(caseStatement.getExpression, cached, x))
+              val cached = CachedRValue(switch.getControllerExpression)
+              cached +: List(JmpToLabelIfEqual(caseStatement.getExpression, cached, x))
             case x @ DefaultLabel(default) if (switch.getBody == getParentSwitchBody(default)) =>
               List(JmpLabel(x))
             case _ =>
@@ -275,7 +274,7 @@ object State {
 
           state.breakLabelStack = state.breakLabelStack.tail
 
-          val result = cached +: (jumpTable ++ descendants :+ breakLabel)
+          val result = jumpTable ++ descendants :+ breakLabel
 
           PushVariableStack() +: result :+ PopVariableStack()
         case x: IASTCaseStatement =>
