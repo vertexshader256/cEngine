@@ -73,7 +73,7 @@ void lex_init(char *filename) {
     }
     FILE *fp = fopen(filename, "r");
     if (!fp)
-        error("Cannot open %s: %s", filename, strerror(errno));
+        error("Cannot open %s", filename);
     stream_push(make_file(fp, filename));
 }
 

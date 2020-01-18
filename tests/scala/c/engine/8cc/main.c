@@ -8,8 +8,8 @@
 #include <unistd.h>
 #include "8cc.h"
 
-static char *infile;
-static char *outfile;
+static char *infile = "test.c";
+static char *outfile = "result.c";
 static char *asmfile;
 static bool dumpast;
 static bool cpponly;
@@ -110,44 +110,44 @@ static void parse_m_arg(char *s) {
 
 static void parseopt(int argc, char **argv) {
     cppdefs = make_buffer();
-    for (;;) {
-        int opt = getopt(argc, argv, "I:ED:O:SU:W:acd:f:gm:o:hw");
-        if (opt == -1)
-            break;
-        switch (opt) {
-        case 'I': break; //add_include_path(optarg); break;
-        case 'E': cpponly = true; break;
-        case 'D': {
-            char *p = strchr(optarg, '=');
-            if (p)
-                *p = ' ';
-            buf_printf(cppdefs, "#define %s\n", optarg);
-            break;
-        }
-        case 'O': break;
-        case 'S': dumpasm = true; break;
-        case 'U':
-            buf_printf(cppdefs, "#undef %s\n", optarg);
-            break;
-        case 'W': parse_warnings_arg(optarg); break;
-        case 'c': dontlink = true; break;
-        case 'f': parse_f_arg(optarg); break;
-        case 'm': parse_m_arg(optarg); break;
-        case 'g': break;
-        case 'o': outfile = optarg; break;
-        case 'w': enable_warning = false; break;
-        case 'h':
-            usage(0);
-        default:
-            usage(1);
-        }
-    }
-    if (optind != argc - 1)
-        usage(1);
-
-    //if (!dumpast && !cpponly && !dumpasm && !dontlink)
-    //    error("One of -a, -c, -E or -S must be specified");
-    infile = argv[optind];
+//    for (;;) {
+//        int opt = getopt(argc, argv, "I:ED:O:SU:W:acd:f:gm:o:hw");
+//        if (opt == -1)
+//            break;
+//        switch (opt) {
+//        case 'I': break; //add_include_path(optarg); break;
+//        case 'E': cpponly = true; break;
+//        case 'D': {
+//            char *p = strchr(optarg, '=');
+//            if (p)
+//                *p = ' ';
+//            buf_printf(cppdefs, "#define %s\n", optarg);
+//            break;
+//        }
+//        case 'O': break;
+//        case 'S': dumpasm = true; break;
+//        case 'U':
+//            buf_printf(cppdefs, "#undef %s\n", optarg);
+//            break;
+//        case 'W': parse_warnings_arg(optarg); break;
+//        case 'c': dontlink = true; break;
+//        case 'f': parse_f_arg(optarg); break;
+//        case 'm': parse_m_arg(optarg); break;
+//        case 'g': break;
+//        case 'o': outfile = optarg; break;
+//        case 'w': enable_warning = false; break;
+//        case 'h':
+//            usage(0);
+//        default:
+//            usage(1);
+//        }
+//    }
+//    if (optind != argc - 1)
+//        usage(1);
+//
+//    //if (!dumpast && !cpponly && !dumpasm && !dontlink)
+//    //    error("One of -a, -c, -E or -S must be specified");
+//    infile = argv[optind];
 }
 
 char *get_base_file() {
@@ -173,9 +173,9 @@ int main(int argc, char **argv) {
 //  setbuf(stdout, NULL);
 //    if (atexit(delete_temp_files))
 //        perror("atexit");
-//    parseopt(argc, argv);
-//    lex_init(infile);
-//    cpp_init();
+    parseopt(argc, argv);
+    //lex_init(infile);
+    //cpp_init();
 //    parse_init();
 //    set_output_file(open_asmfile());
 //    if (buf_len(cppdefs) > 0)

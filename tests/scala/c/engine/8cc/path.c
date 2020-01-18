@@ -45,6 +45,6 @@ char *fullpath(char *path) {
     if (path[0] == '/')
         return clean(path);
     if (*cwd == '\0' && !getcwd(cwd, PATH_MAX))
-        error("getcwd failed: %s", strerror(errno));
+        error("getcwd failed");
     return clean(format("%s/%s", cwd, path));
 }

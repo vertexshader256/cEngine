@@ -37,5 +37,7 @@ object Statement {
     case exprStatement: IASTExpressionStatement => {
       Expressions.evaluate(exprStatement.getExpression)
     }
+    case problem: IASTProblemStatement =>
+      println(problem.getRawSignature)
   }
 }
