@@ -135,16 +135,9 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
   def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits,
                     args: List[String] = List(), includePaths: List[String] = List()) = {
 
-    var except: Exception = null
-
-    Future {
-      var cEngineOutput: List[String] = List()
-      var gccOutput = Seq[String]()
-
       try {
-        val logger = new SyntaxLogger
 
-        val files = codeInFiles.map{ code =>
+        val files = codeInFiles.map { code =>
           val file = new java.io.File(StandardTest.cFileCount.incrementAndGet + ".c")
           val pw = new PrintWriter(file)
           pw.write(code)
@@ -152,89 +145,92 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
           file
         }
 
-        val moreIncludes = includePaths.flatMap{inc =>
-          Seq("-I", inc)
-        }
-
         val exeFile = new java.io.File("a" + StandardTest.exeCount.incrementAndGet + ".exe")
-        val sourceFileTokens = files.flatMap{file => Seq(file.getAbsolutePath)}
-        val includeTokens = Seq("-I", Utils.mainPath) ++ moreIncludes
+        val logger = new SyntaxLogger
 
-        val size = pointerSize match {
-          case ThirtyTwoBits => Seq("gcc")
-          case SixtyFourBits => Seq("gcc64")
+        val cEngineFuture = Future {
+          getCEngineResults(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
         }
 
-        val processTokens =
-          size ++ sourceFileTokens ++ includeTokens ++ Seq("-o", exeFile.getAbsolutePath) ++ Seq("-D", "ALLOC_TESTING")
+        val compileFuture = Future {
 
-        val builder = Process(processTokens, new java.io.File("."))
-        val compile = builder.run(logger.process)
-
-        cEngineOutput = getCEngineResults(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
-
-        compile.exitValue()
-
-        val exe = new File(exeFile.getAbsolutePath).toPath
-
-        var i = 0
-        while (!Files.exists(exe) && i < 100) {
-          Thread.sleep(20)
-          i += 1
-        }
-
-        val numErrors = 0//logger.errors.length
-
-        gccOutput = if (numErrors == 0) {
-
-          var isDone = false
-          val maxTries = 200 // 50 is proven to work
-          var i = 0
-          var result: Seq[String] = null
-
-          files.foreach { _.delete()}
-
-          // 3/1/19: Protip - This helps tests run reliably!
-          while (!isDone && i < maxTries) {
-
-            i += 1
-            try {
-              val runLogger = new RunLogger
-              // run the actual executable
-              val runner = Process(Seq(exeFile.getAbsolutePath) ++ args, new File("."))
-              val run = runner.run(runLogger.process)
-
-              run.exitValue()
-
-              result = runLogger.stdout.clone().toList
-
-              if (result.nonEmpty) {
-                isDone = true
-                exeFile.delete()
-              }
-            } catch {
-              case e =>
-                Thread.sleep(50)
-            }
+          val moreIncludes = includePaths.flatMap { inc =>
+            Seq("-I", inc)
           }
 
-          result
-        } else {
-          logger.errors.toSeq
+          val sourceFileTokens = files.flatMap { file => Seq(file.getAbsolutePath) }
+          val includeTokens = Seq("-I", Utils.mainPath) ++ moreIncludes
+
+          val size = pointerSize match {
+            case ThirtyTwoBits => Seq("gcc")
+            case SixtyFourBits => Seq("gcc64")
+          }
+
+          val processTokens =
+            size ++ sourceFileTokens ++ includeTokens ++ Seq("-o", exeFile.getAbsolutePath) ++ Seq("-D", "ALLOC_TESTING")
+
+          val builder = Process(processTokens, new java.io.File("."))
+          val compile = builder.run(logger.process)
+
+          compile.exitValue()
         }
 
-      } catch {
-        case e: Exception => except = e
-      }
+        val gccExeFut = compileFuture.map { _ =>
+          val numErrors = 0 //logger.errors.length
 
-      info("C_Engine output: " + cEngineOutput)
-      info("Gcc      output: " + gccOutput.toList)
+          val gccOutput = if (numErrors == 0) {
 
-      if (except != null) {
-        throw except
-      }
+            var isDone = false
+            val maxTries = 200 // 50 is proven to work
+            var i = 0
+            var result: Seq[String] = null
 
-      assert(cEngineOutput === gccOutput.toList)
+            // 3/1/19: Protip - This helps tests run reliably!
+            while (!isDone && i < maxTries) {
+
+              i += 1
+              try {
+                val runLogger = new RunLogger
+                // run the actual executable
+                val runner = Process(Seq(exeFile.getAbsolutePath) ++ args, new File("."))
+                val run = runner.run(runLogger.process)
+
+                files.foreach {
+                  _.delete()
+                }
+
+                run.exitValue()
+
+                result = runLogger.stdout.clone().toList
+
+                if (result.nonEmpty) {
+                  isDone = true
+                  exeFile.delete()
+                }
+              } catch {
+                case e =>
+                  Thread.sleep(50)
+              }
+            }
+
+            result
+          } else {
+            logger.errors.toSeq
+          }
+
+          gccOutput.toList
+        }
+
+        val completion = Future.sequence(List(cEngineFuture, gccExeFut))
+
+        completion.map { x =>
+          val cEngineOutput = x.head
+          val gccOutput = x.last
+          info("C_Engine output: " + cEngineOutput)
+          info("Gcc      output: " + gccOutput)
+
+          assert(cEngineOutput === gccOutput)
+        }
     }
   }
 }
