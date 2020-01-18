@@ -125,5 +125,9 @@ object Expressions {
 
           Some(result)
       }
+    case typeIdInit: IASTTypeIdInitializerExpression =>
+      val theType = TypeHelper.getType(typeIdInit.getTypeId).theType
+      val newAddr = state.allocateSpace(TypeHelper.sizeof(theType))
+      Some(LValue(state, newAddr, theType))
   }
 }

@@ -58,6 +58,22 @@ class StructTest extends StandardTest {
     checkResults(code)
   }
 
+  "initializing a simple structure with type id expr" should "print the correct results" in {
+    val code = """
+
+      typedef struct {
+        int y;
+        int x;
+      } Test;
+
+      void main() {
+        Test *x = &((Test){});
+        printf("%d %d\n", x->y, x->y);
+      }"""
+
+    checkResults(code)
+  }
+
   "initializing a simple structure with designated initializers" should "print the correct results" in {
     val code = """
 
