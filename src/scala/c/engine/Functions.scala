@@ -1,5 +1,7 @@
 package scala.c.engine
 
+import java.io.File
+
 import org.eclipse.cdt.core.dom.ast._
 import java.util.Formatter
 import java.util.Locale
@@ -203,8 +205,28 @@ object Functions {
    scalaFunctions += new Function("fopen", false) {
      def run(formattedOutputParams: Array[RValue], state: State) = {
        val path = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(state)
-       Some(FileRValue(path))
+       val mode = Utils.readString(formattedOutputParams.head.value.asInstanceOf[Int])(state)
+
+       if (!new File(path).exists()) {
+         if (mode == "w") {
+           new File(path).createNewFile()
+           Some(FileRValue(path))
+         } else {
+           Some(RValue(0))
+         }
+       } else {
+         println(path + " found!")
+         Some(FileRValue(path))
+       }
      }
+   }
+
+   scalaFunctions += new Function("remove", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      val path = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(state)
+      new File(path).delete()
+      None
+    }
    }
 
    scalaFunctions += new Function("fgets", false) {

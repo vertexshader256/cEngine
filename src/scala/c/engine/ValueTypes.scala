@@ -99,17 +99,25 @@ case class Address(value: Int, theType: IType) extends RValue {
 }
 
 case class FileRValue(path: String) extends RValue {
-  val value: AnyVal = 0
+
   val theType = null
   val rawType = theType
 
   val file: File = new File(path)
 
-  if (!file.exists()) {
-    file.createNewFile()
+  println("NEW FILE: " + path)
+
+  val value: AnyVal = if (file.exists) {
+    1
+  } else {
+    0
   }
 
-  var byteArray = Files.readAllBytes(Paths.get(path))
+  var byteArray = if (file.exists) {
+    Files.readAllBytes(Paths.get(path))
+  } else {
+    Array[Byte]()
+  }
 
   var currentPosition = 0
 

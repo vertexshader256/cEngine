@@ -13,7 +13,7 @@ void print_error(char *line, char *pos, char *label, char *fmt, va_list args) {
 //    fprintf(stderr, "%s: %s: ", line, pos);
 //    vfprintf(stderr, fmt, args);
 //    fprintf(stderr, "\n");
-    printf("ERROR: %s\n", line);
+    printf(fmt, args);
 }
 
 void errort(Token *token, char *fmt, ...) {

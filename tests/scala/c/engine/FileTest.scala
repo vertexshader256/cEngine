@@ -62,4 +62,40 @@ class FileTest extends StandardTest {
       result
     }
   }
+
+  "file existence check" should "print the correct results" in {
+
+    import java.util.UUID.randomUUID
+    val rand = randomUUID.toString.take(8)
+    val rand2 = randomUUID.toString.take(8)
+
+    val code = """
+
+      #include <stdio.h>
+
+      void main() {
+          FILE *nothere = fopen("""" + rand + """.txt", "r");
+
+          if (!nothere) {
+            printf("NOT HERE\n");
+          } else {
+            printf("HERE\n");
+          }
+
+          FILE *nothere2 = fopen("""" + rand2 + """.txt", "w");
+
+          if (!nothere2) {
+            printf("NOT HERE\n");
+          } else {
+            printf("HERE\n");
+          }
+
+          remove("""" + rand2 + """.txt");
+
+      }"""
+
+    checkResults(code).map{result =>
+      result
+    }
+  }
 }
