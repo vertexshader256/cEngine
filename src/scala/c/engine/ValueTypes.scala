@@ -171,10 +171,6 @@ object Variable {
     val size = Math.max(typeSize, initValSize)
     val variable = Variable(name: String, state: State, aType: IType, size)
 
-    // first clear the memory
-    val zeroArray = (0 until TypeHelper.sizeof(aType)(state)).map{x => 0.toByte}.toArray
-    state.writeDataBlock(zeroArray, variable.address)(state)
-
     // now, write the initial values
     state.writeDataBlock(initVals, variable.address)(state)
     variable

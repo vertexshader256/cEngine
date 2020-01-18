@@ -162,7 +162,11 @@ object Declarator {
         if (nameBinding.isInstanceOf[IVariable]) {
           val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
 
-          val variable = state.context.addVariable(name.toString, theType)
+          val variable = if (nameBinding.asInstanceOf[IVariable].isExtern) {
+            state.context.addExternVariable(name.toString, theType)
+          } else {
+            state.context.addVariable(name.toString, theType)
+          }
 
           if (!variable.isInitialized) {
             if (decl.getInitializer.isInstanceOf[IASTEqualsInitializer]) {

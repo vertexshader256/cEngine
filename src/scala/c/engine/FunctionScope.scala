@@ -49,6 +49,25 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
     }
   }
 
+  def addExternVariable(name: String, theType: IType): Variable = {
+
+    var result: Variable = null
+
+    if (parent == null) { // this extern is not in a function
+      result = addVariable(name, theType)
+    } else {
+      parent.variableScopes.map { scope =>
+        println(scope.varMap.keys.toList)
+        if (scope.varMap.contains(name) && result == null) {
+          variableScopes.head.varMap += name -> scope.varMap(name)
+          result = scope.varMap(name)
+        }
+      }
+    }
+
+    result
+  }
+
   def addArrayVariable(name: String, theType: IType, initVals: List[RValue]): Variable = {
     staticVars.find{_.name == name}.getOrElse {
       val newVar = Variable(name, state, theType, initVals)
