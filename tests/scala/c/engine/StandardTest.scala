@@ -135,102 +135,112 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
   def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits,
                     args: List[String] = List(), includePaths: List[String] = List()) = {
 
-      try {
+    try {
 
-        val files = codeInFiles.map { code =>
-          val file = new java.io.File(StandardTest.cFileCount.incrementAndGet + ".c")
-          val pw = new PrintWriter(file)
-          pw.write(code)
-          pw.close
-          file
+      val files = codeInFiles.map { code =>
+        val file = new java.io.File(StandardTest.cFileCount.incrementAndGet + ".c")
+        val pw = new PrintWriter(file)
+        pw.write(code)
+        pw.close
+        file
+      }
+
+      val exeFile = new java.io.File("a" + StandardTest.exeCount.incrementAndGet + ".exe")
+      val logger = new SyntaxLogger
+
+      val cEngineFuture = Future {
+        getCEngineResults(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
+      }.recover {
+        case e => List()
+      }
+
+      val compileFuture = Future {
+
+        val moreIncludes = includePaths.flatMap { inc =>
+          Seq("-I", inc)
         }
 
-        val exeFile = new java.io.File("a" + StandardTest.exeCount.incrementAndGet + ".exe")
-        val logger = new SyntaxLogger
+        val sourceFileTokens = files.flatMap { file => Seq(file.getAbsolutePath) }
+        val includeTokens = Seq("-I", Utils.mainPath) ++ moreIncludes
 
-        val cEngineFuture = Future {
-          getCEngineResults(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
+        val size = pointerSize match {
+          case ThirtyTwoBits => Seq("gcc")
+          case SixtyFourBits => Seq("gcc64")
         }
 
-        val compileFuture = Future {
+        val processTokens =
+          size ++ sourceFileTokens ++ includeTokens ++ Seq("-o", exeFile.getAbsolutePath) ++ Seq("-D", "ALLOC_TESTING")
 
-          val moreIncludes = includePaths.flatMap { inc =>
-            Seq("-I", inc)
-          }
+        val builder = Process(processTokens, new java.io.File("."))
+        val compile = builder.run(logger.process)
 
-          val sourceFileTokens = files.flatMap { file => Seq(file.getAbsolutePath) }
-          val includeTokens = Seq("-I", Utils.mainPath) ++ moreIncludes
+        compile.exitValue()
+      }.recover {
+        case e => println(logger.errors.toList)
+      }
 
-          val size = pointerSize match {
-            case ThirtyTwoBits => Seq("gcc")
-            case SixtyFourBits => Seq("gcc64")
-          }
+      val gccExeFut = compileFuture.map { _ =>
+        val numErrors = 0 //logger.errors.length
 
-          val processTokens =
-            size ++ sourceFileTokens ++ includeTokens ++ Seq("-o", exeFile.getAbsolutePath) ++ Seq("-D", "ALLOC_TESTING")
+        val gccOutput = if (numErrors == 0) {
 
-          val builder = Process(processTokens, new java.io.File("."))
-          val compile = builder.run(logger.process)
+          var isDone = false
+          val maxTries = 50 // 50 is proven to work
+          var i = 0
+          var result: Seq[String] = null
 
-          compile.exitValue()
-        }
+          // 3/1/19: Protip - This helps tests run reliably!
+          while (!isDone && i < maxTries) {
 
-        val gccExeFut = compileFuture.map { _ =>
-          val numErrors = 0 //logger.errors.length
+            i += 1
+            try {
+              val runLogger = new RunLogger
+              // run the actual executable
+              val runner = Process(Seq(exeFile.getAbsolutePath) ++ args, new File("."))
+              val run = runner.run(runLogger.process)
 
-          val gccOutput = if (numErrors == 0) {
-
-            var isDone = false
-            val maxTries = 200 // 50 is proven to work
-            var i = 0
-            var result: Seq[String] = null
-
-            // 3/1/19: Protip - This helps tests run reliably!
-            while (!isDone && i < maxTries) {
-
-              i += 1
-              try {
-                val runLogger = new RunLogger
-                // run the actual executable
-                val runner = Process(Seq(exeFile.getAbsolutePath) ++ args, new File("."))
-                val run = runner.run(runLogger.process)
-
-                files.foreach {
-                  _.delete()
-                }
-
-                run.exitValue()
-
-                result = runLogger.stdout.clone().toList
-
-                if (result.nonEmpty) {
-                  isDone = true
-                  exeFile.delete()
-                }
-              } catch {
-                case e =>
-                  Thread.sleep(50)
+              files.foreach {
+                _.delete()
               }
-            }
 
-            result
-          } else {
-            logger.errors.toSeq
+              run.exitValue()
+
+              result = runLogger.stdout.clone().toList
+
+              if (result.nonEmpty) {
+                isDone = true
+                exeFile.delete()
+              }
+            } catch {
+              case e =>
+                Thread.sleep(50)
+            }
           }
 
+          result
+        } else {
+          logger.errors.toSeq
+        }
+
+        if (gccOutput != null) {
           gccOutput.toList
+        } else {
+          logger.errors.toSeq
         }
+      }.recover {
+        case e => logger.errors.toSeq
+      }
 
-        val completion = Future.sequence(List(cEngineFuture, gccExeFut))
+      val completion = Future.sequence(List(cEngineFuture, gccExeFut))
 
-        completion.map { x =>
-          val cEngineOutput = x.head
-          val gccOutput = x.last
-          info("C_Engine output: " + cEngineOutput)
-          info("Gcc      output: " + gccOutput)
+      completion.map { x =>
+        val cEngineOutput = x.head
+        val gccOutput = x.last
+        info("C_Engine output: " + cEngineOutput)
+        info("Gcc      output: " + gccOutput)
 
-          assert(cEngineOutput === gccOutput)
-        }
+        assert(cEngineOutput === gccOutput)
+      }
     }
   }
 }

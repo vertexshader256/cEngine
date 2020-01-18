@@ -57,7 +57,6 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
       result = addVariable(name, theType)
     } else {
       parent.variableScopes.map { scope =>
-        println(scope.varMap.keys.toList)
         if (scope.varMap.contains(name) && result == null) {
           variableScopes.head.varMap += name -> scope.varMap(name)
           result = scope.varMap(name)
