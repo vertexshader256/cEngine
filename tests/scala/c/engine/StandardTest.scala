@@ -165,18 +165,6 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
           case SixtyFourBits => Seq("gcc64")
         }
 
-//        val preprocessTokens =
-//          Seq("gcc", "-E") ++ List("tinyexpr.c") ++ includeTokens ++ Seq(">", "results.c")
-//
-//        println(preprocessTokens.reduce{_ + " " + _})
-//
-//        val prebuilder = Process(preprocessTokens, new java.io.File("."))
-//        val precompile = prebuilder.run(logger.process)
-//        precompile.exitValue()
-
-        // 3/1/19: It seems to help reliability if we DONT run this concurrently with gcc
-
-
         val processTokens =
           size ++ sourceFileTokens ++ includeTokens ++ Seq("-o", exeFile.getAbsolutePath) ++ Seq("-D", "ALLOC_TESTING")
 
@@ -185,9 +173,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
 
         cEngineOutput = getCEngineResults(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
 
-        while (compile.isAlive()) {
-          Thread.sleep(20)
-        }
+        compile.exitValue()
 
         val exe = new File(exeFile.getAbsolutePath).toPath
 
@@ -196,8 +182,6 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
           Thread.sleep(20)
           i += 1
         }
-
-        Thread.sleep(50) // give file output time to settle
 
         val numErrors = 0//logger.errors.length
 
@@ -220,11 +204,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
               val runner = Process(Seq(exeFile.getAbsolutePath) ++ args, new File("."))
               val run = runner.run(runLogger.process)
 
-              while (run.isAlive()) {
-                Thread.sleep(50)
-              }
-
-              Thread.sleep(100) // give stdout time to settle
+              run.exitValue()
 
               result = runLogger.stdout.clone().toList
 
@@ -254,7 +234,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
         throw except
       }
 
-      assert(cEngineOutput.map{_.getBytes.toList} === gccOutput.toList.map{_.getBytes.toList})
+      assert(cEngineOutput === gccOutput.toList)
     }
   }
 }

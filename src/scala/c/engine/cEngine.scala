@@ -32,7 +32,7 @@ class Memory(size: Int) {
 
   var insertIndex = 0
   // turing tape
-  val tape = ByteBuffer.allocate(size)
+  val tape = ByteBuffer.allocateDirect(size)
   tape.order(ByteOrder.LITTLE_ENDIAN)
 
   def clearMemory(startingAddress: Int, numBytes: Int) = {
@@ -169,6 +169,7 @@ case class GenericLabel() extends Label
 
 case class CaseLabel(caseStatement: IASTCaseStatement) extends Label
 case class DefaultLabel(default: IASTDefaultStatement) extends Label
+
 
 object State {
   def flattenNode(tUnit: IASTNode)(implicit state: State): List[Any] = {
@@ -352,7 +353,7 @@ class State(pointerSize: NumBits) {
   private var breakLabelStack = List[Label]()
   private var continueLabelStack = List[Label]()
 
-  val declarations = new ListBuffer[CStructure]()
+  var tUnit: IASTTranslationUnit = null
 
   val pointerType = pointerSize match {
     case ThirtyTwoBits => TypeHelper.intType
@@ -382,7 +383,7 @@ class State(pointerSize: NumBits) {
   pushScope(new FunctionScope(List(), null, null) {})
 
   def init(codes: Seq[String], includePaths: List[String]): IASTNode = {
-    val tUnit = Utils.getTranslationUnit(codes, includePaths)
+    tUnit = Utils.getTranslationUnit(codes, includePaths)
 
     val fcns = tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}
                                 .filter(fcn => fcn.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
@@ -392,10 +393,6 @@ class State(pointerSize: NumBits) {
     }
 
     functionContexts = List[FunctionScope]()
-
-    declarations ++= tUnit.getDeclarations.collect{case simp: CASTSimpleDeclaration => simp.getDeclSpecifier}
-      .collect{case comp: CASTCompositeTypeSpecifier => comp}
-      .map{x => x.getName.resolveBinding().asInstanceOf[CStructure]}
 
     tUnit
   }
@@ -468,7 +465,6 @@ class State(pointerSize: NumBits) {
   }
 
   def callFunctionFromScala(name: String, args: Array[RValue]): Seq[IASTNode] = {
-
     functionList.find(_.name == name).map { fcn =>
       // this is a function simulated in scala
       fcn.run(args.reverse, this).foreach(context.pushOntoStack)

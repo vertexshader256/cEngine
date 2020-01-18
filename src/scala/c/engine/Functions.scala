@@ -597,7 +597,9 @@ object Functions {
         val memberName = Utils.readString(straddy)(state)
         val stuctName = Utils.readString(straddy2)(state)
 
-        val structs = state.declarations
+        val structs = state.tUnit.getDeclarations.collect{case simp: CASTSimpleDeclaration => simp.getDeclSpecifier}
+          .collect{case comp: CASTCompositeTypeSpecifier => comp}
+          .map{x => x.getName.resolveBinding().asInstanceOf[CStructure]}
 
         val struct = structs.find{x => ("struct " + x.getName) == stuctName}.get
 
