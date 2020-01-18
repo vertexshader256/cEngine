@@ -935,12 +935,12 @@ static void init_keywords() {
 }
 
 static void init_predefined_macros() {
-    vec_push(std_include_path, BUILD_DIR "/include");
-    vec_push(std_include_path, "/usr/local/lib/8cc/include");
-    vec_push(std_include_path, "/usr/local/include");
-    vec_push(std_include_path, "/usr/include");
-    vec_push(std_include_path, "/usr/include/linux");
-    vec_push(std_include_path, "/usr/include/x86_64-linux-gnu");
+//    vec_push(std_include_path, BUILD_DIR "/include");
+//    vec_push(std_include_path, "/usr/local/lib/8cc/include");
+//    vec_push(std_include_path, "/usr/local/include");
+//    vec_push(std_include_path, "/usr/include");
+//    vec_push(std_include_path, "/usr/include/linux");
+//    vec_push(std_include_path, "/usr/include/x86_64-linux-gnu");
 
     define_special_macro("__DATE__", handle_date_macro);
     define_special_macro("__TIME__", handle_time_macro);
@@ -953,12 +953,12 @@ static void init_predefined_macros() {
     define_special_macro("__INCLUDE_LEVEL__", handle_include_level_macro);
     define_special_macro("__TIMESTAMP__", handle_timestamp_macro);
 
-    read_from_string("#include <" BUILD_DIR "/include/8cc.h>");
+    //read_from_string("#include <" BUILD_DIR "/include/8cc.h>");
 }
 
 void init_now() {
     time_t timet = time(NULL);
-    localtime_r(&timet, &now);
+    //localtime_r(&timet, &now);
 }
 
 void cpp_init() {

@@ -8,11 +8,27 @@
 bool enable_warning = true;
 bool warning_is_error = false;
 
-static void print_error(char *line, char *pos, char *label, char *fmt, va_list args) {
+void print_error(char *line, char *pos, char *label, char *fmt, va_list args) {
     fprintf(stderr, isatty(fileno(stderr)) ? "\e[1;31m[%s]\e[0m " : "[%s] ", label);
     fprintf(stderr, "%s: %s: ", line, pos);
     vfprintf(stderr, fmt, args);
     fprintf(stderr, "\n");
+}
+
+void errort(Token *token, char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    print_error("ERROR", token_pos(token), "ERROR", fmt, args);
+    va_end(args);
+    exit(1);
+}
+
+void error(char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    print_error("ERROR", 0, "ERROR", fmt, args);
+    va_end(args);
+    exit(1);
 }
 
 void errorf(char *line, char *pos, char *fmt, ...) {
@@ -21,6 +37,18 @@ void errorf(char *line, char *pos, char *fmt, ...) {
     print_error(line, pos, "ERROR", fmt, args);
     va_end(args);
     exit(1);
+}
+
+void warnt(Token *token, char *fmt, ...) {
+    if (!enable_warning)
+        return;
+    char *label = warning_is_error ? "ERROR" : "WARN";
+    va_list args;
+    va_start(args, fmt);
+    print_error("ERROR", token_pos(token), label, fmt, args);
+    va_end(args);
+    if (warning_is_error)
+        exit(1);
 }
 
 void warnf(char *line, char *pos, char *fmt, ...) {

@@ -349,9 +349,18 @@ extern bool warning_is_error;
 //#define warn(...)        warnf(__FILE__ ":" STR(__LINE__), NULL, __VA_ARGS__)
 //#define warnt(tok, ...)  warnf(__FILE__ ":" STR(__LINE__), token_pos(tok), __VA_ARGS__)
 
-//noreturn void errorf(char *line, char *pos, char *fmt, ...);
-//void warnf(char *line, char *pos, char *fmt, ...);
-//char *token_pos(Token *tok);
+// washburn - manually added these
+void error(char *fmt, ...);
+void errorf(char *line, char *pos, char *fmt, ...);
+void errort(Token *token, char *fmt, ...);
+
+void warn(char *fmt, ...);
+void warnf(char *line, char *pos, char *fmt, ...);
+void warnt(Token *token, char *fmt, ...);
+
+void print_error(char *line, char *pos, char *label, char *fmt, va_list args);
+
+char *token_pos(Token *tok);
 
 // file.c
 File *make_file(FILE *file, char *name);

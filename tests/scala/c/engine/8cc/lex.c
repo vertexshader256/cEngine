@@ -44,8 +44,24 @@ static char *pos_string(Pos *p) {
     return format("%s:%d:%d", f ? f->name : "(unknown)", p->line, p->column);
 }
 
-#define errorp(p, ...) errorf(__FILE__ ":" STR(__LINE__), pos_string(&p), __VA_ARGS__)
-#define warnp(p, ...)  warnf(__FILE__ ":" STR(__LINE__), pos_string(&p), __VA_ARGS__)
+static void errorp(Pos p, char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    print_error("ERROR", pos_string(&p), "ERROR", fmt, args);
+    va_end(args);
+    exit(1);
+}
+
+static void warnp(Pos p, char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    print_error("WARNING", pos_string(&p), "WARNING", fmt, args);
+    va_end(args);
+    exit(1);
+}
+
+//#define errorp(p, ...) errorf(__FILE__ ":" STR(__LINE__), pos_string(&p), __VA_ARGS__)
+//#define warnp(p, ...)  warnf(__FILE__ ":" STR(__LINE__), pos_string(&p), __VA_ARGS__)
 
 static void skip_block_comment(void);
 
