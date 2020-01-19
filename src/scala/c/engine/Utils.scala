@@ -88,7 +88,7 @@ object Utils {
 		
 		val newCodes = codes
 		
-		newCodes.map{theCode =>
+		newCodes.foreach{theCode =>
 		  
 		  var lines = if (theCode != newCodes.head) {
 		    theCode.split("\\r?\\n").toList
@@ -131,34 +131,71 @@ object Utils {
   		var skipline = false
   		var startLine = 0
   		var currentLine = 0
+			var justHadLineBreak = false
+			var i = 0
   		
   		while (!shouldBreak) {
   		  try {
   				var	tok = pp.token
   				currentLine = tok.getLine
+
+
   				
   				while (skipline && currentLine == startLine) {
   				  tok = pp.token
   				  currentLine = tok.getLine
   				}
   				skipline = false
-  				
-  				if (tok == null)
-  					shouldBreak = true
-  					
-  				if (!shouldBreak && tok.getType == Token.EOF)
+
+  				if (tok == null || (!shouldBreak && tok.getType == Token.EOF))
   					shouldBreak = true
   					
   				if (!shouldBreak) {
-  				  preprocessResults ++= tok.getText
+
+						if (tok.getType == Token.NL) {
+							if (!justHadLineBreak) {
+								justHadLineBreak = true
+								preprocessResults ++= tok.getText
+							}
+						} else if (tok.getType == Token.WHITESPACE) {
+							if (!justHadLineBreak) {
+								preprocessResults ++= tok.getText
+							}
+						} else if (tok.getType == Token.CCOMMENT) {
+							justHadLineBreak = false
+						} else if (tok.getType == Token.CPPCOMMENT) {
+							justHadLineBreak = false
+						} else if (tok.getType == Token.IDENTIFIER) {
+							if (tok.getText.startsWith("__declspec")) {
+								startLine = currentLine
+								while (currentLine == startLine) {
+									tok = pp.token
+									currentLine = tok.getLine
+								}
+								preprocessResults ++= tok.getText
+								justHadLineBreak = false
+							} else {
+								preprocessResults ++= tok.getText
+								justHadLineBreak = false
+							}
+						} else {
+							preprocessResults ++= tok.getText
+							justHadLineBreak = false
+						}
   				}
   		  } catch {
   		    case e => skipline = true; startLine = currentLine + 1
   		  }
-  			}
+  		}
 		}
 
 		val preprocess = preprocessResults.toString.replaceAll("(?m)(^ *| +(?= |$))", "").replaceAll("(?m)^$([\r\n]+?)(^$[\r\n]+?^)+", "$1")
+
+    import java.io._
+    val pw = new PrintWriter(new File("hello.txt" ))
+    pw.write(preprocess)
+    pw.close
+
     val fileContent = FileContent.create("test", preprocess.toCharArray)
     val symbolMap = new HashMap[String, String];
 
