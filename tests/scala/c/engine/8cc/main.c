@@ -174,7 +174,7 @@ int main(int argc, char **argv) {
 //    if (atexit(delete_temp_files))
 //        perror("atexit");
     parseopt(argc, argv);
-    //lex_init(infile);
+    lex_init(infile);
     //cpp_init();
 //    parse_init();
 //    set_output_file(open_asmfile());

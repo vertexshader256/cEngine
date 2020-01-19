@@ -116,12 +116,9 @@ object Utils {
   		pp.getSystemIncludePath.add(minGWIncludes)
   		pp.getSystemIncludePath.add(minGWAdditionalIncludes)
   		pp.addMacro("__cdecl", "")
-  		pp.getQuoteIncludePath.add(minGWIncludes)
 			includePaths.foreach{ include =>
 				pp.getQuoteIncludePath.add(include)
 			}
-
-  		//pp.addMacro("ALLOC_TESTING");
 
   		val stream = new ByteArrayInputStream(code.getBytes(StandardCharsets.UTF_8))
   		
@@ -139,8 +136,6 @@ object Utils {
   				var	tok = pp.token
   				currentLine = tok.getLine
 
-
-  				
   				while (skipline && currentLine == startLine) {
   				  tok = pp.token
   				  currentLine = tok.getLine
@@ -191,23 +186,21 @@ object Utils {
 
 		val preprocess = preprocessResults.toString.replaceAll("(?m)(^ *| +(?= |$))", "").replaceAll("(?m)^$([\r\n]+?)(^$[\r\n]+?^)+", "$1")
 
-    import java.io._
-    val pw = new PrintWriter(new File("hello.txt" ))
-    pw.write(preprocess)
-    pw.close
+//    import java.io._
+//    val pw = new PrintWriter(new File("hello.txt" ))
+//    pw.write(preprocess)
+//    pw.close
 
-    val fileContent = FileContent.create("test", preprocess.toCharArray)
     val symbolMap = new HashMap[String, String];
+    val systemIncludes = Array[String]()
 
-    val systemIncludes = List(new File(mainPath), new File(minGWIncludes), new File(minGWMoreIncludes), new File(minGWAdditionalIncludes))
-
-    val info = new ScannerInfo(symbolMap, systemIncludes.toArray.map(_.getAbsolutePath))
+    val info = new ScannerInfo(symbolMap, systemIncludes)
     val log = new DefaultLogService()
     val opts = 8
     val includes = IncludeFileContentProvider.getEmptyFilesProvider
 
-    val tUnit = GCCLanguage.getDefault().getASTTranslationUnit(fileContent, info, includes, null, opts, log)
+		val fileContent = FileContent.create("test", preprocess.toCharArray)
 
-    tUnit
+		GCCLanguage.getDefault().getASTTranslationUnit(fileContent, info, includes, null, opts, log)
   }
 }
