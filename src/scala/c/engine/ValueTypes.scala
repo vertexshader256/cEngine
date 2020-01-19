@@ -127,25 +127,6 @@ case class FileRValue(path: String) extends RValue {
     result
   }
 
-  def readString: String = {
-    var found = false
-    var result = new ListBuffer[Char]()
-
-    while (!found && byteArray.nonEmpty) {
-      val value = byteArray.take(1).head.toChar
-      if (value == '\n') {
-        found = true
-      } else {
-        result += value
-      }
-
-      byteArray = byteArray.drop(1)
-      currentPosition += 1
-    }
-
-    result.mkString
-  }
-
   def fwrite(bytes: Array[Byte], numBytes: Int) = {
     val head = byteArray.take(currentPosition)
     val tail = byteArray.drop(currentPosition)

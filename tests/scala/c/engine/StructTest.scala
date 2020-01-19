@@ -308,6 +308,28 @@ class StructTest extends StandardTest {
 
     checkResults(code)
   }
+
+  "struct being reset by memset" should "print the correct results" in {
+    val code = """
+
+      struct Test {
+        int one;
+        double two;
+        char three;
+      };
+
+      void main() {
+        struct Test x2 = {7765, 2.0, 'a'};
+        struct Test x = {1, 2.0, 'a'};
+        struct Test x3 = {222, 5544.1, 'g'};
+        memset(&x, 0, sizeof(struct Test));
+        printf("%d %f %c\n", x.one, x.two, x.three);
+        printf("%d %f %c\n", x2.one, x2.two, x2.three);
+        printf("%d %f %c\n", x3.one, x3.two, x3.three);
+      }"""
+
+    checkResults(code)
+  }
   
   "basic struct test" should "print the correct results" in {
     val code = """

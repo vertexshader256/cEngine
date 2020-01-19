@@ -165,7 +165,6 @@ case class PopVariableStack()
 case class GotoLabel(name: String) extends Label
 case class BreakLabel() extends Label
 case class ContinueLabel() extends Label
-case class GenericLabel() extends Label
 
 case class CaseLabel(caseStatement: IASTCaseStatement) extends Label
 case class DefaultLabel(default: IASTDefaultStatement) extends Label
@@ -177,8 +176,6 @@ object State {
     def recurse(node: IASTNode): List[Any] = {
 
       node match {
-        case null => List()
-
         case ifStatement: IASTIfStatement =>
           val contents = PushVariableStack() +: recurse(ifStatement.getThenClause) :+ PopVariableStack()
           val elseContents = PushVariableStack() +: List(Option(ifStatement.getElseClause)).flatten.flatMap(recurse) :+ PopVariableStack()
@@ -189,8 +186,10 @@ object State {
             List()
           }
 
+          val all = contents ++ jmp
+
           // add +1 for the jmp statement
-          JmpIfNotEqual(ifStatement.getConditionExpression, (contents ++ jmp).size) +: ((contents ++ jmp) ++ elseContents)
+          JmpIfNotEqual(ifStatement.getConditionExpression, all.size) +: (all ++ elseContents)
         case forStatement: IASTForStatement =>
 
           val breakLabel = BreakLabel()
@@ -240,12 +239,12 @@ object State {
           state.continueLabelStack = continueLabel +: state.continueLabelStack
 
           val contents = recurse(doWhileStatement.getBody)
-          val begin = new GenericLabel()
+          val begin = new Label{}
 
           state.breakLabelStack = state.breakLabelStack.tail
           state.continueLabelStack = state.continueLabelStack.tail
 
-          val result = List(begin) ++ contents ++ List(continueLabel, JmpToLabelIfZero(doWhileStatement.getCondition, begin)) :+ breakLabel
+          val result = begin +: (contents ++ List(continueLabel, JmpToLabelIfZero(doWhileStatement.getCondition, begin), breakLabel))
 
           PushVariableStack() +: result :+ PopVariableStack()
         case switch: IASTSwitchStatement =>
@@ -445,7 +444,6 @@ class State(pointerSize: NumBits) {
       index = count
       node = fcnDef
       override val staticVars = addStaticFunctionVars(fcnDef)(State.this)
-      def parameters = fcnType.getParameterTypes.toList
       def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
         None
       }
@@ -577,6 +575,7 @@ class State(pointerSize: NumBits) {
     val array = new Array[Byte](numBytes)
     util.Arrays.fill(array, value)
     Stack.tape.mark()
+    Stack.tape.position(dst)
     Stack.tape.put(array)
     Stack.tape.reset()
   }
