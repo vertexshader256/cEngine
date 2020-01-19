@@ -4,6 +4,135 @@ class StagingArea extends StandardTest {
 
 }
 
+class RobustBitwiseTests extends StandardTest {
+  def bitwise(operator: Char) = {
+    """
+       void main() {
+        int a = 5;
+        char b = 64;
+        long c = 3454;
+        short d = 123;
+        long long e = 5476578934653;
+        """ + {
+      val types = List('a', 'b', 'c', 'd', 'e')
+      val perms = types.combinations(2).flatMap{x => x.permutations}.toList ++ types.map(x => List(x, x))
+
+      val result = perms.map { perm =>
+        """printf("%d\n", """ + "(int)(" + perm(0) + operator + perm(1) + "));"
+      }
+
+      val longCases =
+        """
+            printf("%lld\n", 223372036854775807L """ + operator + """ 2);
+            printf("%lld\n", 223372036854775807L """ + operator + """ 72036854775807L);
+            printf("%lld\n", 5435 """ + operator + """ 36854775807L);
+          """.stripMargin
+
+      result.reduce(_ + "\n" + _) + longCases
+    } + "}"
+  }
+
+  "bitwise OR robustness test" should "print the correct results" in {
+    val code = bitwise('|')
+    checkResults(code)
+  }
+
+  "bitwise AND robustness test" should "print the correct results" in {
+    val code = bitwise('&')
+    checkResults(code)
+  }
+
+  "bitwise XOR robustness test" should "print the correct results" in {
+    val code = bitwise('^')
+    checkResults(code)
+  }
+
+  "modulus robustness test" should "print the correct results" in {
+    val code = bitwise('%')
+    checkResults(code)
+  }
+}
+
+class RobustModulusTests extends StandardTest {
+  def modulus(operator: Char) = {
+    """
+       void main() {
+        int a = 5;
+        char b = 64;
+        long c = 3454;
+        short d = 123;
+        long long e = 5476578934653;
+        """ + {
+      val types = List('a', 'b', 'c', 'd', 'e')
+      val perms = types.combinations(2).flatMap{x => x.permutations}.toList ++ types.map(x => List(x, x))
+
+      val result = perms.map { perm =>
+        """printf("%d\n", """ + "(int)(" + perm(0) + operator + perm(1) + "));"
+      }
+
+      val longCases =
+        """
+            printf("%lld\n", 223372036854775807L """ + operator + """ 2);
+            printf("%lld\n", 223372036854775807L """ + operator + """ 72036854775807L);
+            printf("%lld\n", 5435 """ + operator + """ 36854775807L);
+          """.stripMargin
+
+      result.reduce(_ + "\n" + _) + longCases
+    } + "}"
+  }
+
+  "modulus robustness test" should "print the correct results" in {
+    val code = modulus('%')
+    checkResults(code)
+  }
+}
+
+class RobustDivisionTests extends StandardTest {
+  def robustDivide(operator: Char) = {
+
+    """
+       void main() {
+        int a = 5565643;
+        char b = 64;
+        float c = 17342.5f;
+        double d = 756788.3;
+        short f = 123;
+        """ + {
+      val types = List('a', 'b', 'c', 'd', 'f')
+      val perms = types.combinations(2).flatMap{x => x.permutations}.toList ++ types.map(x => List(x, x))
+
+      val result = perms.map{perm =>
+        if (perm(0) == 'c' || perm(1) == 'c' || perm(0) == 'd' || perm(1) == 'd') {
+          """printf("%.4f\n", """ + perm(0) + operator + perm(1) + ");"
+        } else {
+          """printf("%d\n", """ + perm(0) + operator + perm(1) + ");"
+        }
+      }
+
+      val longCases =
+        """
+          printf("%lld\n", 223372036854775807L / 2);
+          printf("%lld\n", 223372036854775807L / 72036854775807L);
+          printf("%.5f\n", 223372036854775807L / 4543.24234);
+          printf("%.5f\n", 423784682734.3623543 / 223372036854775807L);
+          printf("%.5f\n", 3242.33443f / 223372036854775807L);
+          printf("%.5f\n", 223372036854775807L / 3242.33443f);
+          printf("%lld\n", 5435 / 223372036854775807L);
+          """.stripMargin
+
+      val res = result.reduce(_ + "\n" + _) + longCases
+
+      println(res)
+      res
+    } + "}"
+  }
+
+  "Division robustness test" should "print the correct results" in {
+    val code = robustDivide('/')
+    checkResults(code)
+  }
+}
+
 class RobustTests extends StandardTest {
   
   def robust(operator: Char) = {
@@ -28,7 +157,19 @@ class RobustTests extends StandardTest {
               """printf("%d\n", """ + "(int)(" + perm(0) + operator + perm(1) + "));"
             }
           }
-          result.reduce(_ + "\n" + _)
+
+           val longCases =
+             """
+            printf("%lld\n", 223372036854775807L """ + operator + """ 2);
+            printf("%lld\n", 223372036854775807L """ + operator + """ 72036854775807L);
+            printf("%.5f\n", 6854775807L """ + operator + """ 4543.24234);
+            printf("%.5f\n", 423682734.3623543 """ + operator + """ 54775807L);
+            printf("%.5f\n", 3242.33443f """ + operator + """ 854775807L);
+            printf("%.5f\n", 36854775807L """ + operator + """ 3242.33443f);
+            printf("%lld\n", 5435 """ + operator + """ 36854775807L);
+          """.stripMargin
+
+          result.reduce(_ + "\n" + _) + longCases
         } + "}"
     }
 
@@ -53,50 +194,8 @@ class RobustTests extends StandardTest {
     } + "}"
   }
 
-  def bitwise(operator: Char) = {
-    """
-       void main() {
-        int a = 5;
-        char b = 64;
-        long c = 3454;
-        short d = 123;
-        long long e = 5476578934653;
-        """ + {
-      val types = List('a', 'b', 'c', 'd', 'e')
-      val perms = types.combinations(2).flatMap{x => x.permutations}.toList ++ types.map(x => List(x, x))
 
-      val result = perms.map { perm =>
-        """printf("%d\n", """ + "(int)(" + perm(0) + operator + perm(1) + "));"
-      }
-      result.reduce(_ + "\n" + _)
-    } + "}"
-  }
-  
-  def robustDivide(operator: Char) = {
-         """
-       void main() {
-        int a = 5;
-        char b = 64;
-        float c = 1.5f;
-        double d = 756.3;
-        long e = 3454;
-        short f = 123;
-        //long long g = 5476578934653;
-        """ + {
-          val types = List('a', 'b', 'c', 'd', 'e', 'f')
-          val perms = types.combinations(2).flatMap{x => x.permutations}.toList ++ types.map(x => List(x, x))
 
-          val result = perms.map{perm =>
-            if (perm(0) == 'c' || perm(1) == 'c' || perm(0) == 'd' || perm(1) == 'd') {
-              """printf("%.4f\n", """ + perm(0) + operator + perm(1) + ");"
-            } else {
-              """printf("%d\n", """ + perm(0) + operator + perm(1) + ");"
-            }
-          }
-          result.reduce(_ + "\n" + _)
-        } + "}"
-    }
-  
   "Addition robustness test" should "print the correct results" in {
     val code = robust('+')
     checkResults(code)
@@ -109,11 +208,6 @@ class RobustTests extends StandardTest {
   
   "Multiplication robustness test" should "print the correct results" in {
     val code = robust('*')
-    checkResults(code)
-  }
-  
-  "Division robustness test" should "print the correct results" in {
-    val code = robustDivide('/')
     checkResults(code)
   }
 
@@ -134,26 +228,6 @@ class RobustTests extends StandardTest {
 
   "Less than or equal robustness test" should "print the correct results" in {
     val code = binary("<=")
-    checkResults(code)
-  }
-
-  "bitwise OR robustness test" should "print the correct results" in {
-    val code = bitwise('|')
-    checkResults(code)
-  }
-
-  "bitwise AND robustness test" should "print the correct results" in {
-    val code = bitwise('&')
-    checkResults(code)
-  }
-
-  "bitwise XOR robustness test" should "print the correct results" in {
-    val code = bitwise('^')
-    checkResults(code)
-  }
-
-  "modulus robustness test" should "print the correct results" in {
-    val code = bitwise('%')
     checkResults(code)
   }
 }

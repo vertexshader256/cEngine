@@ -95,10 +95,12 @@ object BinaryExpr {
           case (x: Float, y: Int) => x * y
           case (x: Float, y: Double) => x * y
           case (x: Float, y: Float) => x * y
+          case (x: Float, y: Long) => x * y
 
           case (x: Double, y: Int) => x * y
           case (x: Double, y: Double) => x * y
           case (x: Double, y: Float) => x * y
+          case (x: Double, y: Long) => x * y
 
           case (x: Long, y: Int) => x * y
           case (x: Long, y: Float) => x * y
@@ -137,10 +139,12 @@ object BinaryExpr {
           case (x: Float, y: Int) => x - y
           case (x: Float, y: Double) => x - y
           case (x: Float, y: Float) => x - y
+          case (x: Float, y: Long) => x - y
 
           case (x: Double, y: Int) => x - y
           case (x: Double, y: Double) => x - y
           case (x: Double, y: Float) => x - y
+          case (x: Double, y: Long) => x - y
 
           case (x: Long, y: Int) => x - y
           case (x: Long, y: Float) => x - y
@@ -181,16 +185,10 @@ object BinaryExpr {
         }
       case `op_modulo` =>
         (op1, op2) match {
-          case (x: Long, y: Long) => if (x % y >= 0) x % y else (x % y) + y
-          case (x: Long, y: Int) => if (x % y >= 0) x % y else (x % y) + y
-
-          case (x: Int, y: Int) => if (x % y >= 0) x % y else (x % y) + y
-          case (x: Int, y: Double) => if (x % y >= 0) x % y else (x % y) + y
-          case (x: Int, y: Long) => if (x % y >= 0) x % y else (x % y) + y
-
-          case (x: Double, y: Int) => if (x % y >= 0) x % y else (x % y) + y
-          case (x: Double, y: Double) => if (x % y >= 0) x % y else (x % y) + y
-          case (x: Double, y: Long) => if (x % y >= 0) x % y else (x % y) + y
+          case (x: Long, y: Long) => x % y
+          case (x: Long, y: Int) => x % y
+          case (x: Int, y: Int) => x % y
+          case (x: Int, y: Long) => x % y
         }
       case `op_binaryOr`  | `op_binaryOrAssign`=>
         (op1, op2) match {

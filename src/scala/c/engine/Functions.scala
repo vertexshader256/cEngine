@@ -382,7 +382,7 @@ object Functions {
           x
         }).asInstanceOf[Object]
 
-        if (formatFound != "ld") {
+        if (formatFound != "ld" && formatFound != "lld") {
           resultingFormatString += formatFound
         } else {
           resultingFormatString += 'd'
