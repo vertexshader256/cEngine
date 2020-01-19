@@ -1,17 +1,18 @@
 package scala.c.engine
 
-import java.io.File
+import java.io.{ByteArrayInputStream, File, StringReader}
 import java.util.HashMap
 
 import org.eclipse.cdt.core.dom.ast.{IASTNode, _}
 import org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage
 import org.eclipse.cdt.core.parser.{DefaultLogService, FileContent, IncludeFileContentProvider, ScannerInfo}
+
 import scala.collection.mutable.ListBuffer
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 import org.anarres.cpp.Preprocessor
 import java.nio.charset.StandardCharsets
+
 import org.anarres.cpp.InputLexerSource
-import java.io.ByteArrayInputStream
 import org.anarres.cpp.Token
 import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
 
@@ -88,100 +89,103 @@ object Utils {
 		
 		val newCodes = codes
 		
-		newCodes.foreach{theCode =>
-		  
-		  var lines = if (theCode != newCodes.head) {
-		    theCode.split("\\r?\\n").toList
-		  } else {
-		    theCode.split("\\r?\\n").toList
-		  }
-		  
-		  // solution to deal with var args
-		  val linesWithInclude = lines.zipWithIndex.filter{case (line, index) => line.contains("#include")}
-		  val lastInclude = linesWithInclude.reverse.headOption.map{case (line, index) => index + 1}.getOrElse(-1)
-		  if (lastInclude != -1) {
-		    lines = lines.take(lastInclude) ++
-           // eclipse cdt cant handle function string args that aren't in quotes
-		       List("#define va_arg(x,y) va_arg(x, #y)\n") ++ 
-		       List("#define va_start(x,y) va_start(&x, &y)\n") ++ 
-		       List("#define va_end(x) va_end(x)\n") ++
-           List("#define __builtin_offsetof(x, y) offsetof(#x, #y)") ++
-          lines.drop(lastInclude)
-		  }
-		  
-		  val code = lines.reduce{_ + "\n" + _}
+		val totalCode = newCodes.map { theCode =>
 
-		  val	pp = new Preprocessor();
-
-  		pp.getSystemIncludePath.add(minGWIncludes)
-  		pp.getSystemIncludePath.add(minGWAdditionalIncludes)
-  		pp.addMacro("__cdecl", "")
-			includePaths.foreach{ include =>
-				pp.getQuoteIncludePath.add(include)
+			var lines = if (theCode != newCodes.head) {
+				theCode.split("\\r?\\n").toList
+			} else {
+				theCode.split("\\r?\\n").toList
 			}
 
-  		val stream = new ByteArrayInputStream(code.getBytes(StandardCharsets.UTF_8))
-  		
-  		pp.addInput(new InputLexerSource(stream))
-  		
-  		var shouldBreak = false
-  		var skipline = false
-  		var startLine = 0
-  		var currentLine = 0
-			var justHadLineBreak = false
-			var i = 0
-  		
-  		while (!shouldBreak) {
-  		  try {
-  				var	tok = pp.token
-  				currentLine = tok.getLine
+			// solution to deal with var args
+			val linesWithInclude = lines.zipWithIndex.filter { case (line, index) => line.contains("#include") }
+			val lastInclude = linesWithInclude.reverse.headOption.map { case (line, index) => index + 1 }.getOrElse(-1)
+			if (lastInclude != -1) {
+				lines = lines.take(lastInclude) ++
+					// eclipse cdt cant handle function string args that aren't in quotes
+					List("#define va_arg(x,y) va_arg(x, #y)\n") ++
+					List("#define va_start(x,y) va_start(&x, &y)\n") ++
+					List("#define va_end(x) va_end(x)\n") ++
+					List("#define __builtin_offsetof(x, y) offsetof(#x, #y)") ++
+					lines.drop(lastInclude)
+			}
 
-  				while (skipline && currentLine == startLine) {
-  				  tok = pp.token
-  				  currentLine = tok.getLine
-  				}
-  				skipline = false
+			lines.reduce {
+				_ + "\n" + _
+			}
+		}.reduce {
+			_ + "\n" + _
+		}
 
-  				if (tok == null || (!shouldBreak && tok.getType == Token.EOF))
-  					shouldBreak = true
-  					
-  				if (!shouldBreak) {
+		val	pp = new Preprocessor();
 
-						if (tok.getType == Token.NL) {
-							if (!justHadLineBreak) {
-								justHadLineBreak = true
-								preprocessResults ++= tok.getText
+		pp.getSystemIncludePath.add(minGWIncludes)
+		pp.getSystemIncludePath.add(minGWAdditionalIncludes)
+		pp.addMacro("__cdecl", "")
+		includePaths.foreach{ include =>
+			pp.getQuoteIncludePath.add(include)
+		}
+
+		val stream = new ByteArrayInputStream(totalCode.getBytes(StandardCharsets.UTF_8))
+
+		pp.addInput(new InputLexerSource(stream))
+
+		var shouldBreak = false
+		var skipline = false
+		var startLine = 0
+		var currentLine = 0
+		var justHadLineBreak = false
+
+		while (!shouldBreak) {
+			try {
+				var	tok = pp.token
+				currentLine = tok.getLine
+
+				while (skipline && currentLine == startLine) {
+					tok = pp.token
+					currentLine = tok.getLine
+				}
+				skipline = false
+
+				if (tok == null || (!shouldBreak && tok.getType == Token.EOF))
+					shouldBreak = true
+
+				if (!shouldBreak) {
+
+					if (tok.getType == Token.NL) {
+						if (!justHadLineBreak) {
+							justHadLineBreak = true
+							preprocessResults ++= tok.getText
+						}
+					} else if (tok.getType == Token.WHITESPACE) {
+						if (!justHadLineBreak) {
+							preprocessResults ++= tok.getText
+						}
+					} else if (tok.getType == Token.CCOMMENT) {
+						justHadLineBreak = false
+					} else if (tok.getType == Token.CPPCOMMENT) {
+						justHadLineBreak = false
+					} else if (tok.getType == Token.IDENTIFIER) {
+						if (tok.getText.startsWith("__declspec")) {
+							startLine = currentLine
+							while (currentLine == startLine) {
+								tok = pp.token
+								currentLine = tok.getLine
 							}
-						} else if (tok.getType == Token.WHITESPACE) {
-							if (!justHadLineBreak) {
-								preprocessResults ++= tok.getText
-							}
-						} else if (tok.getType == Token.CCOMMENT) {
+							preprocessResults ++= tok.getText
 							justHadLineBreak = false
-						} else if (tok.getType == Token.CPPCOMMENT) {
-							justHadLineBreak = false
-						} else if (tok.getType == Token.IDENTIFIER) {
-							if (tok.getText.startsWith("__declspec")) {
-								startLine = currentLine
-								while (currentLine == startLine) {
-									tok = pp.token
-									currentLine = tok.getLine
-								}
-								preprocessResults ++= tok.getText
-								justHadLineBreak = false
-							} else {
-								preprocessResults ++= tok.getText
-								justHadLineBreak = false
-							}
 						} else {
 							preprocessResults ++= tok.getText
 							justHadLineBreak = false
 						}
-  				}
-  		  } catch {
-  		    case e => skipline = true; startLine = currentLine + 1
-  		  }
-  		}
+					} else {
+						preprocessResults ++= tok.getText
+						justHadLineBreak = false
+					}
+				}
+			} catch {
+				case e => skipline = true; startLine = currentLine + 1
+			}
 		}
 
 		val preprocess = preprocessResults.toString.replaceAll("(?m)(^ *| +(?= |$))", "").replaceAll("(?m)^$([\r\n]+?)(^$[\r\n]+?^)+", "$1")
