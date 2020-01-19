@@ -5,6 +5,7 @@ import org.eclipse.cdt.core.dom.ast.{IASTCaseStatement, IASTDeclarationStatement
 import scala.collection.mutable.ListBuffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util
 
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.op_assign
 import org.eclipse.cdt.internal.core.dom.parser.c._
@@ -112,9 +113,9 @@ class Memory(size: Int) {
   }
 
   def readFromMemory(address: Int, theType: IType, bitOffset: Int = 0, sizeInBits: Int = 0): RValue = {
-    val result: AnyVal = theType match {
+    theType match {
       case basic: IBasicType =>
-        if (basic.getKind == eInt && basic.isShort) {
+        val res = if (basic.getKind == eInt && basic.isShort) {
           val result = tape.getShort(address)
           (result << (16 - sizeInBits - bitOffset) >>> (16 - sizeInBits)).toShort
         } else if (basic.getKind == eInt && basic.isLongLong) {
@@ -130,12 +131,11 @@ class Memory(size: Int) {
         } else if (basic.getKind == eChar) {
           tape.get(address) // a C 'char' is a Java 'byte'
         }
-      case typedef: CTypedef => readFromMemory(address, typedef.getType).value
-      case _ => tape.getInt(address)
+
+        TypeHelper.castSign(theType, res)
+      case typedef: CTypedef => readFromMemory(address, typedef.getType)
+      case _ => RValue(tape.getInt(address), theType)
     }
-
-
-    TypeHelper.castSign(theType, result)
   }
 }
 
@@ -348,7 +348,6 @@ class State(pointerSize: NumBits) {
   val functionList = new ListBuffer[Function]()
   val functionPointers = scala.collection.mutable.LinkedHashMap[String, Variable]()
   val stdout = new ListBuffer[Char]()
-  private var functionCount = 0
 
   private var breakLabelStack = List[Label]()
   private var continueLabelStack = List[Label]()
@@ -385,30 +384,27 @@ class State(pointerSize: NumBits) {
   def init(codes: Seq[String], includePaths: List[String]): IASTNode = {
     tUnit = Utils.getTranslationUnit(codes, includePaths)
 
-    val fcns = tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}
-                                .filter(fcn => fcn.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
-
-    fcns.foreach { fcnDef =>
-      addFunctionDef(fcnDef, fcnDef.getDeclarator.getName.toString == "main")
-    }
-
-    functionContexts = List[FunctionScope]()
+    tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}
+        .filter(fcn => fcn.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
+        .foreach { fcnDef =>
+          addFunctionDef(fcnDef, fcnDef.getDeclarator.getName.toString == "main")
+        }
 
     tUnit
   }
 
   private def addScalaFunctionDef(fcn: Function) = {
 
-    fcn.index = functionCount
+    val count = functionPointers.size
+    fcn.index = count
 
     functionList += fcn
 
     val fcnType = new CFunctionType(new CBasicType(IBasicType.Kind.eVoid, 0), null)
     val newVar = Variable(fcn.name, State.this, fcnType)
-    Stack.writeToMemory(functionCount, newVar.address, fcnType)
+    Stack.writeToMemory(count, newVar.address, fcnType)
 
     functionPointers += fcn.name -> newVar
-    functionCount += 1
   }
 
   private def addStaticFunctionVars(node: IASTNode)(implicit state: State): List[Variable] = {
@@ -441,11 +437,12 @@ class State(pointerSize: NumBits) {
 
   private def addFunctionDef(fcnDef: IASTFunctionDefinition, isMain: Boolean) = {
     val name = fcnDef.getDeclarator.getName
+    val count = functionPointers.size
 
     val fcnType = fcnDef.getDeclarator.getName.resolveBinding().asInstanceOf[IFunction].getType
 
     functionList += new Function(name.toString, true) {
-      index = functionCount
+      index = count
       node = fcnDef
       override val staticVars = addStaticFunctionVars(fcnDef)(State.this)
       def parameters = fcnType.getParameterTypes.toList
@@ -456,12 +453,10 @@ class State(pointerSize: NumBits) {
 
     if (!isMain) {
       val newVar = Variable(name.toString, State.this, fcnType)
-      Stack.writeToMemory(functionCount, newVar.address, fcnType)
+      Stack.writeToMemory(count, newVar.address, fcnType)
 
       functionPointers += name.toString -> newVar
     }
-
-    functionCount += 1
   }
 
   def callFunctionFromScala(name: String, args: Array[RValue]): Seq[IASTNode] = {
@@ -474,9 +469,6 @@ class State(pointerSize: NumBits) {
   }
 
   def callTheFunction(name: String, call: IASTFunctionCallExpression, scope: Option[FunctionScope], isApi: Boolean = false)(implicit state: State): Option[ValueType] = {
-
-
-
     functionList.find(_.name == name).flatMap{ function =>
 
       if (!function.isNative) {
@@ -572,19 +564,21 @@ class State(pointerSize: NumBits) {
   }
 
   def copy(dst: Int, src: Int, numBytes: Int) = {
-    if (numBytes != 0) {
-      for (i <- (0 until numBytes)) {
-         Stack.tape.put(dst + i, Stack.tape.get(src + i))
-      }
-    }
+    Stack.tape.mark()
+    Stack.tape.position(src)
+    val array = new Array[Byte](numBytes)
+    Stack.tape.get(array)
+    Stack.tape.position(dst)
+    Stack.tape.put(array)
+    Stack.tape.reset()
   }
 
   def set(dst: Int, value: Byte, numBytes: Int) = {
-    if (numBytes != 0) {
-      for (i <- (0 until numBytes)) {
-        Stack.tape.put(dst + i, value)
-      }
-    }
+    val array = new Array[Byte](numBytes)
+    util.Arrays.fill(array, value)
+    Stack.tape.mark()
+    Stack.tape.put(array)
+    Stack.tape.reset()
   }
 
   def readPtrVal(address: Int): Int = {

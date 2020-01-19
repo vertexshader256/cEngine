@@ -132,12 +132,7 @@ object Declarator {
             } else {
               val lValue = initVals.head.asInstanceOf[LValue]
               val theArrayPtr = state.context.addVariable(name.toString, theType)
-
-              if (theType.isInstanceOf[CPointerType]) {
-                theArrayPtr.setValue(lValue.rValue)
-              } else {
-                state.copy(theArrayPtr.address, lValue.address, lValue.sizeof)
-              }
+              theArrayPtr.setValue(lValue.rValue)
             }
           }
 
@@ -185,12 +180,8 @@ object Declarator {
 
   def getRValues(decl: IASTInitializerClause, theType: IType)(implicit state: State): List[ValueType] = {
     if (!theType.isInstanceOf[CStructure]) {
-      val result = if (decl != null) {
-        Ast.step(decl)
-        state.context.popStack
-      } else {
-        RValue(0, null)
-      }
+      Ast.step(decl)
+      val result = state.context.popStack
 
       List(result)
     } else if (decl != null && decl.isInstanceOf[IASTInitializerList]) {
@@ -229,8 +220,6 @@ object Declarator {
     } else if (decl != null && decl.isInstanceOf[IASTFunctionCallExpression]) { // setting a struct equal to function return
       Ast.step(decl)
       state.context.popStack
-      List()
-    } else if (decl.isInstanceOf[IASTFunctionCallExpression]) {
       List()
     } else {
       List()
