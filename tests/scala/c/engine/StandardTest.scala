@@ -85,13 +85,10 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
       val errors = getErrors(translationUnit, List())
 
       if (errors.isEmpty) {
-        val program = new FunctionScope(List(), null, null) {}
-        state.pushScope(program)
-        program.init(translationUnit, state, false)
 
-        state.context.run(state) // parse globals
+        state.parseGlobals(translationUnit)
 
-        state.context.setAddress(0)
+        val program = state.context
 
         val args = List(".") ++ arguments
 

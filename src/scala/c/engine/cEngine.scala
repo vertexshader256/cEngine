@@ -366,6 +366,16 @@ class State(pointerSize: NumBits) {
     functionContexts.collect{case fcnScope: FunctionScope => fcnScope}.head
   }
 
+  def parseGlobals(tUnit: IASTNode) = {
+    val program = new FunctionScope(List(), null, null) {}
+    pushScope(program)
+    program.init(tUnit, this, false)
+
+    context.run(this) // parse globals
+
+    context.setAddress(0)
+  }
+
   def popFunctionContext = {
     Stack.insertIndex = functionContexts.head.startingStackAddr
     functionContexts = functionContexts.tail
