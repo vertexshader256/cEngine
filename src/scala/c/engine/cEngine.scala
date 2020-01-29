@@ -351,7 +351,7 @@ class State(pointerSize: NumBits) {
   private var breakLabelStack = List[Label]()
   private var continueLabelStack = List[Label]()
 
-  var tUnit: IASTTranslationUnit = null
+  var sources: List[IASTTranslationUnit] = null
 
   val pointerType = pointerSize match {
     case ThirtyTwoBits => TypeHelper.intType
@@ -391,15 +391,17 @@ class State(pointerSize: NumBits) {
   pushScope(new FunctionScope(List(), null, null) {})
 
   def init(codes: Seq[String], includePaths: List[String]): IASTNode = {
-    tUnit = Utils.getTranslationUnit(codes, includePaths)
+    sources = List(Utils.getTranslationUnit(codes, includePaths))
 
-    tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}
+    sources.foreach { tUnit =>
+      tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}
         .filter(fcn => fcn.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
         .foreach { fcnDef =>
           addFunctionDef(fcnDef, fcnDef.getDeclarator.getName.toString == "main")
         }
+    }
 
-    tUnit
+    sources.head
   }
 
   private def addScalaFunctionDef(fcn: Function) = {
