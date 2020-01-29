@@ -82,7 +82,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
         state.init(Seq("#define HAS_FLOAT\n" + eePrint) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }, includePaths)
       }
 
-      val errors = getErrors(translationUnits.head, List())
+      val errors = translationUnits.flatMap{ tUnit => getErrors(tUnit, List())}
 
       if (errors.isEmpty) {
 
