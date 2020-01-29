@@ -366,10 +366,10 @@ class State(pointerSize: NumBits) {
     functionContexts.collect{case fcnScope: FunctionScope => fcnScope}.head
   }
 
-  def parseGlobals(tUnit: IASTNode) = {
+  def parseGlobals(tUnits: List[IASTNode]) = {
     val program = new FunctionScope(List(), null, null) {}
     pushScope(program)
-    program.init(tUnit, this, false)
+    program.init(tUnits, this, false)
 
     context.run(this) // parse globals
 
@@ -390,8 +390,8 @@ class State(pointerSize: NumBits) {
 
   pushScope(new FunctionScope(List(), null, null) {})
 
-  def init(codes: Seq[String], includePaths: List[String]): IASTNode = {
-    sources = List(Utils.getTranslationUnit(codes, includePaths))
+  def init(codes: Seq[String], includePaths: List[String]): List[IASTNode] = {
+    sources = codes.map{ code => Utils.getTranslationUnit(code, includePaths)}.toList
 
     sources.foreach { tUnit =>
       tUnit.getChildren.collect{case x:IASTFunctionDefinition => x}
@@ -401,7 +401,7 @@ class State(pointerSize: NumBits) {
         }
     }
 
-    sources.head
+    sources
   }
 
   private def addScalaFunctionDef(fcn: Function) = {
@@ -500,7 +500,7 @@ class State(pointerSize: NumBits) {
         }
       } else {
         if (function.name == "main" && isApi) {
-          scope.get.init(function.node, this, !scope.isDefined)
+          scope.get.init(List(function.node), this, !scope.isDefined)
           functionContexts = List(scope.get)
           context.run(this)
           None
@@ -511,7 +511,7 @@ class State(pointerSize: NumBits) {
             new FunctionScope(function.staticVars, functionContexts.headOption.getOrElse(null), expressionType)
           }
 
-          newScope.init(function.node, this, !scope.isDefined)
+          newScope.init(List(function.node), this, !scope.isDefined)
 
           val args: List[ValueType] = call.getArguments.map { x => Expressions.evaluate(x).head }.toList
 

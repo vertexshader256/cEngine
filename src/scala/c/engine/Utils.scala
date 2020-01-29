@@ -83,13 +83,13 @@ object Utils {
 
   val minGWMoreIncludes = raw"C:\MinGW\include\GL"
   
-  def getTranslationUnit(codes: Seq[String], includePaths: List[String]): IASTTranslationUnit = {
+  def getTranslationUnit(code: String, includePaths: List[String]): IASTTranslationUnit = {
 
 		val preprocessResults = new StringBuilder
 
-		val totalCode = codes.map { theCode =>
+		val totalCode = {
 
-			var lines = theCode.split("\\r?\\n").toList
+			var lines = code.split("\\r?\\n").toList
 
 			// solution to deal with var args
 			val linesWithInclude = lines.zipWithIndex.filter { case (line, index) => line.contains("#include") }
@@ -107,8 +107,6 @@ object Utils {
 			lines.reduce {
 				_ + "\n" + _
 			}
-		}.reduce {
-			_ + "\n" + _
 		}
 
 		val	pp = new Preprocessor();
