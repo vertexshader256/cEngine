@@ -86,16 +86,10 @@ object Utils {
   def getTranslationUnit(codes: Seq[String], includePaths: List[String]): IASTTranslationUnit = {
 
 		val preprocessResults = new StringBuilder
-		
-		val newCodes = codes
-		
-		val totalCode = newCodes.map { theCode =>
 
-			var lines = if (theCode != newCodes.head) {
-				theCode.split("\\r?\\n").toList
-			} else {
-				theCode.split("\\r?\\n").toList
-			}
+		val totalCode = codes.map { theCode =>
+
+			var lines = theCode.split("\\r?\\n").toList
 
 			// solution to deal with var args
 			val linesWithInclude = lines.zipWithIndex.filter { case (line, index) => line.contains("#include") }
