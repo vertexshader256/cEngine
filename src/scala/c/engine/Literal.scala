@@ -18,7 +18,9 @@ object Literal {
     
     val isLong = litStr.endsWith("L")
 
-    val pre: String = if (litStr.endsWith("L")) {
+    val pre: String = if (litStr.endsWith("LL")) {
+      litStr.take(litStr.size - 2).mkString
+    } else if (litStr.endsWith("L")) {
       litStr.take(litStr.size - 1).mkString
     } else if (litStr.endsWith("u")) {
       litStr.take(litStr.size - 1).mkString

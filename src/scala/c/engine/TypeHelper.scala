@@ -324,8 +324,9 @@ object TypeHelper {
   }
 
   def sizeof(theType: IType)(implicit state: State): Int = theType match {
-    case fcn: IFunctionType => sizeof(state.pointerType)
-    case ptr: IPointerType => sizeof(state.pointerType)
+    case _: CEnumeration => 4
+    case _: IFunctionType => sizeof(state.pointerType)
+    case _: IPointerType => sizeof(state.pointerType)
     case struct: CStructure =>
       val numBits = struct.getKey match {
         case ICompositeType.k_struct =>
