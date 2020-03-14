@@ -2,6 +2,28 @@ package scala.c.engine
 
 class StructTestStaging extends StandardTest {
 
+  "struct test sizeof" should "print the correct results" in {
+    val code = """
+
+      #include "stdio.h"
+
+      struct Interval {
+          int start, end;
+      };
+
+      int main() {
+        struct Interval intervals[] = {
+            {2, 1000}
+        };
+
+        printf("%d\n", sizeof(intervals));
+
+        return 0;
+      }
+      """
+
+    checkResults(code)
+  }
 
   "pointer to struct with array member" should "print the correct results" in {
     val code = """
