@@ -154,10 +154,12 @@ case class Field(state: State, address: Int, bitOffset: Int, theType: IType, siz
 object Variable {
   def apply(name: String, state: State, aType: IType, initVals: List[RValue]): Variable = {
 
-    val typeSize = TypeHelper.sizeof(aType)(state)
-    val initValSize = initVals.map{init => TypeHelper.sizeof(init.theType)(state)}.sum
+    val size = if (aType.isInstanceOf[IArrayType] && !aType.asInstanceOf[IArrayType].hasSize) {
+      initVals.map{init => TypeHelper.sizeof(init.theType)(state)}.sum
+    } else {
+      TypeHelper.sizeof(aType)(state)
+    }
 
-    val size = Math.max(typeSize, initValSize)
     val variable = Variable(name: String, state: State, aType: IType, size)
 
     // now, write the initial values
