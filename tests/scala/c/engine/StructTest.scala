@@ -5,8 +5,6 @@ class StructTestStaging extends StandardTest {
   "struct test sizeof" should "print the correct results" in {
     val code = """
 
-      #include "stdio.h"
-
       struct Interval {
           int start, end;
       };
@@ -48,10 +46,10 @@ class StructTestStaging extends StandardTest {
 
         y = &x;
         y->z = malloc(40);
-         memcpy(y->z, blah, 40);
-         for (i = 0; i < 10; i++) {
-           printf("%d\n", y->z[i]);
-         }
+        memcpy(y->z, blah, 40);
+        for (i = 0; i < 10; i++) {
+          printf("%d\n", y->z[i]);
+        }
         y->next = head;
         y->y = 465;
         printf("%d %d %d\n", x.y, y->y, y->next);
