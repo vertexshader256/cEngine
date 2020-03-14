@@ -344,7 +344,7 @@ object TypeHelper {
           maxSize
       }
 
-      Math.ceil(Math.max(numBits, 32) / 32.0).toInt * 4
+      Math.ceil(Math.max(numBits, 32) / 8.0).toInt
     case array: IArrayType if array.hasSize =>
       sizeof(array.getType) * array.getSize.numericalValue().toInt
     case array: IArrayType =>
