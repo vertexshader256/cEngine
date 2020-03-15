@@ -1,10 +1,7 @@
 package scala.c.engine
 
-class StructTestStaging extends StandardTest {
-
-  "struct test sizeof" should "print the correct results" in {
-    val code = """
-
+class UnsizedArrayStruct extends StandardTest2("sizeof on an unsized array of a struct",
+    """
       struct Interval {
           int start, end;
       };
@@ -19,13 +16,10 @@ class StructTestStaging extends StandardTest {
         return 0;
       }
       """
+)
 
-    checkResults(code)
-  }
-
-  "pointer to struct with array member" should "print the correct results" in {
-    val code = """
-
+class PointerToStructArray extends StandardTest2("pointer to struct with array member",
+    """
       struct Test {
         int y;
         int x;
@@ -54,10 +48,7 @@ class StructTestStaging extends StandardTest {
         y->y = 465;
         printf("%d %d %d\n", x.y, y->y, y->next);
       }"""
-
-    checkResults(code)
-  }
-}
+)
 
 class StructTest extends StandardTest {
   

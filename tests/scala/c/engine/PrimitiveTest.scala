@@ -1,28 +1,22 @@
 package scala.c.engine
 
-class StagingAreaPrimitive extends StandardTest {
-  "bool test" should "print the correct results" in {
-    val code = """
+class StagingAreaPrimitive extends StandardTest2("bool test",
+    """
       #include <stdbool.h>
-      
+
       void main() {
         bool x = false;
         printf("%d\n", x);
       }"""
+)
 
-    checkResults(code)
-  }
-}
-
-class RobustPrimitiveTest extends StandardTest {
-  "robust primitive test" should "print the correct results" in {
-
+class RobustPrimitiveTest extends StandardTest2("robust primitive test", {
 
     val combo = List('a', 'b', 'e', 'f', 'g', 'h').combinations(2).toList
     val perms = combo.flatMap{case List(x,y) => List((x,y),(y,x))}
     val uniques = perms.toSet.toList
 
-    val code = """
+    """
        void main() {
         int x = 0;
         int a = 43;
@@ -63,15 +57,11 @@ class RobustPrimitiveTest extends StandardTest {
 
             printf("%f\\n", $x);"""
     }.reduce(_ + "\n" + _) + "}"
+})
 
-    checkResults(code)
-  }
-}
-
-class IntegerPromotions extends StandardTest {
-  "Character promotion" should "print the correct results" in {
+class IntegerPromotions extends StandardTest2("Character promotion",
     // https://www.tutorialspoint.com/c_standard_library/limits_h.htm
-    val code = """
+    """
 
       int main() {
          char cresult, c1, c2, c3;
@@ -83,48 +73,10 @@ class IntegerPromotions extends StandardTest {
          return(0);
       }
       """
-    checkResults(code)
-  }
-}
+)
 
-class LimitsTest extends StandardTest {
-  
-  "A limits.h test" should "print the correct results" in {
-    // https://www.tutorialspoint.com/c_standard_library/limits_h.htm
-    val code = """
-      #include <limits.h>
-      
-      int main() {
-      
-         printf("The number of bits in a byte %d\n", CHAR_BIT);
-      
-         printf("The minimum value of SIGNED CHAR = %d\n", SCHAR_MIN);
-         printf("The maximum value of SIGNED CHAR = %d\n", SCHAR_MAX);
-         printf("The maximum value of UNSIGNED CHAR = %d\n", UCHAR_MAX);
-      
-         printf("The minimum value of SHORT INT = %d\n", SHRT_MIN);
-         printf("The maximum value of SHORT INT = %d\n", SHRT_MAX); 
-      
-         printf("The minimum value of INT = %d\n", INT_MIN);
-         printf("The maximum value of INT = %d\n", INT_MAX);
-      
-         printf("The minimum value of CHAR = %d\n", CHAR_MIN);
-         printf("The maximum value of CHAR = %d\n", CHAR_MAX);
-      
-         printf("The minimum value of LONG = %ld\n", LONG_MIN);
-         printf("The maximum value of LONG = %ld\n", LONG_MAX);
-        
-         return(0);
-      }
-      """
-    checkResults(code)
-  }
-}
-
-class SizeOfTest extends StandardTest {
-
-  "A sizeof call on an different typed variables" should "print the correct results" in {
-    val code = """
+class SizeOfTest extends StandardTest2("A sizeof call on an different typed variables",
+  """
       void main() {
         int x;
         double y;
@@ -135,46 +87,38 @@ class SizeOfTest extends StandardTest {
         float e;
         printf("%d %d %d %d %d %d %d\n", sizeof(x), sizeof(y), sizeof(z), sizeof(b), sizeof(c), sizeof(d), sizeof(e));
       }"""
+)
 
-    checkResults(code)
-  }
-
-  "A variable self reference using sizeof" should "print the correct results" in {
-    val code = """
+class SizeOfTest2 extends StandardTest2("A variable self reference using sizeof",
+ """
       void main() {
         int blah = sizeof(blah);
         int *blah2 = malloc(sizeof(*blah2));
         printf("%d %d\n", blah, sizeof(blah2));
       }"""
+)
 
-    checkResults(code)
-  }
-  
-  "A sizeof call on raw types" should "print the correct results" in {
-    val code = """
+class SizeOfTest3 extends StandardTest2("A sizeof call on raw types",
+  """
       void main() {
         printf("%d %d %d %d %d %d %d %d %d\n", sizeof(int), sizeof(double), sizeof(short),
                                       sizeof(float), sizeof(char), sizeof(long), sizeof(long long),
                                       sizeof(void), sizeof(void*));
       }"""
+)
 
-    checkResults(code)
-  }
-  
-  "A sizeof call on an array type" should "print the correct results" in {
-    val code = """
+class SizeOfTest4 extends StandardTest2("A sizeof call on an array type",
+    """
       void main() {
         int x[5];
         char y[5];
         long long z[5];
         printf("%d %d\n", sizeof(x), sizeof(y), sizeof(z));
       }"""
+)
 
-    checkResults(code)
-  }
-  
-  "A sizeof call on an array element" should "print the correct results" in {
-    val code = """
+class SizeOfTest5 extends StandardTest2("A sizeof call on an array element",
+    """
       void main() {
         int a[5];
         char b[5];
@@ -183,15 +127,13 @@ class SizeOfTest extends StandardTest {
         float e[5];
         double f[5];
         long long g[5];
-        
+
         printf("%d %d %d %d %d %d %d\n", sizeof(a[3]), sizeof(b[3]), sizeof(c[3]), sizeof(d[3]), sizeof(e[3]), sizeof(f[3]), sizeof(g[3]));
       }"""
+)
 
-    checkResults(code)
-  }
-  
-  "A sizeof call on a pointer element" should "print the correct results" in {
-    val code = """
+class SizeOfTest6 extends StandardTest2("A sizeof call on a pointer element",
+    """
       void main() {
         int *a;
         char *b;
@@ -203,22 +145,18 @@ class SizeOfTest extends StandardTest {
 
         printf("%d %d %d %d %d %d %d\n", sizeof(a[3]), sizeof(b[3]), sizeof(c[3]), sizeof(d[3]), sizeof(e[3]), sizeof(f[3]), sizeof(g[3]));
       }"""
+)
 
-    checkResults(code)
-  }
-
-  "A sizeof call on an array of shorts" should "print the correct results" in {
-    val code = """
+class SizeOfTest7 extends StandardTest2("A sizeof call on an array of shorts",
+    """
       void main() {
         short x[5] = {1,2,3,4,5};
         printf("%d\n", sizeof(x) / sizeof(x[0]));
       }"""
+)
 
-    checkResults(code)
-  }
-
-  "A sizeof call on a field" should "print the correct results" in {
-    val code = """
+class SizeOfTest8 extends StandardTest2("A sizeof call on a field",
+    """
       void main() {
          struct regex_info {
            int brackets[100];
@@ -227,50 +165,38 @@ class SizeOfTest extends StandardTest {
          struct regex_info x;
          printf("%d\n", sizeof(x.brackets));
       }"""
+)
 
-    checkResults(code)
-  }
-
-  "A sizeof call on a pointer to array variable" should "print the correct results" in {
-    val code = """
-
+class SizeOfTest9 extends StandardTest2("A sizeof call on a pointer to array variable",
+    """
        int main()
        {
            int a[][3] = {1, 2, 3, 4, 5, 6};
            int (*ptr)[3] = a;
            printf("%d %d %d", sizeof(a), sizeof(ptr), sizeof(*ptr));
        }"""
+)
 
-    checkResults(code)
-  }
-
-  "A sizeof on a 2d array variable" should "print the correct results" in {
-    val code = """
-
+class SizeOfTest10 extends StandardTest2("A sizeof on a 2d array variable",
+    """
        int main()
        {
            int a[2][3] = {1, 2, 3, 4, 5, 6};
            printf("%d\n", sizeof(a));
            printf("%d\n", sizeof(a[0]));
        }"""
+)
 
-    checkResults(code)
-  }
-
-  "A sizeof call on an uninitialized pointer to array variable 2" should "print the correct results" in {
-    val code = """
-
+class SizeOfTest11 extends StandardTest2("A sizeof call on an uninitialized pointer to array variable 2",
+    """
        int main()
        {
            int (*ptr)[3];
            printf("%d %d", sizeof(ptr), sizeof(*ptr));
        }"""
+)
 
-    checkResults(code)
-  }
-
-  "array typedefs" should "print the correct results" in {
-    val code =
+class SizeOfTest12 extends StandardTest2("array typedefs",
       """
       void main() {
 
@@ -285,14 +211,10 @@ class SizeOfTest extends StandardTest {
          printf("%d\n", sizeof(&x[1]));
          printf("%d\n", sizeof(++x[1]));
       }"""
+)
 
-    checkResults(code)
-  }
-}
-
-class RolloverTest extends StandardTest {
-  "char rollover test" should "print the correct results" in {
-    val code = """
+class RolloverTest extends StandardTest2("char rollover test",
+    """
       void main() {
         char x = 128;
         char xplusone = 128 + 1;
@@ -304,12 +226,10 @@ class RolloverTest extends StandardTest {
         int y3 = yplusone;
         printf("%d %d %d %d\n", x2, y2, y3, x3);
       }"""
+)
 
-    checkResults(code)
-  }
-  
-  "short rollover test" should "print the correct results" in {
-    val code = """
+class RolloverTest2 extends StandardTest2("short rollover test",
+    """
       void main() {
         short x = 32767;
         short xplusone = 32767 + 1;
@@ -321,14 +241,10 @@ class RolloverTest extends StandardTest {
         int x3 = xplusone;
         printf("%d %d %d %d\n", x2, y2, y3, x3);
       }"""
+)
 
-    checkResults(code)
-  }
-}
-
-class PrimitiveTest extends StandardTest {
-  "char test" should "print the correct results" in {
-    val code = """
+class CharTest extends StandardTest2("char test",
+    """
       void main() {
         char x = 'd';
         int y = 16;
@@ -338,79 +254,51 @@ class PrimitiveTest extends StandardTest {
         printf("%c\n", null);
         printf("%c %c %c\n", x, z, null);
       }"""
+)
 
-    checkResults(code)
-  }
-  
-  "hex test" should "print the correct results" in {
-    val code = """
+class HexTest extends StandardTest2("hex test",
+    """
       void main() {
         int x = 0xFFFFFFFF;
         int i  = 0x5f3759df - ( x >> 1 );
         printf("%d %d\n", x, i);
       }"""
+)
 
-    checkResults(code)
-  }
-  
-  "short test" should "print the correct results" in {
-    val code = """
+class ShortTest extends StandardTest2("short test",
+    """
       void main() {
         short x = 32767;
         printf("%d\n", x);
       }"""
+)
 
-    checkResults(code)
-  }
-  
- 
-  
-  "short overflow test" should "print the correct results" in {
-    val code = """
+class ShortOverFlowTest extends StandardTest2("short overflow test",
+    """
       void main() {
         short x = 1000000;
         printf("%d\n", x);
       }"""
+)
 
-    checkResults(code)
-  }
-  
-  "unsigned int prints from hex" should "print the correct results" in {
-    val code = """
-
-      const unsigned int prime = 0x01000193; //   16777619
-      const unsigned int seed  = 0x811C9DC5; // 2166136261
-
-      void main()
-      {
-        printf("%d %d\n", prime, seed);
-        return 0;
-      }
-      """
-
-    checkResults(code, false)
-  } 
-  
-  "unsigned char test" should "print the correct results" in {
-    val code = """
+class UnsignedCharTest extends StandardTest2("unsigned char test",
+    """
 
       int test(unsigned char oneByte)
       {
         return oneByte;
       }
-  
+
       void main()
       {
         printf("%d\n", test(176));
         return 0;
       }
       """
+)
 
-    checkResults(code)
-  }
-
-  "unsigned char array and clobbering test on unsigned types using unary expressions" should "print the correct results" in {
-    val code = """
+class PrimitiveTest5 extends StandardTest2("unsigned char array and clobbering test on unsigned types using unary expressions",
+    """
 
       void main()
       {
@@ -438,12 +326,10 @@ class PrimitiveTest extends StandardTest {
         return 0;
       }
       """
+)
 
-    checkResults(code, false)
-  }
-
-  "char ptr initialized to string" should "print the correct results" in {
-    val code = """
+class PrimitiveTest6 extends StandardTest2("char ptr initialized to string",
+    """
       void main()
       {
         char *test = "TestString";
@@ -451,34 +337,30 @@ class PrimitiveTest extends StandardTest {
         return 0;
       }
       """
-    checkResults(code)
-  } 
-  
-  "unsigned types as function arguments" should "print the correct results" in {
-    val code = """
+)
+
+class PrimitiveTest7 extends StandardTest2("unsigned types as function arguments",
+    """
 
       int intTest(unsigned int data)
       {
         return data;
       }
-      
+
       int shortTest(unsigned short data)
       {
         return data;
       }
-           
+
       short shortTest2(unsigned short data)
       {
         return data;
       }
-  
+
       void main()
       {
         printf("%d %d %d\n", intTest(4294967241), shortTest(4294967241), shortTest2(38233));
         return 0;
       }
       """
-
-    checkResults(code)
-  } 
-}
+)

@@ -13,9 +13,20 @@ import scala.collection.mutable.ListBuffer
 import scala.io.Source
 import scala.sys.process.Process
 
+import java.util.UUID.randomUUID
+
 object StandardTest {
   val cFileCount = new AtomicInteger()
   val exeCount = new AtomicInteger()
+}
+
+abstract class StandardTest2(name: String = "", code: String) extends StandardTest {
+
+  val numBits: NumBits = ThirtyTwoBits
+
+  name should "print the correct results" in {
+    checkResults(code, pointerSize = numBits)
+  }
 }
 
 class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
@@ -185,6 +196,8 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
           val maxTries = 50 // 50 is proven to work
           var i = 0
           var result: Seq[String] = null
+
+          Thread.sleep(30)
 
           // 3/1/19: Protip - This helps tests run reliably!
           while (!isDone && i < maxTries) {

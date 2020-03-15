@@ -28,25 +28,20 @@ class StagingGround extends StandardTest {
   }
 }
 
-class PointerSizeTest extends StandardTest {
-
-  "32-bit pointer size" should "print the correct results" in {
-    val code = """
+class PointerSizeTest32 extends StandardTest2("32-bit pointer size",
+    """
       void main() {
         printf("%d\n", sizeof(void *));
       }"""
+)
 
-    checkResults(code, pointerSize = ThirtyTwoBits)
-  }
-
-  "64-bit pointer size" should "print the correct results" in {
-    val code = """
+class PointerSizeTest64 extends StandardTest2("64-bit pointer size",
+    """
       void main() {
         printf("%d\n", sizeof(void *));
       }"""
-
-    checkResults(code, pointerSize = SixtyFourBits)
-  }
+) {
+  override val numBits = SixtyFourBits
 }
 
 class PointerArithmeticTest extends StandardTest {

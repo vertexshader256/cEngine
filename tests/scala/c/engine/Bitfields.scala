@@ -16,28 +16,6 @@ class BitfieldStagingArea extends StandardTest {
     checkResults(code)
   }
 
-  "A struct with more bitfields" should "print the correct results" in {
-    val code = """
-     struct {
-        unsigned int x : 4;
-        unsigned int y : 4;
-        unsigned int x2 : 4;
-        unsigned int y2 : 4;
-        unsigned int x3 : 4;
-        unsigned int y3 : 4;
-        unsigned int x4 : 4;
-        unsigned int y4 : 4;
-        unsigned int z : 1;
-     } status2;
-
-     int main( ) {
-        printf( "Memory size occupied by status2 : %d\n", sizeof(status2));
-        return 0;
-     }"""
-
-    checkResults(code)
-  }
-
   "reading from a trivial bitfield" should "print the correct results" in {
     val code = """
      #include <stdio.h>

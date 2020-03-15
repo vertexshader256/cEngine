@@ -1,19 +1,15 @@
 package scala.c.engine
 
-class ArrayStagingArea extends StandardTest {
-
-  "An 1d array addressing check" should "print the correct results" in {
-    val code = """
+class OneDimAddressingCheck extends StandardTest2("An 1d array addressing check",
+  """
       void main() {
         int x[2];
         printf("%d\n", &x[1] - x);
       }"""
+)
 
-    checkResults(code)
-  }
-
-  "2d array pointer arithmetic" should "print the correct results" in {
-    val code = """
+class TwoDimAddressingCheck extends StandardTest2("2d array pointer arithmetic",
+  """
       void main() {
         int x[2][2] = {1,2,3,4};
         int *ptr = x;
@@ -25,17 +21,12 @@ class ArrayStagingArea extends StandardTest {
         ptr++;
         printf("%d\n", *ptr);
       }"""
-
-    checkResults(code)
-  }
-}
+)
 
 class ArrayInitTest extends StandardTest {
   "Sized arrays initialized with initLists" should "print the correct results" in {
     val code = """
       void main() {
-        int padding; // lets test an offset
-        
         int x[5] = {1, 2, 3, 4, 5};
         printf("%d %d %d %d %d\n", x[0], x[1], x[2], x[3], x[4]);
         
@@ -48,7 +39,26 @@ class ArrayInitTest extends StandardTest {
 
     checkResults(code)
   }
-  
+
+  "Sized arrays initialized with initLists smaller than the true size" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x[5] = {1, 2, 3, 4};
+        printf("%d %d %d %d\n", x[0], x[1], x[2], x[3]);
+        printf("%d\n", sizeof(x));
+
+        char y[5] = {'a', 'b', 'c', 'd'};
+        printf("%c %c %c %c\n", y[0], y[1], y[2], y[3]);
+        printf("%d\n", sizeof(y));
+
+        double z[5] = {5.6, 38.5, 2.945, 347.2};
+        printf("%f %f %f %f\n", z[0], z[1], z[2], z[3]);
+        printf("%d\n", sizeof(z));
+      }"""
+
+    checkResults(code)
+  }
+
   "array indexed with a division binary expression" should "print the correct results" in {
     val code = """
       void main() {
@@ -69,12 +79,15 @@ class ArrayInitTest extends StandardTest {
       void main() {
         int x[] = {1, 2, 3, 4, 5};
         printf("%d %d %d %d %d\n", x[0], x[1], x[2], x[3], x[4]);
+        printf("%d\n", sizeof(x));
         
         char y[] = {'a', 'b', 'c', 'd', 'e'};
         printf("%c %c %c %c %c\n", y[0], y[1], y[2], y[3], y[4]);
+        printf("%d\n", sizeof(y));
         
         double z[] = {5.6, 38.5, 2.945, 347.2, 378.2};
         printf("%f %f %f %f %f\n", z[0], z[1], z[2], z[3], z[4]);
+        printf("%d\n", sizeof(z));
       }"""
 
     checkResults(code)
