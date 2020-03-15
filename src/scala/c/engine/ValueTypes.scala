@@ -160,7 +160,7 @@ object Variable {
       TypeHelper.sizeof(aType)(state)
     }
 
-    val variable = Variable(name: String, state: State, aType: IType, size)
+    val variable = Variable(name, state, aType, size)
 
     // now, write the initial values
     state.writeDataBlock(initVals, variable.address)(state)
