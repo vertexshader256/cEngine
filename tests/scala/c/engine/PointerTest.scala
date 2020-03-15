@@ -44,10 +44,8 @@ class PointerSizeTest64 extends StandardTest2("64-bit pointer size",
   override val numBits = SixtyFourBits
 }
 
-class PointerArithmeticTest extends StandardTest {
-
-  "pointer arithmetic on a pointer type" should "print the correct results" in {
-    val code = """
+class PointerArithmeticTest extends StandardTest2("pointer arithmetic on a pointer type",
+    """
       void main() {
         int num[10] = {1,2,3,4,5,6,7,8,9,10};
         int *arr = num;
@@ -64,12 +62,10 @@ class PointerArithmeticTest extends StandardTest {
 
         printf("%d %d %d %d %d %d %d\n", *p1, *p2, p3, p4, p5, *p6, *p7);
       }"""
+)
 
-    checkResults(code)
-  }
-
-  "pointer arithmetic between pointers" should "print the correct results" in {
-    val code = """
+class PointerArithmeticTest2 extends StandardTest2("pointer arithmetic between pointers",
+    """
       void main() {
          int* x[5];
          int y[5];
@@ -83,12 +79,10 @@ class PointerArithmeticTest extends StandardTest {
          printf("%d\n", y[1]);
 
       }"""
+)
 
-    checkResults(code)
-  }
-
-  "pointer arithmetic with pointers to structs" should "print the correct results" in {
-    val code = """
+class PointerArithmeticTest3 extends StandardTest2("pointer arithmetic with pointers to structs",
+    """
       void main() {
 
          struct Test2 {
@@ -143,12 +137,10 @@ class PointerArithmeticTest extends StandardTest {
          printf("%d\n", x + i - ++ptr);
          printf("%d\n", x + 2 - ptr);
       }"""
+)
 
-    checkResults(code)
-  }
-
-  "pointer arithmetic with pointers to typedef structs" should "print the correct results" in {
-    val code = """
+class PointerArithmeticTest4 extends StandardTest2("pointer arithmetic with pointers to typedef structs",
+    """
       void main() {
 
          typedef struct {
@@ -203,12 +195,10 @@ class PointerArithmeticTest extends StandardTest {
          printf("%d\n", x + i - ++ptr);
          printf("%d\n", x + 2 - ptr);
       }"""
+)
 
-    checkResults(code)
-  }
-
-  "pointer arithmetic with pointers to arrays" should "print the correct results" in {
-    val code = """
+class PointerArithmeticTest5 extends StandardTest2("pointer arithmetic with pointers to arrays",
+    """
       void main() {
 
          typedef int Test[10];
@@ -250,12 +240,10 @@ class PointerArithmeticTest extends StandardTest {
          printf("%d\n", x + i - ++ptr);
          printf("%d\n", x + 2 - ptr);
       }"""
+)
 
-    checkResults(code)
-  }
-
-  "tricky pointer arithmetic with pointers case" should "print the correct results" in {
-    val code = """
+class PointerArithmeticTest6 extends StandardTest2("tricky pointer arithmetic with pointers case",
+    """
       void main() {
 
          typedef int Test[10];
@@ -266,12 +254,10 @@ class PointerArithmeticTest extends StandardTest {
          printf("%d\n", x - ++ptr);
 
       }"""
+)
 
-    checkResults(code)
-  }
-
-  "tricky pointer arithmetic with pointers case 2" should "print the correct results" in {
-    val code = """
+class PointerArithmeticTest7 extends StandardTest2("tricky pointer arithmetic with pointers case 2",
+    """
       void main() {
          int x[10][5];
          int (*ptr)[5] = &x[1];
@@ -279,12 +265,10 @@ class PointerArithmeticTest extends StandardTest {
          printf("%d\n", x - ++ptr);
 
       }"""
+)
 
-    checkResults(code)
-  }
-
-  "advanced pointer arithmetic" should "print the correct results" in {
-    val code = """
+class PointerArithmeticTest8 extends StandardTest2("advanced pointer arithmetic",
+    """
 
        char *c[] = {"GeksQuiz", "MCQ", "TEST", "QUIZ"};
        char **cp[] = {c+3, c+2, c+1, c};
@@ -298,12 +282,10 @@ class PointerArithmeticTest extends StandardTest {
            printf("%s ", cpp[-1][-1]+1);
            return 0;
        }"""
+)
 
-    checkResults(code)
-  }
-
-  "advanced pointer arithmetic 2" should "print the correct results" in {
-    val code = """
+class PointerArithmeticTest9 extends StandardTest2("advanced pointer arithmetic 2",
+    """
 
        int main()
        {
@@ -313,12 +295,10 @@ class PointerArithmeticTest extends StandardTest {
            ++ptr;
            printf("%d %d\n", (*ptr)[1], (*ptr)[2]);
        }"""
+)
 
-    checkResults(code)
-  }
-
-  "advanced pointer arithmetic 5" should "print the correct results" in {
-    val code = """
+class PointerArithmeticTest10 extends StandardTest2("advanced pointer arithmetic 5",
+    """
 
        int main()
        {
@@ -328,12 +308,10 @@ class PointerArithmeticTest extends StandardTest {
            ++ptr;
            printf("%d %d\n", (*ptr)[1], (*ptr)[2]);
        }"""
+)
 
-    checkResults(code)
-  }
-
-  "advanced pointer arithmetic 3" should "print the correct results" in {
-    val code = """
+class PointerArithmeticTest11 extends StandardTest2("advanced pointer arithmetic 3",
+    """
 
        int fun(int arr[]) {
           arr = arr+1;
@@ -345,14 +323,10 @@ class PointerArithmeticTest extends StandardTest {
           printf("%d", arr[0]);
           return 0;
        }"""
+)
 
-    checkResults(code)
-  }
-}
-
-class PointerTest extends StandardTest {
-  "pointer equality" should "print the correct results" in {
-    val code = """
+class PointerTest extends StandardTest2("pointer equality",
+    """
 
       int *testFcn() {
         return 0;
@@ -368,12 +342,10 @@ class PointerTest extends StandardTest {
         printf("%d\n", ptr[0] == &x);
         printf("%d\n", testFcn() == 0);
       }"""
+)
 
-    checkResults(code)
-  }
-
-  "pointer typedef" should "print the correct results" in {
-    val code = """
+class PointerTest2 extends StandardTest2("pointer typedef",
+    """
 
       typedef int* ptrType;
 
@@ -385,12 +357,10 @@ class PointerTest extends StandardTest {
         printf("%d %d\n", *y, sizeof(ptrType));
         printf("%d\n", x);
       }"""
+)
 
-    checkResults(code)
-  }
-  
-  "arrays of strings" should "print the correct results" in {
-    val code = """
+class PointerTest3 extends StandardTest2("arrays of strings",
+    """
       void main() {
         const char *alpha[2] = { "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
         printf("%s\n", alpha[0]);
@@ -399,24 +369,20 @@ class PointerTest extends StandardTest {
         printf("%c\n", alpha[1][10]);
         //printf("%d\n", strlen(alpha[0]));
       }"""
+)
 
-    checkResults(code)
-  }
-  
-   "pointer indexing" should "print the correct results" in {
-    val code = """
+class PointerTest4 extends StandardTest2("pointer indexing",
+    """
       void main() {
         char str[] = "Hello!\n";
         char *x = str + 2;
         char z = x[2];
         printf("%c\n", z);
       }"""
+)
 
-    checkResults(code)
-  }
-  
-  "some basic pointer arithmetic/indexing" should "print the correct results" in {
-    val code = """
+class PointerTest5 extends StandardTest2("some basic pointer arithmetic/indexing",
+    """
       void main() {
         unsigned char *str = calloc(12,1);
         memcpy(str, "Hello!\n", 6);
@@ -432,14 +398,10 @@ class PointerTest extends StandardTest {
         printf("%s\n", str);
         printf("%s\n", x);
       }"""
+)
 
-    checkResults(code)
-  }
-
-
-  
- "some basic pointer arithmetic" should "print the correct results" in {
-    val code = """
+class PointerTest6 extends StandardTest2("some basic pointer arithmetic",
+    """
       void main() {
         char str[] = "Hello!\n";
         char *x = str + 1;
@@ -447,12 +409,10 @@ class PointerTest extends StandardTest {
         *x++;
         printf("%s\n", x);
       }"""
+)
 
-    checkResults(code)
-  }
-
-  "some basic pointer arithmetic 2" should "print the correct results" in {
-    val code = """
+class PointerTest7 extends StandardTest2("some basic pointer arithmetic 2",
+    """
     void main() {
       char str[] = "Hello!\n";
       char *x = str;
@@ -466,12 +426,10 @@ class PointerTest extends StandardTest {
 
       printf("DONE\n");
     }"""
+)
 
-    checkResults(code)
-  }
-  
-  "pointers of all types" should "print the correct results" in {
-    val code = """
+class PointerTest8 extends StandardTest2("pointers of all types",
+    """
 
       void main() {
         char a = 1;
@@ -496,12 +454,10 @@ class PointerTest extends StandardTest {
         f2 = &f;
         printf("%d %d %d %d %f %f\n", *a2, *b2, *c2, *d2, *e2, *f2);
       }"""
-    
-    checkResults(code)
-  }
-  
-  "a double pointer being dereferenced" should "print the correct results" in {
-   val code = """
+)
+
+class PointerTest9 extends StandardTest2("a double pointer being dereferenced",
+   """
      
      struct Test {
         int y;
@@ -523,34 +479,29 @@ class PointerTest extends StandardTest {
        //printf("%d %d\n", head->y, head->z);
      }  
   """
-   checkResults(code)
-  }
-  
-  "A pointer to a 2d array" should "print the correct results" in {
-    val code = """
+)
+
+class PointerTest10 extends StandardTest2("A pointer to a 2d array",
+    """
       extern char *x[];
       
       void main() {
         
         printf("%d\n", 5);
       }"""
-    
-    checkResults(code)
-  }
-  
-  "A simple pointer assignment" should "print the correct results" in {
-    val code = """
+)
+
+class PointerTest11 extends StandardTest2("A simple pointer assignment",
+    """
       int x = 1;
       int *y = &x;
       void main() {
         printf("%d\n", *y);
       }"""
-    
-    checkResults(code)
-  }
-  
-  "Deferencing a casted address" should "print the correct results" in {
-    val code = """
+)
+
+class PointerTest12 extends StandardTest2("Deferencing a casted address",
+    """
       float x = 9.74523f;
 
       void main() {
@@ -558,12 +509,10 @@ class PointerTest extends StandardTest {
         // include spaces in the pointer syntax
         printf("%d %d %d\n", *(int*)&x, *(int  *)&x, y);
       }"""
-    
-    checkResults(code)
-  }
-  
-  "A simple pointer reassignment" should "print the correct results" in {
-    val code = """
+)
+
+class PointerTest13 extends StandardTest2("A simple pointer reassignment",
+    """
       int x = 1;
       int *y = &x;
       int z = 10;
@@ -571,14 +520,10 @@ class PointerTest extends StandardTest {
         y = &z;
         printf("%d\n", *y);
       }"""
-    
-    checkResults(code)
-  }
-  
-  
-  
-   "A function with a pointer as an argument" should "print the correct results" in {
-    val code = """
+)
+
+class PointerTest14 extends StandardTest2("A function with a pointer as an argument",
+    """
       void add(int *x) {
         (*x)++;
       }
@@ -595,12 +540,10 @@ class PointerTest extends StandardTest {
         add2(&y);
         printf("%d\n", y);
       }"""
-    
-    checkResults(code)
-  }
+)
 
-  "Saving a function arguments address" should "print the correct results" in {
-    val code = """
+class PointerTest15 extends StandardTest2("Saving a function arguments address",
+    """
 
       int *ptr = 0;
       void add(int *x) {
@@ -613,12 +556,10 @@ class PointerTest extends StandardTest {
         add(z);
         printf("%d\n", *ptr);
       }"""
+)
 
-    checkResults(code)
-  }
-   
-  "A function with a pointer to an unsized array as an argument" should "print the correct results" in {
-    val code = """
+class PointerTest16 extends StandardTest2("A function with a pointer to an unsized array as an argument",
+    """
       void add2(int *x, int y) {
         int i = 0;
         for(i = 0; i < y; i++) {
@@ -631,12 +572,10 @@ class PointerTest extends StandardTest {
         int n = sizeof a / sizeof a[0];
         add2(a, n);
       }"""
-    
-    checkResults(code)
-  }
-  
-  "A simple pointer reassignment to another pointer" should "print the correct results" in {
-    val code = """
+)
+
+class PointerTest17 extends StandardTest2("A simple pointer reassignment to another pointer",
+    """
       int x = 1;
       int z = 2;
       int *k = &z;
@@ -646,12 +585,10 @@ class PointerTest extends StandardTest {
         printf("%d %d\n", *y, *k);
         
       }"""
-    
-    checkResults(code)
-  }
-  
-  "A pointer with a unary expression" should "print the correct results" in {
-    val code = """
+)
+
+class PointerTest18 extends StandardTest2("A pointer with a unary expression",
+    """
       int z = 2;
       int *k = &z;
       void main() {
@@ -660,10 +597,10 @@ class PointerTest extends StandardTest {
         printf("%d %d %d\n", *k, z, x);
         
       }"""
-    
-    checkResults(code)
-    
-    val code2 = """
+)
+
+class PointerTest19 extends StandardTest2("A pointer with a unary expression2",
+    """
       int z = 2;
       int *k = &z;
       void main() {
@@ -671,10 +608,10 @@ class PointerTest extends StandardTest {
         printf("%d %d\n", *k, z);
         
       }"""
-    
-    checkResults(code2)
-    
-    val code3 = """
+)
+
+class PointerTest20 extends StandardTest2("A pointer with a unary expression4",
+    """
       int z = 2;
       int *k = &z;
       void main() {
@@ -682,10 +619,10 @@ class PointerTest extends StandardTest {
         printf("%d %d\n", *k, z);
         
       }"""
-    
-    checkResults(code3)
-    
-    val code4 = """
+)
+
+class PointerTest21 extends StandardTest2("A pointer with a unary expression5",
+    """
       int z = 2;
       int *k = &z;
       void main() {
@@ -693,12 +630,10 @@ class PointerTest extends StandardTest {
         printf("%d %d\n", *k, z);
         
       }"""
-    
-    checkResults(code4)
-  }
+)
 
-  "some incremental pointer arithmetic" should "print the correct results" in {
-    val code = """
+class PointerTest22 extends StandardTest2("some incremental pointer arithmetic",
+    """
       void main() {
         char str[] = "Hello!\n";
         char *x = str;
@@ -711,22 +646,17 @@ class PointerTest extends StandardTest {
         x--;
         printf("%s", x);
       }"""
+)
 
-    checkResults(code)
-  }
-
-  "pointer with postincrement followed by subindex" should "print the correct results" in {
-    val code = """
+class PointerTest23 extends StandardTest2("pointer with postincrement followed by subindex",
+    """
       void main() {
         char *x = "Hello!\n";
         printf("%c\n", x++[2]);
         printf("%c\n", x++[2]);
         printf("%c\n", x++[2]);
       }"""
-
-    checkResults(code)
-  }
-}
+)
 
 class DoublePointer extends StandardTest {
 
