@@ -58,6 +58,22 @@ class AdvancedStructAssignment extends StandardTest2("Assigning an element of an
   """
 )
 
+class AdvancedStructAssignment2 extends StandardTest2("Assigning a struct including a cast",
+  """
+     typedef struct link link_t;
+      struct link {
+        int len;
+        int len2;
+      };
+
+      int main()
+      {
+        link_t blah = (link_t) {1, 2};
+        printf("%d %d\n", blah.len, blah.len2);
+      }
+  """
+)
+
 class PointerToStructArray extends StandardTest2("pointer to struct with array member",
     """
       struct Test {
