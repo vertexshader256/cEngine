@@ -38,6 +38,26 @@ class UnsizedArrayStruct2 extends StandardTest2("sizeof on an unsized array of a
       """
 )
 
+class AdvancedStructAssignment extends StandardTest2("Assigning an element of an array of structs to a struct",
+  """
+     typedef struct link link_t;
+      struct link {
+        int len;
+        int len2;
+      };
+
+      int main()
+      {
+        link_t lnk[5][5];
+        lnk[2][2] = (link_t) {1, 2};
+
+        printf("%d %d\n", lnk[2][2], lnk[3][2]);
+
+        printf("DONE\n");
+      }
+  """
+)
+
 class PointerToStructArray extends StandardTest2("pointer to struct with array member",
     """
       struct Test {
