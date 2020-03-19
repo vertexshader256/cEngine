@@ -1,6 +1,6 @@
 package scala.c.engine
 
-class UnsizedArrayStruct extends StandardTest2("sizeof on an unsized array of a struct",
+class UnsizedArrayStruct extends StandardTest2("sizeof on an unsized array of a struct of length 1",
     """
       struct Interval {
           int start, end;
@@ -8,6 +8,26 @@ class UnsizedArrayStruct extends StandardTest2("sizeof on an unsized array of a 
 
       int main() {
         struct Interval intervals[] = {
+            {2, 1000}
+        };
+
+        printf("%d\n", sizeof(intervals));
+
+        return 0;
+      }
+      """
+)
+
+class UnsizedArrayStruct2 extends StandardTest2("sizeof on an unsized array of a struct of length > 0",
+  """
+      struct Interval {
+          int start, end;
+      };
+
+      int main() {
+        struct Interval intervals[] = {
+            {2, 1000},
+            {2, 1000},
             {2, 1000}
         };
 
