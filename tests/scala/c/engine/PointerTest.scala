@@ -84,7 +84,6 @@ class PointerArithmeticTest2 extends StandardTest2("pointer arithmetic between p
 class PointerArithmeticTest3 extends StandardTest2("pointer arithmetic with pointers to structs",
     """
       void main() {
-
          struct Test2 {
              int x;
              int y;
@@ -142,7 +141,6 @@ class PointerArithmeticTest3 extends StandardTest2("pointer arithmetic with poin
 class PointerArithmeticTest4 extends StandardTest2("pointer arithmetic with pointers to typedef structs",
     """
       void main() {
-
          typedef struct {
              int x;
              int y;
@@ -200,7 +198,6 @@ class PointerArithmeticTest4 extends StandardTest2("pointer arithmetic with poin
 class PointerArithmeticTest5 extends StandardTest2("pointer arithmetic with pointers to arrays",
     """
       void main() {
-
          typedef int Test[10];
 
          Test x[5];
@@ -269,7 +266,6 @@ class PointerArithmeticTest7 extends StandardTest2("tricky pointer arithmetic wi
 
 class PointerArithmeticTest8 extends StandardTest2("advanced pointer arithmetic",
     """
-
        char *c[] = {"GeksQuiz", "MCQ", "TEST", "QUIZ"};
        char **cp[] = {c+3, c+2, c+1, c};
        char ***cpp = cp;
@@ -286,7 +282,6 @@ class PointerArithmeticTest8 extends StandardTest2("advanced pointer arithmetic"
 
 class PointerArithmeticTest9 extends StandardTest2("advanced pointer arithmetic 2",
     """
-
        int main()
        {
            int a[][3] = {1, 2, 3, 4, 5, 6};
@@ -299,7 +294,6 @@ class PointerArithmeticTest9 extends StandardTest2("advanced pointer arithmetic 
 
 class PointerArithmeticTest10 extends StandardTest2("advanced pointer arithmetic 5",
     """
-
        int main()
        {
            int a[2][3] = {1, 2, 3, 4, 5, 6};
@@ -312,7 +306,6 @@ class PointerArithmeticTest10 extends StandardTest2("advanced pointer arithmetic
 
 class PointerArithmeticTest11 extends StandardTest2("advanced pointer arithmetic 3",
     """
-
        int fun(int arr[]) {
           arr = arr+1;
           printf("%d ", arr[0]);
@@ -327,7 +320,6 @@ class PointerArithmeticTest11 extends StandardTest2("advanced pointer arithmetic
 
 class PointerTest extends StandardTest2("pointer equality",
     """
-
       int *testFcn() {
         return 0;
       }
@@ -346,7 +338,6 @@ class PointerTest extends StandardTest2("pointer equality",
 
 class PointerTest2 extends StandardTest2("pointer typedef",
     """
-
       typedef int* ptrType;
 
       void main() {
@@ -430,7 +421,6 @@ class PointerTest7 extends StandardTest2("some basic pointer arithmetic 2",
 
 class PointerTest8 extends StandardTest2("pointers of all types",
     """
-
       void main() {
         char a = 1;
         short b = 1;
@@ -458,7 +448,6 @@ class PointerTest8 extends StandardTest2("pointers of all types",
 
 class PointerTest9 extends StandardTest2("a double pointer being dereferenced",
    """
-     
      struct Test {
         int y;
         int z;
@@ -544,7 +533,6 @@ class PointerTest14 extends StandardTest2("A function with a pointer as an argum
 
 class PointerTest15 extends StandardTest2("Saving a function arguments address",
     """
-
       int *ptr = 0;
       void add(int *x) {
         ptr = &x[0];
@@ -658,11 +646,8 @@ class PointerTest23 extends StandardTest2("pointer with postincrement followed b
       }"""
 )
 
-class DoublePointer extends StandardTest {
-
-  "basic double pointer use" should "print the correct results" in {
-    val code = """
-      
+class DoublePointer extends StandardTest2("basic double pointer use",
+    """
       void MoveToNextElement(char** i) {
          (*i)++;
       }
@@ -674,13 +659,10 @@ class DoublePointer extends StandardTest {
         MoveToNextElement(&ptr);
         printf("%c\n", *ptr);
       }"""
+)
 
-    checkResults(code)
-  }
-  
-  "more double pointer use" should "print the correct results" in {
-    val code = """
-      
+class DoublePointer2 extends StandardTest2("more double pointer use",
+    """
       void main() {
         int num = 45 , *ptr , **ptr2ptr, ***ptr3ptr;
         ptr     = &num;
@@ -691,7 +673,4 @@ class DoublePointer extends StandardTest {
         printf("%d\n", **ptr2ptr);
         printf("%d\n", ***ptr3ptr);
       }"""
-
-    checkResults(code)
-  }
-}
+)

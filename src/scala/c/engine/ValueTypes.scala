@@ -153,9 +153,17 @@ case class Field(state: State, address: Int, bitOffset: Int, theType: IType, siz
 
 object Variable {
   def apply(name: String, state: State, aType: IType, initVals: List[RValue]): Variable = {
-
-    val size = if (aType.isInstanceOf[IArrayType] && !aType.asInstanceOf[IArrayType].hasSize) {
-      initVals.map{init => TypeHelper.sizeof(init.theType)(state)}.sum
+    
+    val size = if (aType.isInstanceOf[IArrayType] && initVals.size > 0) {
+      if (aType.asInstanceOf[IArrayType].hasSize) {
+        if (initVals.size == aType.asInstanceOf[IArrayType].getSize.numericalValue().toInt) {
+          initVals.map{init => TypeHelper.sizeof(init.theType)(state)}.sum
+        } else {
+          TypeHelper.sizeof(aType)(state)
+        }
+      } else {
+        initVals.map{init => TypeHelper.sizeof(init.theType)(state)}.sum
+      }
     } else {
       TypeHelper.sizeof(aType)(state)
     }
