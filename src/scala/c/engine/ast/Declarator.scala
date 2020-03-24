@@ -139,15 +139,20 @@ object Declarator {
           Seq()
         } else {
           if (theType.isInstanceOf[CArrayType] && !theType.asInstanceOf[CArrayType].isConst && !dimensions.isEmpty) { // an array bounded by a variable e.g x[y]
-            // TODO: higher dimensions
-            if (dimensions.size == 1) {
-              val inferredArrayType = new CArrayType(theType.asInstanceOf[IArrayType].getType)
-              inferredArrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, dimensions.head.toString.toCharArray)))
+              def createdSizedArrayType(theType: CArrayType, dimensions: List[Int]): CArrayType = {
+                val arrayType = if (theType.getType.isInstanceOf[CArrayType]) {
+                  new CArrayType(createdSizedArrayType(theType.getType.asInstanceOf[CArrayType], dimensions.tail))
+                } else {
+                  new CArrayType(theType.getType)
+                }
 
-              state.context.addVariable(name.toString, inferredArrayType)
-            } else {
-              state.context.addVariable(name.toString, theType)
-            }
+                arrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, dimensions.head.toString.toCharArray)))
+                arrayType
+              }
+
+              val finalType = createdSizedArrayType(theType.asInstanceOf[CArrayType], dimensions.reverse)
+
+              state.context.addVariable(name.toString, finalType)
           } else {
             state.context.addVariable(name.toString, theType)
           }
