@@ -23,7 +23,7 @@ class TwoDimAddressingCheck extends StandardTest2("2d array pointer arithmetic",
       }"""
 )
 
-class MultiDimArrayClobberingTest extends StandardTest2("2d array clobbering test",
+class MultiDimArrayClobberingTest extends StandardTest2("2d array with a variable as a dimension",
   """
       int blah() {
         return 7;
@@ -32,8 +32,8 @@ class MultiDimArrayClobberingTest extends StandardTest2("2d array clobbering tes
       int main()
       {
         int lx = blah();
-        int lnk[7][lx]; // doing this prevents CDT from knowing the size, hasSize == false
-        int i = 0; // this will be clobbered
+        int lnk[7][lx];
+        int i = 0; // clobber test
 
         printf("%d\n", i);
         lnk[0][0] = 1;

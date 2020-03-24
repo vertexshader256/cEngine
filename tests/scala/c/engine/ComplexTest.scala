@@ -733,37 +733,81 @@ class ShortestCommonSubsequenceTest extends StandardTest2("Shortest common subse
       int scs(char *x, char *y, char *out)
       {
         int lx = strlen(x), ly = strlen(y);
-        printf("LX LEN: %d\n", lx);
-        printf("LY LEN: %d\n", ly);
         link_t lnk[ly + 1][lx + 1];
+        int i = 0;
+        int j = 0;
 
-        for (int i = 0; i < ly; i++)
-          lnk[i][lx] = (link_t) {ly - i, y[i], &lnk[i + 1][lx]};
+        printf("%d\n", lx);
+        printf("%d\n", ly);
 
-        for (int j = 0; j < lx; j++)
-          lnk[ly][j] = (link_t) {lx - j, x[j], &lnk[ly][j + 1]};
+        for (i = 0; i < 2; i++) {
+         for (j = 0; j < 2; j++) {
 
-        lnk[ly][lx] = (link_t) {0};
+          lnk[i][j].letter = 0;
+          lnk[i][j].next = 0;
+          lnk[i][j].len = 0;
+         }
+       }
+//
+//        for (i = 0; i < ly; i++)
+//          //printf("%d\n", lnk - lnk[i + 1][lx]);
+//          lnk[i][lx] = (link_t) {ly - i, y[i], &lnk[i + 1][lx]};
+//
+//        for (j = 0; j < lx; j++)
+//          lnk[ly][j] = (link_t) {lx - j, x[j], &lnk[ly][j + 1]};
+//
+//
+//       for (i = 0; i < ly + 1; i++) {
+//         for (j = 0; j < lx + 1; j++) {
+//          printf("%d\n", lnk[i][j].len);
+//          printf("%d\n", lnk[i][j].letter);
+//         }
+//       }
 
-        for (int i = ly; i--; ) {
-          for (int j = lx; j--; ) {
-            link_t *lp = &lnk[i][j];
-            if (y[i] == x[j]) {
-              lp->next = &lnk[i+1][j+1];
-              lp->letter = x[j];
-            } else if (lnk[i][j+1].len < lnk[i+1][j].len) {
-              lp->next = &lnk[i][j+1];
-              lp->letter = x[j];
-            } else {
-              lp->next = &lnk[i+1][j];
-              lp->letter = y[i];
-            }
-            lp->len = lp->next->len + 1;
-          }
-        }
+        //printf("%d\n", lnk[ly][lx].len);
+        //printf("%d\n", lnk[ly][lx].letter);
 
-        for (link_t *lp = &lnk[0][0]; lp; lp = lp->next)
-          *out++ = lp->letter;
+        //lnk[ly][lx] = (link_t) {0};
+//        lnk[ly][lx].len = 0;
+//        lnk[ly][lx].letter = 0;
+//        lnk[ly][lx].next = 0;
+
+        //printf("%d\n", lnk[ly][lx].len);
+        //printf("... %d\n", lnk[ly][lx].letter);
+
+//        for (i = ly; i--; ) {
+//
+//          printf("ok %d\n", i);
+//
+//          for (j = lx; j--; ) {
+//
+//
+//
+//            link_t *lp = &lnk[i][j];
+//
+//            printf("ok2 %d\n", lp->len);
+//
+//            if (y[i] == x[j]) {
+//              //printf("A\n");
+//              lp->next = &lnk[i+1][j+1];
+//              lp->letter = x[j];
+//            } else if (lnk[i][j+1].len < lnk[i+1][j].len) {
+//              //printf("B\n");
+//              lp->next = &lnk[i][j+1];
+//              lp->letter = x[j];
+//            } else {
+//              //printf("C\n");
+//              lp->next = &lnk[i+1][j];
+//              lp->letter = y[i];
+//            }
+//            lp->len = lp->next->len + 1;
+//          }
+//        }
+//
+//        link_t *lp = 0;
+//
+//        for (lp = &lnk[0][0]; lp; lp = lp->next)
+//          *out++ = lp->letter;
 
         return 0;
       }
@@ -771,7 +815,25 @@ class ShortestCommonSubsequenceTest extends StandardTest2("Shortest common subse
       int main()
       {
         char x[] = "abcbdab", y[] = "bdcaba", res[128] = {0};
-        scs(x, y, res);
+        //scs(x, y, res);
+
+        int lx = strlen(x), ly = strlen(y);
+        link_t lnk[ly + 1][lx + 1];
+        int i = 0;
+        int j = 0;
+
+        printf("%d\n", lx);
+        printf("%d\n", ly);
+
+        for (i = 0; i < 2; i++) {
+         for (j = 0; j < 2; j++) {
+
+          lnk[i][j].letter = 0;
+          lnk[i][j].next = 0;
+          lnk[i][j].len = 0;
+         }
+       }
+
         printf("SCS(%s, %s) -> %s\n", x, y, res);
         printf("DONE\n");
       }

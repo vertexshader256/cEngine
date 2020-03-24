@@ -132,7 +132,10 @@ object Expressions {
       typeIdInit.getInitializer match {
         case list: IASTInitializerList =>
           val rVals = list.getClauses.map { clause =>
-            evaluate(clause).get.asInstanceOf[RValue]
+            evaluate(clause).get match {
+              case r @ RValue(x, y) => r
+              case l: LValue => l.rValue
+            }
           }.toList
 
           state.writeDataBlock(rVals, newAddr)
