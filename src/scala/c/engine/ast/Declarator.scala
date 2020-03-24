@@ -235,6 +235,9 @@ object Declarator {
       dst.setValue(result)
     } else if (equals.isInstanceOf[IASTFunctionCallExpression]) {
       state.copy(dst.address, state.Stack.insertIndex - dst.sizeof, dst.sizeof)
+    } else if (equals.isInstanceOf[IASTTypeIdInitializerExpression]) {
+      val otherStruct = Expressions.evaluate(equals).get.asInstanceOf[LValue]
+      state.copy(dst.address, otherStruct.address, dst.sizeof)
     } else if (equals.isInstanceOf[IASTExpression]) { // setting a struct equal to another struct
       val otherStruct = srcs.head.asInstanceOf[LValue]
       state.copy(dst.address, otherStruct.address, dst.sizeof)

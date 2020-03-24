@@ -128,6 +128,16 @@ object Expressions {
     case typeIdInit: IASTTypeIdInitializerExpression =>
       val theType = TypeHelper.getType(typeIdInit.getTypeId).theType
       val newAddr = state.allocateSpace(TypeHelper.sizeof(theType))
+
+      typeIdInit.getInitializer match {
+        case list: IASTInitializerList =>
+          val rVals = list.getClauses.map { clause =>
+            evaluate(clause).get.asInstanceOf[RValue]
+          }.toList
+
+          state.writeDataBlock(rVals, newAddr)
+      }
+
       Some(LValue(state, newAddr, theType))
   }
 }

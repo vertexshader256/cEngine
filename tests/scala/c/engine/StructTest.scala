@@ -70,6 +70,9 @@ class AdvancedStructAssignment2 extends StandardTest2("Assigning a struct includ
       {
         link_t blah = (link_t) {1, 2};
         printf("%d %d\n", blah.len, blah.len2);
+
+        blah = (link_t) {3, 4};
+        printf("%d %d\n", blah.len, blah.len2);
       }
   """
 )
@@ -120,22 +123,6 @@ class StructTest extends StandardTest {
       void main() {
         struct Test x = {343, 543, 0};
         printf("%d %d %d\n", x.y, x.y, x.next);
-      }"""
-
-    checkResults(code)
-  }
-
-  "initializing a simple structure with type id expr" should "print the correct results" in {
-    val code = """
-
-      typedef struct {
-        int y;
-        int x;
-      } Test;
-
-      void main() {
-        Test *x = &((Test){});
-        printf("%d %d\n", x->y, x->y);
       }"""
 
     checkResults(code)
