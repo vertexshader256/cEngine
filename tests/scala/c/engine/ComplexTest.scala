@@ -743,27 +743,27 @@ class ShortestCommonSubsequenceTest extends StandardTest2("Shortest common subse
         for (int j = 0; j < lx; j++)
           lnk[ly][j] = (link_t) {lx - j, x[j], &lnk[ly][j + 1]};
 
-        //lnk[ly][lx] = (link_t) {0};
+        lnk[ly][lx] = (link_t) {0};
 
-//        for (int i = ly; i--; ) {
-//          for (int j = lx; j--; ) {
-//            link_t *lp = &lnk[i][j];
-//            if (y[i] == x[j]) {
-//              lp->next = &lnk[i+1][j+1];
-//              lp->letter = x[j];
-//            } else if (lnk[i][j+1].len < lnk[i+1][j].len) {
-//              lp->next = &lnk[i][j+1];
-//              lp->letter = x[j];
-//            } else {
-//              lp->next = &lnk[i+1][j];
-//              lp->letter = y[i];
-//            }
-//            lp->len = lp->next->len + 1;
-//          }
-//        }
+        for (int i = ly; i--; ) {
+          for (int j = lx; j--; ) {
+            link_t *lp = &lnk[i][j];
+            if (y[i] == x[j]) {
+              lp->next = &lnk[i+1][j+1];
+              lp->letter = x[j];
+            } else if (lnk[i][j+1].len < lnk[i+1][j].len) {
+              lp->next = &lnk[i][j+1];
+              lp->letter = x[j];
+            } else {
+              lp->next = &lnk[i+1][j];
+              lp->letter = y[i];
+            }
+            lp->len = lp->next->len + 1;
+          }
+        }
 
-//        for (link_t *lp = &lnk[0][0]; lp; lp = lp->next)
-//          *out++ = lp->letter;
+        for (link_t *lp = &lnk[0][0]; lp; lp = lp->next)
+          *out++ = lp->letter;
 
         return 0;
       }

@@ -38,8 +38,10 @@ class UnsizedArrayStruct2 extends StandardTest2("sizeof on an unsized array of a
       """
 )
 
-class AdvancedStructAssignment extends StandardTest2("Assigning an element of an array of structs to a struct",
+class AdvancedStructAssignment extends StandardTest2("Using a struct to clobber some memory",
   """
+     #include <stdio.h>
+
      typedef struct link link_t;
       struct link {
         int len;
@@ -48,10 +50,11 @@ class AdvancedStructAssignment extends StandardTest2("Assigning an element of an
 
       int main()
       {
-        link_t lnk[5][5];
-        lnk[2][2] = (link_t) {1, 2};
+        link_t lnk = (link_t) {1, 2};
+        int blah [5][5];
+        memcpy(&blah[1], &lnk, 8);
 
-        printf("%d %d\n", lnk[2][2], lnk[3][2]);
+        printf("%d %d\n", blah[1][0], blah[1][1]);
 
         printf("DONE\n");
       }
