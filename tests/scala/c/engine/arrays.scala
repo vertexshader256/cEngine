@@ -23,6 +23,25 @@ class TwoDimAddressingCheck extends StandardTest2("2d array pointer arithmetic",
       }"""
 )
 
+class MultiDimArrayClobberingTest extends StandardTest2("2d array clobbering test",
+  """
+      int blah() {
+        return 7;
+      }
+
+      int main()
+      {
+        int lx = blah();
+        int lnk[7][lx]; // doing this prevents CDT from knowing the size, hasSize == false
+        int i = 0; // this will be clobbered
+
+        printf("%d\n", i);
+        lnk[0][0] = 1;
+        printf("%d\n", i);
+      }
+  """
+)
+
 class ArrayInitTest extends StandardTest {
   "Sized arrays initialized with initLists" should "print the correct results" in {
     val code = """

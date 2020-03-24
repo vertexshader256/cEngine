@@ -66,16 +66,20 @@ class AdvancedStructAssignment2 extends StandardTest2("Assigning a struct includ
      typedef struct link link_t;
       struct link {
         int len;
-        int len2;
+        char letter;
+        link_t *next;
       };
 
       int main()
       {
         link_t blah = (link_t) {1, 2};
-        printf("%d %d\n", blah.len, blah.len2);
+        printf("%d %d\n", blah.len, blah.letter);
 
         blah = (link_t) {3, 4};
-        printf("%d %d\n", blah.len, blah.len2);
+        printf("%d %d\n", blah.len, blah.letter);
+
+        blah = (link_t) {0};
+        printf("%d %d\n", blah.len, blah.letter);
       }
   """
 )
