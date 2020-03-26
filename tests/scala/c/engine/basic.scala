@@ -25,6 +25,24 @@ class MainTest extends StandardTest {
   }
 }
 
+class StrcpyTest extends StandardTest2("strcpy() test",
+  """
+      int main()
+      {
+        char *blah = "thisisjustatest";
+        char *dst = malloc(100);
+        int i = 0;
+
+        for (i = 0; i < 100; i++) { // remove all null characters
+           dst[i] = 66;
+        }
+
+        strcpy(dst, blah);
+        printf("%s %s\n", blah, dst);
+      }
+  """
+)
+
 class AssignmentTest extends StandardTest {
   "A simple math expression with double assigned to integer" should "print the correct results" in {
     val code = """

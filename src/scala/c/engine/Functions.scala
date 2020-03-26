@@ -610,6 +610,18 @@ object Functions {
         }
       }
     }
+
+  scalaFunctions += new Function("strcpy", false) {
+    def run(formattedOutputParams: Array[RValue], state: State) = {
+      val src = formattedOutputParams(0).value.asInstanceOf[Int]
+      val dst = formattedOutputParams(1).value.asInstanceOf[Int]
+
+      val str1 = Utils.readString(src)(state)
+
+      state.copy(dst, src, str1.size + 1)
+      None
+    }
+  }
   
   scalaFunctions += new Function("offsetof", false) {
       def run(formattedOutputParams: Array[RValue], state: State) = {
