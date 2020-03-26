@@ -128,35 +128,24 @@ object Declarator {
                 res.map{x => state.context.popStack}
               } else {
                 List(Option(decl.getInitializer)).flatten.foreach{Ast.step}
-                (0 until initializer.getInitializerClause.getChildren.size).map { x => state.context.popStack }.reverse.toList
+                (0 until initializer.getInitializerClause.getChildren.size).map { x => TypeHelper.resolve(state.context.popStack) }.reverse.toList
               }
             }
 
-            if (initVals.size > 1) { // e.g '= {1,2,3,4,5}' or x[2][2] = {{1,2},{3,4},{5,6},{7,8}}
+            val initialArray = initVals.map(TypeHelper.resolve)
 
-              val initialArray = initVals.map { x => TypeHelper.resolve(x)}
+            val newArray = if (initVals.size > 1 && !theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType]) { // e.g '= {1,2,3,4,5}' or x[2][2] = {{1,2},{3,4},{5,6},{7,8}}
+              val baseType = TypeHelper.resolveBasic(theType)
+              initialArray.map { x => TypeHelper.cast(baseType, x.value)}
+            } else {
+              initialArray
+            }
 
-              val array = if (theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType]) {
-                initialArray
-              } else {
-                val baseType = TypeHelper.resolveBasic(theType)
-                initialArray.map { x => TypeHelper.cast(baseType, x.value)}
-              }
+            val newVar = state.context.addArrayVariable(name.toString, theType, newArray)
 
-              state.context.addArrayVariable(name.toString, theType, array)
-
-            } else if (initVals.size == 1) {
-              val initVal = initVals.head match {
-                case r: RValue => r
-                case l: LValue => l.rValue
-              }
-
-              val newVar = state.context.addArrayVariable(name.toString, theType, List(initVal))
-
-              if (initVal == 0) { // e.g = {0}
-                val zeroArray = (0 until newVar.sizeof).map{x => 0.toByte}.toArray
-                state.writeDataBlock(zeroArray, newVar.address) // e.g = {0}
-              }
+            if (initialArray.size == 1 && initialArray.head == 0) { // e.g = {0}
+              val zeroArray = (0 until newVar.sizeof).map{x => 0.toByte}.toArray
+              state.writeDataBlock(zeroArray, newVar.address)
             }
           }
 
