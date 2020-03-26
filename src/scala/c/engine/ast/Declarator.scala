@@ -69,6 +69,8 @@ object Declarator {
     }
     case arrayDecl: IASTArrayDeclarator => {
 
+        val initializer = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
+
         val name = if (arrayDecl.getNestedDeclarator != null) {
           arrayDecl.getNestedDeclarator.getName
         } else {
@@ -77,19 +79,10 @@ object Declarator {
 
         val theType = TypeHelper.getBindingType(name.resolveBinding())
 
-        val dimensions = arrayDecl.getArrayModifiers.toList.filter {
-          _.getConstantExpression != null
-        }.map { _ =>
-          arrayDecl.getArrayModifiers.foreach{Ast.step}
-          TypeHelper.resolve(state.context.popStack).value.asInstanceOf[Int]
-        }
-
-        val initializer = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
-
         // Oddly enough, it is possible to have a pointer to an array with no dimensions OR initializer:
         //    extern char *x[]
 
-        if (initializer != null) {
+        if (decl.getInitializer != null) {
 
           def flattenInitList(node: IASTInitializerClause): List[IASTNode] = node match {
             case list: IASTInitializerList =>
@@ -150,8 +143,16 @@ object Declarator {
           }
 
           Seq()
-        } else {
-          if (theType.isInstanceOf[CArrayType] && !theType.asInstanceOf[CArrayType].isConst && !dimensions.isEmpty) { // an array bounded by a variable e.g x[y]
+        } else { // no initializer
+
+          val dimensions = arrayDecl.getArrayModifiers.toList.filter {
+            _.getConstantExpression != null
+          }.map { _ =>
+            arrayDecl.getArrayModifiers.foreach{Ast.step}
+            TypeHelper.resolve(state.context.popStack).value.asInstanceOf[Int]
+          }
+
+          val aType = if (theType.isInstanceOf[CArrayType] && !theType.asInstanceOf[CArrayType].isConst && !dimensions.isEmpty) { // an array bounded by a variable e.g x[y]
               def createdSizedArrayType(theType: CArrayType, dimensions: List[Int]): CArrayType = {
                 val arrayType = if (theType.getType.isInstanceOf[CArrayType]) {
                   new CArrayType(createdSizedArrayType(theType.getType.asInstanceOf[CArrayType], dimensions.tail))
@@ -163,12 +164,12 @@ object Declarator {
                 arrayType
               }
 
-              val finalType = createdSizedArrayType(theType.asInstanceOf[CArrayType], dimensions.reverse)
-
-              state.context.addVariable(name.toString, finalType)
+              createdSizedArrayType(theType.asInstanceOf[CArrayType], dimensions.reverse)
           } else {
-            state.context.addVariable(name.toString, theType)
+            theType
           }
+
+          state.context.addVariable(name.toString, aType)
         }
         Seq()
     }
