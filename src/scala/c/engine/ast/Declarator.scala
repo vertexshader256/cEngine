@@ -91,10 +91,25 @@ object Declarator {
 
         if (initializer != null) {
 
-          List(Option(decl.getInitializer)).flatten.foreach{Ast.step}
+          def flattenInitList(node: IASTInitializerClause): List[IASTNode] = node match {
+            case list: IASTInitializerList =>
+              list.getClauses.toList.flatMap(flattenInitList)
+            case lit: IASTLiteralExpression =>
+              List(lit)
+            case unary: IASTUnaryExpression =>
+              List(unary)
+            case x =>
+              println("HERE: " + x.getRawSignature); List()
+          }
+
+
+
+          //Option(decl.getInitializer).map(flattenInitList).getOrElse(List())
+
+
 
           if (TypeHelper.isPointerOrArray(theType) && TypeHelper.getPointerType(theType).isInstanceOf[CStructure]) {
-
+            List(Option(decl.getInitializer)).flatten.foreach{Ast.step}
             val structType = TypeHelper.getPointerType(theType).asInstanceOf[CStructure]
 
             val structData = initializer.getInitializerClause.getChildren.flatMap { list =>
@@ -107,11 +122,26 @@ object Declarator {
             state.context.addArrayVariable(name.toString, resultType, structData)
           } else if (TypeHelper.resolveBasic(theType).getKind == IBasicType.Kind.eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
             // e.g. char str[] = "Hello!\n";
+            List(Option(decl.getInitializer)).flatten.foreach{Ast.step}
             val initString = state.context.popStack.asInstanceOf[StringLiteral].value
             state.createStringArrayVariable(name.toString, initString)
           } else {
 
-            val initVals: Array[ValueType] = (0 until initializer.getInitializerClause.getChildren.size).map { x => state.context.popStack }.reverse.toArray
+            val initVals: List[ValueType] = if (decl.getInitializer != null) { // e.g x[2][2] = {{1,2},{3,4},{5,6},{7,8}}
+              val res = flattenInitList(decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause).reverse
+
+              if (res.nonEmpty) {
+                res.foreach{Ast.step}
+                res.map{x => state.context.popStack}
+              } else {
+                List(Option(decl.getInitializer)).flatten.foreach{Ast.step}
+                (0 until initializer.getInitializerClause.getChildren.size).map { x => state.context.popStack }.reverse.toList
+              }
+
+            } else {
+              List(Option(decl.getInitializer)).flatten.foreach{Ast.step}
+              (0 until initializer.getInitializerClause.getChildren.size).map { x => state.context.popStack }.reverse.toList
+            }
 
             if (initVals.size == 1 && theType.isInstanceOf[CArrayType] && initVals.head.asInstanceOf[RValue].value.asInstanceOf[Int] == 0) { // zero out array e.g '= {0}'
               val newVar = state.context.addVariable(name.toString, theType)
