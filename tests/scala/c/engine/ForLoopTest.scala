@@ -29,6 +29,17 @@ class ForLooptestStaging extends StandardTest {
   }
 }
 
+class c99ForLoopTest extends StandardTest2("c99 for loop",
+  """
+      int main(void)
+      {
+         for (int i = 5; i--; ) {
+            printf("%d\n", i);
+         }
+      }
+    """
+)
+
 class ForLooptest extends StandardTest {
   "A simple for loop" should "print the correct results" in {
     val code = """

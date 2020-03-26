@@ -205,7 +205,7 @@ object State {
           state.breakLabelStack = state.breakLabelStack.tail
           state.continueLabelStack = state.continueLabelStack.tail
 
-          val execution = contents ++ List(continueLabel, iter)
+          val execution = contents ++ (if (iter != null) List(continueLabel, iter) else List(continueLabel))
 
           val result = (if (forStatement.getConditionExpression != null) {
             init ++ (beginLabel +: JmpToLabelIfNotZero(forStatement.getConditionExpression, breakLabel) +: execution :+ JmpLabel(beginLabel)) :+ breakLabel
