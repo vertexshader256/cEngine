@@ -102,12 +102,6 @@ object Declarator {
               println("HERE: " + x.getRawSignature); List()
           }
 
-
-
-          //Option(decl.getInitializer).map(flattenInitList).getOrElse(List())
-
-
-
           if (TypeHelper.isPointerOrArray(theType) && TypeHelper.getPointerType(theType).isInstanceOf[CStructure]) {
             List(Option(decl.getInitializer)).flatten.foreach{Ast.step}
             val structType = TypeHelper.getPointerType(theType).asInstanceOf[CStructure]
@@ -127,9 +121,10 @@ object Declarator {
             state.createStringArrayVariable(name.toString, initString)
           } else {
 
-            val initVals: List[ValueType] = if (decl.getInitializer != null) { // e.g x[2][2] = {{1,2},{3,4},{5,6},{7,8}}
-              val res = flattenInitList(decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause).reverse
+            val equals = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
+            val res = flattenInitList(equals.getInitializerClause).reverse
 
+            val initVals: List[ValueType] = { // e.g x[2][2] = {{1,2},{3,4},{5,6},{7,8}}
               if (res.nonEmpty) {
                 res.foreach{Ast.step}
                 res.map{x => state.context.popStack}
@@ -137,29 +132,24 @@ object Declarator {
                 List(Option(decl.getInitializer)).flatten.foreach{Ast.step}
                 (0 until initializer.getInitializerClause.getChildren.size).map { x => state.context.popStack }.reverse.toList
               }
-
-            } else {
-              List(Option(decl.getInitializer)).flatten.foreach{Ast.step}
-              (0 until initializer.getInitializerClause.getChildren.size).map { x => state.context.popStack }.reverse.toList
             }
 
             if (initVals.size == 1 && theType.isInstanceOf[CArrayType] && initVals.head.asInstanceOf[RValue].value.asInstanceOf[Int] == 0) { // zero out array e.g '= {0}'
               val newVar = state.context.addVariable(name.toString, theType)
               val zeroArray = (0 until newVar.sizeof).map{x => 0.toByte}.toArray
-              state.writeDataBlock(zeroArray, newVar.address)
+              state.writeDataBlock(zeroArray, newVar.address) // e.g = {0}
             } else if (initVals.size > 1) { // e.g '= {1,2,3,4,5}'
 
-              println("1")
-              if (theType.isInstanceOf[CArrayType] && theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType]) {
-                val initialArray = initVals.map { x => TypeHelper.resolve(x)}.toList
-                println("2")
-                state.context.addArrayVariable(name.toString, theType, initialArray)
+              val initialArray = initVals.map { x => TypeHelper.resolve(x)}
+
+              val array = if (theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType]) {
+                initialArray
               } else {
-                println(initVals.size)
                 val baseType = TypeHelper.resolveBasic(theType)
-                val initialArray = initVals.map { x => TypeHelper.cast(baseType, TypeHelper.resolve(x).value)}.toList
-                state.context.addArrayVariable(name.toString, theType, initialArray)
+                initialArray.map { x => TypeHelper.cast(baseType, x.value)}
               }
+
+              state.context.addArrayVariable(name.toString, theType, array)
 
             } else if (initVals.head.isInstanceOf[RValue]) {
               val rValue = initVals.head.asInstanceOf[RValue]
