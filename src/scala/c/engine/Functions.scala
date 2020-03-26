@@ -596,7 +596,10 @@ object Functions {
    
   scalaFunctions += new Function("strchr", false) {
       def run(formattedOutputParams: Array[RValue], state: State) = {
-        val char = formattedOutputParams(0).value.asInstanceOf[Int]
+        val char = formattedOutputParams(0).value match {
+          case int: Int => int
+          case byte: Byte => byte.toInt
+        }
         val straddy = formattedOutputParams(1).value.asInstanceOf[Int]
 
         val str = Utils.readString(straddy)(state)
