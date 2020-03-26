@@ -103,17 +103,15 @@ object Declarator {
           }
 
           if (TypeHelper.isPointerOrArray(theType) && TypeHelper.getPointerType(theType).isInstanceOf[CStructure]) {
-            List(Option(decl.getInitializer)).flatten.foreach{Ast.step}
+            val data =  List(Option(decl.getInitializer)).flatten
+            data.foreach{Ast.step}
             val structType = TypeHelper.getPointerType(theType).asInstanceOf[CStructure]
 
             val structData = initializer.getInitializerClause.getChildren.flatMap { list =>
               structType.getFields.map { field => TypeHelper.resolve(state.context.popStack) }
             }.reverse.toList
 
-            val resultType = new CArrayType(structType)
-            resultType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, structData.size.toString.toCharArray)))
-
-            state.context.addArrayVariable(name.toString, resultType, structData)
+            state.context.addArrayVariable(name.toString, theType, structData)
           } else if (TypeHelper.resolveBasic(theType).getKind == IBasicType.Kind.eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
             // e.g. char str[] = "Hello!\n";
             List(Option(decl.getInitializer)).flatten.foreach{Ast.step}
@@ -124,7 +122,7 @@ object Declarator {
             val equals = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
             val res = flattenInitList(equals.getInitializerClause).reverse
 
-            val initVals: List[ValueType] = { // e.g x[2][2] = {{1,2},{3,4},{5,6},{7,8}}
+            val initVals: List[ValueType] = {
               if (res.nonEmpty) {
                 res.foreach{Ast.step}
                 res.map{x => state.context.popStack}
@@ -134,11 +132,7 @@ object Declarator {
               }
             }
 
-            if (initVals.size == 1 && theType.isInstanceOf[CArrayType] && initVals.head.asInstanceOf[RValue].value.asInstanceOf[Int] == 0) { // zero out array e.g '= {0}'
-              val newVar = state.context.addVariable(name.toString, theType)
-              val zeroArray = (0 until newVar.sizeof).map{x => 0.toByte}.toArray
-              state.writeDataBlock(zeroArray, newVar.address) // e.g = {0}
-            } else if (initVals.size > 1) { // e.g '= {1,2,3,4,5}'
+            if (initVals.size > 1) { // e.g '= {1,2,3,4,5}' or x[2][2] = {{1,2},{3,4},{5,6},{7,8}}
 
               val initialArray = initVals.map { x => TypeHelper.resolve(x)}
 
@@ -151,13 +145,18 @@ object Declarator {
 
               state.context.addArrayVariable(name.toString, theType, array)
 
-            } else if (initVals.head.isInstanceOf[RValue]) {
-              val rValue = initVals.head.asInstanceOf[RValue]
-              state.context.addArrayVariable(name.toString, theType, List(rValue))
-            } else {
-              val lValue = initVals.head.asInstanceOf[LValue]
-              val theArrayPtr = state.context.addVariable(name.toString, theType)
-              theArrayPtr.setValue(lValue.rValue)
+            } else if (initVals.size == 1) {
+              val initVal = initVals.head match {
+                case r: RValue => r
+                case l: LValue => l.rValue
+              }
+
+              val newVar = state.context.addArrayVariable(name.toString, theType, List(initVal))
+
+              if (initVal == 0) { // e.g = {0}
+                val zeroArray = (0 until newVar.sizeof).map{x => 0.toByte}.toArray
+                state.writeDataBlock(zeroArray, newVar.address) // e.g = {0}
+              }
             }
           }
 
