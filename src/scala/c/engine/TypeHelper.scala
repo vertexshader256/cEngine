@@ -43,6 +43,7 @@ object TypeHelper {
   // Kind of hacky; this will do whatever it needs to match gcc.  casts 'AnyVal' to 'ValueInfo'
   def cast(theType: IType, theVal: AnyVal): RValue = {
     val cast: AnyVal = theType match {
+      case enum: CEnumeration => theVal
       case typedef: CTypedef => theVal
       case qual: IQualifierType => theVal
       case fcn: IFunctionType => theVal
@@ -234,6 +235,7 @@ object TypeHelper {
   }
 
   def stripSyntheticTypeInfo(theType: IType): IType = theType match {
+    case enum: CEnumeration       => enum
     case struct: CStructure       => struct
     case basicType: IBasicType    => basicType
     case typedef: ITypedef        => stripSyntheticTypeInfo(typedef.getType)

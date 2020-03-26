@@ -1,5 +1,19 @@
 package scala.c.engine
 
+
+class EnumTypedefArithmetic extends StandardTest2("Enum Typedef Arithmetic",
+  """
+      typedef enum { ENCRYPT, DECRYPT } cmode;
+
+      int main()
+      {
+        cmode x = ENCRYPT;
+        x++;
+        printf("%d\n", x);
+      }
+  """
+)
+
 class EnumTest extends StandardTest {
 
   "A simple enum" should "print the correct results" in {

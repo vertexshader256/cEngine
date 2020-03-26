@@ -62,6 +62,11 @@ class Memory(size: Int) {
           case int: Int => tape.putInt(address, int)
           case long: Long => tape.putInt(address, long.toInt)
         }
+      case enum: CEnumeration =>
+        newVal match {
+          case int: Int => tape.putInt(address, int)
+          case long: Long => tape.putInt(address, long.toInt)
+        }
       case basic: IBasicType if basic.getKind == eInt || basic.getKind == eVoid =>
         newVal match {
           case int: Int =>
