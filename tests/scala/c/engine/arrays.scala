@@ -132,6 +132,24 @@ class SimpleHigherDimArrays extends StandardTest {
   }
 }
 
+class Initializing2dArrayWith2dList extends StandardTest {
+  "initializing 2d array with 2d list" should "print the correct results" in {
+    val code = """
+      void main() {
+        double elems[4][4] = {
+          { 2, -1,  5,  1},
+          { 3,  2,  2, -6},
+          { 1,  3,  3, -1},
+          { 5, -2, -3,  3}
+        };
+
+        printf("%f\n", elems[1][2]);
+      }"""
+
+    checkResults(code)
+  }
+}
+
 class HigherDimArrays extends StandardTest {
 
   "A 2d array" should "print the correct results" in {
