@@ -110,7 +110,7 @@ object Declarator {
             List(Option(decl.getInitializer)).flatten.foreach{Ast.step}
             val initString = state.context.popStack.asInstanceOf[StringLiteral].value
             state.createStringArrayVariable(name.toString, initString)
-          } else {
+          } else { // e.g '= {1,2,3,4,5}' or x[2][2] = {{1,2},{3,4},{5,6},{7,8}}
 
             val equals = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
             val res = flattenInitList(equals.getInitializerClause).reverse
@@ -127,7 +127,7 @@ object Declarator {
 
             val initialArray = initVals.map(TypeHelper.resolve)
 
-            val newArray = if (initVals.size > 1 && !theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType]) { // e.g '= {1,2,3,4,5}' or x[2][2] = {{1,2},{3,4},{5,6},{7,8}}
+            val newArray = if (initVals.size > 1 && !theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType]) {
               val baseType = TypeHelper.resolveBasic(theType)
               initialArray.map { x => TypeHelper.cast(baseType, x.value)}
             } else {
