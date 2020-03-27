@@ -318,6 +318,21 @@ class PointerArithmeticTest11 extends StandardTest2("advanced pointer arithmetic
        }"""
 )
 
+class PointerArithmeticTest12 extends StandardTest2("tricky pointer arithmetic with pointers case 2",
+    """
+      void main() {
+         char *blah = "hellothisisjustatest";
+         long offset = 5;
+
+         char *x = blah + offset;
+
+         printf("%s\n", x);
+         printf("%s\n", x - offset);
+         printf("%s\n", x - 5L);
+
+      }"""
+)
+
 class PointerTest extends StandardTest2("pointer equality",
     """
       int *testFcn() {
