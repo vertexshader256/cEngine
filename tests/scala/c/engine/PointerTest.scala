@@ -323,12 +323,23 @@ class PointerArithmeticTest12 extends StandardTest2("tricky pointer arithmetic w
       void main() {
          char *blah = "hellothisisjustatest";
          long offset = 5;
+         short offsetShort = 5;
+         char offsetChar = 5;
 
          char *x = blah + offset;
+         char *x2 = blah + 10L;
+         char *x3 = blah + offsetShort;
+         char *x4 = blah + offsetChar;
 
          printf("%s\n", x);
          printf("%s\n", x - offset);
          printf("%s\n", x - 5L);
+         printf("%s\n", x3 - 5L);
+         printf("%s\n", x4 - ((char)5));
+         printf("%s\n", 5L + x);
+         printf("%s\n", 5L + x3);
+         printf("%s\n", ((char)5) + x4);
+         printf("%d\n", x2 - x);
 
       }"""
 )
