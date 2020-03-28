@@ -67,12 +67,7 @@ object Expressions {
         right = temp
       }
 
-      val base = left match {
-        case rValue: RValue =>
-          rValue.value.asInstanceOf[Int]
-        case lValue: LValue =>
-          lValue.rValue.value.asInstanceOf[Int]
-      }
+      val base = TypeHelper.resolve(left).value.asInstanceOf[Int]
 
       val indexType = left match {
         case RValue(_, theType) =>
