@@ -49,19 +49,16 @@ object BinaryExpr {
   }
 
   def evaluatePointerArithmetic(ptr: ValueType, offset: Int, operator: Int)(implicit state: State): RValue = {
-    val rValue = ptr match {
-      case left @ LValue(_, _) => left.rValue
-      case rValue @ RValue(_, _) => rValue
-    }
+    val rValue = TypeHelper.resolve(ptr)
 
     // For some reason double pointers should only use sizeof().  Not sure why.
-    val value = if (ptr.isInstanceOf[LValue] && !TypeHelper.getPointerType(ptr.theType).isInstanceOf[CPointerType]) {
-      val ptrType = TypeHelper.getPointerType(ptr.theType)
-      TypeHelper.getPointerSize(ptrType)
+    val theType = if (ptr.isInstanceOf[LValue] && !TypeHelper.getPointerType(ptr.theType).isInstanceOf[CPointerType]) {
+      TypeHelper.getPointerType(ptr.theType)
     } else {
-      TypeHelper.sizeof(ptr.theType)
-    } * offset
+      ptr.theType
+    }
 
+    val value = TypeHelper.sizeof(theType) * offset
     val bias = if (operator == `op_minus`) -1 else 1
 
     val computedOffset = value * bias

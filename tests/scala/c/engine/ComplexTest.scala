@@ -780,7 +780,7 @@ class Farey2 extends StandardTest {
     for (n = 100; n <= 1000; n += 100)
       printf("%d: %llu items\n", n, farey_len(n));
 
-    n = 10000000;
+    n = 1000;
     printf("\n%d: %llu items\n", n, farey_len(n));
     return 0;
   }

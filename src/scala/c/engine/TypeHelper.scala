@@ -43,13 +43,6 @@ object TypeHelper {
   // Kind of hacky; this will do whatever it needs to match gcc.  casts 'AnyVal' to 'ValueInfo'
   def cast(theType: IType, theVal: AnyVal): RValue = {
     val cast: AnyVal = theType match {
-      case enum: CEnumeration => theVal
-      case typedef: CTypedef => theVal
-      case qual: IQualifierType => theVal
-      case fcn: IFunctionType => theVal
-      case struct: CStructure =>  theVal
-      case ptr: IPointerType => theVal
-      case array: IArrayType => theVal
       case basic: IBasicType =>
 
        val newVal = if (basic.isUnsigned) {
@@ -115,6 +108,13 @@ object TypeHelper {
           case `eVoid` =>
             newVal
         }
+        case _: CEnumeration => theVal
+        case _: CTypedef => theVal
+        case _: IQualifierType => theVal
+        case _: IFunctionType => theVal
+        case _: CStructure =>  theVal
+        case _: IPointerType => theVal
+        case _: IArrayType => theVal
       }
     
     RValue(cast, theType)
@@ -195,10 +195,6 @@ object TypeHelper {
       case rValue @ RValue(_, _) => rValue
       case StringLiteral(str) => state.getString(str)
     }
-  }
-
-  def isPointer(value: ValueType): Boolean = {
-    value.theType.isInstanceOf[IPointerType] || value.isInstanceOf[Address]
   }
 
   def isPointerOrArray(value: ValueType): Boolean = {
