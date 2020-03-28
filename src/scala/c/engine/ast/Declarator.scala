@@ -204,8 +204,7 @@ object Declarator {
 
   def getRValues(decl: IASTInitializerClause, theType: IType)(implicit state: State): List[ValueType] = {
     if (!theType.isInstanceOf[CStructure]) {
-      Ast.step(decl)
-      val result = state.context.popStack
+      val result = Expressions.evaluate(decl).get
 
       List(result)
     } else if (decl != null && decl.isInstanceOf[IASTInitializerList]) {
@@ -223,8 +222,7 @@ object Declarator {
               val fieldName = init.getDesignators.toList.head.asInstanceOf[CASTFieldDesignator].getName.toString
               fieldName == field.getName
             }.map{ init =>
-              Ast.step(init.getOperand)
-              state.context.popStack
+              Expressions.evaluate(init.getOperand).get
             }.getOrElse{
               TypeHelper.zero
             }

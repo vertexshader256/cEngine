@@ -88,10 +88,9 @@ object Ast {
       enum.getEnumerators.foreach{ enum => enum match {
         case enumerator: CASTEnumerator =>
           if (enumerator.getValue != null) {
-            step(enumerator.getValue)
+            val value = Expressions.evaluate(enumerator.getValue).get.asInstanceOf[RValue]
 
             val newVar = state.context.addVariable(enumerator.getName.toString, TypeHelper.intType)
-            val value = state.context.popStack.asInstanceOf[RValue]
             current = value.value.asInstanceOf[Int] + 1
             state.Stack.writeToMemory(value.value, newVar.address, TypeHelper.intType)
           } else {
