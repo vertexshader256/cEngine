@@ -30,7 +30,7 @@ object Expressions {
           case LValue(addr, aType) =>
             theType match {
               case ptr: IPointerType if aType.isInstanceOf[IArrayType] =>
-                val newAddr = state.allocateSpace(4)
+                val newAddr = state.allocateSpace(TypeHelper.sizeof(theType))
                 state.Stack.writeToMemory(addr, newAddr, theType)
                 LValue(state, newAddr, theType)
               case _ => LValue(state, addr, theType)

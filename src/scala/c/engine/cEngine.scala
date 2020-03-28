@@ -523,14 +523,9 @@ class State(pointerSize: NumBits) {
           val resolvedArgs = args.map{ TypeHelper.resolve }
 
           // printf assumes all floating point numbers are doubles
-          // and shorts are 4 bytes
           val promoted = resolvedArgs.map{arg =>
             if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eFloat) {
               TypeHelper.cast(TypeHelper.doubleType, arg.value)
-            } else if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].isShort) {
-              TypeHelper.cast(TypeHelper.intType, arg.value)
-            } else if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eChar) {
-              TypeHelper.cast(TypeHelper.intType, arg.value)
             } else {
               arg
             }
@@ -598,7 +593,7 @@ class State(pointerSize: NumBits) {
   }
 
   def readPtrVal(address: Int): Int = {
-    Stack.readFromMemory(address, pointerType).value.asInstanceOf[Int]
+    Stack.tape.getInt(address)
   }
 
   def getString(str: String): RValue = {
@@ -635,17 +630,18 @@ class State(pointerSize: NumBits) {
   }
 
   def writeDataBlock(array: Array[Byte], startingAddress: Int)(implicit state: State): Unit = {
-    var address = startingAddress
-
-    array.foreach { byte =>
-      Stack.tape.put(address, byte)
-      address += 1
-    }
+    Stack.tape.mark()
+    Stack.tape.position(startingAddress)
+    Stack.tape.put(array, 0, array.size)
+    Stack.tape.reset
   }
 
   def readDataBlock(startingAddress: Int, length: Int)(implicit state: State): Array[Byte] = {
-    (0 until length).map { index =>
-      Stack.tape.get(startingAddress + index)
-    }.toArray
+    val result = new Array[Byte](length)
+    Stack.tape.mark()
+    Stack.tape.position(startingAddress)
+    Stack.tape.get(result, 0, length)
+    Stack.tape.reset
+    result
   }
 }
