@@ -1,5 +1,30 @@
 package scala.c.engine
 
+import java.nio.file.Paths
+
+import scala.io.Source
+
+class cjpegTest extends StandardTest {
+  "cjpeg test" should "print the correct results" in {
+
+    val list = Paths.get("tests", "scala", "c", "engine", "cjpeg", "cio.c")
+    val list2 = Paths.get("tests", "scala", "c", "engine", "cjpeg", "cjpeg.c")
+    val list3 = Paths.get("tests", "scala", "c", "engine", "cjpeg", "cmarker.c")
+    val list4 = Paths.get("tests", "scala", "c", "engine", "cjpeg", "fdctflt.c")
+    val list5 = Paths.get("tests", "scala", "c", "engine", "cjpeg", "rdbmp.c")
+
+    val listText = Source.fromFile(list.toFile, "utf-8").mkString
+    val listText2 = Source.fromFile(list2.toFile, "utf-8").mkString
+    val listText3 = Source.fromFile(list3.toFile, "utf-8").mkString
+    val listText4 = Source.fromFile(list4.toFile, "utf-8").mkString
+    val listText5 = Source.fromFile(list5.toFile, "utf-8").mkString
+
+    val allCode = Seq(listText, listText2, listText3, listText4, listText5)
+
+    checkResults2(allCode,  includePaths = List(raw"./tests/scala/c/engine/cjpeg"))
+  }
+}
+
 //"A struct with more bitfields" should "print the correct results" in {
 //  val code = """
 //     struct {

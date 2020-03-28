@@ -316,6 +316,30 @@ class ArrayTest extends StandardTest {
     checkResults(code)
   }
 
+  "An array sized with a long long variable" should "print the correct results" in {
+    val code = """
+      void main() {
+        long long size = 5L;
+        int x[size];
+        x[2] = 5;
+        printf("%d\n", x[2]);
+      }"""
+
+    checkResults(code)
+  }
+
+  "An array sized with a short variable" should "print the correct results" in {
+    val code = """
+      void main() {
+        short size = 5;
+        int x[size];
+        x[2] = 5;
+        printf("%d\n", x[2]);
+      }"""
+
+    checkResults(code)
+  }
+
   "An array indexed by different typed indexes" should "print the correct results" in {
     val code = """
       void main() {
@@ -407,6 +431,56 @@ class ArrayTest extends StandardTest {
       void main() {
         int x[5] = {3};
         printf("%d %d %d %d\n", x[0], x[1], x[2], x[3], x[4]);
+      }"""
+
+    checkResults(code)
+  }
+
+  "An array being set to a single non-zero value 2d" should "print the correct results" in {
+    val code = """
+      void main() {
+        int x[2][3][4] = { { {1, 2, 3, 4}, {1, 2, 3, 4}, {1, 2, 3, 4} },
+                           { {1, 2, 3, 4}, {1, 2, 3, 4}, {1, 2, 3, 4} } };
+
+        printf("%d\n", x[0][0][0]);
+        printf("%d\n", *(x[0][0]));
+        printf("%d\n", **(x[0]));
+        printf("%d\n", **(x[1]));
+        printf("%d\n", *(x[0][0]));
+        printf("%d\n", *(x[0][1]));
+        printf("%d\n", *(x[0][2]));
+
+        printf("%d\n", x[0][0][0]);
+        printf("%d\n", x[0][0][1]);
+        printf("%d\n", x[0][0][2]);
+        printf("%d\n", x[0][0][3]);
+
+        printf("%d\n", x[0][0][5]);
+        printf("%d\n", x[0][0][6]);
+        printf("%d\n", x[0][0][7]);
+        printf("%d\n", x[0][0][8]);
+
+        printf("%d\n", x[0][0][9]);
+        printf("%d\n", x[0][0][10]);
+        printf("%d\n", x[0][0][11]);
+        printf("%d\n", x[0][0][12]);
+
+        printf("%d\n", x[0][0][13]);
+        printf("%d\n", x[0][0][14]);
+        printf("%d\n", x[0][0][15]);
+        printf("%d\n", x[0][0][16]);
+
+        printf("%d\n", *x[0][0]);
+        printf("%d\n", *x[0][1]);
+        printf("%d\n", *x[0][2]);
+
+        printf("%d\n", *x[1][0]);
+        printf("%d\n", *x[1][1]);
+        printf("%d\n", *x[1][2]);
+
+        printf("%d\n", **x[0]);
+        printf("%d\n", **x[1]);
+
       }"""
 
     checkResults(code)

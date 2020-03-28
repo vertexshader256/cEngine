@@ -208,6 +208,7 @@ object Functions {
        val mode = Utils.readString(formattedOutputParams.head.value.asInstanceOf[Int])(state)
 
        if (!new File(path).exists()) {
+         println(path + " NOT found!")
          if (mode == "w") {
            new File(path).createNewFile()
            Some(FileRValue(path))
@@ -299,7 +300,7 @@ object Functions {
     def run(formattedOutputParams: Array[RValue], state: State) = {
       val resultBuffer = formattedOutputParams(3).value.asInstanceOf[Int]
       val size = formattedOutputParams(2).value.asInstanceOf[Int]
-      val numMembers = formattedOutputParams(1).value.asInstanceOf[Int]
+      val numMembers = TypeHelper.cast(TypeHelper.intType, formattedOutputParams(1).value).value.asInstanceOf[Int]
       val fp = formattedOutputParams(0).asInstanceOf[FileRValue]
 
       state.writeDataBlock(fp.fread(numMembers * size), resultBuffer)(state)

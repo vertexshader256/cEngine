@@ -149,7 +149,8 @@ object Declarator {
             _.getConstantExpression != null
           }.map { _ =>
             arrayDecl.getArrayModifiers.foreach{Ast.step}
-            TypeHelper.resolve(state.context.popStack).value.asInstanceOf[Int]
+            val value = TypeHelper.resolve(state.context.popStack).value
+            TypeHelper.cast(TypeHelper.intType, value).value.asInstanceOf[Int]
           }
 
           val aType = if (theType.isInstanceOf[CArrayType] && !theType.asInstanceOf[CArrayType].isConst && !dimensions.isEmpty) { // an array bounded by a variable e.g x[y]
