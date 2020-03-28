@@ -232,24 +232,12 @@ object BinaryExpr {
       Address(result, left.theType)
     } else if (!isLeftPointer && isRightPointer && operator == `op_plus`) {
       val rightPtrSize = TypeHelper.sizeof(right.theType)
-
-      val leftValue = left.value match {
-        case int: Int => int
-        case long: Long => long.toInt
-        case short: Short => short.toInt
-        case byte: Byte => byte.toInt
-      }
+      val leftValue = TypeHelper.cast(TypeHelper.intType, left.value).value.asInstanceOf[Int]
 
       val result = leftValue * rightPtrSize + right.value.asInstanceOf[Int]
       Address(result, right.theType)
     } else if (isLeftPointer && !isRightPointer && (operator == `op_minus` || operator == `op_plus` )) {
-
-      val rightValue = right.value match {
-        case int: Int => int
-        case long: Long => long.toInt
-        case short: Short => short.toInt
-        case byte: Byte => byte.toInt
-      }
+      val rightValue = TypeHelper.cast(TypeHelper.intType, right.value).value.asInstanceOf[Int]
 
       evaluatePointerArithmetic(left, rightValue, operator)
     } else {
