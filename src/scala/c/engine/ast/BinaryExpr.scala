@@ -222,25 +222,14 @@ object BinaryExpr {
     val isLeftPointer = TypeHelper.isPointerOrArray(x)
     val isRightPointer = TypeHelper.isPointerOrArray(y)
 
-
-
-    if (isLeftPointer) {
-      if (operator == `op_minus` || operator == `op_plus` ) {
-        val rightValue = TypeHelper.cast(TypeHelper.intType, right.value).value.asInstanceOf[Int]
-        if (isRightPointer) {
-          val leftSize = TypeHelper.sizeof(left.theType)
-          val result = (left.value.asInstanceOf[Int] - rightValue) / leftSize
-          Address(result, left.theType)
-        } else {
-          evaluatePointerArithmetic(left, rightValue, operator)
-        }
+    if (isLeftPointer && (operator == `op_minus` || operator == `op_plus`)) {
+      val rightValue = TypeHelper.cast(TypeHelper.intType, right.value).value.asInstanceOf[Int]
+      if (isRightPointer) {
+        val leftSize = TypeHelper.sizeof(right.theType)
+        val result = (left.value.asInstanceOf[Int] - rightValue) / leftSize
+        Address(result, left.theType)
       } else {
-        if (right.isInstanceOf[FileRValue]) {
-          right
-        } else {
-          val result = calculate(left.value,  right.value, operator)
-          RValue(result, left.theType)
-        }
+        evaluatePointerArithmetic(left, rightValue, operator)
       }
     } else if (isRightPointer && operator == `op_plus`) {
       val leftValue = TypeHelper.cast(TypeHelper.intType, left.value).value.asInstanceOf[Int]
@@ -248,8 +237,12 @@ object BinaryExpr {
       val result = leftValue * rightPtrSize + right.value.asInstanceOf[Int]
       Address(result, right.theType)
     } else {
-      val result = calculate(left.value,  right.value, operator)
-      RValue(result, left.theType)
+      if (right.isInstanceOf[FileRValue]) {
+        right
+      } else {
+        val result = calculate(left.value,  right.value, operator)
+        RValue(result, left.theType)
+      }
     }
   }
 }
