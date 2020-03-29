@@ -6,10 +6,12 @@ import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.internal.core.dom.parser.c.{CArrayType, CBasicType, CPointerType, CStructure}
 import IBasicType.Kind._
 
+import scala.annotation.switch
+
 
 object BinaryExpr {
 
-  def calculateBoolean(left: AnyVal, right: AnyVal, operator: Int): Boolean = operator match {
+  def calculateBoolean(left: AnyVal, right: AnyVal, operator: Int): Boolean = (operator: @switch) match {
     case `op_greaterThan` =>
       (left, right) match {
         case (x: Int, y: Int) => x > y
@@ -83,8 +85,10 @@ object BinaryExpr {
 
     import annotation.switch
 
-    def blah: AnyVal = (op1: @switch) match {
+    op1 match {
       case x: Int => (operator: @switch) match {
+        case `op_assign` =>
+          op2
         case `op_multiply` | `op_multiplyAssign` =>
           op2 match {
             case y: Int => x * y
@@ -114,15 +118,37 @@ object BinaryExpr {
             case y: Long => x / y
           }
         case `op_shiftRight` | `op_shiftRightAssign` =>
-          op2 match {
-            case y: Int => x >> y
-          }
+          x >> op2.asInstanceOf[Int]
         case `op_shiftLeft` | `op_shiftLeftAssign` =>
+          x << op2.asInstanceOf[Int]
+        case `op_modulo` =>
           op2 match {
-            case y: Int => x << y
+            case y: Long => x % y
+            case y: Int => x % y
           }
+        case `op_binaryOr`  | `op_binaryOrAssign`=>
+          op2 match {
+            case y: Int => x | y
+            case y: Long => x | y
+          }
+        case `op_binaryXor` | `op_binaryXorAssign` =>
+          op2 match {
+            case y: Int => x ^ y
+            case y: Long => x ^ y
+          }
+        case `op_binaryAnd` | `op_binaryAndAssign` =>
+          op2 match {
+            case y: Int => x & y
+            case y: Long => x & y
+            case y: Int => x & y
+            case y: Long => x & y
+          }
+        case _ =>
+          calculateBoolean(op1, op2, operator)
       }
       case x: Long => (operator: @switch) match {
+        case `op_assign` =>
+          op2
         case `op_multiply` | `op_multiplyAssign` =>
           op2 match {
             case y: Int => x * y
@@ -152,15 +178,37 @@ object BinaryExpr {
             case y: Long => x / y
           }
         case `op_shiftRight` | `op_shiftRightAssign` =>
-          op2 match {
-            case y: Int => x >> y
-          }
+          x >> op2.asInstanceOf[Int]
         case `op_shiftLeft` | `op_shiftLeftAssign` =>
+          x << op2.asInstanceOf[Int]
+        case `op_modulo` =>
           op2 match {
-            case y: Int => x << y
+            case y: Long => x % y
+            case y: Int => x % y
           }
+        case `op_binaryOr`  | `op_binaryOrAssign`=>
+          op2 match {
+            case y: Int => x | y
+            case y: Long => x | y
+          }
+        case `op_binaryXor` | `op_binaryXorAssign` =>
+          op2 match {
+            case y: Int => x ^ y
+            case y: Long => x ^ y
+          }
+        case `op_binaryAnd` | `op_binaryAndAssign` =>
+          op2 match {
+            case y: Int => x & y
+            case y: Long => x & y
+            case y: Int => x & y
+            case y: Long => x & y
+          }
+        case _ =>
+          calculateBoolean(op1, op2, operator)
       }
       case x: Double => (operator: @switch) match {
+        case `op_assign` =>
+          op2
         case `op_multiply` | `op_multiplyAssign` =>
           op2 match {
             case y: Int => x * y
@@ -189,8 +237,12 @@ object BinaryExpr {
             case y: Double => x / y
             case y: Long => x / y
           }
+        case _ =>
+          calculateBoolean(op1, op2, operator)
       }
       case x: Float => (operator: @switch) match {
+        case `op_assign` =>
+          op2
         case `op_multiply` | `op_multiplyAssign` =>
           op2 match {
             case y: Int => x * y
@@ -219,52 +271,9 @@ object BinaryExpr {
             case y: Double => x / y
             case y: Long => x / y
           }
+        case _ =>
+          calculateBoolean(op1, op2, operator)
       }
-    }
-
-    operator match {
-      case `op_assign` =>
-        op2
-      case `op_multiply` | `op_multiplyAssign` =>
-        blah
-      case `op_plus` | `op_plusAssign` =>
-        blah
-      case `op_minus` | `op_minusAssign` =>
-        blah
-      case `op_divide` | `op_divideAssign` =>
-        blah
-      case `op_shiftRight` | `op_shiftRightAssign` =>
-        blah
-      case `op_shiftLeft` | `op_shiftLeftAssign` =>
-        blah
-      case `op_modulo` =>
-        (op1, op2) match {
-          case (x: Long, y: Long) => x % y
-          case (x: Long, y: Int) => x % y
-          case (x: Int, y: Int) => x % y
-          case (x: Int, y: Long) => x % y
-        }
-      case `op_binaryOr`  | `op_binaryOrAssign`=>
-        (op1, op2) match {
-          case (x: Int, y: Int) => x | y
-          case (x: Int, y: Long) => x | y
-          case (x: Long, y: Int) => x | y
-          case (x: Long, y: Long) => x | y
-        }
-      case `op_binaryXor` | `op_binaryXorAssign` =>
-        (op1, op2) match {
-          case (x: Int, y: Int) => x ^ y
-          case (x: Int, y: Long) => x ^ y
-          case (x: Long, y: Int) => x ^ y
-          case (x: Long, y: Long) => x ^ y
-        }
-      case `op_binaryAnd` | `op_binaryAndAssign` =>
-        (op1, op2) match {
-          case (x: Int, y: Int) => x & y
-          case (x: Int, y: Long) => x & y
-          case (x: Long, y: Int) => x & y
-          case (x: Long, y: Long) => x & y
-        }
       case _ =>
         calculateBoolean(op1, op2, operator)
     }
