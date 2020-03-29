@@ -81,107 +81,162 @@ object BinaryExpr {
       case x => x
     }
 
+    import annotation.switch
+
+    def blah: AnyVal = (op1: @switch) match {
+      case x: Int => (operator: @switch) match {
+        case `op_multiply` | `op_multiplyAssign` =>
+          op2 match {
+            case y: Int => x * y
+            case y: Float => x * y
+            case y: Double => x * y
+            case y: Long => x * y
+          }
+        case `op_plus` | `op_plusAssign` =>
+          op2 match {
+            case y: Int => x + y
+            case y: Float => x + y
+            case y: Double => x + y
+            case y: Long => x + y
+          }
+        case `op_minus` | `op_minusAssign` =>
+          op2 match {
+            case y: Int => x - y
+            case y: Float => x - y
+            case y: Double => x - y
+            case y: Long => x - y
+          }
+        case `op_divide` | `op_divideAssign` =>
+          op2 match {
+            case y: Int => x / y
+            case y: Float => x / y
+            case y: Double => x / y
+            case y: Long => x / y
+          }
+        case `op_shiftRight` | `op_shiftRightAssign` =>
+          op2 match {
+            case y: Int => x >> y
+          }
+        case `op_shiftLeft` | `op_shiftLeftAssign` =>
+          op2 match {
+            case y: Int => x << y
+          }
+      }
+      case x: Long => (operator: @switch) match {
+        case `op_multiply` | `op_multiplyAssign` =>
+          op2 match {
+            case y: Int => x * y
+            case y: Float => x * y
+            case y: Double => x * y
+            case y: Long => x * y
+          }
+        case `op_plus` | `op_plusAssign` =>
+          op2 match {
+            case y: Int => x + y
+            case y: Float => x + y
+            case y: Double => x + y
+            case y: Long => x + y
+          }
+        case `op_minus` | `op_minusAssign` =>
+          op2 match {
+            case y: Int => x - y
+            case y: Float => x - y
+            case y: Double => x - y
+            case y: Long => x - y
+          }
+        case `op_divide` | `op_divideAssign` =>
+          op2 match {
+            case y: Int => x / y
+            case y: Float => x / y
+            case y: Double => x / y
+            case y: Long => x / y
+          }
+        case `op_shiftRight` | `op_shiftRightAssign` =>
+          op2 match {
+            case y: Int => x >> y
+          }
+        case `op_shiftLeft` | `op_shiftLeftAssign` =>
+          op2 match {
+            case y: Int => x << y
+          }
+      }
+      case x: Double => (operator: @switch) match {
+        case `op_multiply` | `op_multiplyAssign` =>
+          op2 match {
+            case y: Int => x * y
+            case y: Float => x * y
+            case y: Double => x * y
+            case y: Long => x * y
+          }
+        case `op_plus` | `op_plusAssign` =>
+          op2 match {
+            case y: Int => x + y
+            case y: Float => x + y
+            case y: Double => x + y
+            case y: Long => x + y
+          }
+        case `op_minus` | `op_minusAssign` =>
+          op2 match {
+            case y: Int => x - y
+            case y: Float => x - y
+            case y: Double => x - y
+            case y: Long => x - y
+          }
+        case `op_divide` | `op_divideAssign` =>
+          op2 match {
+            case y: Int => x / y
+            case y: Float => x / y
+            case y: Double => x / y
+            case y: Long => x / y
+          }
+      }
+      case x: Float => (operator: @switch) match {
+        case `op_multiply` | `op_multiplyAssign` =>
+          op2 match {
+            case y: Int => x * y
+            case y: Float => x * y
+            case y: Double => x * y
+            case y: Long => x * y
+          }
+        case `op_plus` | `op_plusAssign` =>
+          op2 match {
+            case y: Int => x + y
+            case y: Float => x + y
+            case y: Double => x + y
+            case y: Long => x + y
+          }
+        case `op_minus` | `op_minusAssign` =>
+          op2 match {
+            case y: Int => x - y
+            case y: Float => x - y
+            case y: Double => x - y
+            case y: Long => x - y
+          }
+        case `op_divide` | `op_divideAssign` =>
+          op2 match {
+            case y: Int => x / y
+            case y: Float => x / y
+            case y: Double => x / y
+            case y: Long => x / y
+          }
+      }
+    }
+
     operator match {
       case `op_assign` =>
         op2
       case `op_multiply` | `op_multiplyAssign` =>
-        (op1, op2) match {
-          case (x: Int, y: Int) => x * y
-          case (x: Int, y: Float) => x * y
-          case (x: Int, y: Double) => x * y
-          case (x: Int, y: Long) => x * y
-
-          case (x: Float, y: Int) => x * y
-          case (x: Float, y: Double) => x * y
-          case (x: Float, y: Float) => x * y
-          case (x: Float, y: Long) => x * y
-
-          case (x: Double, y: Int) => x * y
-          case (x: Double, y: Double) => x * y
-          case (x: Double, y: Float) => x * y
-          case (x: Double, y: Long) => x * y
-
-          case (x: Long, y: Int) => x * y
-          case (x: Long, y: Float) => x * y
-          case (x: Long, y: Double) => x * y
-          case (x: Long, y: Long) => x * y
-        }
+        blah
       case `op_plus` | `op_plusAssign` =>
-        (op1, op2) match {
-          case (x: Int, y: Int) => x + y
-          case (x: Int, y: Float) => x + y
-          case (x: Int, y: Double) => x + y
-          case (x: Int, y: Long) => x + y
-
-          case (x: Float, y: Int) => x + y
-          case (x: Float, y: Float) => x + y
-          case (x: Float, y: Double) => x + y
-          case (x: Float, y: Long) => x + y
-
-          case (x: Double, y: Int) => x + y
-          case (x: Double, y: Double) => x + y
-          case (x: Double, y: Float) => x + y
-          case (x: Double, y: Long) => x + y
-
-          case (x: Long, y: Int) => x + y
-          case (x: Long, y: Float) => x + y
-          case (x: Long, y: Double) => x + y
-          case (x: Long, y: Long) => x + y
-        }
+        blah
       case `op_minus` | `op_minusAssign` =>
-        (op1, op2) match {
-          case (x: Int, y: Int) => x - y
-          case (x: Int, y: Float) => x - y
-          case (x: Int, y: Double) => x - y
-          case (x: Int, y: Long) => x - y
-
-          case (x: Float, y: Int) => x - y
-          case (x: Float, y: Double) => x - y
-          case (x: Float, y: Float) => x - y
-          case (x: Float, y: Long) => x - y
-
-          case (x: Double, y: Int) => x - y
-          case (x: Double, y: Double) => x - y
-          case (x: Double, y: Float) => x - y
-          case (x: Double, y: Long) => x - y
-
-          case (x: Long, y: Int) => x - y
-          case (x: Long, y: Float) => x - y
-          case (x: Long, y: Double) => x - y
-          case (x: Long, y: Long) => x - y
-        }
+        blah
       case `op_divide` | `op_divideAssign` =>
-        (op1, op2) match {
-          case (x: Int, y: Int) => x / y
-          case (x: Int, y: Float) => x / y
-          case (x: Int, y: Double) => x / y
-          case (x: Int, y: Long) => x / y
-
-          case (x: Float, y: Int) => x / y
-          case (x: Float, y: Double) => x / y
-          case (x: Float, y: Float) => x / y
-          case (x: Float, y: Long) => x / y
-
-          case (x: Double, y: Int) => x / y
-          case (x: Double, y: Double) => x / y
-          case (x: Double, y: Float) => x / y
-          case (x: Double, y: Long) => x / y
-
-          case (x: Long, y: Int) => x / y
-          case (x: Long, y: Float) => x / y
-          case (x: Long, y: Double) => x / y
-          case (x: Long, y: Long) => x / y
-        }
+        blah
       case `op_shiftRight` | `op_shiftRightAssign` =>
-        (op1, op2) match {
-          case (x: Long, y: Int) => x >> y
-          case (x: Int, y: Int) => x >> y
-        }
+        blah
       case `op_shiftLeft` | `op_shiftLeftAssign` =>
-        (op1, op2) match {
-          case (x: Long, y: Int) => x << y
-          case (x: Int, y: Int) => x << y
-        }
+        blah
       case `op_modulo` =>
         (op1, op2) match {
           case (x: Long, y: Long) => x % y
