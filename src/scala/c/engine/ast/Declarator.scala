@@ -84,6 +84,9 @@ object Declarator {
 
         if (decl.getInitializer != null) {
 
+          val equals = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
+          val hasList = equals.getInitializerClause.isInstanceOf[IASTInitializerList]
+
           def flattenInitList(node: IASTInitializerClause): List[IASTNode] = node match {
             case list: IASTInitializerList =>
               list.getClauses.toList.flatMap(flattenInitList)
@@ -110,9 +113,8 @@ object Declarator {
             List(Option(decl.getInitializer)).flatten.foreach{Ast.step}
             val initString = state.context.popStack.asInstanceOf[StringLiteral].value
             state.createStringArrayVariable(name.toString, initString)
-          } else { // e.g '= {1,2,3,4,5}' or x[2][2] = {{1,2},{3,4},{5,6},{7,8}}
+          } else if (hasList) { // e.g '= {1,2,3,4,5}' or x[2][2] = {{1,2},{3,4},{5,6},{7,8}}
 
-            val equals = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
             val res = flattenInitList(equals.getInitializerClause).reverse
 
             val initVals: List[ValueType] = {
@@ -126,15 +128,14 @@ object Declarator {
             }
 
             val initialArray = initVals.map(TypeHelper.resolve)
-            val hasList = equals.getInitializerClause.isInstanceOf[IASTInitializerList]
 
-            if (hasList && initVals.size == 1 && initialArray.head.value.isInstanceOf[Int] &&
+            if (initVals.size == 1 && initialArray.head.value.isInstanceOf[Int] &&
               initialArray.head.value.asInstanceOf[Int] == 0) { // e.g = {0}
               val newVar = state.context.addArrayVariable(name.toString, theType, initialArray)
               val zeroArray = (0 until newVar.sizeof).map{x => 0.toByte}.toArray
               state.writeDataBlock(zeroArray, newVar.address)
             } else {
-              val newArray = if (hasList && !theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType]) {
+              val newArray = if (!theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType]) {
                 val baseType = TypeHelper.resolveBasic(theType)
                 initialArray.map { x => TypeHelper.cast(baseType, x.value)}
               } else {
@@ -143,6 +144,11 @@ object Declarator {
 
               state.context.addArrayVariable(name.toString, theType, newArray)
             }
+          } else { // initializing array to address, e.g int (*ptr)[5] = &x[1];
+            Ast.step(decl.getInitializer)
+            val initVal = TypeHelper.resolve(state.context.popStack)
+            val newArray = List(initVal)
+            state.context.addArrayVariable(name.toString, theType, newArray)
           }
 
           Seq()
