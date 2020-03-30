@@ -126,19 +126,22 @@ object Declarator {
             }
 
             val initialArray = initVals.map(TypeHelper.resolve)
+            val hasList = equals.getInitializerClause.isInstanceOf[IASTInitializerList]
 
-            val newArray = if (initVals.size > 1 && !theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType]) {
-              val baseType = TypeHelper.resolveBasic(theType)
-              initialArray.map { x => TypeHelper.cast(baseType, x.value)}
-            } else {
-              initialArray
-            }
-
-            val newVar = state.context.addArrayVariable(name.toString, theType, newArray)
-
-            if (initialArray.size == 1 && initialArray.head == 0) { // e.g = {0}
+            if (hasList && initVals.size == 1 && initialArray.head.value.isInstanceOf[Int] &&
+              initialArray.head.value.asInstanceOf[Int] == 0) { // e.g = {0}
+              val newVar = state.context.addArrayVariable(name.toString, theType, initialArray)
               val zeroArray = (0 until newVar.sizeof).map{x => 0.toByte}.toArray
               state.writeDataBlock(zeroArray, newVar.address)
+            } else {
+              val newArray = if (hasList && !theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType]) {
+                val baseType = TypeHelper.resolveBasic(theType)
+                initialArray.map { x => TypeHelper.cast(baseType, x.value)}
+              } else {
+                initialArray
+              }
+
+              state.context.addArrayVariable(name.toString, theType, newArray)
             }
           }
 

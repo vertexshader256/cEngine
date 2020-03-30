@@ -33,6 +33,7 @@ object BinaryExpr {
         case (x: Long, y: Float) => x > y
         case (x: Long, y: Double) => x > y
         case (x: Long, y: Long) => x > y
+        case _ => false
       }
     case `op_logicalAnd` =>
       TypeHelper.resolveBoolean(left) && TypeHelper.resolveBoolean(right)
@@ -140,8 +141,6 @@ object BinaryExpr {
           op2 match {
             case y: Int => x & y
             case y: Long => x & y
-            case y: Int => x & y
-            case y: Long => x & y
           }
         case _ =>
           calculateBoolean(op1, op2, operator)
@@ -198,8 +197,6 @@ object BinaryExpr {
           }
         case `op_binaryAnd` | `op_binaryAndAssign` =>
           op2 match {
-            case y: Int => x & y
-            case y: Long => x & y
             case y: Int => x & y
             case y: Long => x & y
           }

@@ -42,6 +42,18 @@ class MultiDimArrayClobberingTest extends StandardTest2("2d array with a variabl
   """
 )
 
+class ArrayInitSanityTest extends StandardTest2("tests on the array initializer",
+  """
+
+      int main()
+      {
+        int x[5] = {1};
+        float y[5] = {1.0};
+        printf("%d %f\n", x[0], y[0]);
+      }
+  """
+)
+
 class ArrayInitTest extends StandardTest {
   "Sized arrays initialized with initLists" should "print the correct results" in {
     val code = """
@@ -54,6 +66,9 @@ class ArrayInitTest extends StandardTest {
         
         double z[5] = {5.6, 38.5, 2.945, 347.2, 378.2};
         printf("%f %f %f %f %f\n", z[0], z[1], z[2], z[3], z[4]);
+
+        float j[5] = {5.6, 38.5, 2.945, 347.2, 378.2};
+        printf("%f %f %f %f %f\n", j[0], j[1], j[2], j[3], j[4]);
       }"""
 
     checkResults(code)

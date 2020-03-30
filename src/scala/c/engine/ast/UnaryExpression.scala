@@ -6,6 +6,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c.{CBasicType, CFunctionType, CP
 import org.eclipse.cdt.core.dom.ast.IASTUnaryExpression._
 import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 
+import scala.annotation.switch
 import scala.c.engine.ast.BinaryExpr.evaluatePointerArithmetic
 import scala.c.engine.ast.Expressions.evaluate
 
@@ -13,7 +14,7 @@ object UnaryExpression {
 
   // per C Spec this returns a RValue
   def evaluateIncrDecr(unary: IASTUnaryExpression, value: ValueType, operator: Int)(implicit state: State): RValue = {
-    val op = operator match {
+    val op = (operator: @switch) match {
       case `op_postFixIncr` | `op_prefixIncr` => IASTBinaryExpression.op_plus
       case `op_postFixDecr` | `op_prefixDecr` => IASTBinaryExpression.op_minus
     }
@@ -30,7 +31,7 @@ object UnaryExpression {
         val pre = lValue.rValue
         state.Stack.writeToMemory(newVal.value, lValue.address, lValue.theType)
 
-        operator match {
+        (operator: @switch) match {
           case `op_postFixIncr` | `op_postFixDecr` =>
             // push then set
             pre
@@ -44,7 +45,7 @@ object UnaryExpression {
   def execute(unary: IASTUnaryExpression)(implicit state: State): ValueType = {
       val value = evaluate(unary.getOperand).head
 
-      unary.getOperator match {
+    (unary.getOperator: @switch) match {
         case `op_bracketedPrimary` => value
         case `op_tilde` =>
 
