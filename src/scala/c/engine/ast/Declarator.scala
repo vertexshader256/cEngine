@@ -87,15 +87,18 @@ object Declarator {
           val equals = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
           val hasList = equals.getInitializerClause.isInstanceOf[IASTInitializerList]
 
-          def flattenInitList(node: IASTInitializerClause): List[IASTNode] = node match {
+          def flattenInitList(node: IASTInitializerClause): List[ValueType] = node match {
             case list: IASTInitializerList =>
               list.getClauses.toList.flatMap(flattenInitList)
             case lit: IASTLiteralExpression =>
-              List(lit)
+              List(Expressions.evaluate(lit).get)
             case unary: IASTUnaryExpression =>
-              List(unary)
-            case x =>
-              println("HERE: " + x.getRawSignature); List()
+              List(Expressions.evaluate(unary).get)
+            case id: IASTIdExpression =>
+              val variable = Expressions.evaluate(id).get.asInstanceOf[Variable]
+              List(variable.rValue)
+            case bin: IASTBinaryExpression =>
+              List(Expressions.evaluate(bin).get)
           }
 
           if (TypeHelper.isPointerOrArray(theType) && TypeHelper.getPointerType(theType).isInstanceOf[CStructure]) {
@@ -115,21 +118,9 @@ object Declarator {
             state.createStringArrayVariable(name.toString, initString)
           } else if (hasList) { // e.g '= {1,2,3,4,5}' or x[2][2] = {{1,2},{3,4},{5,6},{7,8}}
 
-            val res = flattenInitList(equals.getInitializerClause).reverse
+            val initialArray = flattenInitList(equals.getInitializerClause).map(TypeHelper.resolve)
 
-            val initVals: List[ValueType] = {
-              if (res.nonEmpty) {
-                res.foreach{Ast.step}
-                res.map{x => state.context.popStack}
-              } else {
-                List(Option(decl.getInitializer)).flatten.foreach{Ast.step}
-                (0 until initializer.getInitializerClause.getChildren.size).map { x => TypeHelper.resolve(state.context.popStack) }.reverse.toList
-              }
-            }
-
-            val initialArray = initVals.map(TypeHelper.resolve)
-
-            if (initVals.size == 1 && initialArray.head.value.isInstanceOf[Int] &&
+            if (initialArray.size == 1 && initialArray.head.value.isInstanceOf[Int] &&
               initialArray.head.value.asInstanceOf[Int] == 0) { // e.g = {0}
               val newVar = state.context.addArrayVariable(name.toString, theType, initialArray)
               val zeroArray = (0 until newVar.sizeof).map{x => 0.toByte}.toArray
