@@ -263,53 +263,104 @@ class QuickSort extends StandardTest {
   }
 }
 
-class ShellSort extends StandardTest {
-    "shell sort test 1" should "print the correct results" in {
-      // http://rosettacode.org/wiki/Sorting_algorithms/Shell_sort#C
+class CycleSort extends StandardTest {
+    "cycle sort test 1" should "print the correct results" in {
       val code = """
-        void bead_sort(int *a, int len)
-        {
-        	int i, j, max, sum;
-        	unsigned char *beads;
-        #	define BEAD(i, j) beads[i * max + j]
-         
-        	for (i = 1, max = a[0]; i < len; i++)
-        		if (a[i] > max) max = a[i];
-         
-        	beads = calloc(1, max * len);
-         
-        	/* mark the beads */
-        	for (i = 0; i < len; i++)
-        		for (j = 0; j < a[i]; j++)
-        			BEAD(i, j) = 1;
-         
-        	for (j = 0; j < max; j++) {
-        		/* count how many beads are on each post */
-        		for (sum = i = 0; i < len; i++) {
-        			sum += BEAD(i, j);
-        			BEAD(i, j) = 0;
-        		}
-        		/* mark bottom sum beads */
-        		for (i = len - sum; i < len; i++) BEAD(i, j) = 1;
-        	}
-         
-        	for (i = 0; i < len; i++) {
-        		for (j = 0; j < max && BEAD(i, j); j++);
-        		a[i] = j;
-        	}
-        	free(beads);
+        #include <stdio.h>
+        #include <stdlib.h>
+
+        // Displays the array, passed to this method
+        void display(int arr[], int n){
+
+            int i;
+            for(i = 0; i < n; i++){
+                printf("%d ", arr[i]);
+            }
+
+            printf("\n");
+
         }
-         
+
+        // Swap function to swap two values
+        void swap(int *first, int *second){
+
+            int temp = *first;
+            *first = *second;
+            *second = temp;
+
+        }
+
+        // Function sort the array using Cycle sort
+        void cycleSort(int arr[], int n)
+        {
+            // count number of memory writes
+            int writes = 0;
+
+            // traverse array elements and put it to on
+            // the right place
+            for (int cycle_start = 0; cycle_start <= n - 2; cycle_start++) {
+                // initialize item as starting point
+                int item = arr[cycle_start];
+
+                // Find position where we put the item. We basically
+                // count all smaller elements on right side of item.
+                int pos = cycle_start;
+                for (int i = cycle_start + 1; i < n; i++)
+                    if (arr[i] < item)
+                        pos++;
+
+                // If item is already in correct position
+                if (pos == cycle_start)
+                    continue;
+
+                // ignore all duplicate elements
+                while (item == arr[pos])
+                    pos += 1;
+
+                // put the item to it's right position
+                if (pos != cycle_start) {
+                    swap(&item, &arr[pos]);
+                    writes++;
+                }
+
+                // Rotate rest of the cycle
+                while (pos != cycle_start) {
+                    pos = cycle_start;
+
+                    // Find position where we put the element
+                    for (int i = cycle_start + 1; i < n; i++)
+                        if (arr[i] < item)
+                            pos += 1;
+
+                    // ignore all duplicate elements
+                    while (item == arr[pos])
+                        pos += 1;
+
+                    // put the item to it's right position
+                    if (item != arr[pos]) {
+                        swap(&item, &arr[pos]);
+                        writes++;
+                    }
+                }
+            }
+
+        }
+
+
+        // Driver program to test above function
         int main()
         {
-        	int i, x[] = {5, 3, 1, 7, 4, 1, 1, 20};
-        	int len = sizeof(x)/sizeof(x[0]);
-         
-        	bead_sort(x, len);
-        	for (i = 0; i < len; i++)
-        		printf("%d\n", x[i]);
-         
-        	return 0;
+            int i;
+            int arr[10] = {38, 293, -1, 23745, 327, 91, 437, 438, 757, 262};
+
+            printf("Original array: \n");
+            display(arr, 10);
+
+            cycleSort(arr, 10);
+            printf("Sorted array: ");
+            display(arr, 10);
+
+            return 0;
         }
         """
       checkResults(code)
