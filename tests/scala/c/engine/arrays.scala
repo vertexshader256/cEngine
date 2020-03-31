@@ -65,6 +65,13 @@ class ArrayMutableInitList extends StandardTest2("initializer lists with mutable
            printf("%d\n", x[i]);
         }
 
+        i = 0;
+        int y[3]={i,i+=29,i+=7};
+
+        for (i = 0; i < 3; i++) {
+           printf("%d\n", y[i]);
+        }
+
       }
   """
 )

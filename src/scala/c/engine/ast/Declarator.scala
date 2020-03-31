@@ -98,7 +98,11 @@ object Declarator {
               val variable = Expressions.evaluate(id).get.asInstanceOf[Variable]
               List(variable.rValue)
             case bin: IASTBinaryExpression =>
-              List(Expressions.evaluate(bin).get)
+              Expressions.evaluate(bin).get match {
+                case variable: Variable => List(variable.rValue)
+                case rVal: RValue => List(rVal)
+              }
+            case x => println("ERROR FLATTEN INIT LIST"); println(x.getClass.getSimpleName); null;
           }
 
           if (TypeHelper.isPointerOrArray(theType) && TypeHelper.getPointerType(theType).isInstanceOf[CStructure]) {

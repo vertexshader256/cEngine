@@ -135,6 +135,24 @@ class StructTest extends StandardTest {
     checkResults(code)
   }
 
+  "initializing a simple structure with binary expressions" should "print the correct results" in {
+    val code = """
+
+      struct Test {
+        int y;
+        int x;
+        struct Test *next;
+      };
+
+      void main() {
+        int i = 0;
+        struct Test x = {i, i+=35, i++};
+        printf("%d %d %d\n", x.y, x.y, x.next);
+      }"""
+
+    checkResults(code)
+  }
+
   "initializing a simple structure with designated initializers" should "print the correct results" in {
     val code = """
 
