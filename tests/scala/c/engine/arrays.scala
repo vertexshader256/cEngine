@@ -54,6 +54,21 @@ class ArrayInitSanityTest extends StandardTest2("tests on the array initializer"
   """
 )
 
+class ArrayMutableInitList extends StandardTest2("initializer lists with mutable operations within",
+  """
+
+      int main()
+      {
+        int i = 0;
+        int x[5] = {i, ++i, ++i, ++i, ++i};
+        for (i = 0; i < 5; i++) {
+           printf("%d\n", x[i]);
+        }
+
+      }
+  """
+)
+
 class ArrayInitTest extends StandardTest {
   "Sized arrays initialized with initLists" should "print the correct results" in {
     val code = """
