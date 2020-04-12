@@ -80,7 +80,7 @@ object UnaryExpression {
             RValue(size, TypeHelper.intType)
         case `op_amper` =>
           value match {
-            case info@LValue(_, _) =>
+            case info @ LValue(_, _) => // address-of operator requires an LValue
               info.theType match {
                 case _: CFunctionType => info
                 case theType: IType => Address(info.address, theType)
