@@ -13,6 +13,7 @@ abstract class ValueType {
   def rawType: IType
 }
 
+// LValue is an memory location which identifies an object and has a type and various other attributes
 trait LValue extends ValueType {
   val address: Int
   val theType: IType
@@ -82,6 +83,7 @@ object RValue {
     new RValue {val theType = null; val rawType = null; val value = theValue;}
 }
 
+// An RValue is an expression that has a value, a type, and no memory address
 abstract class RValue extends ValueType {
   val value: AnyVal
   val theType: IType
