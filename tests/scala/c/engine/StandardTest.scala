@@ -75,7 +75,9 @@ class StandardTest extends AsyncFlatSpec {
 
   private def getErrors(node: IASTNode, errors: List[String]): List[String] = {
     node match {
-      case prob: CASTProblemDeclaration => List("Error on: " + prob.getFileLocation.getFileName + ".c:" + prob.getFileLocation.getStartingLineNumber + ":" + prob.getParent.getRawSignature)
+      case prob: CASTProblemDeclaration =>
+        println("ERROR: " + prob.getProblem.getRawSignature)
+        List("Error on: " + prob.getFileLocation.getFileName + ".c:" + prob.getFileLocation.getStartingLineNumber + ":" + prob.getParent.getRawSignature)
       case _ => errors ++ node.getChildren.toList.flatMap{x => getErrors(x, errors)}
     }
   }

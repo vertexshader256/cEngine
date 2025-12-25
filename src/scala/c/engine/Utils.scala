@@ -79,9 +79,9 @@ object Utils {
   val mainPath = raw"."
   val minGWIncludes = s"$rootDir\\include"
 
-  val includeDir = new File(s"$rootDir\\lib\\gcc\\x86_64-w64-mingw32").listFiles().head.getAbsolutePath
+  //val includeDir = new File(s"$rootDir\\lib\\gcc\\x86_64-w64-mingw32\\15.2.0").listFiles().head.getAbsolutePath
 
-  val minGWAdditionalIncludes = includeDir + raw"\include"
+  val minGWAdditionalIncludes = new File(s"$rootDir\\lib\\gcc\\x86_64-w64-mingw32\\15.2.0\\include").getAbsolutePath
 
   val minGWMoreIncludes = s"$rootDir\\include\\GL"
 
@@ -116,6 +116,7 @@ object Utils {
 		pp.getSystemIncludePath.add(minGWIncludes)
 		pp.getSystemIncludePath.add(minGWAdditionalIncludes)
 		pp.addMacro("__cdecl", "")
+    pp.addMacro("__int64", "long long") // 12-25-25: need this
 		includePaths.foreach{ include =>
 			pp.getQuoteIncludePath.add(include)
 		}

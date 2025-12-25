@@ -90,8 +90,18 @@ class BasicHelloWorld extends StandardTest {
       """
 
       void main() {
-        //init_printf(0,myputC);
-        //tfp_printf("HELLO\n");
+        printf("Hello World!\n");
+      }"""
+
+    checkResults(code)
+  }
+
+  "Hello world with including stdio" should "print the correct results" in {
+    val code =
+      """
+      #include <stdio.h>
+
+      void main() {
         printf("Hello World!\n");
       }"""
 
