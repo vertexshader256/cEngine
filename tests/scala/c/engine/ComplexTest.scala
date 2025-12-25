@@ -327,8 +327,6 @@ class ComplexTest extends StandardTest {
        #define TRUE 1
        #define FALSE 0
 
-       typedef int bool;
-
        int next_in_cycle(int *c, int len, int index) {
            return c[index % len];
        }
@@ -348,10 +346,10 @@ class ComplexTest extends StandardTest {
            }
        }
 
-       bool possible_kolakoski(int *s, int len) {
+       int possible_kolakoski(int *s, int len) {
            int i, j = 0, prev = s[0], count = 1;
            int *rle = calloc(len, sizeof(int));
-           bool result = TRUE;
+           int result = TRUE;
            for (i = 1; i < len; ++i) {
                if (s[i] == prev) {
                    count++;
@@ -390,7 +388,7 @@ class ComplexTest extends StandardTest {
            int c2[4] = {1, 3, 1, 2};
            int c3[4] = {1, 3, 2, 1};
            int *cs[4] = {c0, c1, c2, c3};
-           bool p;
+           int p;
            int clens[4] = {2, 2, 4, 4};
            int slens[4] = {20, 20, 30, 30};
            for (i = 0; i < 4; ++i) {
@@ -644,13 +642,12 @@ class ChaocipherTest extends StandardTest {
       #define TRUE 1
       #define FALSE 0
 
-      typedef int bool;
       typedef enum { ENCRYPT, DECRYPT } cmode;
 
       const char *l_alphabet = "HXUCZVAMDSLKPEFJRIGTWOBNYQ";
       const char *r_alphabet = "PTLNBQDEOYSFAVZKGJRIHWXUMC";
 
-      void chao(const char *in, char *out, cmode mode, bool show_steps) {
+      void chao(const char *in, char *out, cmode mode, int show_steps) {
           int i, j, index;
           char store;
           size_t len = strlen(in);
@@ -820,6 +817,7 @@ class BaconCipherTest extends StandardTest {
   "Bacon Cipher test" should "print the correct results" in {
     val code = """
 
+      #include <ctype.h>
       #include <stdio.h>
       #include <string.h>
       #include <stdlib.h>
@@ -940,6 +938,7 @@ class CaesarCipherTest extends StandardTest {
   "Caesar cipher" should "print the correct results" in {
     val code = """
 
+      #include <ctype.h>
       #define caesar(x) rot(13, x)
       #define decaesar(x) rot(13, x)
       #define decrypt_rot(x, y) rot((26-x), y)

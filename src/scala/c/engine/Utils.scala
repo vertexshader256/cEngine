@@ -117,6 +117,7 @@ object Utils {
 		pp.getSystemIncludePath.add(minGWAdditionalIncludes)
 		pp.addMacro("__cdecl", "")
     pp.addMacro("__int64", "long long") // 12-25-25: need this
+    pp.addMacro("__forceinline", "") // 12-25-25: need this
 		includePaths.foreach{ include =>
 			pp.getQuoteIncludePath.add(include)
 		}
