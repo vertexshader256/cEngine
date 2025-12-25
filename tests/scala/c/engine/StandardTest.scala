@@ -22,7 +22,7 @@ object StandardTest {
 
 abstract class StandardTest2(name: String = "", code: String) extends StandardTest {
 
-  val numBits: NumBits = ThirtyTwoBits
+  val numBits: NumBits = SixtyFourBits
 
   name should "print the correct results" in {
     checkResults(code, pointerSize = numBits)
@@ -175,7 +175,7 @@ class StandardTest extends AsyncFlatSpec {
 
         val size = pointerSize match {
           case ThirtyTwoBits => Seq("gcc")
-          case SixtyFourBits => Seq("gcc64")
+          case SixtyFourBits => Seq("gcc")
         }
 
         val processTokens =
