@@ -148,7 +148,7 @@ class StandardTest extends AsyncFlatSpec {
       val files = codeInFiles.map { code =>
         val file = new java.io.File(StandardTest.cFileCount.incrementAndGet + ".c")
         val pw = new PrintWriter(file)
-        pw.write("#include <stdio.h>\n" + code)
+        pw.write("#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n" + code)
         pw.close
         file
       }

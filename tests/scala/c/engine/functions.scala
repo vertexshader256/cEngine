@@ -434,7 +434,6 @@ class FunctionTest extends StandardTest {
         printf("%f\n",ret1(9.0));
         printf("%f\n",ret2(3.0));
         printf("%f\n",ret3());
-        return 0;
       }
       """
 

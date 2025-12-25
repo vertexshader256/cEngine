@@ -262,7 +262,6 @@ class ComplexTest extends StandardTest {
         printf("square root of %f\n",sq_root(9.0));
         printf("square root of %f\n",sq_root(3.0));
         printf("square root of %f\n",sq_root(15.0));
-        return 0;
       }
       """
 
@@ -290,7 +289,6 @@ class ComplexTest extends StandardTest {
     void main()
     {
       printf("%f\n", Q_rsqrt(9.0));
-      return 0;
     }
     """
 
@@ -409,7 +407,6 @@ class ComplexTest extends StandardTest {
                printf("Possible Kolakoski sequence? %s\n\n", p ? "True" : "False");
                free(s);
            }
-           return 0;
        }
       """
 
@@ -480,7 +477,6 @@ class ComplexTest extends StandardTest {
                }
            }
            printf("%-22s %5d %5d %5d\n", "count, weight, value:", tc, tw, tv);
-           return 0;
        }
       """
 
@@ -508,7 +504,6 @@ class ComplexTest extends StandardTest {
         char *test2 = "acccbbbbbbccca";
         printf("%d\n", palindrome(test));
         printf("%d\n", palindrome(test2));
-        return 0;
       }
       """
 
@@ -710,7 +705,6 @@ class ChaocipherTest extends StandardTest {
           printf("\nThe ciphertext is : %s\n", cipher_text);
           chao(cipher_text, plain_text2, DECRYPT, FALSE);
           printf("\nThe recovered plaintext is : %s\n", plain_text2);
-          return 0;
       }
       """
 
@@ -782,7 +776,6 @@ class Farey2 extends StandardTest {
 
     n = 1000;
     printf("\n%d: %llu items\n", n, farey_len(n));
-    return 0;
   }
       """
 
@@ -1005,7 +998,6 @@ class CaesarCipherTest extends StandardTest {
         {
           char test[] = "TestString";
           printf("djb2 result %d\n", djb2(test));
-          return 0;
         }
         """
   
@@ -1048,7 +1040,6 @@ class DuffsTest extends StandardTest {
               printf("%d\n", test2[i]);
             }
           }
-          return 0;
         }
         """
 

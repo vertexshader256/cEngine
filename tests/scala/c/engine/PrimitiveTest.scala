@@ -292,7 +292,6 @@ class UnsignedCharTest extends StandardTest2("unsigned char test",
       void main()
       {
         printf("%d\n", test(176));
-        return 0;
       }
       """
 )
@@ -322,8 +321,6 @@ class PrimitiveTest5 extends StandardTest2("unsigned char array and clobbering t
            putchar(*x);
            x++;
         }
-
-        return 0;
       }
       """
 )
@@ -334,7 +331,6 @@ class PrimitiveTest6 extends StandardTest2("char ptr initialized to string",
       {
         char *test = "TestString";
         printf("%s\n", test);
-        return 0;
       }
       """
 )
@@ -360,7 +356,6 @@ class PrimitiveTest7 extends StandardTest2("unsigned types as function arguments
       void main()
       {
         printf("%d %d %d\n", intTest(4294967241), shortTest(4294967241), shortTest2(38233));
-        return 0;
       }
       """
 )
