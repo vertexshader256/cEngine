@@ -73,7 +73,11 @@ object UnaryExpression {
 
             val size = value match {
               case info: LValue => info.sizeof
-              case Address(_, _) => 4
+              case Address(_, _) =>
+                state.pointerSize match {
+                  case SixtyFourBits => 8
+                  case ThirtyTwoBits => 4
+                }
               case RValue(_, theType) => TypeHelper.sizeof(theType)
             }
 

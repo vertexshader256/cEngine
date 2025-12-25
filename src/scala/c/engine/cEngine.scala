@@ -341,7 +341,7 @@ abstract sealed trait NumBits
 case object ThirtyTwoBits extends NumBits
 case object SixtyFourBits extends NumBits
 
-class State(pointerSize: NumBits) {
+class State(val pointerSize: NumBits) {
 
   object Stack extends Memory(500000)
 
