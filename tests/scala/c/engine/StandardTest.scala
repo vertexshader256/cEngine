@@ -29,7 +29,7 @@ abstract class StandardTest2(name: String = "", code: String) extends StandardTe
   }
 }
 
-class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
+class StandardTest extends AsyncFlatSpec {
 
   implicit override def executionContext = scala.concurrent.ExecutionContext.Implicits.global
 
@@ -148,7 +148,7 @@ class StandardTest extends AsyncFlatSpec with ParallelTestExecution {
       val files = codeInFiles.map { code =>
         val file = new java.io.File(StandardTest.cFileCount.incrementAndGet + ".c")
         val pw = new PrintWriter(file)
-        pw.write(code)
+        pw.write("#include <stdio.h>\n" + code)
         pw.close
         file
       }

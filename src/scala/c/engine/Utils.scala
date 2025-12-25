@@ -74,15 +74,17 @@ object Utils {
     Seq(node) ++ node.getChildren.toList.flatMap{x => getDescendants(x)}
   }
 
-  val mainPath = raw"."
-  val minGWIncludes = raw"C:\MinGW\include"
+  val rootDir = raw"C:\msys64\\ucrt64"
 
-	val includeDir = new File(raw"C:\MinGW\lib\gcc\mingw32").listFiles().head.getAbsolutePath
+  val mainPath = raw"."
+  val minGWIncludes = s"$rootDir\\include"
+
+  val includeDir = new File(s"$rootDir\\lib\\gcc\\x86_64-w64-mingw32").listFiles().head.getAbsolutePath
 
   val minGWAdditionalIncludes = includeDir + raw"\include"
 
-  val minGWMoreIncludes = raw"C:\MinGW\include\GL"
-  
+  val minGWMoreIncludes = s"$rootDir\\include\\GL"
+
   def getTranslationUnit(code: String, includePaths: List[String]): IASTTranslationUnit = {
 
 		val preprocessResults = new StringBuilder

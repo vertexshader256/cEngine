@@ -13,6 +13,8 @@ dist
 .classpath
 .project
 /RUNNING_PID
+/null
+.bsp
 .settings
 .DS_Store
 
