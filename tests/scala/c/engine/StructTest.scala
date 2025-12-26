@@ -263,8 +263,8 @@ class StructTest extends StandardTest {
       typedef struct list * list_p;
 
       void main() {
-        struct list x = {4};
-        struct linked_node test = {14};
+        struct list x = {(void*)4};
+        struct linked_node test = {(void*)14};
         x.first = &test;
 
         lnode_p y = x.first;
