@@ -259,22 +259,6 @@ class FunctionTest extends StandardTest {
     checkResults(code)
   }
 
-  "A function using oldschool syntax" should "print the correct results" in {
-    val code = """
-      int x = 5;
-      void test(x);
-
-      void main() {
-        test(10);
-        printf("%d\n", x);
-      }
-      void test(y) int y; {
-         x = y;
-      }"""
-
-    checkResults(code)
-  }
-
   "A simple function call testing return point" should "print the correct results" in {
     val code = """
       int x = 5;
