@@ -719,8 +719,8 @@ class StructTest extends StandardTest {
      #include <stdio.h>
      #include <stdlib.h>
 
+     // these have to be trivial - the compiler adds weird padding and alignment
      struct bracket_pair {
-       const char *ptr;
        int len;
        int branches;
        int num_branches;
@@ -728,7 +728,6 @@ class StructTest extends StandardTest {
 
      struct branch {
        int bracket_index;
-       const char *schlong;
      };
 
       struct Test {
