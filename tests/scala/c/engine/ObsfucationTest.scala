@@ -5,7 +5,7 @@ class ObsfucationTest extends StandardTest {
     val code = """
 
       #include <stdio.h>
- main() {
+      void main() {
    long long P = 1,
              E = 2,
              T = 5,
