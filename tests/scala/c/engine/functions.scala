@@ -100,7 +100,7 @@ class FunctionPointerTest extends StandardTest {
       #include <string.h>
       
       typedef struct blah {
-        int (*foo)(int);
+        size_t (*foo)(const char *);
       } blah;
       
       int main()
