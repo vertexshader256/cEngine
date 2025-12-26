@@ -2,9 +2,6 @@ package scala.c.engine
 package ast
 
 import org.eclipse.cdt.core.dom.ast._
-import org.eclipse.cdt.internal.core.dom.parser.c._
-
-import scala.annotation.switch
 
 object Expressions {
 

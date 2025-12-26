@@ -4,14 +4,10 @@ package ast
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.internal.core.dom.parser.c.{CArrayType, CBasicType, CPointerType, CStructure}
-import IBasicType.Kind._
-
-import scala.annotation.switch
-
 
 object BinaryExpr {
 
-  def calculateBoolean(left: AnyVal, right: AnyVal, operator: Int): Boolean = (operator: @switch) match {
+  def calculateBoolean(left: AnyVal, right: AnyVal, operator: Int): Boolean = operator match {
     case `op_greaterThan` =>
       (left, right) match {
         case (x: Int, y: Int) => x > y
@@ -87,7 +83,7 @@ object BinaryExpr {
     import annotation.switch
 
     op1 match {
-      case x: Int => (operator: @switch) match {
+      case x: Int => operator match {
         case `op_assign` =>
           op2
         case `op_multiply` | `op_multiplyAssign` =>
@@ -145,7 +141,7 @@ object BinaryExpr {
         case _ =>
           calculateBoolean(op1, op2, operator)
       }
-      case x: Long => (operator: @switch) match {
+      case x: Long => operator match {
         case `op_assign` =>
           op2
         case `op_multiply` | `op_multiplyAssign` =>
@@ -203,7 +199,7 @@ object BinaryExpr {
         case _ =>
           calculateBoolean(op1, op2, operator)
       }
-      case x: Double => (operator: @switch) match {
+      case x: Double => operator match {
         case `op_assign` =>
           op2
         case `op_multiply` | `op_multiplyAssign` =>
@@ -237,7 +233,7 @@ object BinaryExpr {
         case _ =>
           calculateBoolean(op1, op2, operator)
       }
-      case x: Float => (operator: @switch) match {
+      case x: Float => operator match {
         case `op_assign` =>
           op2
         case `op_multiply` | `op_multiplyAssign` =>
