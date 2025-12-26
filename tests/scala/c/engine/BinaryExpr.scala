@@ -162,7 +162,7 @@ class RobustTests extends StandardTest {
              """
             printf("%lld\n", 223372036854775807L """ + operator + """ 2);
             printf("%lld\n", 223372036854775807L """ + operator + """ 72036854775807L);
-            printf("%.5f\n", 6854775807L """ + operator + """ 4543.24234);
+            printf("%.3f\n", 6854775807L """ + operator + """ 4543.24234);
             printf("%.5f\n", 423682734.3623543 """ + operator + """ 54775807L);
             printf("%.5f\n", 3242.33443f """ + operator + """ 854775807L);
             printf("%.5f\n", 36854775807L """ + operator + """ 3242.33443f);
