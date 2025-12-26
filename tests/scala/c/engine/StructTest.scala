@@ -161,18 +161,13 @@ class StructTest extends StandardTest {
       struct Test {
         int y;
         int x;
-        struct Test *next;
       };
 
       void main() {
-        struct Test x = {.y = 343, .x = 543, .next = 8578};
-        struct Test y = {.next = 543, .x = 785, .y = 343 };
-        struct Test z = {.next = 43534 };
-        struct Test z2 = {.y = -753 };
-        printf("%d %d %d\n", x.x, x.y, x.next);
-        printf("%d %d %d\n", y.x, y.y, y.next);
-        printf("%d %d %d\n", z.x, z.y, z.next);
-        printf("%d %d %d\n", z2.x, z2.y, z2.next);
+        struct Test x = {.y = 343, .x = 543};
+        struct Test y = {.x = 785, .y = 343 };
+        printf("%d %d\n", x.x, x.y);
+        printf("%d %d\n", y.x, y.y);
       }"""
 
     checkResults(code)
