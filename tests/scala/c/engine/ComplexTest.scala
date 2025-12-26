@@ -1008,7 +1008,7 @@ class DuffsTest extends StandardTest {
   "Duff device test" should "print the correct results" in {
     val code = """
 
-        send(short *to, short *from, int count)
+        int send(short *to, short *from, int count)
         {
          	int n=(count+7)/8;
          	switch(count%8){
