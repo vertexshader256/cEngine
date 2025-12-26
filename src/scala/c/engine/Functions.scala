@@ -409,8 +409,8 @@ object Functions {
 
         if (buffer2.toString.contains("Infinity") || buffer2.toString.contains("NaN")) {
           resultingFormatString += 's'
-          resolved += buffer2.toString.replace("Infinity", "1.#INF00")
-            .replace("NaN", "-1.#IND00")
+          resolved += buffer2.toString.replace("Infinity", "inf")
+            .replace("NaN", "-nan(ind)")
         } else {
           resultingFormatString += formatFound
           resolved += base

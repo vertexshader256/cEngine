@@ -537,12 +537,10 @@ class StructTest extends StandardTest {
     val code = """
 
         struct slre_cap {
-           const char *ptr;
            int len;
          };
 
         struct bracket_pair {
-         const char *ptr;
          int len;
          int branches;
          int num_branches;
@@ -550,7 +548,6 @@ class StructTest extends StandardTest {
 
        struct branch {
          int bracket_index;
-         const char *schlong;
        };
 
       struct Test {
