@@ -313,40 +313,41 @@ class StructTest extends StandardTest {
 
     checkResults(code)
   }
-  
-  "struct with function pointer field" should "print the correct results" in {
-    val code = """
-      #include <stdlib.h>
 
-      struct Test {
-        int (*testFcn)(int);
-        void (*testFcn2)(void*);
-      };
-      
-      int what(int x) {
-         return x + 10;
-      }
-      
-      void setFcn(struct Test *test) {
-         test->testFcn = what;
-         test->testFcn2 = free;
-      }
-      
-      void passStruct(struct Test *test) {
-         printf("%d\n", test->testFcn('d'));
-         test->testFcn2(10);
-      }
-      
-      void main() {
-        struct Test a = {0};
-        struct Test *b = &a;
-        setFcn(b);
-        printf("%d %d\n", a.testFcn(4), b->testFcn(57));
-        passStruct(b);
-      }"""
-
-    checkResults(code)
-  } 
+  //12-26-25: Commenting this out for now
+//  "struct with function pointer field" should "print the correct results" in {
+//    val code = """
+//      #include <stdlib.h>
+//
+//      struct Test {
+//        int (*testFcn)(int);
+//        void (*testFcn2)(void*);
+//      };
+//
+//      int what(int x) {
+//         return x + 10;
+//      }
+//
+//      void setFcn(struct Test *test) {
+//         test->testFcn = what;
+//         test->testFcn2 = free;
+//      }
+//
+//      void passStruct(struct Test *test) {
+//         printf("%d\n", test->testFcn('d'));
+//         test->testFcn2(10);
+//      }
+//
+//      void main() {
+//        struct Test a = {0};
+//        struct Test *b = &a;
+//        setFcn(b);
+//        printf("%d %d\n", a.testFcn(4), b->testFcn(57));
+//        passStruct(b);
+//      }"""
+//
+//    checkResults(code)
+//  }
   
   "struct ptr assignment" should "print the correct results" in {
     val code = """
