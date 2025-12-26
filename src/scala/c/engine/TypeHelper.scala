@@ -275,7 +275,7 @@ object TypeHelper {
   }
 
   def offsetof(struct: CStructure, memberName: String, state: State): Int = {
-    val largestField = struct.getFields.map{x => TypeHelper.sizeInBits(x)(state) / 8}.sorted.maxOption.getOrElse(0)
+    val largestField = struct.getFields.filter{f => f.getType.isInstanceOf[CBasicType]}.map{x => TypeHelper.sizeInBits(x)(state) / 8}.sorted.maxOption.getOrElse(0)
     val fields = struct.getFields.takeWhile{field => field.getName != memberName}.map{x => TypeHelper.sizeInBits(x)(state) / 8}
     val paddedFields = fields.map(f => if (f < largestField) {largestField} else f) // gcc adds padding
     paddedFields.sum
