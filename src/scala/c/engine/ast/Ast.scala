@@ -8,9 +8,9 @@ object Ast {
 
   def executeCustomInstructions(current: Any)(implicit state: State): Unit = current match {
     case PushVariableStack() =>
-      state.context.pushVariableScope
+      state.context.pushVariableScope()
     case PopVariableStack() =>
-      state.context.popVariableScope
+      state.context.popVariableScope()
     case cached @ CachedRValue(expr) =>
       cached.cachedValue = TypeHelper.resolve(Expressions.evaluate(expr).get)
     case JmpIfNotEqual(expr, lines) =>

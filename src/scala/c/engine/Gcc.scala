@@ -109,7 +109,7 @@ abstract class Logger {
   var isParsingSourcePath = false
   var currentFunction = ""
 
-  def addErrors(errors: Seq[String])
+  def addErrors(errors: Seq[String]): Unit
   
   def getErrors(lines: Seq[String]): Seq[String] = {
     lines
