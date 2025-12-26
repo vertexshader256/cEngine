@@ -12,7 +12,7 @@ class TwoDimAddressingCheck extends StandardTest2("2d array pointer arithmetic",
   """
       void main() {
         int x[2][2] = {1,2,3,4};
-        int *ptr = x;
+        int *ptr = x[0];
         printf("%d\n", *ptr);
         ptr++;
         printf("%d\n", *ptr);
