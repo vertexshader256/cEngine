@@ -56,6 +56,7 @@ class Memory(size: Int) {
       case basic: IBasicType if basic.getKind == eInt && basic.isLongLong =>
         newVal match {
           case long: Long => tape.putLong(address, long)
+          case int: Int => tape.putInt(address, int)
         }
       case basic: IBasicType if basic.getKind == eInt && basic.isLong =>
         newVal match {
