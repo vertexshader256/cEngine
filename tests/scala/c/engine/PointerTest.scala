@@ -157,7 +157,6 @@ class PointerArithmeticTest4 extends StandardTest2("pointer arithmetic with poin
 
          Test x[5];
          Test* ptr = &x[1];
-         ptr->ptr2 = &x[2];
          int i = 1;
 
          printf("%d\n", &x[0] - &x[1]);
