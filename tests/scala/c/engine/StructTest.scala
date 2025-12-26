@@ -144,9 +144,11 @@ class StructTest extends StandardTest {
         struct Test *next;
       };
 
+      typedef struct Test Test;
+
       void main() {
         int i = 0;
-        struct Test x = {i, i+=35, i++};
+        struct Test x = {i, i+=35, (Test*)i++};
         printf("%d %d %d\n", x.y, x.y, x.next);
       }"""
 
