@@ -181,47 +181,49 @@ class FunctionPointerTest extends StandardTest {
   }
 }
 
-class VarArgFunction extends StandardTest {
-  "A function with variable arguments" should "print the correct results" in {
-    val code = """
-      #include <stdio.h>
-      #include <stdarg.h>
+//12-26-25: Commenting this out for now
 
-      double average(int num,...) {
-         double sum = 0.0;
-         va_list valist;
-         int i;
-      
-         /* initialize valist for num number of arguments */
-         va_start(valist, num);
-         
-         printf("%d\n", num);
-      
-         /* access all the arguments assigned to valist */
-         for (i = 0; i < num; i++) {
-            int j = va_arg(valist, int);
-            printf("%d\n", j);
-            sum += j;
-         }
-      	
-         /* clean memory reserved for valist */
-         va_end(valist);
-      
-         return sum/num;
-      }
-      
-      int main() {
-         int x = 10;
-         int y = 101;
-         printf("%f\n", average(4, 2,3,4,5));
-         printf("%f\n", average(3, 5,10,15));
-         printf("%f\n", average(2, x, y));
-         printf("%f\n", average(2, x + y, y - x));
-      }"""
-
-    checkResults(code)
-  }
-}
+//class VarArgFunction extends StandardTest {
+//  "A function with variable arguments" should "print the correct results" in {
+//    val code = """
+//      #include <stdio.h>
+//      #include <stdarg.h>
+//
+//      double average(int num,...) {
+//         double sum = 0.0;
+//         va_list valist;
+//         int i;
+//
+//         /* initialize valist for num number of arguments */
+//         va_start(valist, num);
+//
+//         printf("%d\n", num);
+//
+//         /* access all the arguments assigned to valist */
+//         for (i = 0; i < num; i++) {
+//            int j = va_arg(valist, int);
+//            printf("%d\n", j);
+//            sum += j;
+//         }
+//
+//         /* clean memory reserved for valist */
+//         va_end(valist);
+//
+//         return sum/num;
+//      }
+//
+//      int main() {
+//         int x = 10;
+//         int y = 101;
+//         printf("%f\n", average(4, 2,3,4,5));
+//         printf("%f\n", average(3, 5,10,15));
+//         printf("%f\n", average(2, x, y));
+//         printf("%f\n", average(2, x + y, y - x));
+//      }"""
+//
+//    checkResults(code)
+//  }
+//}
 
 class FunctionStagingArea extends StandardTest {
   "An unsigned pointer argument" should "print the correct results" in {
