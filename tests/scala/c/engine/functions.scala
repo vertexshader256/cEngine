@@ -19,28 +19,47 @@ class MathFunctions extends StandardTest {
 
 class SpecialFunctions extends StandardTest {
 
-  "offsetof test" should "print the correct results" in {
+  "mixed offsetof test" should "print the correct results" in {
     val code = """
       #include <stdio.h>
       #include "stddef.h"
       #include "stdint.h"
 
       struct test {
+        short y;
         int x;
-        int y;
-        int z;
+        int *j;
       };
-
-      struct test2 {
-         int x;
-         int* y;
-         int z;
-       };
 
       int main()
       {
           printf("%d\n", offsetof(struct test, y));
-          printf("%d\n", offsetof(struct test2, z));
+          printf("%d\n", offsetof(struct test, x));
+          printf("%d\n", offsetof(struct test, j));
+      }"""
+
+    checkResults(code)
+  }
+
+  "short offsetof test" should "print the correct results" in {
+    val code = """
+      #include <stdio.h>
+      #include "stddef.h"
+      #include "stdint.h"
+
+      struct test {
+        short y;
+        short z;
+        short j;
+        short k;
+      };
+
+      int main()
+      {
+          printf("%d\n", offsetof(struct test, y));
+          printf("%d\n", offsetof(struct test, z));
+          printf("%d\n", offsetof(struct test, j));
+          printf("%d\n", offsetof(struct test, k));
       }"""
 
     checkResults(code)
