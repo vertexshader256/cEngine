@@ -119,8 +119,6 @@ case class FileRValue(path: String) extends RValue {
 
 	val file: File = new File(path)
 
-	println("NEW FILE: " + path)
-
 	val value: AnyVal = if (file.exists) {
 		1
 	} else {

@@ -205,15 +205,13 @@ object Functions {
 			val mode = Utils.readString(formattedOutputParams.head.value.asInstanceOf[Int])(state)
 
 			if (!new File(path).exists()) {
-				println(path + " NOT found!")
 				if (mode == "w") {
 					new File(path).createNewFile()
 					Some(FileRValue(path))
 				} else {
-					Some(RValue(0))
+					Some(FileRValue(path))
 				}
 			} else {
-				println(path + " found!")
 				Some(FileRValue(path))
 			}
 		}

@@ -63,6 +63,22 @@ class FileTest extends StandardTest {
     }
   }
 
+	"file which doesnt exist" should "print the correct results" in {
+
+		val code = """
+      #include <stdio.h>
+
+      void main() {
+          char buff[100];
+          FILE *f = fopen("fsdfsdf.txt", "r");
+          printf("file opened: %d\n", f);
+          fclose(f);
+
+      }"""
+
+		checkResults(code)
+	}
+
   "file existence check" should "print the correct results" in {
 
     import java.util.UUID.randomUUID
