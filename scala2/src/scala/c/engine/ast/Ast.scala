@@ -4,6 +4,8 @@ package ast
 import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.internal.core.dom.parser.c._
 
+import scala.c.engine.Instructions._
+
 object Ast {
 
 	def executeCustomInstructions(current: Any)(implicit state: State): Unit = current match {

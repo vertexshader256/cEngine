@@ -4,6 +4,8 @@ package ast
 import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.internal.core.dom.parser.c.CStructure
 
+import scala.c.engine.Instructions.ReturnFromFunction
+
 object Statement {
 
 	def parse(statement: IASTStatement)(implicit state: State): Unit = statement match {

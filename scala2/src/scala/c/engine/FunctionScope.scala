@@ -2,6 +2,7 @@ package scala.c.engine
 
 import org.eclipse.cdt.core.dom.ast._
 
+import scala.c.engine.Instructions._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 

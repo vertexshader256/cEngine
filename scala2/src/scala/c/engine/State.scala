@@ -4,8 +4,8 @@ import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.op_assign
 import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.internal.core.dom.parser.c._
 
-import java.nio.{ByteBuffer, ByteOrder}
 import java.util
+import scala.c.engine.Instructions._
 import scala.c.engine.ast.{Declarator, Expressions}
 import scala.collection.mutable.ListBuffer
 
