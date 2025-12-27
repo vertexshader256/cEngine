@@ -52,7 +52,7 @@ class SyntaxLogger extends Logger {
 
 	def err(stream: InputStream) = {
 
-		val lines = scala.io.Source.fromInputStream(stream).getLines.toList
+		val lines = scala.io.Source.fromInputStream(stream).getLines().toList
 		errors ++= lines
 	}
 }
@@ -70,11 +70,11 @@ class RunLogger {
 	def in(stream: OutputStream) = {}
 
 	def out(stream: InputStream) = {
-		recordStdOut(scala.io.Source.fromInputStream(stream).getLines.toSeq)
+		recordStdOut(scala.io.Source.fromInputStream(stream).getLines().toSeq)
 	}
 
 	def err(stream: InputStream) = {
-		val lines = scala.io.Source.fromInputStream(stream).getLines.toSeq
+		//val lines = scala.io.Source.fromInputStream(stream).getLines.toSeq
 	}
 }
 
@@ -89,12 +89,12 @@ class LinkerLogger extends Logger {
 	def in(stream: OutputStream) = {}
 
 	def out(stream: InputStream) = {
-		scala.io.Source.fromInputStream(stream).getLines
+		scala.io.Source.fromInputStream(stream).getLines()
 	}
 
 	def err(stream: InputStream) = {
 
-		val lines = scala.io.Source.fromInputStream(stream).getLines.toSeq
+		val lines = scala.io.Source.fromInputStream(stream).getLines().toSeq
 
 		if (!lines.isEmpty) {
 			lines.foreach(x => println("LINKER ERROR: " + x))

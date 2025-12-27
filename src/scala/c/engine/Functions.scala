@@ -24,7 +24,7 @@ object Functions {
 
 	scalaFunctions += new Function("rand", false) {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-			Some(RValue(Math.abs(scala.util.Random.nextInt)))
+			Some(RValue(Math.abs(scala.util.Random.nextInt())))
 		}
 	}
 
@@ -231,7 +231,7 @@ object Functions {
 			val size = formattedOutputParams(1).value.asInstanceOf[Int]
 			val fp = formattedOutputParams(0).asInstanceOf[FileRValue]
 
-			var result = new ListBuffer[Byte]()
+			val result = new ListBuffer[Byte]()
 			var count = 0
 			var lastRead: Byte = 0
 			var isDone = false
@@ -282,8 +282,8 @@ object Functions {
 	// TODO: Complete this
 	scalaFunctions += new Function("fscanf", false) {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-			val fp = formattedOutputParams(3).asInstanceOf[FileRValue]
-			val dst = formattedOutputParams(1).value.asInstanceOf[Int]
+			//val fp = formattedOutputParams(3).asInstanceOf[FileRValue]
+			//val dst = formattedOutputParams(1).value.asInstanceOf[Int]
 
 			//val str = fp.readString
 			//state.writeDataBlock(str.getBytes, dst)(state)
@@ -320,7 +320,7 @@ object Functions {
 
 	def printf(formattedOutputParams: Array[RValue], state: State): String = {
 		val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(state)
-		val formatString = str.replaceAll("^\"|\"$", "").replaceAll("%ld", "%d").replaceAll("%l", "%d")
+		//val formatString = str.replaceAll("^\"|\"$", "").replaceAll("%ld", "%d").replaceAll("%l", "%d")
 
 		val buffer = new StringBuffer()
 		val formatter = new Formatter(buffer, Locale.US)
@@ -737,8 +737,8 @@ object Functions {
 	//fcvtbuf(double arg, int ndigits, int *decpt, int *sign, char *buf)
 	scalaFunctions += new Function("fcvtbuf", false) {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-			val buf = formattedOutputParams(0).value.asInstanceOf[Int]
-			val sign = formattedOutputParams(1).value.asInstanceOf[Int]
+			//val buf = formattedOutputParams(0).value.asInstanceOf[Int]
+			//val sign = formattedOutputParams(1).value.asInstanceOf[Int]
 			val decpt = formattedOutputParams(2).value.asInstanceOf[Int]
 			val ndigits = formattedOutputParams(3).value.asInstanceOf[Int]
 			val arg = formattedOutputParams(4).value.asInstanceOf[Double]

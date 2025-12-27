@@ -17,7 +17,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 	private var stack = List[ValueType]()
 	var startingStackAddr = 0
 
-	private var pathStack = ListBuffer[Any]()
+	private val pathStack = ListBuffer[Any]()
 	private var pathIndex = 0
 
 	var state: State = null
@@ -120,7 +120,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 
 	def init(nodes: List[IASTNode], theState: State, shouldReset: Boolean) = {
 		if (shouldReset) {
-			variableScopes.head.varMap.clear
+			variableScopes.head.varMap.clear()
 		}
 
 		stack = List()

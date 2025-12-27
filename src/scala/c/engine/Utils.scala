@@ -44,7 +44,7 @@ object Utils {
 
 	def readString(address: Int)(implicit state: State): String = {
 		var current: Char = 0
-		var stringBuilder = new ListBuffer[Char]()
+		val stringBuilder = new ListBuffer[Char]()
 		var i = 0
 
 		current = state.Stack.readFromMemory(address + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[Byte].toChar

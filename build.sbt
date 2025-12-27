@@ -15,7 +15,14 @@ scalaSource in Test := baseDirectory.value / "tests"
 scalaVersion := "2.13.18"
 //scalaVersion := "3.7.4"
 
-scalacOptions ++= Seq("-Xsource:3")
+scalacOptions ++= Seq(
+	"-encoding",
+	"UTF-8",
+	"-target:jvm-1.8",
+	"-Xsource:3",
+	"-deprecation",
+	"-Wunused:imports,privates,locals",
+)
 
 //parallelExecution in Test := true
 //testOptions in Test += Tests.Argument("-P")
