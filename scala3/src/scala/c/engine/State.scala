@@ -414,26 +414,23 @@ class State(val pointerSize: NumBits) {
 	}
 
 	def copy(dst: Int, src: Int, numBytes: Int) = {
-		Stack.tape.mark()
-		Stack.tape.position(src)
-		val array = new Array[Byte](numBytes)
-		Stack.tape.get(array)
-		Stack.tape.position(dst)
-		Stack.tape.put(array)
-		Stack.tape.reset()
+		Stack.copy(dst, src, numBytes: Int)
 	}
 
 	def set(dst: Int, value: Byte, numBytes: Int) = {
-		val array = new Array[Byte](numBytes)
-		util.Arrays.fill(array, value)
-		Stack.tape.mark()
-		Stack.tape.position(dst)
-		Stack.tape.put(array)
-		Stack.tape.reset()
+		Stack.set(dst, value, numBytes: Int)
+	}
+
+	def writeDataBlock(array: Array[Byte], startingAddress: Int)(implicit state: State): Unit = {
+		Stack.writeDataBlock(array, startingAddress)
+	}
+
+	def readDataBlock(startingAddress: Int, length: Int)(implicit state: State): Array[Byte] = {
+		Stack.readDataBlock(startingAddress, length)
 	}
 
 	def readPtrVal(address: Int): Int = {
-		Stack.tape.getInt(address)
+		Stack.readPtrVal(address)
 	}
 
 	def getString(str: String): RValue = {
@@ -467,21 +464,5 @@ class State(val pointerSize: NumBits) {
 				Stack.writeToMemory(newVal, address, theType)
 				address += TypeHelper.sizeof(theType)(state)
 		}
-	}
-
-	def writeDataBlock(array: Array[Byte], startingAddress: Int)(implicit state: State): Unit = {
-		Stack.tape.mark()
-		Stack.tape.position(startingAddress)
-		Stack.tape.put(array, 0, array.size)
-		Stack.tape.reset
-	}
-
-	def readDataBlock(startingAddress: Int, length: Int)(implicit state: State): Array[Byte] = {
-		val result = new Array[Byte](length)
-		Stack.tape.mark()
-		Stack.tape.position(startingAddress)
-		Stack.tape.get(result, 0, length)
-		Stack.tape.reset
-		result
 	}
 }

@@ -4,6 +4,7 @@ import org.eclipse.cdt.core.dom.ast.{IArrayType, IBasicType, IFunctionType, IPoi
 import org.eclipse.cdt.internal.core.dom.parser.c.{CEnumeration, CStructure, CTypedef}
 
 import java.nio.{ByteBuffer, ByteOrder}
+import java.util
 
 class Memory(size: Int) {
 
@@ -11,8 +12,47 @@ class Memory(size: Int) {
 
 	var insertIndex = 0
 	// turing tape
-	val tape = ByteBuffer.allocateDirect(size)
+	private val tape = ByteBuffer.allocateDirect(size)
 	tape.order(ByteOrder.LITTLE_ENDIAN)
+
+	def writeDataBlock(array: Array[Byte], startingAddress: Int): Unit = {
+		tape.mark()
+		tape.position(startingAddress)
+		tape.put(array, 0, array.size)
+		tape.reset
+	}
+
+	def readDataBlock(startingAddress: Int, length: Int): Array[Byte] = {
+		val result = new Array[Byte](length)
+		tape.mark()
+		tape.position(startingAddress)
+		tape.get(result, 0, length)
+		tape.reset
+		result
+	}
+
+	def copy(dst: Int, src: Int, numBytes: Int) = {
+		tape.mark()
+		tape.position(src)
+		val array = new Array[Byte](numBytes)
+		tape.get(array)
+		tape.position(dst)
+		tape.put(array)
+		tape.reset()
+	}
+
+	def set(dst: Int, value: Byte, numBytes: Int) = {
+		val array = new Array[Byte](numBytes)
+		util.Arrays.fill(array, value)
+		tape.mark()
+		tape.position(dst)
+		tape.put(array)
+		tape.reset()
+	}
+
+	def readPtrVal(address: Int): Int = {
+		tape.getInt(address)
+	}
 
 	def clearMemory(startingAddress: Int, numBytes: Int) = {
 		var address = startingAddress
