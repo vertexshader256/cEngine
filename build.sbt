@@ -13,12 +13,15 @@ scalaSource in Compile := baseDirectory.value / "src"
 scalaSource in Test := baseDirectory.value / "tests"
 
 scalaVersion := "2.13.18"
+//scalaVersion := "3.7.4"
 
 //parallelExecution in Test := true
 //testOptions in Test += Tests.Argument("-P")
 
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.1.0" % "test",
+	//"org.scalactic" %% "scalactic" % "3.2.19",
+	//"org.scalatest" %% "scalatest" % "3.2.19",// % "test"
   "org.anarres" % "jcpp" % "1.4.14"
 )
 
