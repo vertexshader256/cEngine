@@ -185,7 +185,7 @@ object Utils {
 					}
 				}
 			} catch {
-				case e => skipline = true; startLine = currentLine + 1
+				case e: Throwable => skipline = true; startLine = currentLine + 1
 			}
 		}
 

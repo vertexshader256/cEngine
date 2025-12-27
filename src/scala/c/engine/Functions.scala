@@ -23,20 +23,20 @@ object Functions {
 	val scalaFunctions = new ListBuffer[Function]()
 
 	scalaFunctions += new Function("rand", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			Some(RValue(Math.abs(scala.util.Random.nextInt)))
 		}
 	}
 
 	scalaFunctions += new Function("isalpha", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val theChar = formattedOutputParams.head.value.asInstanceOf[char].toChar
 			Some(RValue(if (theChar.isLetter) 1 else 0))
 		}
 	}
 
 	scalaFunctions += new Function("isdigit", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val theChar = formattedOutputParams.head.value match {
 				case c: char => c.toChar
 				case int: Int => int.toChar
@@ -46,7 +46,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("isxdigit", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val theChar = formattedOutputParams.head.value match {
 				case c: char => c.toChar
 				case int: Int => int.toChar
@@ -56,7 +56,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("tolower", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val theChar = formattedOutputParams.head.value match {
 				case c: char => c.toChar
 				case int: Int => int.toChar
@@ -66,14 +66,14 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("toupper", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val theChar = formattedOutputParams.head.value.asInstanceOf[char].toChar
 			Some(RValue(theChar.toUpper.toByte))
 		}
 	}
 
 	scalaFunctions += new Function("isupper", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val theChar = formattedOutputParams.head.value match {
 				case int: int => int.toChar
 				case char: char => char.toChar
@@ -83,7 +83,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("isspace", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val theChar = formattedOutputParams.head.value match {
 				case c: char => c.toChar
 				case int: Int => int.toChar
@@ -93,7 +93,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("calloc", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val numBlocks = formattedOutputParams(0).value.asInstanceOf[Int]
 			val blockSize = formattedOutputParams(1).value.asInstanceOf[Int]
 
@@ -106,7 +106,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("malloc", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val returnVal = formattedOutputParams.head.value match {
 				case long: Long => state.allocateHeapSpace(long.toInt)
 				case int: Int => state.allocateHeapSpace(int)
@@ -116,13 +116,13 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("realloc", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			Some(RValue(state.allocateHeapSpace(formattedOutputParams.head.value.asInstanceOf[Long].toInt)))
 		}
 	}
 
 	scalaFunctions += new Function("memmove", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val dst = formattedOutputParams(0).value.asInstanceOf[Int]
 			val src = formattedOutputParams(1).value.asInstanceOf[Int]
 			val numBytes = formattedOutputParams(2).value.asInstanceOf[Int]
@@ -133,7 +133,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("memcpy", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val numBytes = formattedOutputParams(0).value match {
 				case int: Int => int
 				case long: Long => long.toInt
@@ -147,7 +147,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("memset", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val numBytes = formattedOutputParams(0).value match {
 				case int: Int => int
 				case long: Long => long.toInt
@@ -169,7 +169,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("modf", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val fraction = formattedOutputParams(0).value.asInstanceOf[Double]
 			val intPart = formattedOutputParams(1).value.asInstanceOf[Int]
 
@@ -180,14 +180,14 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("sqrt", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val num = formattedOutputParams(0).value.asInstanceOf[Double]
 			Some(RValue(Math.sqrt(num)))
 		}
 	}
 
 	scalaFunctions += new Function("putchar", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val char = formattedOutputParams(0).value match {
 				case int: Int => int.toChar
 				case char: char => char.toChar
@@ -200,7 +200,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("fopen", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val path = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(state)
 			val mode = Utils.readString(formattedOutputParams.head.value.asInstanceOf[Int])(state)
 
@@ -218,7 +218,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("remove", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val path = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(state)
 			new File(path).delete()
 			None
@@ -226,7 +226,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("fgets", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val resultBuffer = formattedOutputParams(2).value.asInstanceOf[Int]
 			val size = formattedOutputParams(1).value.asInstanceOf[Int]
 			val fp = formattedOutputParams(0).asInstanceOf[FileRValue]
@@ -254,13 +254,13 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("fclose", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			None
 		}
 	}
 
 	scalaFunctions += new Function("fprintf", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val fp = formattedOutputParams.last.asInstanceOf[FileRValue]
 
 			val formattedStr = printf(formattedOutputParams.drop(1), state)
@@ -270,7 +270,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("sprintf", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val strAddr = formattedOutputParams.last.value.asInstanceOf[Int]
 
 			val formattedStr = printf(formattedOutputParams.drop(1), state)
@@ -281,7 +281,7 @@ object Functions {
 
 	// TODO: Complete this
 	scalaFunctions += new Function("fscanf", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val fp = formattedOutputParams(3).asInstanceOf[FileRValue]
 			val dst = formattedOutputParams(1).value.asInstanceOf[Int]
 
@@ -292,7 +292,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("fread", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val resultBuffer = formattedOutputParams(3).value.asInstanceOf[Int]
 			val size = formattedOutputParams(2).value.asInstanceOf[Int]
 			val numMembers = TypeHelper.cast(TypeHelper.intType, formattedOutputParams(1).value).value.asInstanceOf[Int]
@@ -304,7 +304,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("fwrite", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val buffer = formattedOutputParams(3).value.asInstanceOf[Int] // write this to fp
 			val size = formattedOutputParams(2).value.asInstanceOf[Int]
 			val numMembers = formattedOutputParams(1).value.asInstanceOf[Int]
@@ -426,118 +426,118 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("atoi", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(state)
 			Some(RValue(str.toInt))
 		}
 	}
 
 	scalaFunctions += new Function("fabs", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			Some(RValue(Math.abs(formattedOutputParams.last.value.asInstanceOf[Double])))
 		}
 	}
 
 	scalaFunctions += new Function("sin", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			Some(RValue(Math.sin(formattedOutputParams.last.value.asInstanceOf[Double])))
 		}
 	}
 
 	scalaFunctions += new Function("cos", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			Some(RValue(Math.cos(formattedOutputParams.last.value.asInstanceOf[Double])))
 		}
 	}
 
 	scalaFunctions += new Function("tan", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			Some(RValue(Math.tan(formattedOutputParams.last.value.asInstanceOf[Double])))
 		}
 	}
 
 	scalaFunctions += new Function("acos", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			Some(RValue(Math.acos(formattedOutputParams.last.value.asInstanceOf[Double])))
 		}
 	}
 
 	scalaFunctions += new Function("cosh", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			Some(RValue(Math.cosh(formattedOutputParams.last.value.asInstanceOf[Double])))
 		}
 	}
 
 	scalaFunctions += new Function("asin", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			Some(RValue(Math.asin(formattedOutputParams.last.value.asInstanceOf[Double])))
 		}
 	}
 
 	scalaFunctions += new Function("sinh", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			Some(RValue(Math.sinh(formattedOutputParams.last.value.asInstanceOf[Double])))
 		}
 	}
 
 	scalaFunctions += new Function("atan", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			Some(RValue(Math.atan(formattedOutputParams.last.value.asInstanceOf[Double])))
 		}
 	}
 
 	scalaFunctions += new Function("tanh", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			Some(RValue(Math.tanh(formattedOutputParams.last.value.asInstanceOf[Double])))
 		}
 	}
 
 	scalaFunctions += new Function("atan2", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			Some(RValue(Math.atan2(formattedOutputParams.last.value.asInstanceOf[Double],
 				formattedOutputParams.head.value.asInstanceOf[Double])))
 		}
 	}
 
 	scalaFunctions += new Function("exp", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			Some(RValue(Math.exp(formattedOutputParams.last.value.asInstanceOf[Double])))
 		}
 	}
 
 	scalaFunctions += new Function("ceil", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			Some(RValue(Math.ceil(formattedOutputParams.last.value.asInstanceOf[Double])))
 		}
 	}
 
 	scalaFunctions += new Function("floor", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			Some(RValue(Math.floor(formattedOutputParams.last.value.asInstanceOf[Double])))
 		}
 	}
 
 	scalaFunctions += new Function("log", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			Some(RValue(Math.log(formattedOutputParams.last.value.asInstanceOf[Double])))
 		}
 	}
 
 	scalaFunctions += new Function("log10", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			Some(RValue(Math.log10(formattedOutputParams.last.value.asInstanceOf[Double])))
 		}
 	}
 
 	scalaFunctions += new Function("pow", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			Some(RValue(Math.pow(formattedOutputParams.last.value.asInstanceOf[Double],
 				formattedOutputParams.head.value.asInstanceOf[Double])))
 		}
 	}
 
 	scalaFunctions += new Function("fmod", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val first = TypeHelper.cast(TypeHelper.doubleType, formattedOutputParams.last.value).value.asInstanceOf[Double]
 			val second = TypeHelper.cast(TypeHelper.doubleType, formattedOutputParams.head.value).value.asInstanceOf[Double]
 
@@ -546,7 +546,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("sscanf", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val resultBuffer = formattedOutputParams.last.value.asInstanceOf[Int]
 
 			val varArgs = formattedOutputParams.drop(2).toList
@@ -560,7 +560,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("printf", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 
 			val result = printf(formattedOutputParams, state)
 
@@ -573,7 +573,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("strlen", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val straddy = formattedOutputParams.head.value match {
 				//case AddressInfo(addr, _) => addr.value
 				case int: Int => int
@@ -594,7 +594,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("strchr", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val char = formattedOutputParams(0).value match {
 				case int: Int => int
 				case byte: Byte => byte.toInt
@@ -614,7 +614,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("strncpy", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val num = formattedOutputParams(0).value.asInstanceOf[Int]
 			val src = formattedOutputParams(1).value.asInstanceOf[Int]
 			val dst = formattedOutputParams(2).value.asInstanceOf[Int]
@@ -627,7 +627,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("strcpy", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val src = formattedOutputParams(0).value.asInstanceOf[Int]
 			val dst = formattedOutputParams(1).value.asInstanceOf[Int]
 
@@ -639,7 +639,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("offsetof", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val straddy = formattedOutputParams(0).value.asInstanceOf[Int]
 			val straddy2 = formattedOutputParams(1).value.asInstanceOf[Int]
 
@@ -659,7 +659,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("strcmp", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val straddy = formattedOutputParams(0).value.asInstanceOf[Int]
 			val straddy2 = formattedOutputParams(1).value.asInstanceOf[Int]
 
@@ -672,7 +672,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("memcmp", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val numBytes = formattedOutputParams(0).value match {
 				case long: Long => long.toInt
 				case int: Int => int
@@ -697,7 +697,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("va_arg", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val argTypeStr = formattedOutputParams(0).value.asInstanceOf[Int]
 
 			val str = Utils.readString(argTypeStr)(state)
@@ -721,7 +721,7 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("va_start", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val lastNamedArgAddr = formattedOutputParams(0).value.asInstanceOf[Int]
 			varArgStartingAddr = (lastNamedArgAddr + 4) +: varArgStartingAddr
 			None
@@ -729,14 +729,14 @@ object Functions {
 	}
 
 	scalaFunctions += new Function("va_end", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			varArgStartingAddr = varArgStartingAddr.tail
 			None
 		}
 	}
 	//fcvtbuf(double arg, int ndigits, int *decpt, int *sign, char *buf)
 	scalaFunctions += new Function("fcvtbuf", false) {
-		def run(formattedOutputParams: Array[RValue], state: State) = {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val buf = formattedOutputParams(0).value.asInstanceOf[Int]
 			val sign = formattedOutputParams(1).value.asInstanceOf[Int]
 			val decpt = formattedOutputParams(2).value.asInstanceOf[Int]

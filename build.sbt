@@ -15,6 +15,8 @@ scalaSource in Test := baseDirectory.value / "tests"
 scalaVersion := "2.13.18"
 //scalaVersion := "3.7.4"
 
+scalacOptions ++= Seq("-Xsource:3")
+
 //parallelExecution in Test := true
 //testOptions in Test += Tests.Argument("-P")
 

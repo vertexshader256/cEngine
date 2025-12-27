@@ -56,24 +56,24 @@ object LValue {
 			val address = addr
 			val state = theState
 			val bitOffset = 0
-			val sizeInBits = sizeof * 8
 			val theType = TypeHelper.stripSyntheticTypeInfo(aType)
 			val rawType = aType
 			//def sizeof = TypeHelper.sizeof(theType)(state)}
 			val sizeof = {
 				TypeHelper.getPointerSize(theType)(state)
 			}
+			val sizeInBits = sizeof * 8
 		}
 }
 
 case class StringLiteral(value: String) extends ValueType {
-	val theType = new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0)
-	val rawType = theType
+	val theType: IType = new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0)
+	val rawType: IType = theType
 }
 
 case class TypeInfo(value: IType) extends ValueType {
-	val theType = value
-	val rawType = theType
+	val theType: IType = value
+	val rawType: IType = theType
 }
 
 object RValue {
@@ -82,14 +82,14 @@ object RValue {
 	def apply(theValue: AnyVal, aType: IType) =
 		new RValue {
 			val theType = TypeHelper.stripSyntheticTypeInfo(aType);
-			val rawType = aType;
-			val value = theValue;
+			val rawType = aType
+			val value = theValue
 		}
 
 	def apply(theValue: AnyVal) =
 		new RValue {
-			val theType = null;
-			val rawType = null;
+			val theType: IType = null
+			val rawType: IType = null
 			val value = theValue;
 		}
 }
@@ -114,8 +114,8 @@ case class Address(value: Int, theType: IType) extends RValue {
 
 case class FileRValue(path: String) extends RValue {
 
-	val theType = null
-	val rawType = theType
+	val theType: IType = null
+	val rawType: IType = theType
 
 	val file: File = new File(path)
 
