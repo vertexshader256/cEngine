@@ -34,7 +34,6 @@ object TypeHelper {
 				} else {
 					newVal
 				}
-			case _ => newVal
 		}
 
 		RValue(casted, theType)

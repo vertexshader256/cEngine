@@ -55,6 +55,7 @@ object Declarator {
 								val casted = TypeHelper.cast(newVar.theType, arg.value).value
 								state.Stack.writeToMemory(casted, newVar.address, newVar.theType)
 							} else {
+								// 12-26-25: This code isn't being hit
 								val theType = TypeHelper.getType(arg.value)
 								val sizeof = TypeHelper.sizeof(theType)
 								val space = state.allocateSpace(Math.max(sizeof, 4))
