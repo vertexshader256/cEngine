@@ -34,23 +34,24 @@ object Literal {
 	def cast(litStr: String): ValueType = {
 
 		def isIntNumber(s: String): Boolean = (allCatch opt s.toInt).isDefined
-
 		def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
 
-		val isLong = litStr.endsWith("L") || litStr.endsWith("l")
-
+		val isFloat = litStr.takeRight(1).toLowerCase == "f"
+		val isUnsigned = litStr.takeRight(1).toLowerCase == "u"
+		val isLong = litStr.takeRight(1).toLowerCase == "l"
+		val isLongLoong = litStr.takeRight(2).toLowerCase == "ll"
 		val isUnsignedLong = litStr.takeRight(2).toLowerCase == "ul"
 		val isUnsignedLongLong = litStr.takeRight(3).toLowerCase == "ull"
 
 		val pre: String = if (isUnsignedLongLong) {
 			litStr.take(litStr.length - 3).mkString
-		} else if (litStr.endsWith("LL") || litStr.endsWith("ll")) {
+		} else if (isLongLoong) {
 			litStr.take(litStr.length - 2).mkString
 		} else if (isUnsignedLong) {
 			litStr.take(litStr.length - 2).mkString
 		} else if (isLong) {
 			litStr.take(litStr.length - 1).mkString
-		} else if (litStr.endsWith("U") || litStr.endsWith("u")) {
+		} else if (isUnsigned) {
 			litStr.take(litStr.length - 1).mkString
 		} else {
 			litStr
@@ -70,14 +71,14 @@ object Literal {
 		} else if (lit.head == '\'' && lit.last == '\'') {
 			RValue(lit.toCharArray.apply(1).toByte, new CBasicType(IBasicType.Kind.eChar, 0))
 		} else if (isUnsignedLong) {
-			RValue(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
+			TypeHelper.getLong(lit)
 		} else if (isLong) {
-			RValue(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
+			TypeHelper.getLong(lit)
 		} else if (isIntNumber(lit)) {
 			RValue(lit.toInt, TypeHelper.intType)
 		} else if (isLongNumber(lit)) {
-			RValue(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
-		} else if (lit.contains('F') || lit.contains('f')) {
+			TypeHelper.getLong(lit)
+		} else if (isFloat) {
 			val num = lit.toCharArray.filter(x => x != 'f' && x != 'F').mkString
 			RValue(num.toFloat, TypeHelper.floatType)
 		} else {

@@ -21,6 +21,9 @@ object TypeHelper {
 	// 8 bytes
 	val qword = new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
 
+	def getLong(lit: String) =
+		RValue(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
+
 	def castSign(theType: IType, newVal: AnyVal): RValue = {
 		val casted: AnyVal = theType match {
 			case basic: IBasicType =>
