@@ -175,9 +175,3 @@ case class CaseLabel(caseStatement: IASTCaseStatement) extends Label
 
 case class DefaultLabel(default: IASTDefaultStatement) extends Label
 
-abstract sealed trait NumBits
-
-case object ThirtyTwoBits extends NumBits
-
-case object SixtyFourBits extends NumBits
-

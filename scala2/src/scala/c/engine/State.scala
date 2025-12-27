@@ -193,8 +193,8 @@ class State(val pointerSize: NumBits) {
 	var sources: List[IASTTranslationUnit] = null
 
 	val pointerType = pointerSize match {
-		case ThirtyTwoBits => TypeHelper.intType
-		case SixtyFourBits => new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
+		case NumBits.ThirtyTwoBits => TypeHelper.intType
+		case NumBits.SixtyFourBits => new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
 	}
 
 	val addressSize = TypeHelper.sizeof(pointerType)(this)
