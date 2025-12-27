@@ -474,4 +474,15 @@ class BinaryExpr extends StandardTest {
 
     checkResults(code)
   }
+
+	"A simple NOT test for coverage" should "print the correct results" in {
+		val code = """
+      void main() {
+        char x = 'h';
+				char y = 0;
+        printf("%d %d\n", !x, !y);
+      }"""
+
+		checkResults(code)
+	}
 }

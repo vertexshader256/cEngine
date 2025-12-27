@@ -56,8 +56,7 @@ object TypeHelper {
 						newVal match {
 							case int: Int => int.toChar.toByte
 							case long: Long => long.toChar.toByte
-							case char: char => char
-							case char: Char => char.toByte
+							case char: Byte => char
 						}
 					case `eInt` if basic.isLongLong =>
 						newVal match {
