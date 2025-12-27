@@ -60,11 +60,6 @@ object LValue {
 		}
 }
 
-case class StringLiteral(value: String) extends ValueType {
-	val theType: IType = new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0)
-	val rawType: IType = theType
-}
-
 case class Address(value: Int, theType: IType) extends RValue {
 	override def toString = {
 		"Address(" + value + ", " + theType + ")"
