@@ -582,12 +582,15 @@ object Functions {
 			}
 			var current: char = 0
 			var i = 0
-			do {
-				current = state.Stack.readFromMemory(straddy + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[char]
+
+			current = state.Stack.readFromMemory(straddy + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[char]
+
+			while (current != 0) {
 				if (current != 0) {
 					i += 1
 				}
-			} while (current != 0)
+				current = state.Stack.readFromMemory(straddy + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[char]
+			}
 			Some(RValue(i))
 		}
 	}

@@ -46,13 +46,16 @@ object Utils {
 		var current: Char = 0
 		var stringBuilder = new ListBuffer[Char]()
 		var i = 0
-		do {
-			current = state.Stack.readFromMemory(address + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[Byte].toChar
+
+		current = state.Stack.readFromMemory(address + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[Byte].toChar
+
+		while (current != 0) {
 			if (current != 0) {
 				stringBuilder += current
 				i += 1
 			}
-		} while (current != 0)
+			current = state.Stack.readFromMemory(address + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[Byte].toChar
+		}
 
 		new String(stringBuilder.map(_.toByte).toArray, "UTF-8")
 	}
