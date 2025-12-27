@@ -377,6 +377,8 @@ class State(val pointerSize: NumBits) {
 		case SixtyFourBits => new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
 	}
 
+	val addressSize = TypeHelper.sizeof(pointerType)(this)
+
 	def pushScope(scope: FunctionScope): Unit = {
 		functionContexts = scope +: functionContexts
 	}

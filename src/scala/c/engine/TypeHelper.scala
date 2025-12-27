@@ -323,7 +323,7 @@ object TypeHelper {
 	def getPointerSize(theType: IType)(implicit state: State): Int = {
 		theType match {
 			case ptr: IPointerType =>
-				TypeHelper.sizeof(ptr.getType)
+				state.addressSize
 			case array: IArrayType if array.hasSize =>
 				TypeHelper.sizeof(array.getType) * array.getSize.numericalValue().toInt
 			case _ => TypeHelper.sizeof(theType)(state)
@@ -332,8 +332,8 @@ object TypeHelper {
 
 	def sizeof(theType: IType)(implicit state: State): Int = theType match {
 		case _: CEnumeration => 4
-		case _: IFunctionType => sizeof(state.pointerType)
-		case _: IPointerType => sizeof(state.pointerType)
+		case _: IFunctionType => state.addressSize
+		case _: IPointerType => state.addressSize
 		case struct: CStructure =>
 			val numBits = struct.getKey match {
 				case ICompositeType.k_struct =>
