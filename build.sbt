@@ -12,7 +12,7 @@ scalaSource in Compile := baseDirectory.value / "src"
 
 scalaSource in Test := baseDirectory.value / "tests"
 
-scalaVersion := "2.13.1"
+scalaVersion := "2.13.18"
 
 //parallelExecution in Test := true
 //testOptions in Test += Tests.Argument("-P")

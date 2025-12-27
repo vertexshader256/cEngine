@@ -1,9 +1,9 @@
 package scala.c.engine;
 
+import scala.collection.JavaConverters;
+
 import java.util.ArrayList;
 import java.util.Iterator;
-
-import scala.collection.JavaConverters;
 
 public class JavaAPI {
     public void runC(String code, State state) {

@@ -1,91 +1,93 @@
 package scala.c.engine
 
-import java.io.{ByteArrayInputStream, File, StringReader}
-import java.util.HashMap
-
-import org.eclipse.cdt.core.dom.ast.{IASTNode, _}
-import org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage
-import org.eclipse.cdt.core.parser.{DefaultLogService, FileContent, IncludeFileContentProvider, ScannerInfo}
-
-import scala.collection.mutable.ListBuffer
+import org.anarres.cpp.{InputLexerSource, Preprocessor, Token}
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
-import org.anarres.cpp.Preprocessor
-import java.nio.charset.StandardCharsets
-
-import org.anarres.cpp.InputLexerSource
-import org.anarres.cpp.Token
+import org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage
+import org.eclipse.cdt.core.dom.ast._
+import org.eclipse.cdt.core.parser.{DefaultLogService, FileContent, IncludeFileContentProvider, ScannerInfo}
 import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
 
+import java.io.{ByteArrayInputStream, File}
+import java.nio.charset.StandardCharsets
+import java.util.HashMap
+import scala.collection.mutable.ListBuffer
+
 sealed abstract class Direction
+
 object Stage1 extends Direction
+
 object Stage2 extends Direction
+
 object Stage3 extends Direction
+
 object PreLoop extends Direction
+
 object Exiting extends Direction
+
 object Gotoing extends Direction
 
 object Utils {
-  
-  def stripQuotes(str: String): String = {
-    str.tail.reverse.tail.reverse
-  }
 
-  def getAncestors(node: IASTNode): Seq[IASTNode] = {
-    var current = node.getParent
-    val results = new ListBuffer[IASTNode]()
-    while (current != null) {
-      results += current
-      current = current.getParent
-    }
-    results.toSeq
-  }
-  
-  def readString(address: Int)(implicit state: State): String = {
-     var current: Char = 0
-      var stringBuilder = new ListBuffer[Char]()
-      var i = 0
-      do {
-        current = state.Stack.readFromMemory(address + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[Byte].toChar
-        if (current != 0) {
-          stringBuilder += current
-          i += 1
-        }
-      } while (current != 0)
-        
-      new String(stringBuilder.map(_.toByte).toArray, "UTF-8")
-  }
-  
-  def isAssignment(op: Int) = {
-      op == op_assign ||
-      op == op_plusAssign ||
-      op == op_minusAssign ||
-      op == op_multiplyAssign ||
-      op == op_divideAssign ||
-      op == op_moduloAssign ||
-      op == op_binaryXorAssign ||
-      op == op_binaryAndAssign ||
-      op == op_binaryOrAssign ||
-      op == op_multiplyAssign ||
-      op == op_shiftLeftAssign ||
-      op == op_shiftRightAssign
-    }
+	def stripQuotes(str: String): String = {
+		str.tail.reverse.tail.reverse
+	}
 
-  def getDescendants(node: IASTNode): Seq[IASTNode] = {
-    Seq(node) ++ node.getChildren.toList.flatMap{x => getDescendants(x)}
-  }
+	def getAncestors(node: IASTNode): Seq[IASTNode] = {
+		var current = node.getParent
+		val results = new ListBuffer[IASTNode]()
+		while (current != null) {
+			results += current
+			current = current.getParent
+		}
+		results.toSeq
+	}
 
-  val rootDir = raw"C:\msys64\\ucrt64"
+	def readString(address: Int)(implicit state: State): String = {
+		var current: Char = 0
+		var stringBuilder = new ListBuffer[Char]()
+		var i = 0
+		do {
+			current = state.Stack.readFromMemory(address + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[Byte].toChar
+			if (current != 0) {
+				stringBuilder += current
+				i += 1
+			}
+		} while (current != 0)
 
-  val mainPath = raw"."
-  val minGWIncludes = s"$rootDir\\include"
+		new String(stringBuilder.map(_.toByte).toArray, "UTF-8")
+	}
 
-  //val includeDir = new File(s"$rootDir\\lib\\gcc\\x86_64-w64-mingw32\\15.2.0").listFiles().head.getAbsolutePath
+	def isAssignment(op: Int) = {
+		op == op_assign ||
+			op == op_plusAssign ||
+			op == op_minusAssign ||
+			op == op_multiplyAssign ||
+			op == op_divideAssign ||
+			op == op_moduloAssign ||
+			op == op_binaryXorAssign ||
+			op == op_binaryAndAssign ||
+			op == op_binaryOrAssign ||
+			op == op_multiplyAssign ||
+			op == op_shiftLeftAssign ||
+			op == op_shiftRightAssign
+	}
 
-  val minGWAdditionalIncludes = new File(s"$rootDir\\lib\\gcc\\x86_64-w64-mingw32\\15.2.0\\include").getAbsolutePath
+	def getDescendants(node: IASTNode): Seq[IASTNode] = {
+		Seq(node) ++ node.getChildren.toList.flatMap { x => getDescendants(x) }
+	}
 
-  val minGWMoreIncludes = s"$rootDir\\include\\GL"
+	val rootDir = raw"C:\msys64\\ucrt64"
 
-  def getTranslationUnit(code: String, includePaths: List[String]): IASTTranslationUnit = {
+	val mainPath = raw"."
+	val minGWIncludes = s"$rootDir\\include"
+
+	//val includeDir = new File(s"$rootDir\\lib\\gcc\\x86_64-w64-mingw32\\15.2.0").listFiles().head.getAbsolutePath
+
+	val minGWAdditionalIncludes = new File(s"$rootDir\\lib\\gcc\\x86_64-w64-mingw32\\15.2.0\\include").getAbsolutePath
+
+	val minGWMoreIncludes = s"$rootDir\\include\\GL"
+
+	def getTranslationUnit(code: String, includePaths: List[String]): IASTTranslationUnit = {
 
 		val preprocessResults = new StringBuilder
 
@@ -111,14 +113,14 @@ object Utils {
 			}
 		}
 
-		val	pp = new Preprocessor();
+		val pp = new Preprocessor();
 
 		pp.getSystemIncludePath.add(minGWIncludes)
 		pp.getSystemIncludePath.add(minGWAdditionalIncludes)
 		pp.addMacro("__cdecl", "")
-    pp.addMacro("__int64", "long long") // 12-25-25: need this
-    pp.addMacro("__forceinline", "") // 12-25-25: need this
-		includePaths.foreach{ include =>
+		pp.addMacro("__int64", "long long") // 12-25-25: need this
+		pp.addMacro("__forceinline", "") // 12-25-25: need this
+		includePaths.foreach { include =>
 			pp.getQuoteIncludePath.add(include)
 		}
 
@@ -134,7 +136,7 @@ object Utils {
 
 		while (!shouldBreak) {
 			try {
-				var	tok = pp.token
+				var tok = pp.token
 				currentLine = tok.getLine
 
 				while (skipline && currentLine == startLine) {
@@ -186,21 +188,21 @@ object Utils {
 
 		val preprocess = preprocessResults.toString.replaceAll("(?m)(^ *| +(?= |$))", "").replaceAll("(?m)^$([\r\n]+?)(^$[\r\n]+?^)+", "$1")
 
-//    import java.io._
-//    val pw = new PrintWriter(new File("hello.txt" ))
-//    pw.write(preprocess)
-//    pw.close
+		//    import java.io._
+		//    val pw = new PrintWriter(new File("hello.txt" ))
+		//    pw.write(preprocess)
+		//    pw.close
 
-    val symbolMap = new HashMap[String, String];
-    val systemIncludes = Array[String]()
+		val symbolMap = new HashMap[String, String];
+		val systemIncludes = Array[String]()
 
-    val info = new ScannerInfo(symbolMap, systemIncludes)
-    val log = new DefaultLogService()
-    val opts = 8
-    val includes = IncludeFileContentProvider.getEmptyFilesProvider
+		val info = new ScannerInfo(symbolMap, systemIncludes)
+		val log = new DefaultLogService()
+		val opts = 8
+		val includes = IncludeFileContentProvider.getEmptyFilesProvider
 
 		val fileContent = FileContent.create("test", preprocess.toCharArray)
 
 		GCCLanguage.getDefault().getASTTranslationUnit(fileContent, info, includes, null, opts, log)
-  }
+	}
 }
