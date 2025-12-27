@@ -1,9 +1,10 @@
 package scala.c.engine
 
 class UnaryTest extends StandardTest {
-  
-  "A simple binary NOT test" should "print the correct results" in {
-    val code = """
+
+	"A simple binary NOT test" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 5;
         int y = 0;
@@ -11,11 +12,12 @@ class UnaryTest extends StandardTest {
         printf("%d %d %d\n", !x, !y, !xx);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A simple bitwise NOT test" should "print the correct results" in {
-    val code = """
+	"A simple bitwise NOT test" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         char x = 'd';
         int y = 0;
@@ -25,11 +27,12 @@ class UnaryTest extends StandardTest {
         printf("%d %d %d %d %d %d\n", ~x, ~y, ~z, ~xx, ~65655, ~uuu);
       }"""
 
-    checkResults(code)
-  }
-  
-  "A simple postfix decrement test" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A simple postfix decrement test" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 5;
         float y = 4.5;
@@ -42,11 +45,12 @@ class UnaryTest extends StandardTest {
         printf("%d %f %f %d\n", x, y, z, u);
       }"""
 
-    checkResults(code)
-  }
-  
-  "A simple postfix increment test" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A simple postfix increment test" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 5;
         float y = 4.5;
@@ -59,11 +63,12 @@ class UnaryTest extends StandardTest {
         printf("%d %f %f %d\n", x, y, z, u);
       }"""
 
-    checkResults(code)
-  }
-  
-  "A simple prefix increment test" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A simple prefix increment test" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 5;
         float y = 4.5;
@@ -76,11 +81,12 @@ class UnaryTest extends StandardTest {
         printf("%d %f %f %d\n", x, y, z, u);
       }"""
 
-    checkResults(code)
-  }
-  
-  "A simple prefix decrement test" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A simple prefix decrement test" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 5;
         float y = 4.5;
@@ -93,11 +99,12 @@ class UnaryTest extends StandardTest {
         printf("%d %f %f %d\n", x, y, z, u);
       }"""
 
-    checkResults(code)
-  }
-  
-  "A simple prefix init test" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A simple prefix init test" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int a = 0;
         int b = ++a;
@@ -106,11 +113,12 @@ class UnaryTest extends StandardTest {
         printf("%d %d %d %d\n", a, b, c, d);
       }"""
 
-    checkResults(code)
-  }
-  
-  "A simple postfix init test" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A simple postfix init test" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int a = 0;
         int b = a++;
@@ -119,11 +127,12 @@ class UnaryTest extends StandardTest {
         printf("%d %d %d %d\n", a, b, c, d);
       }"""
 
-    checkResults(code)
-  }
-  
-  "A a negative number and variable" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A a negative number and variable" should "print the correct results" in {
+		val code =
+			"""
       
       int func() {
         return 5;
@@ -139,6 +148,6 @@ class UnaryTest extends StandardTest {
         printf("%d %d %d %f %f\n", -6, -a, -func(), -func2(), -x);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }

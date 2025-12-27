@@ -1,7 +1,7 @@
 package scala.c.engine
 
 class UnsizedArrayStruct extends StandardTest2("sizeof on an unsized array of a struct of length 1",
-    """
+	"""
       struct Interval {
           int start, end;
       };
@@ -19,7 +19,7 @@ class UnsizedArrayStruct extends StandardTest2("sizeof on an unsized array of a 
 )
 
 class UnsizedArrayStruct2 extends StandardTest2("sizeof on an unsized array of a struct of length > 0",
-  """
+	"""
       struct Interval {
           int start, end;
       };
@@ -39,7 +39,7 @@ class UnsizedArrayStruct2 extends StandardTest2("sizeof on an unsized array of a
 )
 
 class AdvancedStructAssignment extends StandardTest2("Using a struct to clobber some memory",
-  """
+	"""
      #include <stdio.h>
 
      typedef struct link link_t;
@@ -62,7 +62,7 @@ class AdvancedStructAssignment extends StandardTest2("Using a struct to clobber 
 )
 
 class AdvancedStructAssignment2 extends StandardTest2("Assigning a struct including a cast",
-  """
+	"""
      typedef struct link link_t;
       struct link {
         int len;
@@ -85,7 +85,7 @@ class AdvancedStructAssignment2 extends StandardTest2("Assigning a struct includ
 )
 
 class PointerToStructArray extends StandardTest2("pointer to struct with array member",
-    """
+	"""
       struct Test {
         int y;
         int x;
@@ -117,9 +117,10 @@ class PointerToStructArray extends StandardTest2("pointer to struct with array m
 )
 
 class StructTest extends StandardTest {
-  
-  "initializing a simple structure" should "print the correct results" in {
-    val code = """
+
+	"initializing a simple structure" should "print the correct results" in {
+		val code =
+			"""
       
       struct Test {
         int y;
@@ -132,11 +133,12 @@ class StructTest extends StandardTest {
         printf("%d %d %d\n", x.y, x.y, x.next);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "initializing a simple structure with binary expressions" should "print the correct results" in {
-    val code = """
+	"initializing a simple structure with binary expressions" should "print the correct results" in {
+		val code =
+			"""
 
       struct Test {
         int y;
@@ -152,11 +154,12 @@ class StructTest extends StandardTest {
         printf("%d %d %d\n", x.y, x.y, x.next);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "initializing a simple structure with designated initializers" should "print the correct results" in {
-    val code = """
+	"initializing a simple structure with designated initializers" should "print the correct results" in {
+		val code =
+			"""
 
       struct Test {
         int y;
@@ -170,11 +173,12 @@ class StructTest extends StandardTest {
         printf("%d %d\n", y.x, y.y);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "struct array init" should "print the correct results" in {
-    val code = """
+	"struct array init" should "print the correct results" in {
+		val code =
+			"""
 
      typedef struct {
          int weight;
@@ -193,11 +197,12 @@ class StructTest extends StandardTest {
         printf("%d\n", items[0].count);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "advanced struct init" should "print the correct results" in {
-    val code = """
+	"advanced struct init" should "print the correct results" in {
+		val code =
+			"""
 
      typedef struct {
          char *name;
@@ -222,11 +227,12 @@ class StructTest extends StandardTest {
         printf("%d\n", items[1].count);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "indexing with a variable" should "print the correct results" in {
-    val code = """
+	"indexing with a variable" should "print the correct results" in {
+		val code =
+			"""
 
       struct Test {
         int* data;
@@ -241,11 +247,12 @@ class StructTest extends StandardTest {
         printf("%d\n", a.data[a.length]);
       }"""
 
-    checkResults(code)
-  }
-  
-  "structure pointer typedef" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"structure pointer typedef" should "print the correct results" in {
+		val code =
+			"""
       
       typedef struct linked_node* lnode_p;
       
@@ -272,11 +279,12 @@ class StructTest extends StandardTest {
         
       }"""
 
-    checkResults(code)
-  }
-  
-  "function which takes struct pointer" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"function which takes struct pointer" should "print the correct results" in {
+		val code =
+			"""
       
       struct Test {
         int y;
@@ -311,46 +319,47 @@ class StructTest extends StandardTest {
         printf("%d %d\n", y.next->y, y.next->y);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  //12-26-25: Commenting this out for now
-//  "struct with function pointer field" should "print the correct results" in {
-//    val code = """
-//      #include <stdlib.h>
-//
-//      struct Test {
-//        int (*testFcn)(int);
-//        void (*testFcn2)(void*);
-//      };
-//
-//      int what(int x) {
-//         return x + 10;
-//      }
-//
-//      void setFcn(struct Test *test) {
-//         test->testFcn = what;
-//         test->testFcn2 = free;
-//      }
-//
-//      void passStruct(struct Test *test) {
-//         printf("%d\n", test->testFcn('d'));
-//         test->testFcn2(10);
-//      }
-//
-//      void main() {
-//        struct Test a = {0};
-//        struct Test *b = &a;
-//        setFcn(b);
-//        printf("%d %d\n", a.testFcn(4), b->testFcn(57));
-//        passStruct(b);
-//      }"""
-//
-//    checkResults(code)
-//  }
-  
-  "struct ptr assignment" should "print the correct results" in {
-    val code = """
+	//12-26-25: Commenting this out for now
+	//  "struct with function pointer field" should "print the correct results" in {
+	//    val code = """
+	//      #include <stdlib.h>
+	//
+	//      struct Test {
+	//        int (*testFcn)(int);
+	//        void (*testFcn2)(void*);
+	//      };
+	//
+	//      int what(int x) {
+	//         return x + 10;
+	//      }
+	//
+	//      void setFcn(struct Test *test) {
+	//         test->testFcn = what;
+	//         test->testFcn2 = free;
+	//      }
+	//
+	//      void passStruct(struct Test *test) {
+	//         printf("%d\n", test->testFcn('d'));
+	//         test->testFcn2(10);
+	//      }
+	//
+	//      void main() {
+	//        struct Test a = {0};
+	//        struct Test *b = &a;
+	//        setFcn(b);
+	//        printf("%d %d\n", a.testFcn(4), b->testFcn(57));
+	//        passStruct(b);
+	//      }"""
+	//
+	//    checkResults(code)
+	//  }
+
+	"struct ptr assignment" should "print the correct results" in {
+		val code =
+			"""
       
       struct Test {
         int y;
@@ -366,11 +375,12 @@ class StructTest extends StandardTest {
         printf("%d %d %d %d\n", x->y, x->z, y->z, z->z);
       }"""
 
-    checkResults(code)
-  } 
-  
-  "struct initializer" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"struct initializer" should "print the correct results" in {
+		val code =
+			"""
       
       struct Test {
         int one;
@@ -383,11 +393,12 @@ class StructTest extends StandardTest {
         printf("%d %f %c\n", x.one, x.two, x.three);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "struct being reset by memset" should "print the correct results" in {
-    val code = """
+	"struct being reset by memset" should "print the correct results" in {
+		val code =
+			"""
 
       struct Test {
         int one;
@@ -405,11 +416,12 @@ class StructTest extends StandardTest {
         printf("%d %f %c\n", x3.one, x3.two, x3.three);
       }"""
 
-    checkResults(code)
-  }
-  
-  "basic struct test" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"basic struct test" should "print the correct results" in {
+		val code =
+			"""
       
       struct Test {
         int y;
@@ -423,11 +435,12 @@ class StructTest extends StandardTest {
         printf("%d %d\n", x.y, y);
       }"""
 
-    checkResults(code)
-  }
-  
-  "basic struct sizeof test" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"basic struct sizeof test" should "print the correct results" in {
+		val code =
+			"""
       
       struct Test {
         int y;
@@ -438,11 +451,12 @@ class StructTest extends StandardTest {
         printf("%d\n", sizeof(struct Test));
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "setting nested field test" should "print the correct results" in {
-    val code = """
+	"setting nested field test" should "print the correct results" in {
+		val code =
+			"""
 
       struct Inner {
            int branches;
@@ -466,11 +480,12 @@ class StructTest extends StandardTest {
         printf("%d\n", blah2.inner.num_branches);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "basic copying structure test" should "print the correct results" in {
-    val code = """
+	"basic copying structure test" should "print the correct results" in {
+		val code =
+			"""
 
       struct Test {
          const char *ptr;
@@ -526,11 +541,12 @@ class StructTest extends StandardTest {
 
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "advanced struct sizeof test" should "print the correct results" in {
-    val code = """
+	"advanced struct sizeof test" should "print the correct results" in {
+		val code =
+			"""
 
         struct slre_cap {
            int len;
@@ -570,11 +586,12 @@ class StructTest extends StandardTest {
         printf("%d\n", sizeof(test.flags));
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "setting a structure pointer equal to a pointer" should "print the correct results" in {
-    val code = """
+	"setting a structure pointer equal to a pointer" should "print the correct results" in {
+		val code =
+			"""
       
       struct Test {
         int y;
@@ -590,11 +607,12 @@ class StructTest extends StandardTest {
         printf("%d\n", head);
       }"""
 
-    checkResults(code)
-  }
-  
-  "moderate struct test" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"moderate struct test" should "print the correct results" in {
+		val code =
+			"""
       
       struct Test {
         int y;
@@ -608,11 +626,12 @@ class StructTest extends StandardTest {
         printf("%d %d\n", u.y, x.y);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "struct from function test" should "print the correct results" in {
-    val code = """
+	"struct from function test" should "print the correct results" in {
+		val code =
+			"""
 
       typedef struct Test {
         int y;
@@ -629,11 +648,12 @@ class StructTest extends StandardTest {
         printf("%d\n", x.y);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "advanced struct from function test" should "print the correct results" in {
-    val code = """
+	"advanced struct from function test" should "print the correct results" in {
+		val code =
+			"""
 
       typedef struct NestedTest {
          float z;
@@ -686,11 +706,12 @@ class StructTest extends StandardTest {
 
       }"""
 
-    checkResults(code)
-  }
-  
-  "struct test multiple members" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"struct test multiple members" should "print the correct results" in {
+		val code =
+			"""
       
       struct Test {
         int y;
@@ -704,11 +725,12 @@ class StructTest extends StandardTest {
         printf("%d %d\n", x.y, x.z);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "struct field offset test" should "not clobber" in {
-    val code = """
+	"struct field offset test" should "not clobber" in {
+		val code =
+			"""
 
      #include <stddef.h>
      #include <stdio.h>
@@ -739,11 +761,12 @@ class StructTest extends StandardTest {
                                 offsetof(struct Test, num_branches));
       }"""
 
-    checkResults(code, true)
-  }
+		checkResults(code, true)
+	}
 
-  "struct field clobbering test" should "not clobber" in {
-    val code = """
+	"struct field clobbering test" should "not clobber" in {
+		val code =
+			"""
       struct bracket_pair {
         const char *ptr;
       };
@@ -766,10 +789,8 @@ class StructTest extends StandardTest {
         printf("%d\n", x.brackets[0].ptr == string);
       }"""
 
-    checkResults(code, true)
-  }
+		checkResults(code, true)
+	}
 
 
-  
-  
 }

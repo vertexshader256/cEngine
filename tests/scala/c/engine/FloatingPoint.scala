@@ -2,9 +2,9 @@ package scala.c.engine
 
 class ExtremeFP extends StandardTest {
 
-  "extreme floating point" should "print the correct results" in {
-    val code =
-      """#include <stdio.h>
+	"extreme floating point" should "print the correct results" in {
+		val code =
+			"""#include <stdio.h>
 
       int main()
       {
@@ -36,45 +36,49 @@ class ExtremeFP extends StandardTest {
       return 0;
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class FloatingPoint extends StandardTest {
-  "A simple double initialized global reference" should "print the correct results" in {
-    val code = """
+	"A simple double initialized global reference" should "print the correct results" in {
+		val code =
+			"""
       double x = 1.5;
       void main() {
         printf("%.1f\n", x);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A simple double global reassignment" should "print the correct results" in {
-    val code = """
+	"A simple double global reassignment" should "print the correct results" in {
+		val code =
+			"""
       double x = 1.5;
       void main() {
         x = 3.45;
         printf("%f\n", x);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A simple uninitialized double global reassignment" should "print the correct results" in {
-    val code = """
+	"A simple uninitialized double global reassignment" should "print the correct results" in {
+		val code =
+			"""
       double x;
       void main() {
         x = 5.12;
         printf("%f\n", x);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A simple function returning a double" should "print the correct results" in {
-    val code = """
+	"A simple function returning a double" should "print the correct results" in {
+		val code =
+			"""
       double test() {
          return 4.34;
       }
@@ -83,15 +87,16 @@ class FloatingPoint extends StandardTest {
         printf("%f\n", x);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A simple expression with doubles" should "print the correct results" in {
-    val code = """
+	"A simple expression with doubles" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         printf("%f\n", 1.5 * 1.5);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }

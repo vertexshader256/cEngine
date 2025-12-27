@@ -1,18 +1,20 @@
 package scala.c.engine
 
 class SignTest extends StandardTest {
-  "unsigned test 1" should "print the correct results" in {
-    val code = """
+	"unsigned test 1" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         unsigned int x = 2147483647;
         printf("%d\n", x);
       }"""
 
-    checkResults(code)
-  }
-  
-  "a char signed corner case" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"a char signed corner case" should "print the correct results" in {
+		val code =
+			"""
       #include <stdio.h>
       #include <stddef.h>
 
@@ -47,17 +49,18 @@ class SignTest extends StandardTest {
 
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "unsigned test involving negatives" should "print the correct results" in {
-    val code = """
+	"unsigned test involving negatives" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         unsigned int x = -10;
         unsigned int y = 10 + x;
         printf("%d\n", y);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }

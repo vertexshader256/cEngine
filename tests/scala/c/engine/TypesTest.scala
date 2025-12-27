@@ -2,8 +2,9 @@ package scala.c.engine
 
 class TypesTest extends StandardTest {
 
-  "All types used as a boolean" should "print the correct results" in {
-    val code = """
+	"All types used as a boolean" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 2147483647;
         short y = 233;
@@ -68,11 +69,12 @@ class TypesTest extends StandardTest {
         }
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "Simple type test" should "print the correct results" in {
-    val code = """
+	"Simple type test" should "print the correct results" in {
+		val code =
+			"""
 
       typedef int customType;
 
@@ -83,11 +85,12 @@ class TypesTest extends StandardTest {
         printf("%d\n", x);
       }"""
 
-    checkResults(code)
-  }
-  
-  "chained type test" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"chained type test" should "print the correct results" in {
+		val code =
+			"""
 
       typedef int customType;
       typedef customType customType2;
@@ -101,11 +104,12 @@ class TypesTest extends StandardTest {
         printf("%d\n", x);
       }"""
 
-    checkResults(code)
-  }
-  
-  "struct type test" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"struct type test" should "print the correct results" in {
+		val code =
+			"""
 
       typedef struct {
         int y;
@@ -119,11 +123,12 @@ class TypesTest extends StandardTest {
         printf("%d %d\n", x.y, x.z);
       }"""
 
-    checkResults(code)
-  }
-  
-  "nested struct type test with typedefs" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"nested struct type test with typedefs" should "print the correct results" in {
+		val code =
+			"""
 
       typedef struct {
         int z;
@@ -141,11 +146,12 @@ class TypesTest extends StandardTest {
         printf("%d %d\n", x.x, x.y.z);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "deeply nested anonymous struct type test with inner array" should "print the correct results" in {
-    val code = """
+	"deeply nested anonymous struct type test with inner array" should "print the correct results" in {
+		val code =
+			"""
 
       typedef struct {
         struct {
@@ -167,6 +173,6 @@ class TypesTest extends StandardTest {
         printf("%d %d %f\n", x.y.x, x.y.y.x, x.y.y.y.y[4]);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }

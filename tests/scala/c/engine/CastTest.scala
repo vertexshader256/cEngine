@@ -1,8 +1,9 @@
 package scala.c.engine
 
 class CastTest extends StandardTest {
-  "A simple cast" should "print the correct results" in {
-    val code = """
+	"A simple cast" should "print the correct results" in {
+		val code =
+			"""
 
       long testLong() {
         return 1543543;
@@ -12,11 +13,12 @@ class CastTest extends StandardTest {
         printf("%f\n", (double)testLong());
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A simple cast from a bin expr" should "print the correct results" in {
-    val code = """
+	"A simple cast from a bin expr" should "print the correct results" in {
+		val code =
+			"""
 
       long testLong() {
         return 1543543;
@@ -32,11 +34,12 @@ class CastTest extends StandardTest {
         printf("%d\n", (long)(1.1f + 1.5f));
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A simple cast from a function call" should "print the correct results" in {
-    val code = """
+	"A simple cast from a function call" should "print the correct results" in {
+		val code =
+			"""
 
       long testLong() {
         return 1543543;
@@ -46,11 +49,12 @@ class CastTest extends StandardTest {
         printf("%f\n", (double)testLong());
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
 	"Robust casting for code coverage" should "print the correct results" in {
-		val code = """
+		val code =
+			"""
 
       void main() {
 			  double d = 1.45;

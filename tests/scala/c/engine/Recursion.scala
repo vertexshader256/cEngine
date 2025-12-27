@@ -1,8 +1,9 @@
 package scala.c.engine
 
 class Recursion extends StandardTest {
-  "Recursion test 1" should "print the correct results" in {
-    val code = """
+	"Recursion test 1" should "print the correct results" in {
+		val code =
+			"""
 
       int sums(int x) {
          if (x > 0) {
@@ -16,6 +17,6 @@ class Recursion extends StandardTest {
         printf("%d %d %d %d %d\n", sums(5), sums(4), sums(3), sums(2), sums(1));
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }

@@ -1,39 +1,41 @@
 package scala.c.engine
 
-class printf extends StandardTest {   
-//  "Different basic prints non bootstrapped" should "print the correct results" in {
-//    val code = """
-//      void main() {
-//        printf("Hello World!\n");
-//         printf("%s %s\n", "Hello", "World!");
-//         printf("%d\n", 1);
-//         printf("%s\n", "Hello World!");
-//         printf("%.2f\n", 1.47453);
-//         printf("%.1f\n", 1.47453);
-//         printf("%f\n", 1.5f);
-//         printf("\\n");
-//         printf("aa\r\nbb\r\ncc\r\n\r\n");
-//         printf("b.\\s*\\n");
-//      }"""
-//
-//    checkResults(code, false)
-//  }
-  
-  "printing a string with inline pointer arithmetic" should "print the correct results" in {
-    val code = """
+class printf extends StandardTest {
+	//  "Different basic prints non bootstrapped" should "print the correct results" in {
+	//    val code = """
+	//      void main() {
+	//        printf("Hello World!\n");
+	//         printf("%s %s\n", "Hello", "World!");
+	//         printf("%d\n", 1);
+	//         printf("%s\n", "Hello World!");
+	//         printf("%.2f\n", 1.47453);
+	//         printf("%.1f\n", 1.47453);
+	//         printf("%f\n", 1.5f);
+	//         printf("\\n");
+	//         printf("aa\r\nbb\r\ncc\r\n\r\n");
+	//         printf("b.\\s*\\n");
+	//      }"""
+	//
+	//    checkResults(code, false)
+	//  }
+
+	"printing a string with inline pointer arithmetic" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         char str[] = "Hello!\n";
         printf("%s", str);
         printf("%s", str + 1);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class printfCustom extends StandardTest {
-  "hello world with custom print function" should "print the correct results" in {
-    val code = """
+	"hello world with custom print function" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 101;
         printf("Hello World!\n");
@@ -50,6 +52,6 @@ class printfCustom extends StandardTest {
         printf("%s %c %d\n", "Just a test!", 'K', 378437);
       }"""
 
-    checkResults(code, true)
-  }
+		checkResults(code, true)
+	}
 }

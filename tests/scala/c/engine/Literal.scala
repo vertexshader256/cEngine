@@ -1,8 +1,9 @@
 package scala.c.engine
 
 class Literal extends StandardTest {
-  "a basic literal backslash test" should "print the correct results" in {
-    val code = """
+	"a basic literal backslash test" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         char *x = "tel:\\+(\\d+[\\d-]+\\d)";
         int i = 0;
@@ -15,11 +16,12 @@ class Literal extends StandardTest {
         printf("%s\n", x);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
 	"an integer suffix test" should "print the correct results" in {
-		val code = """
+		val code =
+			"""
       void main() {
         long long x = 9223372036854775807LL; // max value of a long long
 				long long y = 9223372036854775807ll; // max value of a long long
@@ -32,7 +34,8 @@ class Literal extends StandardTest {
 	}
 
 	"an floating point suffix test" should "print the correct results" in {
-		val code = """
+		val code =
+			"""
       void main() {
         float x = 23425234.45234f; // max value of a long long
 				float y = 43423.545345F; // max value of a long long
@@ -45,7 +48,8 @@ class Literal extends StandardTest {
 	}
 
 	"an unsigned long suffix test" should "print the correct results" in {
-		val code = """
+		val code =
+			"""
       void main() {
         unsigned long x = 4294967295UL; // max value of a unsigned long
 				unsigned long y = 43423UL; // max value of a long long
@@ -60,7 +64,8 @@ class Literal extends StandardTest {
 
 	// TODO: Try and figure out unsigned long long
 	"an unsigned long long suffix test" should "print the correct results" in {
-		val code = """
+		val code =
+			"""
       void main() {
 	 			//unsigned long long j = 18446744073709551615ULL; // max value of a long long
 		 		unsigned long long j = 23452345ULL;

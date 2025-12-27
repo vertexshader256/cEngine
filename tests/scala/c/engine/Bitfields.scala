@@ -1,8 +1,9 @@
 package scala.c.engine
 
 class BitfieldStagingArea extends StandardTest {
-  "A struct with bitfields" should "print the correct results" in {
-      val code = """
+	"A struct with bitfields" should "print the correct results" in {
+		val code =
+			"""
      struct {
         unsigned int x : 1;
         unsigned int y : 1;
@@ -13,11 +14,12 @@ class BitfieldStagingArea extends StandardTest {
         return 0;
      }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "reading from a trivial bitfield" should "print the correct results" in {
-    val code = """
+	"reading from a trivial bitfield" should "print the correct results" in {
+		val code =
+			"""
      #include <stdio.h>
 
      struct test
@@ -37,11 +39,12 @@ class BitfieldStagingArea extends StandardTest {
         return 0;
      }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "reading from a even less trivial bitfield" should "print the correct results" in {
-    val code = """
+	"reading from a even less trivial bitfield" should "print the correct results" in {
+		val code =
+			"""
      #include <stdio.h>
 
      struct test
@@ -61,11 +64,12 @@ class BitfieldStagingArea extends StandardTest {
         return 0;
      }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "Initializing bit fields with init list" should "print the correct results" in {
-    val code = """
+	"Initializing bit fields with init list" should "print the correct results" in {
+		val code =
+			"""
      #include <stdio.h>
 
      // A space optimized representation of date
@@ -88,6 +92,6 @@ class BitfieldStagingArea extends StandardTest {
         return 0;
      }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }

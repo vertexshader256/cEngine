@@ -1,8 +1,9 @@
 package scala.c.engine
 
-  class RadixSort extends StandardTest {
-    "radix sort test 1" should "print the correct results" in {
-      val code = """
+class RadixSort extends StandardTest {
+	"radix sort test 1" should "print the correct results" in {
+		val code =
+			"""
         //#include <stdio.h>
         #include <limits.h>
         //#include <stdlib.h>
@@ -65,13 +66,14 @@ package scala.c.engine
         	return 0;
         }
         """
-      checkResults(code)
-    }
-  }
+		checkResults(code)
+	}
+}
 
-  class BubbleSort extends StandardTest {
-    "bubble sort test 1" should "print the correct results" in {
-      val code = """
+class BubbleSort extends StandardTest {
+	"bubble sort test 1" should "print the correct results" in {
+		val code =
+			"""
         int main()
         {
           int array[5] = {7,4,0,2,6}, n = 5, c, d, swap;
@@ -95,13 +97,14 @@ package scala.c.engine
           return 0;
         }
         """
-      checkResults(code)
-    }
-  }
+		checkResults(code)
+	}
+}
 
 class InsertionSort extends StandardTest {
-  "insertion sort test 1" should "print the correct results" in {
-      val code = """
+	"insertion sort test 1" should "print the correct results" in {
+		val code =
+			"""
         void insertion_sort(int *a, int n) {
           int i = 0;
         	for(i = 1; i < n; ++i) {
@@ -124,15 +127,16 @@ class InsertionSort extends StandardTest {
             insertion_sort(a, n);
         }
         """
-      checkResults(code)
-    }
-  
+		checkResults(code)
+	}
+
 }
 
 class StrandSort extends StandardTest {
-  "strand sort test 1" should "print the correct results" in {
-    // http://rosettacode.org/wiki/Sorting_algorithms/Quicksort#C
-    val code = """
+	"strand sort test 1" should "print the correct results" in {
+		// http://rosettacode.org/wiki/Sorting_algorithms/Quicksort#C
+		val code =
+			"""
         #include <stdio.h>
 
         typedef struct node_t *node, node_t;
@@ -218,14 +222,15 @@ class StrandSort extends StandardTest {
 
         }
         """
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class QuickSort extends StandardTest {
-    "quick sort test 1" should "print the correct results" in {
-      // http://rosettacode.org/wiki/Sorting_algorithms/Quicksort#C
-      val code = """
+	"quick sort test 1" should "print the correct results" in {
+		// http://rosettacode.org/wiki/Sorting_algorithms/Quicksort#C
+		val code =
+			"""
         void quick_sort (int *a, int n) {
             int i, j, p, t;
             if (n < 2)
@@ -259,13 +264,14 @@ class QuickSort extends StandardTest {
             return 0;
         }
         """
-      checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class CycleSort extends StandardTest {
-    "cycle sort test 1" should "print the correct results" in {
-      val code = """
+	"cycle sort test 1" should "print the correct results" in {
+		val code =
+			"""
         #include <stdio.h>
         #include <stdlib.h>
 
@@ -363,14 +369,15 @@ class CycleSort extends StandardTest {
             return 0;
         }
         """
-      checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class BogoSort extends StandardTest {
-    "bogo sort test 1" should "print the correct results" in {
-      // http://rosettacode.org/wiki/Sorting_algorithms/Bogo_sort#C
-      val code = """
+	"bogo sort test 1" should "print the correct results" in {
+		// http://rosettacode.org/wiki/Sorting_algorithms/Bogo_sort#C
+		val code =
+			"""
         #include <stdbool.h>
         
         bool is_sorted(int *a, int n)
@@ -406,14 +413,15 @@ class BogoSort extends StandardTest {
           for (i=0; i < 6; i++) printf("%d\n", numbers[i]);
         }
         """
-      checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class BeadSort extends StandardTest {
-  "bead sort test 1" should "print the correct results" in {
-    // http://rosettacode.org/wiki/Sorting_algorithms/Circle_sort#C
-    val code = """
+	"bead sort test 1" should "print the correct results" in {
+		// http://rosettacode.org/wiki/Sorting_algorithms/Circle_sort#C
+		val code =
+			"""
         #include <stdio.h>
         #include <stdlib.h>
 
@@ -462,14 +470,15 @@ class BeadSort extends StandardTest {
        	  return 0;
        }
         """
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class CircleSort extends StandardTest {
-    "circle sort test 1" should "print the correct results" in {
-      // http://rosettacode.org/wiki/Sorting_algorithms/Circle_sort#C
-      val code = """
+	"circle sort test 1" should "print the correct results" in {
+		// http://rosettacode.org/wiki/Sorting_algorithms/Circle_sort#C
+		val code =
+			"""
         int circle_sort_inner(int *start, int *end)
         {
         	int *p, *q, t, swapped;
@@ -506,14 +515,15 @@ class CircleSort extends StandardTest {
         	return 0;
         }
         """
-      checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class MergeSort extends StandardTest {
-    "merge sort test 1" should "print the correct results" in {
-      // http://quiz.geeksforgeeks.org/merge-sort/
-      val code = """
+	"merge sort test 1" should "print the correct results" in {
+		// http://quiz.geeksforgeeks.org/merge-sort/
+		val code =
+			"""
         // Merges two subarrays of arr[].
         // First subarray is arr[l..m]
         // Second subarray is arr[m+1..r]
@@ -611,14 +621,15 @@ class MergeSort extends StandardTest {
             return 0;
         }
         """
-      checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class Heapsort extends StandardTest {
-    "heapsort test 1" should "print the correct results" in {
-      // https://rosettacode.org/wiki/Sorting_algorithms/Heapsort#C
-      val code = """
+	"heapsort test 1" should "print the correct results" in {
+		// https://rosettacode.org/wiki/Sorting_algorithms/Heapsort#C
+		val code =
+			"""
         int max (int *a, int n, int i, int j, int k) {
             int m = i;
             if (j < n && a[j] > a[m]) {
@@ -668,6 +679,6 @@ class Heapsort extends StandardTest {
             return 0;
         }
         """
-      checkResults(code)
-  }
+		checkResults(code)
+	}
 }

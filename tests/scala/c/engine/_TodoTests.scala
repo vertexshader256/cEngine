@@ -1,9 +1,5 @@
 package scala.c.engine
 
-import java.nio.file.Paths
-
-import scala.io.Source
-
 //class cjpegTest extends StandardTest {
 //  "cjpeg test" should "print the correct results" in {
 //

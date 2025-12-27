@@ -1,8 +1,9 @@
 package scala.c.engine
 
 class LinkedListTest extends StandardTest {
-  "Linked list test" should "print the correct results" in {
-    val code = """
+	"Linked list test" should "print the correct results" in {
+		val code =
+			"""
         #include <stdlib.h>
         #include <stdbool.h>
         
@@ -238,13 +239,14 @@ class LinkedListTest extends StandardTest {
         }
       
       """
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class ComplexTest extends StandardTest {
-  "Order of operations test 3" should "print the correct results" in {
-    val code = """
+	"Order of operations test 3" should "print the correct results" in {
+		val code =
+			"""
 
       double sq_root(double x)
       {
@@ -265,12 +267,13 @@ class ComplexTest extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
 
-  "Fast inverse squart root test" should "print the correct results" in {
-    val code = """float Q_rsqrt( float number )
+	"Fast inverse squart root test" should "print the correct results" in {
+		val code =
+			"""float Q_rsqrt( float number )
     {
     	long i;
     	float x2, y;
@@ -292,13 +295,13 @@ class ComplexTest extends StandardTest {
     }
     """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
 
-
-  "FNV1a test" should "print the correct results" in {
-    val code = """
+	"FNV1a test" should "print the correct results" in {
+		val code =
+			"""
 
       const unsigned int Prime = 0x01000193; //   16777619
       const unsigned int Seed  = 0x811C9DC5; // 2166136261
@@ -319,11 +322,12 @@ class ComplexTest extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "Kolakoski sequence" should "print the correct results" in {
-    val code = """
+	"Kolakoski sequence" should "print the correct results" in {
+		val code =
+			"""
        #define TRUE 1
        #define FALSE 0
 
@@ -408,11 +412,12 @@ class ComplexTest extends StandardTest {
        }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "knapsack problem" should "print the correct results" in {
-    val code = """
+	"knapsack problem" should "print the correct results" in {
+		val code =
+			"""
 
       typedef struct {
            char *name;
@@ -478,11 +483,12 @@ class ComplexTest extends StandardTest {
        }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "Palendrome test" should "print the correct results" in {
-    val code = """
+	"Palendrome test" should "print the correct results" in {
+		val code =
+			"""
 
       int palindrome(const char *s)
       {
@@ -505,13 +511,14 @@ class ComplexTest extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }  
+		checkResults(code)
+	}
 }
 
 class ChaocipherTest extends StandardTest {
-  "Chaocipher test" should "print the correct results" in {
-    val code = """
+	"Chaocipher test" should "print the correct results" in {
+		val code =
+			"""
 
       #include <stdio.h>
       #include <string.h>
@@ -583,14 +590,15 @@ class ChaocipherTest extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 // https://rosettacode.org/wiki/Farey_sequence#C
 class Farey2 extends StandardTest {
-  "panagram test2" should "print the correct results" in {
-    val code = """
+	"panagram test2" should "print the correct results" in {
+		val code =
+			"""
 
   #include <stdio.h>
   #include <stdlib.h>
@@ -654,13 +662,14 @@ class Farey2 extends StandardTest {
   }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class PanagramTest extends StandardTest {
-  "panagram test" should "print the correct results" in {
-    val code = """
+	"panagram test" should "print the correct results" in {
+		val code =
+			"""
 
       #include <stdio.h>
 
@@ -687,13 +696,14 @@ class PanagramTest extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class BaconCipherTest extends StandardTest {
-  "Bacon Cipher test" should "print the correct results" in {
-    val code = """
+	"Bacon Cipher test" should "print the correct results" in {
+		val code =
+			"""
 
       #include <ctype.h>
       #include <stdio.h>
@@ -808,13 +818,14 @@ class BaconCipherTest extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class CaesarCipherTest extends StandardTest {
-  "Caesar cipher" should "print the correct results" in {
-    val code = """
+	"Caesar cipher" should "print the correct results" in {
+		val code =
+			"""
 
       #include <ctype.h>
       #define caesar(x) rot(13, x)
@@ -850,13 +861,14 @@ class CaesarCipherTest extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }  
+		checkResults(code)
+	}
 }
-  
- class DJB2Test extends StandardTest {
-    "DJB2 test" should "print the correct results" in {
-      val code = """
+
+class DJB2Test extends StandardTest {
+	"DJB2 test" should "print the correct results" in {
+		val code =
+			"""
   
         unsigned long
         djb2(unsigned char *str)
@@ -877,14 +889,15 @@ class CaesarCipherTest extends StandardTest {
           printf("djb2 result %d\n", djb2(test));
         }
         """
-  
-      checkResults(code)
-    }
- }
+
+		checkResults(code)
+	}
+}
 
 class DuffsTest extends StandardTest {
-  "Duff device test" should "print the correct results" in {
-    val code = """
+	"Duff device test" should "print the correct results" in {
+		val code =
+			"""
 
         int send(short *to, short *from, int count)
         {
@@ -920,15 +933,16 @@ class DuffsTest extends StandardTest {
         }
         """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
 
 }
 
 class CarmichaelTest extends StandardTest {
-  "Carmichael test" should "print the correct results" in {
-    val code = """
+	"Carmichael test" should "print the correct results" in {
+		val code =
+			"""
     #include <stdio.h>
 
       /* C's % operator actually calculates the remainder of a / b so we need a
@@ -978,13 +992,14 @@ class CarmichaelTest extends StandardTest {
     return 0;
     }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class PerniciousTest extends StandardTest {
-  "Pernicious test" should "print the correct results" in {
-    val code = """
+	"Pernicious test" should "print the correct results" in {
+		val code =
+			"""
         #include <stdio.h>
 
         typedef unsigned uint;
@@ -1011,12 +1026,12 @@ class PerniciousTest extends StandardTest {
                 return 0;
         }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class ShortestCommonSubsequenceTest extends StandardTest2("Shortest common subsequence test",
-    """
+	"""
       typedef struct link link_t;
       struct link {
         int len;
@@ -1072,9 +1087,9 @@ class ShortestCommonSubsequenceTest extends StandardTest2("Shortest common subse
 )
 
 class CholskeyTest extends StandardTest {
-  "Cholskey decomp test" should "print the correct results" in {
-    val code =
-      """
+	"Cholskey decomp test" should "print the correct results" in {
+		val code =
+			"""
       #include <stdio.h>
       #include <stdlib.h>
       #include <math.h>
@@ -1136,14 +1151,14 @@ class CholskeyTest extends StandardTest {
         return 0;
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class AmicablePairsTest extends StandardTest {
-  "Amicable Pairs test" should "print the correct results" in {
-    val code =
-      """
+	"Amicable Pairs test" should "print the correct results" in {
+		val code =
+			"""
      #include <stdio.h>
      #include <stdlib.h>
 
@@ -1201,14 +1216,14 @@ class AmicablePairsTest extends StandardTest {
        return 0;
       }"""
 
-    checkResults(code, args = List("1500"))
-  }
+		checkResults(code, args = List("1500"))
+	}
 }
 
 class SimpsonIntegrationTest extends StandardTest {
-  "Simpson Integration test" should "print the correct results" in {
-    val code =
-      """
+	"Simpson Integration test" should "print the correct results" in {
+		val code =
+			"""
      #include <stdio.h>
      #include <math.h>
 
@@ -1251,6 +1266,6 @@ class SimpsonIntegrationTest extends StandardTest {
      }
     """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }

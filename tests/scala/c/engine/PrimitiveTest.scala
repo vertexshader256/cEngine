@@ -1,7 +1,7 @@
 package scala.c.engine
 
 class StagingAreaPrimitive extends StandardTest2("bool test",
-    """
+	"""
       #include <stdbool.h>
 
       void main() {
@@ -12,11 +12,11 @@ class StagingAreaPrimitive extends StandardTest2("bool test",
 
 class RobustPrimitiveTest extends StandardTest2("robust primitive test", {
 
-    val combo = List('a', 'b', 'e', 'f', 'g', 'h').combinations(2).toList
-    val perms = combo.flatMap{case List(x,y) => List((x,y),(y,x))}
-    val uniques = perms.toSet.toList
+	val combo = List('a', 'b', 'e', 'f', 'g', 'h').combinations(2).toList
+	val perms = combo.flatMap { case List(x, y) => List((x, y), (y, x)) }
+	val uniques = perms.toSet.toList
 
-    """
+	"""
        void main() {
         int x = 0;
         int a = 43;
@@ -28,7 +28,7 @@ class RobustPrimitiveTest extends StandardTest2("robust primitive test", {
         unsigned int g = 776;
         unsigned short h = 345;
 
-        """ + uniques.map{case (x,y) => s"""
+        """ + uniques.map { case (x, y) => s"""
               $x += $y;
               $x -= $y;
               $x *= $y;
@@ -38,7 +38,8 @@ class RobustPrimitiveTest extends StandardTest2("robust primitive test", {
               $x >= $y;
               printf("%d\\n", $x);
              """
-    }.reduce(_ + "\n" + _) ++ List('a', 'b', 'e', 'f').map{ x => s"""
+	}.reduce(_ + "\n" + _) ++ List('a', 'b', 'e', 'f').map { x =>
+		s"""
               $x = 0;
               $x = $x + 2;
               $x = $x - 1;
@@ -48,7 +49,8 @@ class RobustPrimitiveTest extends StandardTest2("robust primitive test", {
               $x += 2;
 
             printf("%d\\n", $x);"""
-    }.reduce(_ + "\n" + _) ++ List('c', 'd').map{ x => s"""
+	}.reduce(_ + "\n" + _) ++ List('c', 'd').map { x =>
+		s"""
             $x = 0;
             $x = $x + 2.0;
             $x = $x - 1.0;
@@ -56,12 +58,12 @@ class RobustPrimitiveTest extends StandardTest2("robust primitive test", {
             $x *= 5.0;
 
             printf("%f\\n", $x);"""
-    }.reduce(_ + "\n" + _) + "}"
+	}.reduce(_ + "\n" + _) + "}"
 })
 
 class IntegerPromotions extends StandardTest2("Character promotion",
-    // https://www.tutorialspoint.com/c_standard_library/limits_h.htm
-    """
+	// https://www.tutorialspoint.com/c_standard_library/limits_h.htm
+	"""
 
       int main() {
          char cresult, c1, c2, c3;
@@ -76,7 +78,7 @@ class IntegerPromotions extends StandardTest2("Character promotion",
 )
 
 class SizeOfTest extends StandardTest2("A sizeof call on an different typed variables",
-  """
+	"""
       void main() {
         int x;
         double y;
@@ -90,7 +92,7 @@ class SizeOfTest extends StandardTest2("A sizeof call on an different typed vari
 )
 
 class SizeOfTest2 extends StandardTest2("A variable self reference using sizeof",
- """
+	"""
       void main() {
         int blah = sizeof(blah);
         int *blah2 = malloc(sizeof(*blah2));
@@ -99,7 +101,7 @@ class SizeOfTest2 extends StandardTest2("A variable self reference using sizeof"
 )
 
 class SizeOfTest3 extends StandardTest2("A sizeof call on raw types",
-  """
+	"""
       void main() {
         printf("%d %d %d %d %d %d %d %d %d\n", sizeof(int), sizeof(double), sizeof(short),
                                       sizeof(float), sizeof(char), sizeof(long), sizeof(long long),
@@ -108,7 +110,7 @@ class SizeOfTest3 extends StandardTest2("A sizeof call on raw types",
 )
 
 class SizeOfTest4 extends StandardTest2("A sizeof call on an array type",
-    """
+	"""
       void main() {
         int x[5];
         char y[5];
@@ -118,7 +120,7 @@ class SizeOfTest4 extends StandardTest2("A sizeof call on an array type",
 )
 
 class SizeOfTest5 extends StandardTest2("A sizeof call on an array element",
-    """
+	"""
       void main() {
         int a[5];
         char b[5];
@@ -133,7 +135,7 @@ class SizeOfTest5 extends StandardTest2("A sizeof call on an array element",
 )
 
 class SizeOfTest6 extends StandardTest2("A sizeof call on a pointer element",
-    """
+	"""
       void main() {
         int *a;
         char *b;
@@ -148,7 +150,7 @@ class SizeOfTest6 extends StandardTest2("A sizeof call on a pointer element",
 )
 
 class SizeOfTest7 extends StandardTest2("A sizeof call on an array of shorts",
-    """
+	"""
       void main() {
         short x[5] = {1,2,3,4,5};
         printf("%d\n", sizeof(x) / sizeof(x[0]));
@@ -156,7 +158,7 @@ class SizeOfTest7 extends StandardTest2("A sizeof call on an array of shorts",
 )
 
 class SizeOfTest8 extends StandardTest2("A sizeof call on a field",
-    """
+	"""
       void main() {
          struct regex_info {
            int brackets[100];
@@ -168,7 +170,7 @@ class SizeOfTest8 extends StandardTest2("A sizeof call on a field",
 )
 
 class SizeOfTest9 extends StandardTest2("A sizeof call on a pointer to array variable",
-    """
+	"""
        int main()
        {
            int a[][3] = {1, 2, 3, 4, 5, 6};
@@ -178,7 +180,7 @@ class SizeOfTest9 extends StandardTest2("A sizeof call on a pointer to array var
 )
 
 class SizeOfTest10 extends StandardTest2("A sizeof on a 2d array variable",
-    """
+	"""
        int main()
        {
            int a[2][3] = {1, 2, 3, 4, 5, 6};
@@ -188,7 +190,7 @@ class SizeOfTest10 extends StandardTest2("A sizeof on a 2d array variable",
 )
 
 class SizeOfTest11 extends StandardTest2("A sizeof call on an uninitialized pointer to array variable 2",
-    """
+	"""
        int main()
        {
            int (*ptr)[3];
@@ -197,7 +199,7 @@ class SizeOfTest11 extends StandardTest2("A sizeof call on an uninitialized poin
 )
 
 class SizeOfTest12 extends StandardTest2("array typedefs",
-      """
+	"""
       void main() {
 
          typedef int Test[10];
@@ -214,7 +216,7 @@ class SizeOfTest12 extends StandardTest2("array typedefs",
 )
 
 class RolloverTest extends StandardTest2("char rollover test",
-    """
+	"""
       void main() {
         char x = 128;
         char xplusone = 128 + 1;
@@ -229,7 +231,7 @@ class RolloverTest extends StandardTest2("char rollover test",
 )
 
 class RolloverTest2 extends StandardTest2("short rollover test",
-    """
+	"""
       void main() {
         short x = 32767;
         short xplusone = 32767 + 1;
@@ -244,7 +246,7 @@ class RolloverTest2 extends StandardTest2("short rollover test",
 )
 
 class CharTest extends StandardTest2("char test",
-    """
+	"""
       void main() {
         char x = 'd';
         int y = 16;
@@ -257,7 +259,7 @@ class CharTest extends StandardTest2("char test",
 )
 
 class HexTest extends StandardTest2("hex test",
-    """
+	"""
       void main() {
         int x = 0xFFFFFFFF;
         int i  = 0x5f3759df - ( x >> 1 );
@@ -266,7 +268,7 @@ class HexTest extends StandardTest2("hex test",
 )
 
 class ShortTest extends StandardTest2("short test",
-    """
+	"""
       void main() {
         short x = 32767;
         printf("%d\n", x);
@@ -274,7 +276,7 @@ class ShortTest extends StandardTest2("short test",
 )
 
 class ShortOverFlowTest extends StandardTest2("short overflow test",
-    """
+	"""
       void main() {
         short x = 1000000;
         printf("%d\n", x);
@@ -282,7 +284,7 @@ class ShortOverFlowTest extends StandardTest2("short overflow test",
 )
 
 class UnsignedCharTest extends StandardTest2("unsigned char test",
-    """
+	"""
 
       int test(unsigned char oneByte)
       {
@@ -297,7 +299,7 @@ class UnsignedCharTest extends StandardTest2("unsigned char test",
 )
 
 class PrimitiveTest5 extends StandardTest2("unsigned char array and clobbering test on unsigned types using unary expressions",
-    """
+	"""
 
       void main()
       {
@@ -326,7 +328,7 @@ class PrimitiveTest5 extends StandardTest2("unsigned char array and clobbering t
 )
 
 class PrimitiveTest6 extends StandardTest2("char ptr initialized to string",
-    """
+	"""
       void main()
       {
         char *test = "TestString";
@@ -336,7 +338,7 @@ class PrimitiveTest6 extends StandardTest2("char ptr initialized to string",
 )
 
 class PrimitiveTest7 extends StandardTest2("unsigned types as function arguments",
-    """
+	"""
 
       int intTest(unsigned int data)
       {

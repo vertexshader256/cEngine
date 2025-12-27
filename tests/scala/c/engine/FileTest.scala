@@ -1,18 +1,18 @@
 package scala.c.engine
 
-import java.io.{BufferedWriter, File, FileWriter}
-import java.nio.file.Paths
+import java.io.File
 
 class FileTest extends StandardTest {
 
-  "file test" should "print the correct results" in {
+	"file test" should "print the correct results" in {
 
-    import java.io._
-    val pw = new PrintWriter(new File("file.txt" ))
-    pw.write("Hello world!\n")
-    pw.close
+		import java.io.*
+		val pw = new PrintWriter(new File("file.txt"))
+		pw.write("Hello world!\n")
+		pw.close
 
-    val code = """
+		val code =
+			"""
 
       #include <stdio.h>
 
@@ -31,15 +31,16 @@ class FileTest extends StandardTest {
         printf("%s", buffer);
       }"""
 
-    checkResults(code).map{result =>
-      new File("file.txt" ).delete()
-      result
-    }
-  }
+		checkResults(code).map { result =>
+			new File("file.txt").delete()
+			result
+		}
+	}
 
-  "create file test" should "print the correct results" in {
+	"create file test" should "print the correct results" in {
 
-    val code = """
+		val code =
+			"""
 
       #include <stdio.h>
 
@@ -57,15 +58,16 @@ class FileTest extends StandardTest {
 
       }"""
 
-    checkResults(code).map{result =>
-      new File("passwd.txt" ).delete()
-      result
-    }
-  }
+		checkResults(code).map { result =>
+			new File("passwd.txt").delete()
+			result
+		}
+	}
 
 	"file which doesnt exist" should "print the correct results" in {
 
-		val code = """
+		val code =
+			"""
       #include <stdio.h>
 
       void main() {
@@ -79,18 +81,20 @@ class FileTest extends StandardTest {
 		checkResults(code)
 	}
 
-  "file existence check" should "print the correct results" in {
+	"file existence check" should "print the correct results" in {
 
-    import java.util.UUID.randomUUID
-    val rand = randomUUID.toString.take(8)
-    val rand2 = randomUUID.toString.take(8)
+		import java.util.UUID.randomUUID
+		val rand = randomUUID.toString.take(8)
+		val rand2 = randomUUID.toString.take(8)
 
-    val code = """
+		val code =
+			"""
 
       #include <stdio.h>
 
       void main() {
-          FILE *nothere = fopen("""" + rand + """.txt", "r");
+          FILE *nothere = fopen("""" + rand +
+				""".txt", "r");
 
           if (!nothere) {
             printf("NOT HERE\n");
@@ -98,7 +102,8 @@ class FileTest extends StandardTest {
             printf("HERE\n");
           }
 
-          FILE *nothere2 = fopen("""" + rand2 + """.txt", "w");
+          FILE *nothere2 = fopen("""" + rand2 +
+				""".txt", "w");
 
           if (!nothere2) {
             printf("NOT HERE\n");
@@ -106,12 +111,13 @@ class FileTest extends StandardTest {
             printf("HERE\n");
           }
 
-          remove("""" + rand2 + """.txt");
+          remove("""" + rand2 +
+				""".txt");
 
       }"""
 
-    checkResults(code).map{result =>
-      result
-    }
-  }
+		checkResults(code).map { result =>
+			result
+		}
+	}
 }

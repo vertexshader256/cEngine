@@ -1,8 +1,9 @@
 package scala.c.engine
 
 class ForLooptestStaging extends StandardTest {
-  "A for loop with a continue and a loop in the second case" should "print the correct results" in {
-    val code = """
+	"A for loop with a continue and a loop in the second case" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 0;
         int i = 0;
@@ -25,12 +26,12 @@ class ForLooptestStaging extends StandardTest {
         //printf("%d\n", x);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class c99ForLoopTest extends StandardTest2("c99 for loop",
-  """
+	"""
       int main(void)
       {
          for (int i = 5; i--; ) {
@@ -41,8 +42,9 @@ class c99ForLoopTest extends StandardTest2("c99 for loop",
 )
 
 class ForLooptest extends StandardTest {
-  "A simple for loop" should "print the correct results" in {
-    val code = """
+	"A simple for loop" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 0;
         int i = 0;
@@ -53,11 +55,12 @@ class ForLooptest extends StandardTest {
         printf("%d\n", x);
       }"""
 
-    checkResults(code)
-  }
-  
-  "A for loop with multiple post expr" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A for loop with multiple post expr" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int i = 0;
         int j = 0;
@@ -67,11 +70,12 @@ class ForLooptest extends StandardTest {
         }
       }"""
 
-    checkResults(code)
-  }
-  
-  "A for loop without an expression" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A for loop without an expression" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int j = 0;
         int max = 24;
@@ -79,11 +83,12 @@ class ForLooptest extends StandardTest {
         printf("%d\n", j);
       }"""
 
-    checkResults(code)
-  }
-  
-  "A for loop without a stopping point" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A for loop without a stopping point" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int i = 0;
         int j = 0;
@@ -97,11 +102,12 @@ class ForLooptest extends StandardTest {
         }
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A for loop that never enters" should "print the correct results" in {
-    val code = """
+	"A for loop that never enters" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int i = 0;
         for (i = 5; i < 5; i++) {
@@ -111,11 +117,12 @@ class ForLooptest extends StandardTest {
         printf("Done!\n");
       }"""
 
-    checkResults(code)
-  }
-  
-  "A little more advanced for loop" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A little more advanced for loop" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 0;
         int i = 0;
@@ -126,11 +133,12 @@ class ForLooptest extends StandardTest {
         printf("%d\n", x);
       }"""
 
-    checkResults(code)
-  }
-  
-  "two loops with a continue" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"two loops with a continue" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 0;
         int i = 0;
@@ -150,11 +158,12 @@ class ForLooptest extends StandardTest {
         printf("%d\n", x);
       }"""
 
-    checkResults(code)
-  }
-  
-  "A for loop with a break" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A for loop with a break" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 0;
         int i = 0;
@@ -169,11 +178,12 @@ class ForLooptest extends StandardTest {
         printf("%d\n", x);
       }"""
 
-    checkResults(code)
-  }
-  
-  "A for loop with a function call" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A for loop with a function call" should "print the correct results" in {
+		val code =
+			"""
       
       int blah = 0;
       
@@ -190,11 +200,12 @@ class ForLooptest extends StandardTest {
         printf("%d\n", blah);
       }"""
 
-    checkResults(code)
-  }
-  
-  "A for loop setting an array" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A for loop setting an array" should "print the correct results" in {
+		val code =
+			"""
 
       void main() {
         int x[5];
@@ -206,6 +217,6 @@ class ForLooptest extends StandardTest {
         printf("%d\n", x[3]);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }

@@ -2,7 +2,7 @@ package scala.c.engine
 
 
 class EnumTypedefArithmetic extends StandardTest2("Enum Typedef Arithmetic",
-  """
+	"""
       typedef enum { ENCRYPT, DECRYPT } cmode;
 
       int main()
@@ -16,9 +16,9 @@ class EnumTypedefArithmetic extends StandardTest2("Enum Typedef Arithmetic",
 
 class EnumTest extends StandardTest {
 
-  "A simple enum" should "print the correct results" in {
-    val code =
-      """
+	"A simple enum" should "print the correct results" in {
+		val code =
+			"""
 
       enum { TEST = 1 };
 
@@ -26,12 +26,12 @@ class EnumTest extends StandardTest {
         printf("%d\n", TEST);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "An advanced enum" should "print the correct results" in {
-    val code =
-      """
+	"An advanced enum" should "print the correct results" in {
+		val code =
+			"""
 
       enum {
          TE_VARIABLE,
@@ -54,6 +54,6 @@ class EnumTest extends StandardTest {
         printf("%d\n", TE_CLOSURE6);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }

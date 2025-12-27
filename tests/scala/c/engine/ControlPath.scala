@@ -2,8 +2,9 @@ package scala.c.engine
 
 class SwitchStatement extends StandardTest {
 
-  "A simple local variable reassignment after a switch statement" should "print the correct results" in {
-    val code = """
+	"A simple local variable reassignment after a switch statement" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 10;
         switch(x) {
@@ -15,11 +16,12 @@ class SwitchStatement extends StandardTest {
         printf("%d\n", x);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "referencing a nested variable from a do..while" should "print the correct results" in {
-    val code = """
+	"referencing a nested variable from a do..while" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int j = 10;
         if (1) {
@@ -32,11 +34,12 @@ class SwitchStatement extends StandardTest {
         }
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A switch statement" should "print the correct results" in {
-    val code = """
+	"A switch statement" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 2;
         switch(x) {
@@ -66,11 +69,12 @@ class SwitchStatement extends StandardTest {
          
       }"""
 
-    checkResults(code)
-  }
-  
-  "A switch statement with a pointer to char" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A switch statement with a pointer to char" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         char x = 'a';
         char *ptr = &x;
@@ -88,11 +92,12 @@ class SwitchStatement extends StandardTest {
 
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A switch statement with a pointer to char which hits default" should "print the correct results" in {
-    val code = """
+	"A switch statement with a pointer to char which hits default" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         unsigned char x = 'a';
         unsigned char *ptr = &x;
@@ -110,11 +115,12 @@ class SwitchStatement extends StandardTest {
 
       }"""
 
-    checkResults(code)
-  }
-  
-  "A switch statement with fallthrough" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A switch statement with fallthrough" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 3;
         switch(x) {
@@ -128,11 +134,12 @@ class SwitchStatement extends StandardTest {
         }
       }"""
 
-    checkResults(code)
-  }
-  
-  "A switch statement hitting default value" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A switch statement hitting default value" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 300;
         switch(x) {
@@ -148,11 +155,12 @@ class SwitchStatement extends StandardTest {
         }
       }"""
 
-    checkResults(code)
-  }
-  
-  "A nested switch statement" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A nested switch statement" should "print the correct results" in {
+		val code =
+			"""
       void main() {
          int a = 100;
          int b = 400;
@@ -176,11 +184,12 @@ class SwitchStatement extends StandardTest {
          }         
       }"""
 
-    checkResults(code)
-  }
-  
-  "A nested switch statement 2" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A nested switch statement 2" should "print the correct results" in {
+		val code =
+			"""
       void main() {
          int a = 300;
          int b = 200;
@@ -197,11 +206,12 @@ class SwitchStatement extends StandardTest {
          }         
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A switch with a continue statement" should "print the correct results" in {
-    val code = """
+	"A switch with a continue statement" should "print the correct results" in {
+		val code =
+			"""
       void main() {
          int a = 300;
          int b = 200;
@@ -218,11 +228,12 @@ class SwitchStatement extends StandardTest {
          }
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A switch that doesnt match" should "print the correct results" in {
-    val code = """
+	"A switch that doesnt match" should "print the correct results" in {
+		val code =
+			"""
       void main() {
          int a = 500;
 
@@ -238,11 +249,12 @@ class SwitchStatement extends StandardTest {
          printf("Done!\n");
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A switch with a goto statement" should "print the correct results" in {
-    val code = """
+	"A switch with a goto statement" should "print the correct results" in {
+		val code =
+			"""
       void main() {
          int a = 300;
          int b = 200;
@@ -263,13 +275,14 @@ class SwitchStatement extends StandardTest {
          }
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class DoWhileStatement extends StandardTest {
-  "A simple do..while statement" should "print the correct results" in {
-    val code = """
+	"A simple do..while statement" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 0;
         do {
@@ -278,11 +291,12 @@ class DoWhileStatement extends StandardTest {
         printf("%d\n", x);
       }"""
 
-    checkResults(code)
-  }
-  
-  "An immediately exited do..while statement" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"An immediately exited do..while statement" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 0;
         do {
@@ -291,11 +305,12 @@ class DoWhileStatement extends StandardTest {
         printf("%d\n", x);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "An do..while with a break" should "print the correct results" in {
-    val code = """
+	"An do..while with a break" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 0;
         do {
@@ -307,11 +322,12 @@ class DoWhileStatement extends StandardTest {
         printf("%d\n", x);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "An do..while with a continue" should "print the correct results" in {
-    val code = """
+	"An do..while with a continue" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 0;
         do {
@@ -324,13 +340,14 @@ class DoWhileStatement extends StandardTest {
 
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class WhileStatement extends StandardTest {
-  "A simple while statement" should "print the correct results" in {
-    val code = """
+	"A simple while statement" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 0;
         while (x < 10) {
@@ -339,11 +356,12 @@ class WhileStatement extends StandardTest {
         printf("%d\n", x);
       }"""
 
-    checkResults(code)
-  }
-  
-  "A simple while statement reading from struct" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A simple while statement reading from struct" should "print the correct results" in {
+		val code =
+			"""
       
       struct Test {
         int value;
@@ -357,11 +375,12 @@ class WhileStatement extends StandardTest {
         }
       }"""
 
-    checkResults(code)
-  }
-  
-  "robust while loop test" should "print the correct results" in {
-      val code = """
+		checkResults(code)
+	}
+
+	"robust while loop test" should "print the correct results" in {
+		val code =
+			"""
        void main() {
         int x = 0;
         int a = 0;
@@ -370,7 +389,8 @@ class WhileStatement extends StandardTest {
         double d = 0.0;
         long e = 0;
         short f = 0;
-        """ + List('a', 'b', 'e', 'f').map{ x => s"""
+        """ + List('a', 'b', 'e', 'f').map { x =>
+				s"""
             x = 0;
             while ($x < 10) {
               $x = $x + 1;
@@ -378,7 +398,8 @@ class WhileStatement extends StandardTest {
             }
             
             printf("%d\\n", x);"""
-          }.reduce(_ + "\n" + _) ++ List('c', 'd').map{ x => s"""
+			}.reduce(_ + "\n" + _) ++ List('c', 'd').map { x =>
+				s"""
             x = 0;
             while ($x < 10.0) {
               $x = $x + 1.0;
@@ -386,12 +407,13 @@ class WhileStatement extends StandardTest {
             }
             
             printf("%d\\n", x);"""
-          }.reduce(_ + "\n" + _) + "}"
-      checkResults(code)
-    }
-  
-  "A simple while statement with a break" should "print the correct results" in {
-    val code = """
+			}.reduce(_ + "\n" + _) + "}"
+		checkResults(code)
+	}
+
+	"A simple while statement with a break" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 0;
         while (1) {
@@ -401,11 +423,12 @@ class WhileStatement extends StandardTest {
         printf("%d\n", x);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A simple while statement with a continue" should "print the correct results" in {
-    val code = """
+	"A simple while statement with a continue" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 0;
         while (1) {
@@ -420,11 +443,12 @@ class WhileStatement extends StandardTest {
         printf("%d\n", x);
       }"""
 
-    checkResults(code)
-  }
-  
-  "Nested while statements with break" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"Nested while statements with break" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 0;
         while (1) {
@@ -438,24 +462,26 @@ class WhileStatement extends StandardTest {
         printf("%d\n", x);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class TernaryTest extends StandardTest {
-  "A simple ternary expression" should "print the correct results" in {
-    val code = """
+	"A simple ternary expression" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 5 == 5 ? 3 : 1;
         int y = 5 > 6 ? 3 : 1;
         printf("%d %d\n", x, y);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A nested ternary expression" should "print the correct results" in {
-    val code = """
+	"A nested ternary expression" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 5 == 5 ? 2 : 4 == 4 ? 2 : 1;
         int y = 5 == 5 ? 2 : 4 == 5 ? 2 : 1;
@@ -463,15 +489,15 @@ class TernaryTest extends StandardTest {
         printf("%d %d %d\n", x, y, z);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
 }
 
 class GotoStatement extends StandardTest {
-  "A backward goto statement" should "print the correct results" in {
-    val code =
-      """
+	"A backward goto statement" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 0;
         printf("1\n");
@@ -486,12 +512,12 @@ class GotoStatement extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A forward goto statement" should "print the correct results" in {
-    val code =
-      """
+	"A forward goto statement" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 0;
         printf("1\n");
@@ -509,12 +535,12 @@ class GotoStatement extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A goto into a do while loop" should "print the correct results" in {
-    val code =
-      """
+	"A goto into a do while loop" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 0;
         printf("1\n");
@@ -528,12 +554,12 @@ class GotoStatement extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A goto into a while loop" should "print the correct results" in {
-    val code =
-      """
+	"A goto into a while loop" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 0;
         printf("1\n");
@@ -547,12 +573,12 @@ class GotoStatement extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A goto into a for loop" should "print the correct results" in {
-    val code =
-      """
+	"A goto into a for loop" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 0;
         int i = 0;
@@ -567,13 +593,14 @@ class GotoStatement extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class IfStatement extends StandardTest {
-  "A simple if statement with true literal" should "print the correct results" in {
-    val code = """
+	"A simple if statement with true literal" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         if (1) {
           printf("1\n");
@@ -582,11 +609,12 @@ class IfStatement extends StandardTest {
         }
       }"""
 
-    checkResults(code)
-  }
-  
-  "A simple false if statement without an ELSE statement" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A simple false if statement without an ELSE statement" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         if (0) {
           printf("1\n");
@@ -595,11 +623,12 @@ class IfStatement extends StandardTest {
         printf("Done!\n");
       }"""
 
-    checkResults(code)
-  }
-  
-  "A BREAK within a nested IF statement within a WHILE" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A BREAK within a nested IF statement within a WHILE" should "print the correct results" in {
+		val code =
+			"""
       void main() {
       int x = 0;
         while (1) {
@@ -611,11 +640,12 @@ class IfStatement extends StandardTest {
         }
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A simple if statement with false literal" should "print the correct results" in {
-    val code = """
+	"A simple if statement with false literal" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         if (0) {
           printf("1\n");
@@ -624,11 +654,12 @@ class IfStatement extends StandardTest {
         }
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A simple if statement with false variable" should "print the correct results" in {
-    val code = """
+	"A simple if statement with false variable" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 1;
         if (x) {
@@ -638,11 +669,12 @@ class IfStatement extends StandardTest {
         }
       }"""
 
-    checkResults(code)
-  }
-  
-  "A simple if statement with many ELSE IF statements" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A simple if statement with many ELSE IF statements" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x;
         for (x = 0; x < 8; x++) {
@@ -666,11 +698,12 @@ class IfStatement extends StandardTest {
         }
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A simple if statement with boolean variable" should "print the correct results" in {
-    val code = """
+	"A simple if statement with boolean variable" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 1 == 2;
         if (x) {
@@ -680,9 +713,10 @@ class IfStatement extends StandardTest {
         }
       }"""
 
-    checkResults(code)
+		checkResults(code)
 
-    val code2 = """
+		val code2 =
+			"""
       void main() {
         int x = 2 == 2;
         if (x) {
@@ -692,11 +726,12 @@ class IfStatement extends StandardTest {
         }
       }"""
 
-    checkResults(code2)
-  }
+		checkResults(code2)
+	}
 
-  "A simple if statement with false binary comparison" should "print the correct results" in {
-    val code = """
+	"A simple if statement with false binary comparison" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         int x = 5;
         if (x == 5) {
@@ -706,9 +741,10 @@ class IfStatement extends StandardTest {
         }
       }"""
 
-    checkResults(code)
+		checkResults(code)
 
-    val code2 = """
+		val code2 =
+			"""
       void main() {
         int x = 4;
         if (x == 5) {
@@ -718,11 +754,12 @@ class IfStatement extends StandardTest {
         }
       }"""
 
-    checkResults(code2)
-  }
+		checkResults(code2)
+	}
 
-  "simple nested if statements" should "print the correct results" in {
-    val code = """
+	"simple nested if statements" should "print the correct results" in {
+		val code =
+			"""
       void main() {
         if (1) {
           if (0) {
@@ -735,6 +772,6 @@ class IfStatement extends StandardTest {
         }
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }

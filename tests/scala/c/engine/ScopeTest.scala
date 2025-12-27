@@ -1,8 +1,9 @@
 package scala.c.engine
 
 class ScopeTest extends StandardTest {
-  "Two variables of the same name but different scope" should "print the correct results" in {
-    val code = """
+	"Two variables of the same name but different scope" should "print the correct results" in {
+		val code =
+			"""
 
       void test()
       {
@@ -18,11 +19,12 @@ class ScopeTest extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "scope of a block" should "print the correct results" in {
-    val code = """
+	"scope of a block" should "print the correct results" in {
+		val code =
+			"""
 
       void main()
       {
@@ -35,11 +37,12 @@ class ScopeTest extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "scope of a if statement" should "print the correct results" in {
-    val code = """
+	"scope of a if statement" should "print the correct results" in {
+		val code =
+			"""
 
       int x = 5;
 
@@ -53,11 +56,12 @@ class ScopeTest extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "scope of a else statement" should "print the correct results" in {
-    val code = """
+	"scope of a else statement" should "print the correct results" in {
+		val code =
+			"""
 
       int x = 6;
 
@@ -74,11 +78,12 @@ class ScopeTest extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "scope of a for statement" should "print the correct results" in {
-    val code = """
+	"scope of a for statement" should "print the correct results" in {
+		val code =
+			"""
 
       int x = 6;
 
@@ -93,11 +98,12 @@ class ScopeTest extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "scope of a while statement" should "print the correct results" in {
-    val code = """
+	"scope of a while statement" should "print the correct results" in {
+		val code =
+			"""
 
       int x = 6;
 
@@ -113,11 +119,12 @@ class ScopeTest extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "scope of a do while statement" should "print the correct results" in {
-    val code = """
+	"scope of a do while statement" should "print the correct results" in {
+		val code =
+			"""
 
       int x = 6;
 
@@ -133,11 +140,12 @@ class ScopeTest extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "function-scoped static vars" should "print the correct results" in {
-    val code = """
+	"function-scoped static vars" should "print the correct results" in {
+		val code =
+			"""
 
       void test()
       {
@@ -155,11 +163,12 @@ class ScopeTest extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "function-scoped static string vars" should "print the correct results" in {
-    val code = """
+	"function-scoped static string vars" should "print the correct results" in {
+		val code =
+			"""
 
       int test() {
         static char *metacharacters = "^$().[]*+?|\\Ssdbfnrtv";
@@ -175,13 +184,13 @@ class ScopeTest extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
 
-
-  "function-scoped unitialized static vars" should "print the correct results" in {
-    val code = """
+	"function-scoped unitialized static vars" should "print the correct results" in {
+		val code =
+			"""
 
       void test(int z)
       {
@@ -203,11 +212,12 @@ class ScopeTest extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "function-scoped static vars overriding global" should "print the correct results" in {
-    val code = """
+	"function-scoped static vars overriding global" should "print the correct results" in {
+		val code =
+			"""
 
       int x = 45;
 
@@ -226,8 +236,8 @@ class ScopeTest extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
 
 }

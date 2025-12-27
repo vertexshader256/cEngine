@@ -1,8 +1,9 @@
 package scala.c.engine
 
 class ObsfucationTest extends StandardTest {
-  "obsfucation 1" should "print the correct results" in {
-    val code = """
+	"obsfucation 1" should "print the correct results" in {
+		val code =
+			"""
 
       #include <stdio.h>
       void main() {
@@ -19,13 +20,13 @@ class ObsfucationTest extends StandardTest {
      printf("%s\n", (char*)x);
  }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
 
-
-  "obsfucation 2" should "print the correct results" in {
-    val code = """
+	"obsfucation 2" should "print the correct results" in {
+		val code =
+			"""
    #define u unsigned char
    #define v while(*x)
    #define z(x) putchar(*x);
@@ -41,11 +42,12 @@ class ObsfucationTest extends StandardTest {
    x)p(x)y(x)z(x)free(l);}
    """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "obsfucation 3" should "print the correct results" in {
-    val code = """
+	"obsfucation 3" should "print the correct results" in {
+		val code =
+			"""
         #include <stdio.h>
         #include <stdint.h>
 
@@ -68,6 +70,6 @@ class ObsfucationTest extends StandardTest {
         }
    """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }

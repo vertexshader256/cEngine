@@ -2,8 +2,9 @@ package scala.c.engine
 
 class UnionTestStaging extends StandardTest {
 
-  "union struct" should "print the correct results" in {
-    val code = """
+	"union struct" should "print the correct results" in {
+		val code =
+			"""
 
       union Test {
         int y;
@@ -16,11 +17,12 @@ class UnionTestStaging extends StandardTest {
         printf("%f %d\n", test.x, test.y);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "union struct typedef" should "print the correct results" in {
-    val code = """
+	"union struct typedef" should "print the correct results" in {
+		val code =
+			"""
 
       typedef union Test {
         int y;
@@ -33,11 +35,12 @@ class UnionTestStaging extends StandardTest {
         printf("%f %d\n", test.x, test.y);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "union struct pointer" should "print the correct results" in {
-    val code = """
+	"union struct pointer" should "print the correct results" in {
+		val code =
+			"""
 
       typedef union Test {
         int y;
@@ -51,11 +54,12 @@ class UnionTestStaging extends StandardTest {
         printf("%f %d\n", test2->x, test2->y);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "embedded union struct pointer" should "print the correct results" in {
-    val code = """
+	"embedded union struct pointer" should "print the correct results" in {
+		val code =
+			"""
 
       typedef struct embedded
       {
@@ -74,11 +78,8 @@ class UnionTestStaging extends StandardTest {
         printf("%c %d %f\n", test.type, test.info.y, test.info.x);
       }"""
 
-    checkResults(code)
-  }
-
-
-
+		checkResults(code)
+	}
 
 
 }

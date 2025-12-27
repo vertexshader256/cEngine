@@ -2,8 +2,9 @@ package scala.c.engine
 
 class MathFunctions extends StandardTest {
 
-  "fmod test" should "print the correct results" in {
-    val code = """
+	"fmod test" should "print the correct results" in {
+		val code =
+			"""
       #include <math.h>
 
       int main()
@@ -13,14 +14,15 @@ class MathFunctions extends StandardTest {
           printf("%f\n", fmod(-37453, 123));
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class SpecialFunctions extends StandardTest {
 
-  "mixed offsetof test" should "print the correct results" in {
-    val code = """
+	"mixed offsetof test" should "print the correct results" in {
+		val code =
+			"""
       #include <stdio.h>
       #include "stddef.h"
       #include "stdint.h"
@@ -38,11 +40,12 @@ class SpecialFunctions extends StandardTest {
           printf("%d\n", offsetof(struct test, j));
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "short offsetof test" should "print the correct results" in {
-    val code = """
+	"short offsetof test" should "print the correct results" in {
+		val code =
+			"""
       #include <stdio.h>
       #include "stddef.h"
       #include "stdint.h"
@@ -62,13 +65,14 @@ class SpecialFunctions extends StandardTest {
           printf("%d\n", offsetof(struct test, k));
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class FunctionPointerTest extends StandardTest {
-  "a function pointer test" should "print the correct results" in {
-    val code = """
+	"a function pointer test" should "print the correct results" in {
+		val code =
+			"""
       //#include <stdio.h>
       int my_int_func(int x, int y)
       {
@@ -91,12 +95,13 @@ class FunctionPointerTest extends StandardTest {
       }
       
     """
-    
-    checkResults(code)
-  }
 
-  "a function pointer that is initialized" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"a function pointer that is initialized" should "print the correct results" in {
+		val code =
+			"""
 
       int blah2(int x, int y) {
         return x * y;
@@ -110,11 +115,12 @@ class FunctionPointerTest extends StandardTest {
 
     """
 
-    checkResults(code)
-  }
-  
-  "an inner-struct function pointer to scala function" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"an inner-struct function pointer to scala function" should "print the correct results" in {
+		val code =
+			"""
       #include <stdio.h>
       #include <string.h>
       
@@ -133,12 +139,13 @@ class FunctionPointerTest extends StandardTest {
       }
       
     """
-    
-    checkResults(code)
-  }
-  
-  "array of function pointers" should "print the correct results" in {
-    val code = """
+
+		checkResults(code)
+	}
+
+	"array of function pointers" should "print the correct results" in {
+		val code =
+			"""
       typedef void (*fp)(int); //Declares a type of a void function that accepts an int
 
       void test(int i)
@@ -176,9 +183,9 @@ class FunctionPointerTest extends StandardTest {
       }
       
     """
-    
-    checkResults(code)
-  }
+
+		checkResults(code)
+	}
 }
 
 //12-26-25: Commenting this out for now
@@ -226,8 +233,9 @@ class FunctionPointerTest extends StandardTest {
 //}
 
 class FunctionStagingArea extends StandardTest {
-  "An unsigned pointer argument" should "print the correct results" in {
-    val code = """
+	"An unsigned pointer argument" should "print the correct results" in {
+		val code =
+			"""
       void test2(unsigned int *x) {
         printf("%d\n", x);
       }
@@ -238,14 +246,15 @@ class FunctionStagingArea extends StandardTest {
         test2(x);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class FunctionTest extends StandardTest {
 
-  "A function prototype" should "print the correct results" in {
-    val code = """
+	"A function prototype" should "print the correct results" in {
+		val code =
+			"""
       int x = 5;
       void test();
 
@@ -258,11 +267,12 @@ class FunctionTest extends StandardTest {
          x = 10;
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "A simple function call testing return point" should "print the correct results" in {
-    val code = """
+	"A simple function call testing return point" should "print the correct results" in {
+		val code =
+			"""
       int x = 5;
       void test() {
         x = 10;
@@ -273,11 +283,12 @@ class FunctionTest extends StandardTest {
         printf("%d\n", x);
       }"""
 
-    checkResults(code)
-  }
-  
-  "A early return" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"A early return" should "print the correct results" in {
+		val code =
+			"""
       void test2() {
         printf("1\n");
         return;
@@ -288,13 +299,13 @@ class FunctionTest extends StandardTest {
         test2();
       }"""
 
-    checkResults(code)
-  }
-  
- 
+		checkResults(code)
+	}
 
-  "chained function calls" should "print the correct results" in {
-    val code = """
+
+	"chained function calls" should "print the correct results" in {
+		val code =
+			"""
       int x = 5;
       void test2() {
         x = 10;
@@ -308,11 +319,12 @@ class FunctionTest extends StandardTest {
         printf("%d\n", x);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "a function with a return value" should "print the correct results" in {
-    val code = """
+	"a function with a return value" should "print the correct results" in {
+		val code =
+			"""
       int test() {
         return 10;
       }
@@ -320,9 +332,10 @@ class FunctionTest extends StandardTest {
         printf("%d\n", test());
       }"""
 
-    checkResults(code)
-    
-    val code2 = """
+		checkResults(code)
+
+		val code2 =
+			"""
       double test() {
         return 10.5;
       }
@@ -330,11 +343,12 @@ class FunctionTest extends StandardTest {
         printf("%f\n", test());
       }"""
 
-    checkResults(code2)
-  }
+		checkResults(code2)
+	}
 
-  "chained return value" should "print the correct results" in {
-    val code = """
+	"chained return value" should "print the correct results" in {
+		val code =
+			"""
       int test() {
         return 8;
       }
@@ -345,11 +359,12 @@ class FunctionTest extends StandardTest {
         printf("%d\n", test2());
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "a function with a complex return value" should "print the correct results" in {
-    val code = """
+	"a function with a complex return value" should "print the correct results" in {
+		val code =
+			"""
       int test() {
         return (1 + 2) * (2 + 6);
       }
@@ -357,11 +372,12 @@ class FunctionTest extends StandardTest {
         printf("%d\n", test());
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "a function with a argument" should "print the correct results" in {
-    val code = """
+	"a function with a argument" should "print the correct results" in {
+		val code =
+			"""
       int square(int x) {
         return x * x;
       }
@@ -369,11 +385,12 @@ class FunctionTest extends StandardTest {
         printf("%d\n", square(5));
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "a function with two arguments" should "print the correct results" in {
-    val code = """
+	"a function with two arguments" should "print the correct results" in {
+		val code =
+			"""
       int add(int x, int y) {
         return x + y;
       }
@@ -381,11 +398,12 @@ class FunctionTest extends StandardTest {
         printf("%d\n", add(13, 26));
       }"""
 
-    checkResults(code)
-  }
-  
-  "a function with a string as an argument" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"a function with a string as an argument" should "print the correct results" in {
+		val code =
+			"""
       void thePrint(char *str) {
         printf(str);
       }
@@ -393,11 +411,12 @@ class FunctionTest extends StandardTest {
         thePrint("Test\n");
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "complex function calls" should "print the correct results" in {
-    val code = """
+	"complex function calls" should "print the correct results" in {
+		val code =
+			"""
       int add(int x, int y) {
         return x + y;
       }
@@ -411,11 +430,12 @@ class FunctionTest extends StandardTest {
        // printf("%d\n", add(add(1, add(3, 2)), add(add(5, 5), 3)));
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 
-  "returning a variable value" should "print the correct results" in {
-    val code = """
+	"returning a variable value" should "print the correct results" in {
+		val code =
+			"""
 
       double y = 4.56;
       double ret1(double x)
@@ -442,13 +462,14 @@ class FunctionTest extends StandardTest {
       }
       """
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }
 
 class ComplexFunctionTest extends StandardTest {
-  "a function with out-of-order references to arguments" should "print the correct results" in {
-    val code = """
+	"a function with out-of-order references to arguments" should "print the correct results" in {
+		val code =
+			"""
       int func(int x, int y) {
         int z = x + 3;
         int x2 = x - 2;
@@ -459,11 +480,12 @@ class ComplexFunctionTest extends StandardTest {
         printf("%d\n", func(1, 2));
       }"""
 
-    checkResults(code)
-  }
-  
-  "a function with double pointers as arguments" should "print the correct results" in {
-    val code = """
+		checkResults(code)
+	}
+
+	"a function with double pointers as arguments" should "print the correct results" in {
+		val code =
+			"""
       int func(int **x) {
         (**x)++;
       }
@@ -474,6 +496,6 @@ class ComplexFunctionTest extends StandardTest {
         printf("%d\n", a);
       }"""
 
-    checkResults(code)
-  }
+		checkResults(code)
+	}
 }
