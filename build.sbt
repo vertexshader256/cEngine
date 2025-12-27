@@ -1,16 +1,28 @@
 name := "cEngine"
 
+
+lazy val scala2Module = (project in file("scala2"))
+	.settings(
+		scalaVersion := "2.13.18", // Specify the Scala 2 version
+		Compile / scalaSource := baseDirectory.value / "src",
+		Test / scalaSource := baseDirectory.value / "tests",
+		libraryDependencies ++= Seq("org.anarres" % "jcpp" % "1.4.14", "org.scalatest" %% "scalatest" % "3.1.0" % "test")
+	)
+
+lazy val scala3Module = (project in file("scala3"))
+	.settings(
+		scalaVersion := "3.7.4", // Specify the Scala 2 version
+		Compile / scalaSource := baseDirectory.value / "src",
+		libraryDependencies += "org.anarres" % "jcpp" % "1.4.14"
+	)
+	.dependsOn(scala2Module)
+
 lazy val root = (project in file("."))
-  .settings(
-    name         := "cEngine",
-    organization := "com.github.bdwashbu",
-    scalaVersion := "2.13.1",
-    version      := "0.0.5"
-  )
+	.aggregate(scala2Module, scala3Module)
 
-scalaSource in Compile := baseDirectory.value / "src"
+//scalaSource in Compile := baseDirectory.value / "src"
 
-scalaSource in Test := baseDirectory.value / "tests"
+//scalaSource in Test := baseDirectory.value / "tests"
 
 scalaVersion := "2.13.18"
 //scalaVersion := "3.7.4"
