@@ -13,7 +13,8 @@ lazy val scala3Module = (project in file("scala3"))
 	.settings(
 		scalaVersion := "3.7.4", // Specify the Scala 2 version
 		Compile / scalaSource := baseDirectory.value / "src",
-		libraryDependencies += "org.anarres" % "jcpp" % "1.4.14"
+		Test / scalaSource := baseDirectory.value / "tests",
+		libraryDependencies ++= Seq("org.anarres" % "jcpp" % "1.4.14", "org.scalactic" %% "scalactic" % "3.2.19", "org.scalatest" %% "scalatest" % "3.2.19")
 	)
 	.dependsOn(scala2Module)
 

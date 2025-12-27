@@ -1,13 +1,14 @@
 package scala.c.engine
 
-import org.eclipse.cdt.core.dom.ast._
-import org.eclipse.cdt.internal.core.dom.parser.c._
-import org.scalatest._
+import org.eclipse.cdt.core.dom.ast.*
+import org.eclipse.cdt.internal.core.dom.parser.c.*
+import org.scalatest.*
+import org.scalatest.flatspec.AsyncFlatSpec
 
 import java.io.{File, PrintWriter}
 import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable.ListBuffer
-import scala.concurrent._
+import scala.concurrent.*
 import scala.io.Source
 import scala.sys.process.Process
 
