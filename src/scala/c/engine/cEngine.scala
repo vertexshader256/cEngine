@@ -515,15 +515,13 @@ class State(val pointerSize: NumBits) {
 				val returnVal = function.run(resolvedArgs.reverse, this)
 				Stack.insertIndex = stackPos // pop the stack
 
-				returnVal.map { rVal =>
-					rVal match {
-						case file@FileRValue(_) => println("RETURNING FILE: "); file
-						case rValue => RValue(rValue.value, TypeHelper.unsignedIntType)
-					}
+				returnVal.map {
+					case file@FileRValue(_) => file
+					case rValue => RValue(rValue.value, TypeHelper.unsignedIntType)
 				}
 			} else {
 				if (function.name == "main" && isApi) {
-					scope.get.init(List(function.node), this, !scope.isDefined)
+					scope.get.init(List(function.node), this, scope.isEmpty)
 					functionContexts = List(scope.get)
 					context.run(this)
 					None
@@ -531,10 +529,10 @@ class State(val pointerSize: NumBits) {
 
 					val newScope = scope.getOrElse {
 						val expressionType = call.getExpressionType
-						new FunctionScope(function.staticVars, functionContexts.headOption.getOrElse(null), expressionType)
+						new FunctionScope(function.staticVars, functionContexts.headOption.orNull, expressionType)
 					}
 
-					newScope.init(List(function.node), this, !scope.isDefined)
+					newScope.init(List(function.node), this, scope.isEmpty)
 
 					val args: List[ValueType] = call.getArguments.map { x => Expressions.evaluate(x).head }.toList
 
@@ -629,11 +627,11 @@ class State(val pointerSize: NumBits) {
 	def createStringArrayVariable(varName: String, str: String): Variable = {
 		val theStr = Utils.stripQuotes(str)
 		val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
-		val withNull = (translateLineFeed.toCharArray() :+ 0.toChar)
+		val withNull = (translateLineFeed.toCharArray :+ 0.toChar)
 			.map { char => RValue(char.toByte, TypeHelper.charType) }.toList // terminating null char
 
 		val inferredArrayType = new CArrayType(TypeHelper.charType)
-		inferredArrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, str.size.toString.toCharArray)))
+		inferredArrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, str.length.toString.toCharArray)))
 
 		val theArrayPtr = context.addArrayVariable(varName, inferredArrayType, withNull)
 		theArrayPtr
