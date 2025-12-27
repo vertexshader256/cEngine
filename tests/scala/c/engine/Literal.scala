@@ -59,14 +59,16 @@ class Literal extends StandardTest {
 	}
 
 	// TODO: Try and figure out unsigned long long
-//	"an unsigned long long suffix test" should "print the correct results" in {
-//		val code = """
-//      void main() {
-//	 			unsigned long long j = 18446744073709551615ULL; // max value of a long long
-//				unsigned long long k = 543353453452354354ull; // max value of a long long
-//        printf("%ull %ull\n", j, k);
-//      }"""
-//
-//		checkResults(code)
-//	}
+	"an unsigned long long suffix test" should "print the correct results" in {
+		val code = """
+      void main() {
+	 			//unsigned long long j = 18446744073709551615ULL; // max value of a long long
+		 		unsigned long long j = 23452345ULL;
+				unsigned long long k = 2342342ull;
+				unsigned long long l = 2342342uLL;
+        printf("%ull %ull %ull\n", j, k, l);
+      }"""
+
+		checkResults(code)
+	}
 }
