@@ -118,7 +118,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 		}
 	}
 
-	def init(nodes: List[IASTNode], theState: State, shouldReset: Boolean) {
+	def init(nodes: List[IASTNode], theState: State, shouldReset: Boolean) = {
 		if (shouldReset) {
 			variableScopes.head.varMap.clear
 		}
