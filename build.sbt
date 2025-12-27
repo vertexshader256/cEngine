@@ -17,6 +17,7 @@ lazy val scala2Module = (project in file("scala2"))
 		libraryDependencies ++= Seq("org.anarres" % "jcpp" % "1.4.14", "org.scalatest" %% "scalatest" % "3.1.0" % "test")
 	)
 	.dependsOn(scala3innerModule)
+	.aggregate(scala3innerModule)
 
 lazy val scala3Module = (project in file("scala3"))
 	.settings(
@@ -26,9 +27,10 @@ lazy val scala3Module = (project in file("scala3"))
 		libraryDependencies ++= Seq("org.anarres" % "jcpp" % "1.4.14", "org.scalactic" %% "scalactic" % "3.2.19", "org.scalatest" %% "scalatest" % "3.2.19")
 	)
 	.dependsOn(scala2Module)
+	.aggregate(scala2Module)
 
 lazy val root = (project in file("."))
-	.aggregate(scala2Module, scala3Module)
+	.aggregate(scala3Module)
 
 //scalaSource in Compile := baseDirectory.value / "src"
 

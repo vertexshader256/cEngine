@@ -192,6 +192,12 @@ class State(val pointerSize: NumBits) {
 
 	var sources: List[IASTTranslationUnit] = null
 
+	lazy val structs = sources.flatMap { src =>
+		src.getDeclarations.collect { case simp: CASTSimpleDeclaration => simp.getDeclSpecifier }
+			.collect { case comp: CASTCompositeTypeSpecifier => comp }
+			.map { x => x.getName.resolveBinding().asInstanceOf[CStructure] }
+	}
+
 	val pointerType = pointerSize match {
 		case NumBits.ThirtyTwoBits => TypeHelper2.intType
 		case NumBits.SixtyFourBits => new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)

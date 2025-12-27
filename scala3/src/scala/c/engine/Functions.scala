@@ -646,13 +646,7 @@ object Functions {
 			val memberName = Utils.readString(straddy)(state)
 			val stuctName = Utils.readString(straddy2)(state)
 
-			val structs = state.sources.flatMap { src =>
-				src.getDeclarations.collect { case simp: CASTSimpleDeclaration => simp.getDeclSpecifier }
-					.collect { case comp: CASTCompositeTypeSpecifier => comp }
-					.map { x => x.getName.resolveBinding().asInstanceOf[CStructure] }
-			}
-
-			val struct = structs.find { x => ("struct " + x.getName) == stuctName }.get
+			val struct = state.structs.find { x => ("struct " + x.getName) == stuctName }.get
 
 			Some(RValue(TypeHelper.offsetof(struct, memberName, state)))
 		}
