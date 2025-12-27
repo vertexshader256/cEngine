@@ -163,7 +163,7 @@ object Declarator {
 						Ast.step
 					}
 					val value = TypeHelper.resolve(state.context.popStack).value
-					TypeHelper.cast(TypeHelper.intType, value).value.asInstanceOf[Int]
+					TypeHelper.cast(TypeHelper2.intType, value).value.asInstanceOf[Int]
 				}
 
 				val aType = if (theType.isInstanceOf[CArrayType] && !theType.asInstanceOf[CArrayType].isConst && !dimensions.isEmpty) { // an array bounded by a variable e.g x[y]
@@ -237,7 +237,7 @@ object Declarator {
 						}.map { init =>
 							Expressions.evaluate(init.getOperand).get
 						}.getOrElse {
-							TypeHelper.zero
+							TypeHelper2.zero
 						}
 					}.toList
 				} else {

@@ -71,18 +71,18 @@ object Literal {
 		} else if (lit.head == '\'' && lit.last == '\'') {
 			RValue(lit.toCharArray.apply(1).toByte, new CBasicType(IBasicType.Kind.eChar, 0))
 		} else if (isUnsignedLong) {
-			TypeHelper.getLong(lit)
+			TypeHelper2.getLong(lit)
 		} else if (isLong) {
-			TypeHelper.getLong(lit)
+			TypeHelper2.getLong(lit)
 		} else if (isIntNumber(lit)) {
-			RValue(lit.toInt, TypeHelper.intType)
+			RValue(lit.toInt, TypeHelper2.intType)
 		} else if (isLongNumber(lit)) {
-			TypeHelper.getLong(lit)
+			TypeHelper2.getLong(lit)
 		} else if (isFloat) {
 			val num = lit.toCharArray.filter(x => x != 'f' && x != 'F').mkString
-			RValue(num.toFloat, TypeHelper.floatType)
+			RValue(num.toFloat, TypeHelper2.floatType)
 		} else {
-			RValue(lit.toDouble, TypeHelper.doubleType)
+			RValue(lit.toDouble, TypeHelper2.doubleType)
 		}
 
 		result

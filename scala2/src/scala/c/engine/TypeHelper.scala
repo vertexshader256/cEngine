@@ -8,21 +8,8 @@ import scala.c.engine.ast.Expressions
 
 object TypeHelper {
 
-	val intType = new CBasicType(IBasicType.Kind.eInt, 0)
-	val charType = new CBasicType(IBasicType.Kind.eChar, 0)
-	val unsignedIntType = new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED)
-	val doubleType = new CBasicType(IBasicType.Kind.eDouble, 0)
-	val floatType = new CBasicType(IBasicType.Kind.eFloat, 0)
-
-	val one = RValue(1, unsignedIntType)
-	val zero = RValue(0, unsignedIntType)
-	val negativeOne = RValue(-1, TypeHelper.intType)
-
 	// 8 bytes
 	val qword = new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
-
-	def getLong(lit: String) =
-		RValue(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
 
 	// Kind of hacky; this will do whatever it needs to match gcc.  casts 'AnyVal' to 'ValueInfo'
 	def cast(theType: IType, theVal: AnyVal): RValue = {

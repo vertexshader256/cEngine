@@ -92,12 +92,12 @@ object Ast {
 					if (enumerator.getValue != null) {
 						val value = Expressions.evaluate(enumerator.getValue).get.asInstanceOf[RValue]
 
-						val newVar = state.context.addVariable(enumerator.getName.toString, TypeHelper.intType)
+						val newVar = state.context.addVariable(enumerator.getName.toString, TypeHelper2.intType)
 						current = value.value.asInstanceOf[Int] + 1
-						state.Stack.writeToMemory(value.value, newVar.address, TypeHelper.intType)
+						state.Stack.writeToMemory(value.value, newVar.address, TypeHelper2.intType)
 					} else {
-						val newVar = state.context.addVariable(enumerator.getName.toString, TypeHelper.intType)
-						state.Stack.writeToMemory(current, newVar.address, TypeHelper.intType)
+						val newVar = state.context.addVariable(enumerator.getName.toString, TypeHelper2.intType)
+						state.Stack.writeToMemory(current, newVar.address, TypeHelper2.intType)
 						current += 1
 					}
 			}

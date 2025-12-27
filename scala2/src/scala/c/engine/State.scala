@@ -193,7 +193,7 @@ class State(val pointerSize: NumBits) {
 	var sources: List[IASTTranslationUnit] = null
 
 	val pointerType = pointerSize match {
-		case NumBits.ThirtyTwoBits => TypeHelper.intType
+		case NumBits.ThirtyTwoBits => TypeHelper2.intType
 		case NumBits.SixtyFourBits => new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
 	}
 
@@ -339,7 +339,7 @@ class State(val pointerSize: NumBits) {
 
 				returnVal.map {
 					case file@FileRValue(_) => file
-					case rValue => RValue(rValue.value, TypeHelper.unsignedIntType)
+					case rValue => RValue(rValue.value, TypeHelper2.unsignedIntType)
 				}
 			} else {
 				if (function.name == "main" && isApi) {
@@ -365,14 +365,14 @@ class State(val pointerSize: NumBits) {
 					// printf assumes all floating point numbers are doubles
 					val promoted = resolvedArgs.map { arg =>
 						if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eFloat) {
-							TypeHelper.cast(TypeHelper.doubleType, arg.value)
+							TypeHelper.cast(TypeHelper2.doubleType, arg.value)
 						} else {
 							arg
 						}
 					}
 
 					newScope.pushOntoStack(promoted)
-					newScope.pushOntoStack(RValue(resolvedArgs.size, TypeHelper.unsignedIntType))
+					newScope.pushOntoStack(RValue(resolvedArgs.size, TypeHelper2.unsignedIntType))
 
 					functionContexts = newScope +: functionContexts
 
@@ -450,9 +450,9 @@ class State(val pointerSize: NumBits) {
 		val theStr = Utils.stripQuotes(str)
 		val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
 		val withNull = (translateLineFeed.toCharArray :+ 0.toChar)
-			.map { char => RValue(char.toByte, TypeHelper.charType) }.toList // terminating null char
+			.map { char => RValue(char.toByte, TypeHelper2.charType) }.toList // terminating null char
 
-		val inferredArrayType = new CArrayType(TypeHelper.charType)
+		val inferredArrayType = new CArrayType(TypeHelper2.charType)
 		inferredArrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, str.length.toString.toCharArray)))
 
 		val theArrayPtr = context.addArrayVariable(varName, inferredArrayType, withNull)
