@@ -7,6 +7,7 @@ import org.scalatest.flatspec.AsyncFlatSpec
 
 import java.io.{File, PrintWriter}
 import java.util.concurrent.atomic.AtomicInteger
+import scala.c.engine.NumBits._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.*
 import scala.io.Source

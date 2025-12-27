@@ -128,7 +128,7 @@ class Memory(size: Int) {
 					tape.get(address) // a C 'char' is a Java 'byte'
 				}
 
-				TypeHelper.castSign(theType, res)
+				TypeHelper2.castSign(theType, res)
 			case typedef: CTypedef => readFromMemory(address, typedef.getType)
 			case _ => RValue(tape.getInt(address), theType)
 		}

@@ -1,5 +1,7 @@
 package scala.c.engine
 
+import scala.c.engine.NumBits._
+
 class StagingGround extends StandardTest {
 	"assign then increment" should "print the correct results" in {
 		val code =

@@ -24,31 +24,13 @@ object TypeHelper {
 	def getLong(lit: String) =
 		RValue(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
 
-	def castSign(theType: IType, newVal: AnyVal): RValue = {
-		val casted: AnyVal = theType match {
-			case basic: IBasicType =>
-				if (basic.isUnsigned) {
-					newVal match {
-						case long: Long => long & 0x00000000FFFFFFFFL
-						case int: Int => int & 0xFFFFFFFFL
-						case short: Short => short & 0xFFFF
-						case byte: Byte => byte & 0xFF
-					}
-				} else {
-					newVal
-				}
-		}
-
-		RValue(casted, theType)
-	}
-
 	// Kind of hacky; this will do whatever it needs to match gcc.  casts 'AnyVal' to 'ValueInfo'
 	def cast(theType: IType, theVal: AnyVal): RValue = {
 		val cast: AnyVal = theType match {
 			case basic: IBasicType =>
 
 				val newVal = if (basic.isUnsigned) {
-					castSign(theType, theVal).value
+					TypeHelper2.castSign(theType, theVal).value
 				} else {
 					theVal
 				}
