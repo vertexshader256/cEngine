@@ -19,7 +19,7 @@ object Declarator {
 				val name = fcnDec.getNestedDeclarator.getName
 
 				if (nameBinding.isInstanceOf[IVariable]) {
-					val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
+					val theType = TypeHelper2.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
 					val variable = state.context.addVariable(name.toString, theType)
 					Ast.step(fcnDec.getInitializer)
 					variable.setValue(TypeHelper.resolve(state.context.popStack))
@@ -192,7 +192,7 @@ object Declarator {
 			val name = decl.getName
 
 			if (nameBinding.isInstanceOf[IVariable]) {
-				val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
+				val theType = TypeHelper2.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
 
 				val variable = if (nameBinding.asInstanceOf[IVariable].isExtern) {
 					state.context.addExternVariable(name.toString, theType)

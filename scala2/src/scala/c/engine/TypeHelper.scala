@@ -208,8 +208,8 @@ object TypeHelper {
 
 	def getBindingType(binding: IBinding) = {
 		binding match {
-			case typedef: CTypedef => TypeHelper.stripSyntheticTypeInfo(typedef)
-			case vari: IVariable => TypeHelper.stripSyntheticTypeInfo(vari.getType)
+			case typedef: CTypedef => TypeHelper2.stripSyntheticTypeInfo(typedef)
+			case vari: IVariable => TypeHelper2.stripSyntheticTypeInfo(vari.getType)
 		}
 	}
 
@@ -229,17 +229,6 @@ object TypeHelper {
 		case arrayType: IArrayType => resolveBasic(arrayType.getType)
 		case qualType: IQualifierType => resolveBasic(qualType.getType)
 		case fcn: IFunctionType => state.pointerType
-	}
-
-	def stripSyntheticTypeInfo(theType: IType): IType = theType match {
-		case enumer: CEnumeration => enumer
-		case struct: CStructure => struct
-		case basicType: IBasicType => basicType
-		case typedef: ITypedef => stripSyntheticTypeInfo(typedef.getType)
-		case ptrType: IPointerType => ptrType
-		case arrayType: IArrayType => arrayType
-		case qualType: IQualifierType => stripSyntheticTypeInfo(qualType.getType)
-		case fcn: IFunctionType => fcn
 	}
 
 	def printType(theType: IType): String = theType match {
@@ -263,8 +252,8 @@ object TypeHelper {
 	}
 
 	def getPointerType(theType: IType): IType = theType match {
-		case ptrType: IPointerType => TypeHelper.stripSyntheticTypeInfo(ptrType.getType)
-		case arrayType: IArrayType => TypeHelper.stripSyntheticTypeInfo(arrayType.getType)
+		case ptrType: IPointerType => TypeHelper2.stripSyntheticTypeInfo(ptrType.getType)
+		case arrayType: IArrayType => TypeHelper2.stripSyntheticTypeInfo(arrayType.getType)
 	}
 
 	def resolveBoolean(theVal: Any): Boolean = theVal match {

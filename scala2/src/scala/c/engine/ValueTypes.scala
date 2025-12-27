@@ -6,12 +6,6 @@ import org.eclipse.cdt.internal.core.dom.parser.c._
 import java.io.File
 import java.nio.file.{Files, Paths}
 
-abstract class ValueType {
-	def theType: IType
-
-	def rawType: IType
-}
-
 // LValue is an memory location which identifies an object and has a type and various other attributes
 trait LValue extends ValueType {
 	val address: Int
@@ -56,7 +50,7 @@ object LValue {
 			val address = addr
 			val state = theState
 			val bitOffset = 0
-			val theType = TypeHelper.stripSyntheticTypeInfo(aType)
+			val theType = TypeHelper2.stripSyntheticTypeInfo(aType)
 			val rawType = aType
 			//def sizeof = TypeHelper.sizeof(theType)(state)}
 			val sizeof = {
@@ -69,39 +63,6 @@ object LValue {
 case class StringLiteral(value: String) extends ValueType {
 	val theType: IType = new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0)
 	val rawType: IType = theType
-}
-
-case class TypeInfo(value: IType) extends ValueType {
-	val theType: IType = value
-	val rawType: IType = theType
-}
-
-object RValue {
-	def unapply(rvalue: RValue): Option[(AnyVal, IType)] = Some((rvalue.value, rvalue.theType))
-
-	def apply(theValue: AnyVal, aType: IType) =
-		new RValue {
-			val theType = TypeHelper.stripSyntheticTypeInfo(aType);
-			val rawType = aType
-			val value = theValue
-		}
-
-	def apply(theValue: AnyVal) =
-		new RValue {
-			val theType: IType = null
-			val rawType: IType = null
-			val value = theValue;
-		}
-}
-
-// An RValue is an expression that has a value, a type, and no memory address
-abstract class RValue extends ValueType {
-	val value: AnyVal
-	val theType: IType
-
-	override def toString = {
-		"RValue(" + value + ", " + theType + ")"
-	}
 }
 
 case class Address(value: Int, theType: IType) extends RValue {
@@ -195,7 +156,7 @@ object Variable {
 
 case class Variable(name: String, state: State, aType: IType, sizeof: Int) extends LValue {
 
-	val theType = TypeHelper.stripSyntheticTypeInfo(aType)
+	val theType = TypeHelper2.stripSyntheticTypeInfo(aType)
 	val rawType = aType
 	val bitOffset = 0
 	val sizeInBits = sizeof * 8

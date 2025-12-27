@@ -268,7 +268,7 @@ class State(val pointerSize: NumBits) {
 				nameBinding match {
 					case vari: IVariable =>
 						if (vari.isStatic) {
-							val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
+							val theType = TypeHelper2.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
 
 							val variable = Variable(decl.getName.toString, state, vari.getType)
 							if (decl.getInitializer != null) {

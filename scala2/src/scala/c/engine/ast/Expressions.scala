@@ -100,7 +100,7 @@ object Expressions {
 				call.getFunctionNameExpression.getRawSignature
 			} else {
 				val info = pop.asInstanceOf[LValue]
-				val resolved = TypeHelper.stripSyntheticTypeInfo(info.theType)
+				val resolved = TypeHelper2.stripSyntheticTypeInfo(info.theType)
 				resolved match {
 					case _: IPointerType => state.getFunctionByIndex(info.rValue.value.asInstanceOf[Int]).name
 				}
