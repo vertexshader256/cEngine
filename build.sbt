@@ -8,17 +8,6 @@ lazy val scala3innerModule = (project in file("scala3inner"))
 		libraryDependencies ++= Seq("org.anarres" % "jcpp" % "1.4.14")
 	)
 
-lazy val scala2Module = (project in file("scala2"))
-	.settings(
-		scalacOptions += "-Ytasty-reader",
-		scalaVersion := "2.13.18",
-		Compile / scalaSource := baseDirectory.value / "src",
-		Test / scalaSource := baseDirectory.value / "tests",
-		libraryDependencies ++= Seq("org.anarres" % "jcpp" % "1.4.14", "org.scalatest" %% "scalatest" % "3.1.0" % "test")
-	)
-	.dependsOn(scala3innerModule)
-	.aggregate(scala3innerModule)
-
 lazy val scala3Module = (project in file("scala3"))
 	.settings(
 		scalaVersion := "3.7.4",
@@ -26,8 +15,8 @@ lazy val scala3Module = (project in file("scala3"))
 		Test / scalaSource := baseDirectory.value / "tests",
 		libraryDependencies ++= Seq("org.anarres" % "jcpp" % "1.4.14", "org.scalactic" %% "scalactic" % "3.2.19", "org.scalatest" %% "scalatest" % "3.2.19")
 	)
-	.dependsOn(scala2Module)
-	.aggregate(scala2Module)
+	.dependsOn(scala3innerModule)
+	.aggregate(scala3innerModule)
 
 lazy val root = (project in file("."))
 	.aggregate(scala3Module)
