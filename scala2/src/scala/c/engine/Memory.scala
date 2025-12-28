@@ -62,33 +62,88 @@ class Memory(size: Int) {
 		}
 	}
 
+	def putShort(address: Int, short: Short) = {
+		tape.putShort(address, short)
+	}
+
+	def getShort(address: Int): Short = {
+		tape.getShort(address)
+	}
+
+	def putLong(address: Int, long: Long) = {
+		tape.putLong(address, long)
+	}
+
+	def getLong(address: Int): Long = {
+		tape.getLong(address)
+	}
+
+	def putInt(address: Int, int: Int) = {
+		tape.putInt(address, int)
+	}
+
+	def putByte(address: Int, byte: Byte) = {
+		tape.put(address, byte)
+	}
+
+	def getByte(address: Int): Byte = {
+		tape.get(address)
+	}
+
+	def getInt(address: Int): Int = {
+		tape.getInt(address)
+	}
+
+	def putDouble(address: Int, double: Double) = {
+		tape.putDouble(address, double)
+	}
+
+	def getDouble(address: Int): Double = {
+		tape.getDouble(address)
+	}
+
+	def putFloat(address: Int, float: Float) = {
+		tape.putFloat(address, float)
+	}
+
+	def getFloat(address: Int): Float = {
+		tape.getFloat(address)
+	}
+
+	private def writePointerToMemory(newVal: AnyVal, address: Int) = {
+		newVal match {
+			case int: Int => putInt(address, int)
+			case long: Long => putInt(address, long.toInt)
+		}
+	}
+
 	// use Address type to prevent messing up argument order
 	def writeToMemory(newVal: AnyVal, address: Int, theType: IType, bitOffset: Int = 0, sizeInBits: Int = 0): Unit = {
 
 		TypeHelper2.stripSyntheticTypeInfo(theType) match {
 			case basic: IBasicType if basic.getKind == eInt && basic.isShort =>
 				newVal match {
-					case int: Int => tape.putShort(address, int.asInstanceOf[Short])
-					case short: Short => tape.putShort(address, short)
+					case int: Int => putShort(address, int.asInstanceOf[Short])
+					case short: Short => putShort(address, short)
 				}
 			case basic: IBasicType if basic.getKind == eInt && basic.isLongLong =>
 				newVal match {
-					case long: Long => tape.putLong(address, long)
-					case int: Int => tape.putInt(address, int)
+					case long: Long => putLong(address, long)
+					case int: Int => putInt(address, int)
 				}
 			case basic: IBasicType if basic.getKind == eInt && basic.isLong =>
 				newVal match {
-					case long: Long => tape.putInt(address, long.toInt)
+					case long: Long => putInt(address, long.toInt)
 				}
 			case _: CEnumeration =>
 				newVal match {
-					case int: Int => tape.putInt(address, int)
+					case int: Int => putInt(address, int)
 				}
 			case basic: IBasicType if basic.getKind == eInt || basic.getKind == eVoid =>
 				newVal match {
 					case int: Int =>
 						val x = if (bitOffset != 0) {
-							val currentVal = tape.getInt(address)
+							val currentVal = getInt(address)
 							val right = currentVal << (32 - bitOffset) >>> (32 - bitOffset)
 							val left = currentVal >>> (sizeInBits + bitOffset) << (sizeInBits + bitOffset)
 
@@ -98,24 +153,24 @@ class Memory(size: Int) {
 							int
 						}
 
-						tape.putInt(address, x)
-					case long: Long => tape.putInt(address, long.toInt)
+						putInt(address, x)
+					case long: Long => putInt(address, long.toInt)
 				}
 			case basic: IBasicType if basic.getKind == eDouble =>
 				newVal match {
-					case double: Double => tape.putDouble(address, double)
+					case double: Double => putDouble(address, double)
 				}
 			case basic: IBasicType if basic.getKind == eFloat =>
 				newVal match {
-					case float: Float => tape.putFloat(address, float)
+					case float: Float => putFloat(address, float)
 				}
 			case basic: IBasicType if basic.getKind == eChar =>
 				newVal match {
-					case char: char => tape.put(address, char)
-					case int: Int => tape.put(address, int.toByte)
+					case char: char => putByte(address, char)
+					case int: Int => putByte(address, int.toByte)
 				}
 			case basic: IBasicType if basic.getKind == eBoolean =>
-				tape.putInt(address, newVal.asInstanceOf[Int])
+				putInt(address, newVal.asInstanceOf[Int])
 			case _: IFunctionType =>
 				writePointerToMemory(newVal, address)
 			case _: CStructure =>
@@ -127,36 +182,29 @@ class Memory(size: Int) {
 		}
 	}
 
-	private def writePointerToMemory(newVal: AnyVal, address: Int) = {
-		newVal match {
-			case int: Int => tape.putInt(address, int)
-			case long: Long => tape.putInt(address, long.toInt)
-		}
-	}
-
 	def readFromMemory(address: Int, theType: IType, bitOffset: Int = 0, sizeInBits: Int = 0): RValue = {
 		theType match {
 			case basic: IBasicType =>
 				val res = if (basic.getKind == eInt && basic.isShort) {
-					val result = tape.getShort(address)
+					val result = getShort(address)
 					(result << (16 - sizeInBits - bitOffset) >>> (16 - sizeInBits)).toShort
 				} else if (basic.getKind == eInt && basic.isLongLong) {
-					val result = tape.getLong(address)
+					val result = getLong(address)
 					result << (64 - sizeInBits - bitOffset) >>> (64 - sizeInBits)
 				} else if (basic.getKind == eInt || basic.getKind == eBoolean) {
-					val result = tape.getInt(address)
+					val result = getInt(address)
 					result << (32 - sizeInBits - bitOffset) >>> (32 - sizeInBits)
 				} else if (basic.getKind == eDouble) {
-					tape.getDouble(address)
+					getDouble(address)
 				} else if (basic.getKind == eFloat) {
-					tape.getFloat(address)
+					getFloat(address)
 				} else if (basic.getKind == eChar) {
-					tape.get(address) // a C 'char' is a Java 'byte'
+					getByte(address) // a C 'char' is a Java 'byte'
 				}
 
 				TypeHelper2.castSign(theType, res)
 			case typedef: CTypedef => readFromMemory(address, typedef.getType)
-			case _ => RValue(tape.getInt(address), theType)
+			case _ => RValue(getInt(address), theType)
 		}
 	}
 }
