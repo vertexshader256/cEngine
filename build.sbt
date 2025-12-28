@@ -1,13 +1,5 @@
 name := "cEngine"
 
-
-lazy val scala3innerModule = (project in file("scala3inner"))
-	.settings(
-		scalaVersion := "3.7.4",
-		Compile / scalaSource := baseDirectory.value / "src",
-		libraryDependencies ++= Seq("org.anarres" % "jcpp" % "1.4.14")
-	)
-
 lazy val scala3Module = (project in file("scala3"))
 	.settings(
 		scalaVersion := "3.7.4",
@@ -15,18 +7,9 @@ lazy val scala3Module = (project in file("scala3"))
 		Test / scalaSource := baseDirectory.value / "tests",
 		libraryDependencies ++= Seq("org.anarres" % "jcpp" % "1.4.14", "org.scalactic" %% "scalactic" % "3.2.19", "org.scalatest" %% "scalatest" % "3.2.19")
 	)
-	.dependsOn(scala3innerModule)
-	.aggregate(scala3innerModule)
 
 lazy val root = (project in file("."))
 	.aggregate(scala3Module)
-
-//scalaSource in Compile := baseDirectory.value / "src"
-
-//scalaSource in Test := baseDirectory.value / "tests"
-
-scalaVersion := "2.13.18"
-//scalaVersion := "3.7.4"
 
 scalacOptions ++= Seq(
 	"-encoding",
