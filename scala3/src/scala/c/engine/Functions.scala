@@ -99,7 +99,7 @@ object Functions {
 
 			val addr = state.allocateHeapSpace(numBlocks * blockSize)
 
-			state.Stack.clearMemory(addr, numBlocks * blockSize)
+			state.Stack.tape.clearMemory(addr, numBlocks * blockSize)
 
 			Some(RValue(addr))
 		}

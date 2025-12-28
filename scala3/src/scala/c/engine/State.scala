@@ -175,7 +175,7 @@ object State {
 
 class State(val pointerSize: NumBits) {
 
-	object Stack extends Memory(500000)
+	val Stack = new Memory(500000)
 
 	private var heapInsertIndex = 250000
 
@@ -420,23 +420,23 @@ class State(val pointerSize: NumBits) {
 	}
 
 	def copy(dst: Int, src: Int, numBytes: Int) = {
-		Stack.copy(dst, src, numBytes: Int)
+		Stack.tape.copy(dst, src, numBytes: Int)
 	}
 
 	def set(dst: Int, value: Byte, numBytes: Int) = {
-		Stack.set(dst, value, numBytes: Int)
+		Stack.tape.set(dst, value, numBytes: Int)
 	}
 
 	def writeDataBlock(array: Array[Byte], startingAddress: Int)(implicit state: State): Unit = {
-		Stack.writeDataBlock(array, startingAddress)
+		Stack.tape.writeDataBlock(array, startingAddress)
 	}
 
 	def readDataBlock(startingAddress: Int, length: Int)(implicit state: State): Array[Byte] = {
-		Stack.readDataBlock(startingAddress, length)
+		Stack.tape.readDataBlock(startingAddress, length)
 	}
 
 	def readPtrVal(address: Int): Int = {
-		Stack.readPtrVal(address)
+		Stack.tape.readPtrVal(address)
 	}
 
 	def getString(str: String): RValue = {
