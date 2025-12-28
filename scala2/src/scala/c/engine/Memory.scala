@@ -79,21 +79,23 @@ class Memory(size: Int) {
 	def readFromMemory(address: Int, theType: IType, bitOffset: Int = 0, sizeInBits: Int = 0): RValue = {
 		theType match {
 			case basic: IBasicType =>
-				val res = if (basic.getKind == eInt && basic.isShort) {
+				var res: AnyVal = 0
+
+				if (basic.getKind == eInt && basic.isShort) {
 					val result = tape.getShort(address)
-					(result << (16 - sizeInBits - bitOffset) >>> (16 - sizeInBits)).toShort
+					res = (result << (16 - sizeInBits - bitOffset) >>> (16 - sizeInBits)).toShort
 				} else if (basic.getKind == eInt && basic.isLongLong) {
 					val result = tape.getLong(address)
-					result << (64 - sizeInBits - bitOffset) >>> (64 - sizeInBits)
+					res = result << (64 - sizeInBits - bitOffset) >>> (64 - sizeInBits)
 				} else if (basic.getKind == eInt || basic.getKind == eBoolean) {
 					val result = tape.getInt(address)
-					result << (32 - sizeInBits - bitOffset) >>> (32 - sizeInBits)
+					res = result << (32 - sizeInBits - bitOffset) >>> (32 - sizeInBits)
 				} else if (basic.getKind == eDouble) {
-					tape.getDouble(address)
+					res = tape.getDouble(address)
 				} else if (basic.getKind == eFloat) {
-					tape.getFloat(address)
+					res = tape.getFloat(address)
 				} else if (basic.getKind == eChar) {
-					tape.getByte(address) // a C 'char' is a Java 'byte'
+					res = tape.getByte(address) // a C 'char' is a Java 'byte'
 				}
 
 				TypeHelper2.castSign(theType, res)
