@@ -7,7 +7,7 @@ object RValue {
 
 	def apply(theValue: AnyVal, aType: IType) =
 		new RValue {
-			val theType = TypeHelper2.stripSyntheticTypeInfo(aType);
+			val theType = TypeHelper.stripSyntheticTypeInfo(aType);
 			val rawType = aType
 			val value = theValue
 		}

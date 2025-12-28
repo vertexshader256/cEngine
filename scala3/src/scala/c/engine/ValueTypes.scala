@@ -14,7 +14,7 @@ trait LValue extends ValueType {
 	val state: State
 	val sizeInBits: Int
 
-	private var rVal: RValue = RValue(0, TypeHelper2.intType)
+	private var rVal: RValue = RValue(0, TypeHelper.intType)
 
 	def sizeof: Int
 
@@ -50,7 +50,7 @@ object LValue {
 			val address = addr
 			val state = theState
 			val bitOffset = 0
-			val theType = TypeHelper2.stripSyntheticTypeInfo(aType)
+			val theType = TypeHelper.stripSyntheticTypeInfo(aType)
 			val rawType = aType
 			//def sizeof = TypeHelper.sizeof(theType)(state)}
 			val sizeof = {
@@ -151,7 +151,7 @@ object Variable {
 
 case class Variable(name: String, state: State, aType: IType, sizeof: Int) extends LValue {
 
-	val theType = TypeHelper2.stripSyntheticTypeInfo(aType)
+	val theType = TypeHelper.stripSyntheticTypeInfo(aType)
 	val rawType = aType
 	val bitOffset = 0
 	val sizeInBits = sizeof * 8

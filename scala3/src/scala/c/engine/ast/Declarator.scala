@@ -19,7 +19,7 @@ object Declarator {
 				val name = fcnDec.getNestedDeclarator.getName
 
 				if (nameBinding.isInstanceOf[IVariable]) {
-					val theType = TypeHelper2.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
+					val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
 					val variable = state.context.addVariable(name.toString, theType)
 					Ast.step(fcnDec.getInitializer)
 					variable.setValue(TypeHelper.resolve(state.context.popStack))
@@ -163,7 +163,7 @@ object Declarator {
 						Ast.step
 					}
 					val value = TypeHelper.resolve(state.context.popStack).value
-					TypeHelper.cast(TypeHelper2.intType, value).value.asInstanceOf[Int]
+					TypeHelper.cast(TypeHelper.intType, value).value.asInstanceOf[Int]
 				}
 
 				val aType = if (theType.isInstanceOf[CArrayType] && !theType.asInstanceOf[CArrayType].isConst && !dimensions.isEmpty) { // an array bounded by a variable e.g x[y]
@@ -192,7 +192,7 @@ object Declarator {
 			val name = decl.getName
 
 			if (nameBinding.isInstanceOf[IVariable]) {
-				val theType = TypeHelper2.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
+				val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
 
 				val variable = if (nameBinding.asInstanceOf[IVariable].isExtern) {
 					state.context.addExternVariable(name.toString, theType)
@@ -237,7 +237,7 @@ object Declarator {
 						}.map { init =>
 							Expressions.evaluate(init.getOperand).get
 						}.getOrElse {
-							TypeHelper2.zero
+							TypeHelper.zero
 						}
 					}.toList
 				} else {

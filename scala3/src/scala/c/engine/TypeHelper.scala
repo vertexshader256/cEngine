@@ -10,6 +10,47 @@ object TypeHelper {
 
 	// 8 bytes
 	val qword = new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
+	val intType = new CBasicType(IBasicType.Kind.eInt, 0)
+	val charType = new CBasicType(IBasicType.Kind.eChar, 0)
+	val unsignedIntType = new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED)
+	val doubleType = new CBasicType(IBasicType.Kind.eDouble, 0)
+	val floatType = new CBasicType(IBasicType.Kind.eFloat, 0)
+
+	val one = RValue(1, unsignedIntType)
+	val zero = RValue(0, unsignedIntType)
+	val negativeOne = RValue(-1, intType)
+
+	def getLong(lit: String) =
+		RValue(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
+
+	def castSign(theType: IType, newVal: AnyVal): RValue = {
+		val casted: AnyVal = theType match {
+			case basic: IBasicType =>
+				if (basic.isUnsigned) {
+					newVal match {
+						case long: Long => long & 0x00000000FFFFFFFFL
+						case int: Int => int & 0xFFFFFFFFL
+						case short: Short => short & 0xFFFF
+						case byte: Byte => byte & 0xFF
+					}
+				} else {
+					newVal
+				}
+		}
+
+		RValue(casted, theType)
+	}
+
+	def stripSyntheticTypeInfo(theType: IType): IType = theType match {
+		case enumer: CEnumeration => enumer
+		case struct: CStructure => struct
+		case basicType: IBasicType => basicType
+		case typedef: ITypedef => stripSyntheticTypeInfo(typedef.getType)
+		case ptrType: IPointerType => ptrType
+		case arrayType: IArrayType => arrayType
+		case qualType: IQualifierType => stripSyntheticTypeInfo(qualType.getType)
+		case fcn: IFunctionType => fcn
+	}
 
 	// Kind of hacky; this will do whatever it needs to match gcc.  casts 'AnyVal' to 'ValueInfo'
 	def cast(theType: IType, theVal: AnyVal): RValue = {
@@ -17,7 +58,7 @@ object TypeHelper {
 			case basic: IBasicType =>
 
 				val newVal = if (basic.isUnsigned) {
-					TypeHelper2.castSign(theType, theVal).value
+					castSign(theType, theVal).value
 				} else {
 					theVal
 				}
@@ -177,8 +218,8 @@ object TypeHelper {
 
 	def getBindingType(binding: IBinding) = {
 		binding match {
-			case typedef: CTypedef => TypeHelper2.stripSyntheticTypeInfo(typedef)
-			case vari: IVariable => TypeHelper2.stripSyntheticTypeInfo(vari.getType)
+			case typedef: CTypedef => stripSyntheticTypeInfo(typedef)
+			case vari: IVariable => stripSyntheticTypeInfo(vari.getType)
 		}
 	}
 
@@ -221,8 +262,8 @@ object TypeHelper {
 	}
 
 	def getPointerType(theType: IType): IType = theType match {
-		case ptrType: IPointerType => TypeHelper2.stripSyntheticTypeInfo(ptrType.getType)
-		case arrayType: IArrayType => TypeHelper2.stripSyntheticTypeInfo(arrayType.getType)
+		case ptrType: IPointerType => stripSyntheticTypeInfo(ptrType.getType)
+		case arrayType: IArrayType => stripSyntheticTypeInfo(arrayType.getType)
 	}
 
 	def resolveBoolean(theVal: Any): Boolean = theVal match {

@@ -173,7 +173,7 @@ object Functions {
 			val fraction = formattedOutputParams(0).value.asInstanceOf[Double]
 			val intPart = formattedOutputParams(1).value.asInstanceOf[Int]
 
-			state.Stack.writeToMemory(fraction.toInt, intPart, TypeHelper2.intType)
+			state.Stack.writeToMemory(fraction.toInt, intPart, TypeHelper.intType)
 
 			Some(RValue(fraction % 1.0))
 		}
@@ -295,7 +295,7 @@ object Functions {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val resultBuffer = formattedOutputParams(3).value.asInstanceOf[Int]
 			val size = formattedOutputParams(2).value.asInstanceOf[Int]
-			val numMembers = TypeHelper.cast(TypeHelper2.intType, formattedOutputParams(1).value).value.asInstanceOf[Int]
+			val numMembers = TypeHelper.cast(TypeHelper.intType, formattedOutputParams(1).value).value.asInstanceOf[Int]
 			val fp = formattedOutputParams(0).asInstanceOf[FileRValue]
 
 			state.writeDataBlock(fp.fread(numMembers * size), resultBuffer)(state)
@@ -538,8 +538,8 @@ object Functions {
 
 	scalaFunctions += new Function("fmod", false) {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-			val first = TypeHelper.cast(TypeHelper2.doubleType, formattedOutputParams.last.value).value.asInstanceOf[Double]
-			val second = TypeHelper.cast(TypeHelper2.doubleType, formattedOutputParams.head.value).value.asInstanceOf[Double]
+			val first = TypeHelper.cast(TypeHelper.doubleType, formattedOutputParams.last.value).value.asInstanceOf[Double]
+			val second = TypeHelper.cast(TypeHelper.doubleType, formattedOutputParams.head.value).value.asInstanceOf[Double]
 
 			Some(RValue(first % second))
 		}
@@ -565,7 +565,7 @@ object Functions {
 			val result = printf(formattedOutputParams, state)
 
 			result.getBytes.foreach { char =>
-				state.callFunctionFromScala("putchar", Array(RValue(char.toInt, TypeHelper2.intType)))
+				state.callFunctionFromScala("putchar", Array(RValue(char.toInt, TypeHelper.intType)))
 			}
 
 			None
@@ -697,9 +697,9 @@ object Functions {
 			val str = Utils.readString(argTypeStr)(state)
 
 			val (offset, theType) = (str match {
-				case "unsigned int" => (4, TypeHelper2.unsignedIntType)
-				case "int" => (4, TypeHelper2.intType)
-				case "double" => (8, TypeHelper2.doubleType)
+				case "unsigned int" => (4, TypeHelper.unsignedIntType)
+				case "int" => (4, TypeHelper.intType)
+				case "double" => (8, TypeHelper.doubleType)
 				case "char" => (1, new CBasicType(IBasicType.Kind.eChar, 0))
 				case "char *" => (4, new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0))
 				case "unsigned long" => (8, new CPointerType(new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG), 0))
@@ -737,7 +737,7 @@ object Functions {
 			val ndigits = formattedOutputParams(3).value.asInstanceOf[Int]
 			val arg = formattedOutputParams(4).value.asInstanceOf[Double]
 
-			state.Stack.writeToMemory(1, decpt, TypeHelper2.intType)
+			state.Stack.writeToMemory(1, decpt, TypeHelper.intType)
 
 			val buffer = new StringBuffer();
 			val formatter = new Formatter(buffer, Locale.US);
@@ -754,7 +754,7 @@ object Functions {
 
 			val array = resultString.toCharArray.map { char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0)) }.toList
 
-			state.Stack.writeToMemory(index, decpt, TypeHelper2.intType)
+			state.Stack.writeToMemory(index, decpt, TypeHelper.intType)
 
 			// to-do: find a way to do this without allocating?
 			val result = state.allocateHeapSpace(20)

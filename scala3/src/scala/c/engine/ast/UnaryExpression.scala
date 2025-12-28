@@ -23,7 +23,7 @@ object UnaryExpression {
 				val newVal = if (TypeHelper.isPointerOrArray(lValue.theType)) {
 					evaluatePointerArithmetic(lValue, 1, op)
 				} else {
-					BinaryExpr.evaluate(value, TypeHelper2.one, op)
+					BinaryExpr.evaluate(value, TypeHelper.one, op)
 				}
 
 				val pre = lValue.rValue
@@ -49,7 +49,7 @@ object UnaryExpression {
 
 				value match {
 					case RValue(rValue, _) =>
-						RValue(~rValue.asInstanceOf[Int], TypeHelper2.unsignedIntType)
+						RValue(~rValue.asInstanceOf[Int], TypeHelper.unsignedIntType)
 					case info@LValue(_, _) =>
 						val theValue = info.rValue
 
@@ -62,9 +62,9 @@ object UnaryExpression {
 
 						TypeHelper.cast(info.theType, result)
 				}
-			case `op_not` => RValue(TypeHelper.not(value), TypeHelper2.one.theType)
+			case `op_not` => RValue(TypeHelper.not(value), TypeHelper.one.theType)
 			case `op_minus` =>
-				BinaryExpr.evaluate(value, TypeHelper2.negativeOne, IASTBinaryExpression.op_multiply)
+				BinaryExpr.evaluate(value, TypeHelper.negativeOne, IASTBinaryExpression.op_multiply)
 			case op@(`op_postFixIncr` | `op_postFixDecr` | `op_prefixIncr` | `op_prefixDecr`) =>
 				evaluateIncrDecr(unary, value, op)
 			case `op_sizeof` =>
@@ -79,7 +79,7 @@ object UnaryExpression {
 					case RValue(_, theType) => TypeHelper.sizeof(theType)
 				}
 
-				RValue(size, TypeHelper2.intType)
+				RValue(size, TypeHelper.intType)
 			case `op_amper` =>
 				value match {
 					case info@LValue(_, _) => // address-of operator requires an LValue

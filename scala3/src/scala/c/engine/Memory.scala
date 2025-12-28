@@ -14,7 +14,7 @@ class Memory(size: Int) {
 	// use Address type to prevent messing up argument order
 	def writeToMemory(newVal: AnyVal, address: Int, theType: IType, bitOffset: Int = 0, sizeInBits: Int = 0): Unit = {
 
-		TypeHelper2.stripSyntheticTypeInfo(theType) match {
+		TypeHelper.stripSyntheticTypeInfo(theType) match {
 			case basic: IBasicType if basic.getKind == eInt && basic.isShort =>
 				newVal match {
 					case int: Int => tape.putShort(address, int.asInstanceOf[Short])
@@ -98,7 +98,7 @@ class Memory(size: Int) {
 					res = tape.getByte(address) // a C 'char' is a Java 'byte'
 				}
 
-				TypeHelper2.castSign(theType, res)
+				TypeHelper.castSign(theType, res)
 			case typedef: CTypedef => readFromMemory(address, typedef.getType)
 			case _ => RValue(tape.getInt(address), theType)
 		}

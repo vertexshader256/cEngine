@@ -199,7 +199,7 @@ class State(val pointerSize: NumBits) {
 	}
 
 	val pointerType = pointerSize match {
-		case NumBits.ThirtyTwoBits => TypeHelper2.intType
+		case NumBits.ThirtyTwoBits => TypeHelper.intType
 		case NumBits.SixtyFourBits => new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
 	}
 
@@ -274,7 +274,7 @@ class State(val pointerSize: NumBits) {
 				nameBinding match {
 					case vari: IVariable =>
 						if (vari.isStatic) {
-							val theType = TypeHelper2.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
+							val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
 
 							val variable = Variable(decl.getName.toString, state, vari.getType)
 							if (decl.getInitializer != null) {
@@ -345,7 +345,7 @@ class State(val pointerSize: NumBits) {
 
 				returnVal.map {
 					case file@FileRValue(_) => file
-					case rValue => RValue(rValue.value, TypeHelper2.unsignedIntType)
+					case rValue => RValue(rValue.value, TypeHelper.unsignedIntType)
 				}
 			} else {
 				if (function.name == "main" && isApi) {
@@ -371,14 +371,14 @@ class State(val pointerSize: NumBits) {
 					// printf assumes all floating point numbers are doubles
 					val promoted = resolvedArgs.map { arg =>
 						if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eFloat) {
-							TypeHelper.cast(TypeHelper2.doubleType, arg.value)
+							TypeHelper.cast(TypeHelper.doubleType, arg.value)
 						} else {
 							arg
 						}
 					}
 
 					newScope.pushOntoStack(promoted)
-					newScope.pushOntoStack(RValue(resolvedArgs.size, TypeHelper2.unsignedIntType))
+					newScope.pushOntoStack(RValue(resolvedArgs.size, TypeHelper.unsignedIntType))
 
 					functionContexts = newScope +: functionContexts
 
@@ -453,9 +453,9 @@ class State(val pointerSize: NumBits) {
 		val theStr = Utils.stripQuotes(str)
 		val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
 		val withNull = (translateLineFeed.toCharArray :+ 0.toChar)
-			.map { char => RValue(char.toByte, TypeHelper2.charType) }.toList // terminating null char
+			.map { char => RValue(char.toByte, TypeHelper.charType) }.toList // terminating null char
 
-		val inferredArrayType = new CArrayType(TypeHelper2.charType)
+		val inferredArrayType = new CArrayType(TypeHelper.charType)
 		inferredArrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, str.length.toString.toCharArray)))
 
 		val theArrayPtr = context.addArrayVariable(varName, inferredArrayType, withNull)
