@@ -128,7 +128,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 		startingStackAddr = theState.Stack.insertIndex
 
 		nodes.foreach { node =>
-			pathStack ++= State.flattenNode(node)(theState)
+			pathStack ++= State.flattenNode(node)(using theState)
 		}
 
 		pathStack.zipWithIndex.foreach { case (node, index) =>
@@ -158,7 +158,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 			//        println(current.getClass.getSimpleName)
 			//      }
 
-			ast.Ast.step(current)(state)
+			ast.Ast.step(current)(using state)
 
 			pathIndex += 1
 
