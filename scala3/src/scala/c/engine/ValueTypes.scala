@@ -19,13 +19,12 @@ trait LValue extends ValueType {
 	def sizeof: Int
 
 	def rValue: RValue = {
-		if (rVal.isInstanceOf[FileRValue]) {
+		if rVal.isInstanceOf[FileRValue] then
 			rVal
-		} else if (TypeHelper.isPointerOrArray(this)) {
+		else if TypeHelper.isPointerOrArray(this) then
 			Address(getValue.value.asInstanceOf[Int], TypeHelper.getPointerType(theType))
-		} else {
+		else
 			RValue(getValue.value, theType)
-		}
 	}
 
 	private def getValue = if (theType.isInstanceOf[IArrayType]) {
@@ -75,17 +74,12 @@ case class FileRValue(path: String) extends RValue {
 
 	val file: File = new File(path)
 
-	val value: AnyVal = if (file.exists) {
-		1
-	} else {
-		0
-	}
+	val value: AnyVal = if file.exists then 1 else 0
 
-	var byteArray = if (file.exists) {
+	var byteArray = if file.exists then
 		Files.readAllBytes(Paths.get(path))
-	} else {
+	else
 		Array[Byte]()
-	}
 
 	var currentPosition = 0
 
@@ -124,11 +118,10 @@ object Variable {
 
 		val size = if (aType.isInstanceOf[IArrayType] && initVals.size > 0) {
 			if (aType.asInstanceOf[IArrayType].hasSize) {
-				if (initVals.size == aType.asInstanceOf[IArrayType].getSize.numericalValue().toInt) {
+				if initVals.size == aType.asInstanceOf[IArrayType].getSize.numericalValue().toInt then
 					initVals.map { init => TypeHelper.sizeof(init.theType)(using state) }.sum
-				} else {
+				else
 					TypeHelper.sizeof(aType)(using state)
-				}
 			} else {
 				initVals.map { init => TypeHelper.sizeof(init.theType)(using state) }.sum
 			}
