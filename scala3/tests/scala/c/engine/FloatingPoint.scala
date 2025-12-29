@@ -99,4 +99,18 @@ class FloatingPoint extends StandardTest {
 
 		checkResults(code)
 	}
+
+	"floating point comparisons" should "print the correct results" in {
+		val code =
+			"""
+				void main() {
+					double x = 1.0;
+					float y = 4324.5435345;
+					float z = 4324.5435346;
+			    int zz = x == x;
+					printf("%f %d\n", x == y, zz);
+				}"""
+
+		checkResults(code)
+	}
 }

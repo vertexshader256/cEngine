@@ -400,7 +400,12 @@ object Functions {
 
 				val base = TypeHelper.resolve(varArgs(paramCount))(using state).value.asInstanceOf[Object]
 
-				formatter2.format("%f", List(base)*)
+				base match
+					case boolean: java.lang.Boolean =>
+						val converted = if boolean then 1.0 else 0.0
+						formatter2.format("%f", List(converted)*)
+					case _ =>
+						formatter2.format("%f", List(base) *)
 
 				if (buffer2.toString.contains("Infinity") || buffer2.toString.contains("NaN")) {
 					resultingFormatString += 's'
@@ -408,7 +413,13 @@ object Functions {
 						.replace("NaN", "-nan(ind)")
 				} else {
 					resultingFormatString += formatFound
-					resolved += base
+
+					base match
+						case boolean: java.lang.Boolean =>
+							val converted = if boolean then 1.0f else 0.0f
+							resolved += Float.box(converted)
+						case _ =>
+							resolved += base
 				}
 
 				percentFound = false
