@@ -114,11 +114,10 @@ object Expressions {
 				case (_, op1) =>
 					val op2 = evaluate(bin.getOperand2).head
 
-					val result = if (Utils.isAssignment(bin.getOperator)) {
+					val result = if Utils.isAssignment(bin.getOperator) then
 						Declarator.assign(op1.asInstanceOf[LValue], List(op2), bin.getOperand2, bin.getOperator)
-					} else {
+					else
 						BinaryExpr.evaluate(op1, op2, bin.getOperator)
-					}
 
 					Some(result)
 			}

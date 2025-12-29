@@ -50,11 +50,10 @@ object BinaryExpr {
 		val rValue = TypeHelper.resolve(ptr)
 
 		// For some reason double pointers should only use sizeof().  Not sure why.
-		val theType = if (ptr.isInstanceOf[LValue] && !TypeHelper.getPointerType(ptr.theType).isInstanceOf[CPointerType]) {
+		val theType = if ptr.isInstanceOf[LValue] && !TypeHelper.getPointerType(ptr.theType).isInstanceOf[CPointerType] then
 			TypeHelper.getPointerType(ptr.theType)
-		} else {
+		else
 			ptr.theType
-		}
 
 		val value = TypeHelper.sizeof(theType) * offset
 		val bias = if (operator == `op_minus`) -1 else 1

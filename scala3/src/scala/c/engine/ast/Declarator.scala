@@ -74,11 +74,10 @@ object Declarator {
 
 			val initializer = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
 
-			val name = if (arrayDecl.getNestedDeclarator != null) {
+			val name = if arrayDecl.getNestedDeclarator != null then
 				arrayDecl.getNestedDeclarator.getName
-			} else {
+			else
 				arrayDecl.getName
-			}
 
 			val theType = TypeHelper.getBindingType(name.resolveBinding())
 
@@ -137,12 +136,11 @@ object Declarator {
 						val zeroArray = (0 until newVar.sizeof).map { x => 0.toByte }.toArray
 						state.writeDataBlock(zeroArray, newVar.address)
 					} else {
-						val newArray = if (!theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType]) {
+						val newArray = if !theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType] then
 							val baseType = TypeHelper.resolveBasic(theType)
 							initialArray.map { x => TypeHelper.cast(baseType, x.value) }
-						} else {
+						else
 							initialArray
-						}
 
 						state.context.addArrayVariable(name.toString, theType, newArray)
 					}
@@ -168,11 +166,10 @@ object Declarator {
 
 				val aType = if (theType.isInstanceOf[CArrayType] && !theType.asInstanceOf[CArrayType].isConst && !dimensions.isEmpty) { // an array bounded by a variable e.g x[y]
 					def createdSizedArrayType(theType: CArrayType, dimensions: List[Int]): CArrayType = {
-						val arrayType = if (theType.getType.isInstanceOf[CArrayType]) {
+						val arrayType = if theType.getType.isInstanceOf[CArrayType] then
 							new CArrayType(createdSizedArrayType(theType.getType.asInstanceOf[CArrayType], dimensions.tail))
-						} else {
+						else
 							new CArrayType(theType.getType)
-						}
 
 						arrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, dimensions.head.toString.toCharArray)))
 						arrayType
@@ -194,11 +191,10 @@ object Declarator {
 			if (nameBinding.isInstanceOf[IVariable]) {
 				val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
 
-				val variable = if (nameBinding.asInstanceOf[IVariable].isExtern) {
+				val variable = if nameBinding.asInstanceOf[IVariable].isExtern then
 					state.context.addExternVariable(name.toString, theType)
-				} else {
+				else
 					state.context.addVariable(name.toString, theType)
-				}
 
 				if (!variable.isInitialized) {
 					if (decl.getInitializer.isInstanceOf[IASTEqualsInitializer]) {
@@ -262,27 +258,26 @@ object Declarator {
 	}
 
 	def assign(dst: LValue, srcs: List[ValueType], equals: IASTInitializerClause, op: Int)(implicit state: State): LValue = {
-		if (!dst.theType.isInstanceOf[CStructure]) {
+		if !dst.theType.isInstanceOf[CStructure] then
 			val result = evaluate(dst, srcs.head, op) match {
 				case file@FileRValue(_) => file
 				case x => TypeHelper.cast(dst.theType, x.value)
 			}
 			dst.setValue(result)
-		} else if (equals.isInstanceOf[IASTFunctionCallExpression]) {
+		else if equals.isInstanceOf[IASTFunctionCallExpression] then
 			state.copy(dst.address, state.Stack.insertIndex - dst.sizeof, dst.sizeof)
-		} else if (equals.isInstanceOf[IASTTypeIdInitializerExpression]) {
+		else if equals.isInstanceOf[IASTTypeIdInitializerExpression] then
 			val otherStruct = Expressions.evaluate(equals).get.asInstanceOf[LValue]
 			state.copy(dst.address, otherStruct.address, dst.sizeof)
-		} else if (equals.isInstanceOf[IASTExpression]) { // setting a struct equal to another struct
+		else if equals.isInstanceOf[IASTExpression] then // setting a struct equal to another struct
 			val otherStruct = srcs.head.asInstanceOf[LValue]
 			state.copy(dst.address, otherStruct.address, dst.sizeof)
-		} else { // e.g struct Test test = {1.0, 2, "three"}
+		else // e.g struct Test test = {1.0, 2, "three"}
 			val struct = dst.theType.asInstanceOf[CStructure]
 			struct.getFields.zip(srcs).foreach { case (field, newValue) =>
 				val theField = TypeHelper.offsetof(struct, dst.address, field.getName, state)
 				assign(theField, List(newValue), equals, op)
 			}
-		}
 
 		dst
 	}
