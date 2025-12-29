@@ -198,10 +198,9 @@ class State(val pointerSize: NumBits) {
 			.map { x => x.getName.resolveBinding().asInstanceOf[CStructure] }
 	}
 
-	val pointerType = pointerSize match {
+	val pointerType = pointerSize match
 		case NumBits.ThirtyTwoBits => TypeHelper.intType
 		case NumBits.SixtyFourBits => new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
-	}
 
 	val addressSize = TypeHelper.sizeof(pointerType)(using this)
 
@@ -232,9 +231,7 @@ class State(val pointerSize: NumBits) {
 
 	def getFunctionByIndex(index: Int): Function = functionList.find { fcn => fcn.index == index }.get
 
-	Functions.scalaFunctions.foreach { fcn =>
-		addScalaFunctionDef(fcn)
-	}
+	Functions.scalaFunctions.foreach(addScalaFunctionDef)
 
 	pushScope(new FunctionScope(List(), null, null) {})
 
@@ -336,17 +333,14 @@ class State(val pointerSize: NumBits) {
 				val stackPos = Stack.insertIndex
 				val args = call.getArguments.map { x => Expressions.evaluate(x) }
 
-				val resolvedArgs: Array[RValue] = args.flatten.map {
-					TypeHelper.resolve
-				}
+				val resolvedArgs: Array[RValue] = args.flatten.map(TypeHelper.resolve)
 
 				val returnVal = function.run(resolvedArgs.reverse, this)
 				Stack.insertIndex = stackPos // pop the stack
 
-				returnVal.map {
+				returnVal.map:
 					case file@FileRValue(_) => file
 					case rValue => RValue(rValue.value, TypeHelper.unsignedIntType)
-				}
 			} else {
 				if (function.name == "main" && isApi) {
 					scope.get.init(List(function.node), this, scope.isEmpty)
@@ -442,8 +436,8 @@ class State(val pointerSize: NumBits) {
 	def getString(str: String): RValue = {
 		val theStr = Utils.stripQuotes(str)
 
-		val withNull = (theStr.toCharArray() :+ 0.toChar).map(_.toByte) // terminating null char
-		val strAddr = allocateSpace(withNull.size)
+		val withNull = (theStr.toCharArray :+ 0.toChar).map(_.toByte) // terminating null char
+		val strAddr = allocateSpace(withNull.length)
 
 		writeDataBlock(withNull, strAddr)(using this)
 		RValue(strAddr, pointerType)

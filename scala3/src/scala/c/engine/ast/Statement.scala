@@ -11,7 +11,7 @@ object Statement {
 	def parse(statement: IASTStatement)(implicit state: State): Unit = statement match {
 		case _: IASTNullStatement =>
 			PartialFunction.empty
-		case ret: IASTReturnStatement => {
+		case ret: IASTReturnStatement =>
 			if (ret.getReturnValue != null) {
 				val returnVal = Expressions.evaluate(ret.getReturnValue).head
 				val functionScope = state.getFunctionScope
@@ -30,12 +30,10 @@ object Statement {
 			}
 
 			throw ReturnFromFunction()
-		}
 		case decl: IASTDeclarationStatement =>
 			Ast.step(decl.getDeclaration)
-		case exprStatement: IASTExpressionStatement => {
+		case exprStatement: IASTExpressionStatement =>
 			Expressions.evaluate(exprStatement.getExpression)
-		}
 		case problem: IASTProblemStatement =>
 			println(problem.getRawSignature)
 	}

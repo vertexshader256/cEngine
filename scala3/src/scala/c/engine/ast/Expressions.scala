@@ -11,11 +11,10 @@ object Expressions {
 		case ternary: IASTConditionalExpression =>
 			val result = TypeHelper.resolveBoolean(evaluate(ternary.getLogicalConditionExpression).get)
 
-			val expr = if (result) {
+			val expr = if result then
 				ternary.getPositiveResultExpression
-			} else {
+			else
 				ternary.getNegativeResultExpression
-			}
 
 			evaluate(expr)
 		case cast: IASTCastExpression =>
@@ -47,11 +46,10 @@ object Expressions {
 
 			val structType = TypeHelper.resolveStruct(struct.theType)
 
-			val baseAddr = if (fieldRef.isPointerDereference) {
+			val baseAddr = if fieldRef.isPointerDereference then
 				state.readPtrVal(struct.address)
-			} else {
+			else
 				struct.address
-			}
 
 			val field = TypeHelper.offsetof(structType, baseAddr, fieldRef.getFieldName.toString, state: State)
 			Some(field)
@@ -63,20 +61,18 @@ object Expressions {
 			val isLeftPointer = TypeHelper.isPointerOrArray(left)
 
 			// in the case of weird stuff like 2[x], just swap the two operands
-			if (!isLeftPointer) {
+			if !isLeftPointer then
 				val temp = left
 				left = right
 				right = temp
-			}
 
 			val base = TypeHelper.resolve(left).value.asInstanceOf[Int]
 
-			val indexType = left match {
+			val indexType = left match
 				case RValue(_, theType) =>
 					theType
 				case LValue(_, theType) =>
 					TypeHelper.getPointerType(theType)
-			}
 
 			val rightValue = TypeHelper.resolve(right).value
 			val index = rightValue.toString.toInt
@@ -128,10 +124,9 @@ object Expressions {
 			typeIdInit.getInitializer match {
 				case list: IASTInitializerList =>
 					val rVals = list.getClauses.map { clause =>
-						evaluate(clause).get match {
+						evaluate(clause).get match
 							case r@RValue(x, y) => r
 							case l: LValue => l.rValue
-						}
 					}.toList
 
 					state.writeDataBlock(rVals, newAddr)

@@ -18,29 +18,25 @@ object Ast {
 		case JmpIfNotEqual(expr, lines) =>
 			val raw = Expressions.evaluate(expr).get
 			val result = TypeHelper.resolveBoolean(raw)
-			if (!result) {
+			if !result then
 				state.context.jmpRelative(lines)
-			}
 		case JmpToLabelIfNotZero(expr, label) =>
 			val raw = Expressions.evaluate(expr).get
 			val result = TypeHelper.resolveBoolean(raw)
-			if (!result) {
+			if !result then
 				state.context.setAddress(label.address)
-			}
 		case JmpLabel(label) =>
 			state.context.setAddress(label.address)
 		case JmpToLabelIfZero(expr, label) =>
 			val raw = Expressions.evaluate(expr).get
 			val result = TypeHelper.resolveBoolean(raw)
-			if (result) {
+			if result then
 				state.context.setAddress(label.address)
-			}
 		case JmpToLabelIfEqual(expr1, cached, label) =>
 			val raw1 = TypeHelper.resolve(Expressions.evaluate(expr1).get).value
 			val raw2 = cached.cachedValue.value
-			if (raw1 == raw2) {
+			if raw1 == raw2 then
 				state.context.setAddress(label.address)
-			}
 		case Jmp(lines) =>
 			state.context.jmpRelative(lines)
 		case jmp: JmpName =>
@@ -52,40 +48,31 @@ object Ast {
 
 		case statement: IASTStatement =>
 			Statement.parse(statement)
-		case expression: IASTExpression => {
-			Expressions.evaluate(expression).foreach { value =>
+		case expression: IASTExpression =>
+			Expressions.evaluate(expression).foreach: value =>
 				state.context.pushOntoStack(value)
-			}
+
 			Seq()
-		}
 		case decl: IASTDeclarator =>
 			Declarator.execute(decl)
-		case array: IASTArrayModifier => {
+		case array: IASTArrayModifier =>
 			List(Option(array.getConstantExpression)).flatten.foreach(step)
-		}
-
-		case simple: IASTSimpleDeclaration => {
+		case simple: IASTSimpleDeclaration =>
 			val declSpec = simple.getDeclSpecifier
-
-			val isWithinFunction = Utils.getAncestors(simple).exists {
-				_.isInstanceOf[IASTFunctionDefinition]
-			}
+			val isWithinFunction = Utils.getAncestors(simple).exists(_.isInstanceOf[IASTFunctionDefinition])
 
 			simple.getDeclarators.foreach {
 				case fcn: IASTFunctionDeclarator =>
-					if (!isWithinFunction || fcn.getInitializer != null) {
+					if !isWithinFunction || fcn.getInitializer != null then
 						step(fcn)
-					} else {
+					else
 						step(fcn.getNestedDeclarator)
-					}
 				case x => step(x)
 			}
 
-			if (declSpec.isInstanceOf[IASTEnumerationSpecifier]) {
+			if declSpec.isInstanceOf[IASTEnumerationSpecifier] then
 				step(simple.getDeclSpecifier)
-			}
-		}
-		case enumer: IASTEnumerationSpecifier => {
+		case enumer: IASTEnumerationSpecifier =>
 			var current = 0
 			enumer.getEnumerators.foreach {
 				case enumerator: CASTEnumerator =>
@@ -101,19 +88,12 @@ object Ast {
 						current += 1
 					}
 			}
-		}
-		case fcnDef: IASTFunctionDefinition => {
-		}
-		case initList: IASTInitializerList => {
-			initList.getClauses.foreach {
-				step
-			}
-		}
-		case equals: IASTEqualsInitializer => {
+		case fcnDef: IASTFunctionDefinition =>
+		case initList: IASTInitializerList =>
+			initList.getClauses.foreach(step)
+		case equals: IASTEqualsInitializer =>
 			step(equals.getInitializerClause)
-		}
-		case x => {
+		case x =>
 			executeCustomInstructions(x)
-		}
 	}
 }

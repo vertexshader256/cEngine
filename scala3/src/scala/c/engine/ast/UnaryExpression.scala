@@ -12,19 +12,17 @@ object UnaryExpression {
 
 	// per C Spec this returns a RValue
 	def evaluateIncrDecr(unary: IASTUnaryExpression, value: ValueType, operator: Int)(implicit state: State): RValue = {
-		val op = operator match {
+		val op = operator match
 			case `op_postFixIncr` | `op_prefixIncr` => IASTBinaryExpression.op_plus
 			case `op_postFixDecr` | `op_prefixDecr` => IASTBinaryExpression.op_minus
-		}
 
 		value match {
 			case lValue: LValue =>
 
-				val newVal = if (TypeHelper.isPointerOrArray(lValue.theType)) {
+				val newVal = if TypeHelper.isPointerOrArray(lValue.theType) then
 					evaluatePointerArithmetic(lValue, 1, op)
-				} else {
+				else
 					BinaryExpr.evaluate(value, TypeHelper.one, op)
-				}
 
 				val pre = lValue.rValue
 				state.Stack.writeToMemory(newVal.value, lValue.address, lValue.theType)
@@ -83,10 +81,9 @@ object UnaryExpression {
 			case `op_amper` =>
 				value match {
 					case info@LValue(_, _) => // address-of operator requires an LValue
-						info.theType match {
+						info.theType match
 							case _: CFunctionType => info
 							case theType: IType => Address(info.address, theType)
-						}
 				}
 			case `op_star` =>
 				value match {
@@ -95,12 +92,11 @@ object UnaryExpression {
 					case info@LValue(_, aType) =>
 						val nestedType = TypeHelper.getPointerType(aType)
 
-						if (!nestedType.isInstanceOf[IFunctionType]) {
+						if !nestedType.isInstanceOf[IFunctionType] then
 							LValue(state, info.rValue.value.asInstanceOf[Int], nestedType)
-						} else {
+						else
 							// function pointers can ignore the star
 							info
-						}
 				}
 		}
 	}

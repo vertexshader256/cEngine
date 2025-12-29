@@ -109,9 +109,9 @@ object Declarator {
 
 				if (TypeHelper.isPointerOrArray(theType) && TypeHelper.getPointerType(theType).isInstanceOf[CStructure]) {
 					val data = List(Option(decl.getInitializer)).flatten
-					data.foreach {
-						Ast.step
-					}
+
+					data.foreach(Ast.step)
+
 					val structType = TypeHelper.getPointerType(theType).asInstanceOf[CStructure]
 
 					val structData = initializer.getInitializerClause.getChildren.flatMap { list =>
