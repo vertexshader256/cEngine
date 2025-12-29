@@ -17,7 +17,7 @@ object Gcc {
       """
 
 		state.init(Seq(exeCode), includePaths.toList)
-		state.callTheFunction("main", null, Some(program), true)(state)
+		state.callTheFunction("main", null, Some(program), true)(using state)
 		val main = state.functionList.find {
 			_.name == "main"
 		}.get

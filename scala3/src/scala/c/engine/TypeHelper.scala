@@ -279,8 +279,8 @@ object TypeHelper {
 	}
 
 	def offsetof(struct: CStructure, memberName: String, state: State): Int = {
-		val largestField = struct.getFields.filter { f => f.getType.isInstanceOf[CBasicType] }.map { x => TypeHelper.sizeInBits(x)(state) / 8 }.sorted.maxOption.getOrElse(0)
-		val fields = struct.getFields.takeWhile { field => field.getName != memberName }.map { x => TypeHelper.sizeInBits(x)(state) / 8 }
+		val largestField = struct.getFields.filter { f => f.getType.isInstanceOf[CBasicType] }.map { x => TypeHelper.sizeInBits(x)(using state) / 8 }.sorted.maxOption.getOrElse(0)
+		val fields = struct.getFields.takeWhile { field => field.getName != memberName }.map { x => TypeHelper.sizeInBits(x)(using state) / 8 }
 		val paddedFields = fields.map(f => if (f < largestField) {
 			largestField
 		} else f) // gcc adds padding
@@ -296,15 +296,15 @@ object TypeHelper {
 				structType.getFields.foreach { field =>
 					if (field.getName == fieldName) {
 						// can assume names are unique
-						resultAddress = Field(state, baseAddress + offsetInBits / 8, offsetInBits % 8, field.getType, TypeHelper.sizeInBits(field)(state))
+						resultAddress = Field(state, baseAddress + offsetInBits / 8, offsetInBits % 8, field.getType, TypeHelper.sizeInBits(field)(using state))
 					} else {
-						offsetInBits += TypeHelper.sizeInBits(field)(state)
+						offsetInBits += TypeHelper.sizeInBits(field)(using state)
 					}
 				}
 			case ICompositeType.k_union =>
 				// TODO: Unions and bit fields dont work
 				structType.getFields.find { field => field.getName == fieldName }.foreach { field =>
-					resultAddress = Field(state, baseAddress, 0, field.getType, TypeHelper.sizeInBits(field)(state))
+					resultAddress = Field(state, baseAddress, 0, field.getType, TypeHelper.sizeInBits(field)(using state))
 				}
 		}
 		resultAddress
@@ -326,7 +326,7 @@ object TypeHelper {
 				state.addressSize
 			case array: IArrayType if array.hasSize =>
 				TypeHelper.sizeof(array.getType) * array.getSize.numericalValue().toInt
-			case _ => TypeHelper.sizeof(theType)(state)
+			case _ => TypeHelper.sizeof(theType)(using state)
 		}
 	}
 

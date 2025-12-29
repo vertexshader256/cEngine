@@ -163,7 +163,7 @@ object Functions {
 	scalaFunctions += new Function("_assert", false) {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val addy = formattedOutputParams(0).value.asInstanceOf[Int]
-			println(Utils.readString(addy)(state) + " FAILED")
+			println(Utils.readString(addy)(using state) + " FAILED")
 			None
 		}
 	}
@@ -201,8 +201,8 @@ object Functions {
 
 	scalaFunctions += new Function("fopen", false) {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-			val path = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(state)
-			val mode = Utils.readString(formattedOutputParams.head.value.asInstanceOf[Int])(state)
+			val path = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(using state)
+			val mode = Utils.readString(formattedOutputParams.head.value.asInstanceOf[Int])(using state)
 
 			if (!new File(path).exists()) {
 				if (mode == "w") {
@@ -219,7 +219,7 @@ object Functions {
 
 	scalaFunctions += new Function("remove", false) {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-			val path = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(state)
+			val path = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(using state)
 			new File(path).delete()
 			None
 		}
@@ -247,7 +247,7 @@ object Functions {
 				}
 			}
 
-			state.writeDataBlock(result.toArray, resultBuffer)(state)
+			state.writeDataBlock(result.toArray, resultBuffer)(using state)
 
 			None
 		}
@@ -274,7 +274,7 @@ object Functions {
 			val strAddr = formattedOutputParams.last.value.asInstanceOf[Int]
 
 			val formattedStr = printf(formattedOutputParams.drop(1), state)
-			state.writeDataBlock(formattedStr.getBytes, strAddr)(state)
+			state.writeDataBlock(formattedStr.getBytes, strAddr)(using state)
 			None
 		}
 	}
@@ -298,7 +298,7 @@ object Functions {
 			val numMembers = TypeHelper.cast(TypeHelper.intType, formattedOutputParams(1).value).value.asInstanceOf[Int]
 			val fp = formattedOutputParams(0).asInstanceOf[FileRValue]
 
-			state.writeDataBlock(fp.fread(numMembers * size), resultBuffer)(state)
+			state.writeDataBlock(fp.fread(numMembers * size), resultBuffer)(using state)
 			Some(RValue(numMembers))
 		}
 	}
@@ -310,7 +310,7 @@ object Functions {
 			val numMembers = formattedOutputParams(1).value.asInstanceOf[Int]
 			val fp = formattedOutputParams(0).asInstanceOf[FileRValue]
 
-			val bytes = state.readDataBlock(buffer, size * numMembers)(state)
+			val bytes = state.readDataBlock(buffer, size * numMembers)(using state)
 
 			fp.fwrite(bytes, size * numMembers)
 
@@ -319,7 +319,7 @@ object Functions {
 	}
 
 	def printf(formattedOutputParams: Array[RValue], state: State): String = {
-		val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(state)
+		val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(using state)
 		//val formatString = str.replaceAll("^\"|\"$", "").replaceAll("%ld", "%d").replaceAll("%l", "%d")
 
 		val buffer = new StringBuffer()
@@ -346,7 +346,7 @@ object Functions {
 				val stringAddr = theVal.asInstanceOf[Int]
 
 				if (stringAddr != 0) {
-					val str = Utils.readString(stringAddr)(state)
+					val str = Utils.readString(stringAddr)(using state)
 					resolved += str.split(System.lineSeparator()).mkString.asInstanceOf[Object]
 				} else {
 					resolved += "(null)".asInstanceOf[Object]
@@ -357,7 +357,7 @@ object Functions {
 			} else if (percentFound && (c == 'u')) {
 				formatFound += 'd'
 
-				val x = TypeHelper.resolve(varArgs(paramCount))(state).value
+				val x = TypeHelper.resolve(varArgs(paramCount))(using state).value
 				resolved += (if (x.isInstanceOf[Boolean]) {
 					if (x.asInstanceOf[Boolean]) 1 else 0
 				} else {
@@ -371,7 +371,7 @@ object Functions {
 			} else if (percentFound && (c == 'd')) {
 				formatFound += c
 
-				val x = TypeHelper.resolve(varArgs(paramCount))(state).value
+				val x = TypeHelper.resolve(varArgs(paramCount))(using state).value
 				resolved += (if (x.isInstanceOf[Boolean]) {
 					if (x.asInstanceOf[Boolean]) 1 else 0
 				} else {
@@ -387,7 +387,7 @@ object Functions {
 				percentFound = false
 				paramCount += 1
 			} else if (percentFound && c == 'c') {
-				resolved += TypeHelper.resolve(varArgs(paramCount))(state).value.asInstanceOf[Object]
+				resolved += TypeHelper.resolve(varArgs(paramCount))(using state).value.asInstanceOf[Object]
 				percentFound = false
 				formatFound += c
 				resultingFormatString += formatFound
@@ -398,9 +398,9 @@ object Functions {
 				val buffer2 = new StringBuffer()
 				val formatter2 = new Formatter(buffer2, Locale.US)
 
-				val base = TypeHelper.resolve(varArgs(paramCount))(state).value.asInstanceOf[Object]
+				val base = TypeHelper.resolve(varArgs(paramCount))(using state).value.asInstanceOf[Object]
 
-				formatter2.format("%f", List(base): _*)
+				formatter2.format("%f", List(base)*)
 
 				if (buffer2.toString.contains("Infinity") || buffer2.toString.contains("NaN")) {
 					resultingFormatString += 's'
@@ -420,14 +420,14 @@ object Functions {
 			}
 		}
 
-		formatter.format(resultingFormatString, resolved.toSeq: _*)
+		formatter.format(resultingFormatString, resolved.toSeq*)
 
 		buffer.toString
 	}
 
 	scalaFunctions += new Function("atoi", false) {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-			val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(state)
+			val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(using state)
 			Some(RValue(str.toInt))
 		}
 	}
@@ -553,7 +553,7 @@ object Functions {
 
 			val result = printf(formattedOutputParams, state)
 
-			state.writeDataBlock(result.getBytes, resultBuffer)(state)
+			state.writeDataBlock(result.getBytes, resultBuffer)(using state)
 
 			Some(RValue(varArgs.size))
 		}
@@ -601,7 +601,7 @@ object Functions {
 			}
 			val straddy = formattedOutputParams(1).value.asInstanceOf[Int]
 
-			val str = Utils.readString(straddy)(state)
+			val str = Utils.readString(straddy)(using state)
 
 			val offset = str.indexOf(char.toChar)
 
@@ -619,7 +619,7 @@ object Functions {
 			val src = formattedOutputParams(1).value.asInstanceOf[Int]
 			val dst = formattedOutputParams(2).value.asInstanceOf[Int]
 
-			val str1 = Utils.readString(src)(state)
+			val str1 = Utils.readString(src)(using state)
 
 			state.copy(dst, src, Math.min(str1.size + 1, num))
 			None
@@ -631,7 +631,7 @@ object Functions {
 			val src = formattedOutputParams(0).value.asInstanceOf[Int]
 			val dst = formattedOutputParams(1).value.asInstanceOf[Int]
 
-			val str1 = Utils.readString(src)(state)
+			val str1 = Utils.readString(src)(using state)
 
 			state.copy(dst, src, str1.size + 1)
 			None
@@ -643,8 +643,8 @@ object Functions {
 			val straddy = formattedOutputParams(0).value.asInstanceOf[Int]
 			val straddy2 = formattedOutputParams(1).value.asInstanceOf[Int]
 
-			val memberName = Utils.readString(straddy)(state)
-			val stuctName = Utils.readString(straddy2)(state)
+			val memberName = Utils.readString(straddy)(using state)
+			val stuctName = Utils.readString(straddy2)(using state)
 
 			val struct = state.structs.find { x => ("struct " + x.getName) == stuctName }.get
 
@@ -657,8 +657,8 @@ object Functions {
 			val straddy = formattedOutputParams(0).value.asInstanceOf[Int]
 			val straddy2 = formattedOutputParams(1).value.asInstanceOf[Int]
 
-			val str1 = Utils.readString(straddy)(state)
-			val str2 = Utils.readString(straddy2)(state)
+			val str1 = Utils.readString(straddy)(using state)
+			val str2 = Utils.readString(straddy2)(using state)
 
 			val same = str1 == str2
 			Some(RValue((if (same) 0 else 1)))
@@ -694,7 +694,7 @@ object Functions {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val argTypeStr = formattedOutputParams(0).value.asInstanceOf[Int]
 
-			val str = Utils.readString(argTypeStr)(state)
+			val str = Utils.readString(argTypeStr)(using state)
 
 			val (offset, theType) = (str match {
 				case "unsigned int" => (4, TypeHelper.unsignedIntType)
@@ -746,7 +746,7 @@ object Functions {
 
 			val args = Array[Object](arg.asInstanceOf[Object])
 
-			formatter.format(formatString, args: _*)
+			formatter.format(formatString, args*)
 
 			val result1 = buffer.toString
 			val index = result1.indexOf('.')
@@ -759,7 +759,7 @@ object Functions {
 			// to-do: find a way to do this without allocating?
 			val result = state.allocateHeapSpace(20)
 
-			state.writeDataBlock(array, result)(state)
+			state.writeDataBlock(array, result)(using state)
 			Some(RValue(result))
 		}
 	}

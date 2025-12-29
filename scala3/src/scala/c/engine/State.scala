@@ -203,7 +203,7 @@ class State(val pointerSize: NumBits) {
 		case NumBits.SixtyFourBits => new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
 	}
 
-	val addressSize = TypeHelper.sizeof(pointerType)(this)
+	val addressSize = TypeHelper.sizeof(pointerType)(using this)
 
 	def pushScope(scope: FunctionScope): Unit = {
 		functionContexts = scope +: functionContexts
@@ -303,7 +303,7 @@ class State(val pointerSize: NumBits) {
 		functionList += new Function(name.toString, true) {
 			index = count
 			node = fcnDef
-			override val staticVars = addStaticFunctionVars(fcnDef)(State.this)
+			override val staticVars = addStaticFunctionVars(fcnDef)(using State.this)
 
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				None
@@ -445,7 +445,7 @@ class State(val pointerSize: NumBits) {
 		val withNull = (theStr.toCharArray() :+ 0.toChar).map(_.toByte) // terminating null char
 		val strAddr = allocateSpace(withNull.size)
 
-		writeDataBlock(withNull, strAddr)(this)
+		writeDataBlock(withNull, strAddr)(using this)
 		RValue(strAddr, pointerType)
 	}
 
@@ -468,7 +468,7 @@ class State(val pointerSize: NumBits) {
 		array.foreach {
 			case RValue(newVal, theType) =>
 				Stack.writeToMemory(newVal, address, theType)
-				address += TypeHelper.sizeof(theType)(state)
+				address += TypeHelper.sizeof(theType)(using state)
 		}
 	}
 }

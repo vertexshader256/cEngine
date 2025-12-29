@@ -39,7 +39,7 @@ trait LValue extends ValueType {
 		state.Stack.writeToMemory(newVal.value, address, theType, bitOffset, sizeInBits)
 	}
 
-	def toByteArray = state.readDataBlock(address, sizeof)(state)
+	def toByteArray = state.readDataBlock(address, sizeof)(using state)
 }
 
 object LValue {
@@ -54,7 +54,7 @@ object LValue {
 			val rawType = aType
 			//def sizeof = TypeHelper.sizeof(theType)(state)}
 			val sizeof = {
-				TypeHelper.getPointerSize(theType)(state)
+				TypeHelper.getPointerSize(theType)(using state)
 			}
 			val sizeInBits = sizeof * 8
 		}
@@ -125,26 +125,26 @@ object Variable {
 		val size = if (aType.isInstanceOf[IArrayType] && initVals.size > 0) {
 			if (aType.asInstanceOf[IArrayType].hasSize) {
 				if (initVals.size == aType.asInstanceOf[IArrayType].getSize.numericalValue().toInt) {
-					initVals.map { init => TypeHelper.sizeof(init.theType)(state) }.sum
+					initVals.map { init => TypeHelper.sizeof(init.theType)(using state) }.sum
 				} else {
-					TypeHelper.sizeof(aType)(state)
+					TypeHelper.sizeof(aType)(using state)
 				}
 			} else {
-				initVals.map { init => TypeHelper.sizeof(init.theType)(state) }.sum
+				initVals.map { init => TypeHelper.sizeof(init.theType)(using state) }.sum
 			}
 		} else {
-			TypeHelper.sizeof(aType)(state)
+			TypeHelper.sizeof(aType)(using state)
 		}
 
 		val variable = Variable(name, state, aType, size)
 
 		// now, write the initial values
-		state.writeDataBlock(initVals, variable.address)(state)
+		state.writeDataBlock(initVals, variable.address)(using state)
 		variable
 	}
 
 	def apply(name: String, state: State, aType: IType): Variable = {
-		val size = TypeHelper.sizeof(aType)(state)
+		val size = TypeHelper.sizeof(aType)(using state)
 		Variable(name: String, state: State, aType: IType, size)
 	}
 }
