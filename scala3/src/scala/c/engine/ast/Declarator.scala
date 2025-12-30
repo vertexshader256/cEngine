@@ -237,8 +237,10 @@ object Declarator {
 						}
 					}.toList
 				} else {
-					Ast.step(decl)
-					clause.asInstanceOf[IASTInitializerList].getClauses.map { x => state.context.popStack }.reverse.toList
+					clause.asInstanceOf[IASTInitializerList].getClauses.map { x =>
+						Ast.step(x)
+						state.context.popStack
+					}.toList
 				}
 			} else {
 				List(RValue(0, null))
