@@ -101,6 +101,84 @@ class BubbleSort extends StandardTest {
 	}
 }
 
+class ShellSort extends StandardTest {
+	"shell sort test" should "print the correct results" in {
+		val code =
+			"""
+				void shell_sort (int *a, int n) {
+						int h, i, j, t;
+						for (h = n; h /= 2;) {
+								for (i = h; i < n; i++) {
+										t = a[i];
+										for (j = i; j >= h && t < a[j - h]; j -= h) {
+												a[j] = a[j - h];
+										}
+										a[j] = t;
+								}
+						}
+				}
+				
+				int main (int ac, char **av) {
+						int a[] = {4, 65, 2, -31, 0, 99, 2, 83, 782, 1};
+						int n = sizeof a / sizeof a[0];
+						int i;
+						for (i = 0; i < n; i++)
+								printf("%d%s", a[i], i == n - 1 ? "\n" : " ");
+						shell_sort(a, n);
+						for (i = 0; i < n; i++)
+								printf("%d%s", a[i], i == n - 1 ? "\n" : " ");
+						return 0;
+				}
+				"""
+		checkResults(code)
+	}
+}
+
+class CombSort extends StandardTest {
+	"comb sort test" should "print the correct results" in {
+		val code =
+			"""
+				void Combsort11(double a[], int nElements)
+				{
+					int i, j, gap, swapped = 1;
+					double temp;
+				
+					gap = nElements;
+					while (gap > 1 || swapped == 1)
+					{
+						gap = gap * 10 / 13;
+						if (gap == 9 || gap == 10) gap = 11;
+						if (gap < 1) gap = 1;
+						swapped = 0;
+						for (i = 0, j = gap; j < nElements; i++, j++)
+						{
+							if (a[i] > a[j])
+							{
+								temp = a[i];
+								a[i] = a[j];
+								a[j] = temp;
+								swapped = 1;
+							}
+						}
+					}
+				}
+				
+				int main (int ac, char **av) {
+						double a[] = {4.5, 65.2, 2.8, -31.34, 0.0, 99.0, 2.54, 83.54, 782.234, 1.32};
+						int n = sizeof a / sizeof a[0];
+						int i;
+						for (i = 0; i < n; i++)
+								printf("%f%s", a[i], i == n - 1 ? "\n" : " ");
+						Combsort11(a, n);
+						for (i = 0; i < n; i++)
+								printf("%f%s", a[i], i == n - 1 ? "\n" : " ");
+						return 0;
+				}
+				"""
+		checkResults(code)
+	}
+}
+
 class InsertionSort extends StandardTest {
 	"insertion sort test 1" should "print the correct results" in {
 		val code =
