@@ -175,13 +175,6 @@ object Utils {
 			}
 		}
 
-		val preprocess = preprocessResults.toString.replaceAll("(?m)(^ *| +(?= |$))", "").replaceAll("(?m)^$([\r\n]+?)(^$[\r\n]+?^)+", "$1")
-
-		//    import java.io._
-		//    val pw = new PrintWriter(new File("hello.txt" ))
-		//    pw.write(preprocess)
-		//    pw.close
-
 		val symbolMap = new HashMap[String, String];
 		val systemIncludes = Array[String]()
 
@@ -190,7 +183,7 @@ object Utils {
 		val opts = 8
 		val includes = IncludeFileContentProvider.getEmptyFilesProvider
 
-		val fileContent = FileContent.create("test", preprocess.toCharArray)
+		val fileContent = FileContent.create("test", preprocessResults.toString.toCharArray)
 
 		GCCLanguage.getDefault().getASTTranslationUnit(fileContent, info, includes, null, opts, log)
 	}
