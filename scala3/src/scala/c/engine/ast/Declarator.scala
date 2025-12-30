@@ -216,45 +216,37 @@ object Declarator {
 			val result = Expressions.evaluate(decl).get
 
 			List(result)
-		} else if (decl != null && decl.isInstanceOf[IASTInitializerList]) {
-			val clause = decl
-			val result = if (decl != null) {
+		} else if (decl.isInstanceOf[IASTInitializerList]) {
+			if (Utils.getDescendants(decl).exists { node => node.isInstanceOf[CASTDesignatedInitializer] }) {
+				// {.y = 343, .x = 543, .next = 8578}
 
-				if (Utils.getDescendants(decl).exists { node => node.isInstanceOf[CASTDesignatedInitializer] }) {
-					// {.y = 343, .x = 543, .next = 8578}
+				val initializers = Utils.getDescendants(decl).collect { case des: CASTDesignatedInitializer => des }
+				val struct = theType.asInstanceOf[CStructure]
 
-					val initializers = Utils.getDescendants(decl).collect { case des: CASTDesignatedInitializer => des }
-					val struct = theType.asInstanceOf[CStructure]
-
-					struct.getFields.map { field =>
-						initializers.find { init =>
-							val fieldName = init.getDesignators.toList.head.asInstanceOf[CASTFieldDesignator].getName.toString
-							fieldName == field.getName
-						}.map { init =>
-							Expressions.evaluate(init.getOperand).get
-						}.getOrElse {
-							TypeHelper.zero
-						}
-					}.toList
-				} else {
-					clause.asInstanceOf[IASTInitializerList].getClauses.map { x =>
-						Ast.step(x)
-
-						val result = state.context.popStack
-						result match
-							case vari: Variable => vari.rValue
-							case _ => result
-					}.toList
-				}
+				struct.getFields.map { field =>
+					initializers.find { init =>
+						val fieldName = init.getDesignators.toList.head.asInstanceOf[CASTFieldDesignator].getName.toString
+						fieldName == field.getName
+					}.map { init =>
+						Expressions.evaluate(init.getOperand).get
+					}.getOrElse {
+						TypeHelper.zero
+					}
+				}.toList
 			} else {
-				List(RValue(0, null))
-			}
+				decl.asInstanceOf[IASTInitializerList].getClauses.map { x =>
+					Ast.step(x)
 
-			result
-		} else if (decl != null && decl.isInstanceOf[IASTIdExpression]) { // setting a struct equal to another struct
+					val result = state.context.popStack
+					result match
+						case vari: Variable => vari.rValue
+						case _ => result
+				}.toList
+			}
+		} else if (decl.isInstanceOf[IASTIdExpression]) { // setting a struct equal to another struct
 			val otherStruct = decl.asInstanceOf[IASTIdExpression]
 			List(state.context.resolveId(otherStruct.getName).get)
-		} else if (decl != null && decl.isInstanceOf[IASTFunctionCallExpression]) { // setting a struct equal to function return
+		} else if (decl.isInstanceOf[IASTFunctionCallExpression]) { // setting a struct equal to function return
 			Ast.step(decl)
 			state.context.popStack
 			List()
