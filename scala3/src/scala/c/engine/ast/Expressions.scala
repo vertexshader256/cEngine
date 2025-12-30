@@ -2,6 +2,18 @@ package scala.c.engine
 package ast
 
 import org.eclipse.cdt.core.dom.ast._
+import org.anarres.cpp.{InputLexerSource, Preprocessor, Token}
+import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.*
+import org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage
+import org.eclipse.cdt.core.dom.ast.*
+import org.eclipse.cdt.core.parser.{DefaultLogService, FileContent, IncludeFileContentProvider, ScannerInfo}
+import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
+
+import java.io.{ByteArrayInputStream, File}
+import java.nio.charset.StandardCharsets
+import java.util
+import java.util.HashMap
+import scala.collection.mutable.ListBuffer
 
 object Expressions {
 
@@ -110,7 +122,7 @@ object Expressions {
 				case (_, op1) =>
 					val op2 = evaluate(bin.getOperand2).head
 
-					val result = if Utils.isAssignment(bin.getOperator) then
+					val result = if isAssignment(bin.getOperator) then
 						Declarator.assign(op1.asInstanceOf[LValue], List(op2), bin.getOperand2, bin.getOperator)
 					else
 						BinaryExpr.evaluate(op1, op2, bin.getOperator)
@@ -133,5 +145,20 @@ object Expressions {
 			}
 
 			Some(LValue(state, newAddr, theType))
+	}
+
+	private def isAssignment(op: Int) = {
+		op == op_assign ||
+			op == op_plusAssign ||
+			op == op_minusAssign ||
+			op == op_multiplyAssign ||
+			op == op_divideAssign ||
+			op == op_moduloAssign ||
+			op == op_binaryXorAssign ||
+			op == op_binaryAndAssign ||
+			op == op_binaryOrAssign ||
+			op == op_multiplyAssign ||
+			op == op_shiftLeftAssign ||
+			op == op_shiftRightAssign
 	}
 }

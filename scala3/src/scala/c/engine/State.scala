@@ -433,8 +433,12 @@ class State(val pointerSize: NumBits) {
 		Stack.tape.readPtrVal(address)
 	}
 
+	private def stripQuotes(str: String): String = {
+		str.tail.reverse.tail.reverse
+	}
+
 	def getString(str: String): RValue = {
-		val theStr = Utils.stripQuotes(str)
+		val theStr = stripQuotes(str)
 
 		val withNull = (theStr.toCharArray :+ 0.toChar).map(_.toByte) // terminating null char
 		val strAddr = allocateSpace(withNull.length)
@@ -444,7 +448,7 @@ class State(val pointerSize: NumBits) {
 	}
 
 	def createStringArrayVariable(varName: String, str: String): Variable = {
-		val theStr = Utils.stripQuotes(str)
+		val theStr = stripQuotes(str)
 		val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
 		val withNull = (translateLineFeed.toCharArray :+ 0.toChar)
 			.map { char => RValue(char.toByte, TypeHelper.charType) }.toList // terminating null char
