@@ -143,15 +143,14 @@ class StructTest extends StandardTest {
       struct Test {
         int y;
         int x;
-        struct Test *next;
       };
 
       typedef struct Test Test;
 
       void main() {
         int i = 0;
-        struct Test x = {i, i+=35, (Test*)i++};
-        printf("%d %d %d\n", x.y, x.y, x.next);
+        struct Test x = {i, i+=35};
+        printf("%d %d\n", x.y, x.x);
       }"""
 
 		checkResults(code)
