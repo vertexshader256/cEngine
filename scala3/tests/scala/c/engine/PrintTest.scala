@@ -1,15 +1,12 @@
 package scala.c.engine
 
 class PrintTest extends StandardTest {
-	"two sequential calls to print" should "print the correct results" in {
+	"two sequential calls to printf with padding spaces" should "print the correct results" in {
 		val code =
 			"""
-				#include <stdio.h>
-				#include <stdlib.h>
-
 				int main(int argc, char*argv[])
 				{
-						printf("test:  ");
+						printf("  ");
 						printf("%d", 5);
 						return 0;
 				}
