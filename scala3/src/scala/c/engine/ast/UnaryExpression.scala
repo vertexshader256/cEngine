@@ -11,7 +11,7 @@ import scala.c.engine.ast.Expressions.evaluate
 object UnaryExpression {
 
 	// per C Spec this returns a RValue
-	def evaluateIncrDecr(unary: IASTUnaryExpression, value: ValueType, operator: Int)(implicit state: State): RValue = {
+	private def evaluateIncrDecr(unary: IASTUnaryExpression, value: ValueType, operator: Int)(implicit state: State): RValue = {
 		val op = operator match
 			case `op_postFixIncr` | `op_prefixIncr` => IASTBinaryExpression.op_plus
 			case `op_postFixDecr` | `op_prefixDecr` => IASTBinaryExpression.op_minus

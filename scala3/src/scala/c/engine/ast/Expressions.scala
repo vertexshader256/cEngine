@@ -7,7 +7,7 @@ object Expressions {
 
 	def evaluate(expr: IASTInitializerClause)(implicit state: State): Option[ValueType] = expr match {
 		case exprList: IASTExpressionList =>
-			exprList.getExpressions.map { x => evaluate(x) }.last
+			exprList.getExpressions.map(evaluate).last
 		case ternary: IASTConditionalExpression =>
 			val result = TypeHelper.resolveBoolean(evaluate(ternary.getLogicalConditionExpression).get)
 

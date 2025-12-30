@@ -6,7 +6,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c.CPointerType
 
 object BinaryExpr {
 
-	def calculateBoolean(left: AnyVal, right: AnyVal, operator: Int): Boolean = operator match {
+	private def calculateBoolean(left: AnyVal, right: AnyVal, operator: Int): Boolean = operator match {
 		case `op_greaterThan` =>
 			(left, right) match {
 				case (x: Int, y: Int) => x > y
@@ -63,7 +63,7 @@ object BinaryExpr {
 		Address(rValue.value.asInstanceOf[Int] + computedOffset, rValue.theType)
 	}
 
-	def calculate(left: AnyVal, right: AnyVal, operator: Int)(implicit state: State): AnyVal = {
+	private def calculate(left: AnyVal, right: AnyVal, operator: Int)(implicit state: State): AnyVal = {
 		// Because of integer promotion, C never does math on anything less than int's
 
 		val op1 = left match

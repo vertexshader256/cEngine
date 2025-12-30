@@ -241,7 +241,7 @@ object TypeHelper {
 		case fcn: IFunctionType => state.pointerType
 	}
 
-	def printType(theType: IType): String = theType match {
+	private def printType(theType: IType): String = theType match {
 		case struct: CStructure => "CStructure()"
 		case basicType: IBasicType => s"BasicType(${basicType.getKind}, ${basicType.getModifiers})"
 		case typedef: ITypedef => s"TypeDef(${printType(typedef.getType)})"
@@ -374,7 +374,7 @@ object TypeHelper {
 			}
 	}
 
-	def sizeInBits(field: IField)(implicit state: State): Int = {
+	private def sizeInBits(field: IField)(implicit state: State): Int = {
 		val parent = field.asInstanceOf[CField].getDefinition.getParent
 		parent match {
 			case field: CASTFieldDeclarator => Expressions.evaluate(field.getBitFieldSize).get.asInstanceOf[RValue].value.asInstanceOf[Int]

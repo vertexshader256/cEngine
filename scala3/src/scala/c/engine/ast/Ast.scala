@@ -8,7 +8,7 @@ import scala.c.engine.Instructions._
 
 object Ast {
 
-	def executeCustomInstructions(current: Any)(implicit state: State): Unit = current match {
+	private def executeCustomInstructions(current: Any)(implicit state: State): Unit = current match {
 		case PushVariableStack() =>
 			state.context.pushVariableScope()
 		case PopVariableStack() =>
