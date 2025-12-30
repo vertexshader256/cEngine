@@ -228,16 +228,13 @@ object Declarator {
 
 				if (hasNamedDesignator) {
 					val initializers = descendants.collect { case des: CASTDesignatedInitializer => des }
+					val initValues = initializers.map: init =>
+						val fieldName = init.getDesignators.toList.head.asInstanceOf[CASTFieldDesignator].getName.toString
+						(fieldName, Expressions.evaluate(init.getOperand).get)
+					.toMap
 
 					struct.getFields.map { field =>
-						initializers.find { init =>
-							val fieldName = init.getDesignators.toList.head.asInstanceOf[CASTFieldDesignator].getName.toString
-							fieldName == field.getName
-						}.map { init =>
-							Expressions.evaluate(init.getOperand).get
-						}.getOrElse {
-							TypeHelper.zero
-						}
+						initValues.getOrElse(field.getName, TypeHelper.zero)
 					}.toList
 				} else {
 					list.getClauses.map { x =>
