@@ -18,6 +18,40 @@ object Declarator {
 			processCastDecl(decl)
 	}
 
+	def getRValues(decl: IASTInitializerClause, theType: IType)(implicit state: State): List[ValueType] = {
+		theType match
+			case struct: CStructure =>
+				getStructRValues(decl, struct)
+			case _ =>
+				val result = Expressions.evaluate(decl).get
+				List(result)
+	}
+
+	def assign(dst: LValue, srcs: List[ValueType], equals: IASTInitializerClause, op: Int)(implicit state: State): LValue = {
+		if !dst.theType.isInstanceOf[CStructure] then
+			val result = evaluate(dst, srcs.head, op) match {
+				case file@FileRValue(_) => file
+				case x => TypeHelper.cast(dst.theType, x.value)
+			}
+			dst.setValue(result)
+		else if equals.isInstanceOf[IASTFunctionCallExpression] then
+			state.copy(dst.address, state.Stack.insertIndex - dst.sizeof, dst.sizeof)
+		else if equals.isInstanceOf[IASTTypeIdInitializerExpression] then
+			val otherStruct = Expressions.evaluate(equals).get.asInstanceOf[LValue]
+			state.copy(dst.address, otherStruct.address, dst.sizeof)
+		else if equals.isInstanceOf[IASTExpression] then // setting a struct equal to another struct
+			val otherStruct = srcs.head.asInstanceOf[LValue]
+			state.copy(dst.address, otherStruct.address, dst.sizeof)
+		else // e.g struct Test test = {1.0, 2, "three"}
+			val struct = dst.theType.asInstanceOf[CStructure]
+			struct.getFields.zip(srcs).foreach { case (field, newValue) =>
+				val theField = TypeHelper.offsetof(struct, dst.address, field.getName, state)
+				assign(theField, List(newValue), equals, op)
+			}
+
+		dst
+	}
+
 	private def processFcnDeclarator(fcnDec: IASTFunctionDeclarator)(implicit state: State) = {
 		if (Utils.getDescendants(fcnDec).exists { x => x.isInstanceOf[IASTEqualsInitializer] }) {
 			// when you're initializing a function pointer: int (*funcPtr2)(int, int) = blah2;
@@ -33,9 +67,7 @@ object Declarator {
 			}
 		} else {
 
-			val isInFunctionPrototype = !Utils.getAncestors(fcnDec).exists {
-				_.isInstanceOf[IASTFunctionDefinition]
-			}
+			val isInFunctionPrototype = !Utils.getAncestors(fcnDec).exists(_.isInstanceOf[IASTFunctionDefinition])
 
 			if (fcnDec.getName.resolveBinding().isInstanceOf[CFunction] && !fcnDec.getName.resolveBinding().asInstanceOf[CFunction].getParameters.isEmpty) {
 
@@ -48,9 +80,7 @@ object Declarator {
 					numArgs = state.context.popStack.asInstanceOf[RValue].value.asInstanceOf[Integer]
 					val args = (0 until numArgs).map { arg => state.context.popStack }.reverse
 
-					val resolvedArgs = args.map {
-						TypeHelper.resolve
-					}
+					val resolvedArgs = args.map(TypeHelper.resolve)
 
 					var paramDecls = fcn.getParameters.toList
 
@@ -78,6 +108,34 @@ object Declarator {
 		}
 	}
 
+	private def flattenInitList(node: IASTInitializerClause)(implicit state: State): List[ValueType] = node match {
+		case list: IASTInitializerList =>
+			list.getClauses.toList.flatMap(flattenInitList)
+		case lit: IASTLiteralExpression =>
+			List(Expressions.evaluate(lit).get)
+		case unary: IASTUnaryExpression =>
+			List(Expressions.evaluate(unary).get)
+		case id: IASTIdExpression =>
+			val variable = Expressions.evaluate(id).get.asInstanceOf[Variable]
+			List(variable.rValue)
+		case bin: IASTBinaryExpression =>
+			Expressions.evaluate(bin).get match {
+				case variable: Variable => List(variable.rValue)
+				case rVal: RValue => List(rVal)
+			}
+		case x => println("ERROR FLATTEN INIT LIST"); println(x.getClass.getSimpleName); null;
+	}
+
+	private def createdSizedArrayType(theType: CArrayType, dimensions: List[Int]): CArrayType = {
+		val arrayType = if theType.getType.isInstanceOf[CArrayType] then
+			CArrayType(createdSizedArrayType(theType.getType.asInstanceOf[CArrayType], dimensions.tail))
+		else
+			CArrayType(theType.getType)
+
+		arrayType.setModifier(CASTArrayModifier(CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, dimensions.head.toString.toCharArray)))
+		arrayType
+	}
+
 	private def processArrayDecl(decl: IASTDeclarator, arrayDecl: IASTArrayDeclarator)(implicit state: State) = {
 		val initializer = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
 
@@ -96,24 +154,6 @@ object Declarator {
 			val equals = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
 			val hasList = equals.getInitializerClause.isInstanceOf[IASTInitializerList]
 
-			def flattenInitList(node: IASTInitializerClause): List[ValueType] = node match {
-				case list: IASTInitializerList =>
-					list.getClauses.toList.flatMap(flattenInitList)
-				case lit: IASTLiteralExpression =>
-					List(Expressions.evaluate(lit).get)
-				case unary: IASTUnaryExpression =>
-					List(Expressions.evaluate(unary).get)
-				case id: IASTIdExpression =>
-					val variable = Expressions.evaluate(id).get.asInstanceOf[Variable]
-					List(variable.rValue)
-				case bin: IASTBinaryExpression =>
-					Expressions.evaluate(bin).get match {
-						case variable: Variable => List(variable.rValue)
-						case rVal: RValue => List(rVal)
-					}
-				case x => println("ERROR FLATTEN INIT LIST"); println(x.getClass.getSimpleName); null;
-			}
-
 			if (TypeHelper.isPointerOrArray(theType) && TypeHelper.getPointerType(theType).isInstanceOf[CStructure]) {
 				val data = List(Option(decl.getInitializer)).flatten
 
@@ -128,9 +168,7 @@ object Declarator {
 				state.context.addArrayVariable(name.toString, theType, structData)
 			} else if (TypeHelper.resolveBasic(theType).getKind == IBasicType.Kind.eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
 				// e.g. char str[] = "Hello!\n";
-				List(Option(decl.getInitializer)).flatten.foreach {
-					Ast.step
-				}
+				List(Option(decl.getInitializer)).flatten.foreach(Ast.step)
 				val initString = state.context.popStack.asInstanceOf[StringLiteral].value
 				state.createStringArrayVariable(name.toString, initString)
 			} else if (hasList) { // e.g '= {1,2,3,4,5}' or x[2][2] = {{1,2},{3,4},{5,6},{7,8}}
@@ -164,24 +202,12 @@ object Declarator {
 			val dimensions = arrayDecl.getArrayModifiers.toList.filter {
 				_.getConstantExpression != null
 			}.map { _ =>
-				arrayDecl.getArrayModifiers.foreach {
-					Ast.step
-				}
+				arrayDecl.getArrayModifiers.foreach(Ast.step)
 				val value = TypeHelper.resolve(state.context.popStack).value
 				TypeHelper.cast(TypeHelper.intType, value).value.asInstanceOf[Int]
 			}
 
 			val aType = if (theType.isInstanceOf[CArrayType] && !theType.asInstanceOf[CArrayType].isConst && !dimensions.isEmpty) { // an array bounded by a variable e.g x[y]
-				def createdSizedArrayType(theType: CArrayType, dimensions: List[Int]): CArrayType = {
-					val arrayType = if theType.getType.isInstanceOf[CArrayType] then
-						new CArrayType(createdSizedArrayType(theType.getType.asInstanceOf[CArrayType], dimensions.tail))
-					else
-						new CArrayType(theType.getType)
-
-					arrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, dimensions.head.toString.toCharArray)))
-					arrayType
-				}
-
 				createdSizedArrayType(theType.asInstanceOf[CArrayType], dimensions.reverse)
 			} else {
 				theType
@@ -218,15 +244,6 @@ object Declarator {
 		Seq()
 	}
 
-	def getRValues(decl: IASTInitializerClause, theType: IType)(implicit state: State): List[ValueType] = {
-		theType match
-			case struct: CStructure =>
-				getStructRValues(decl, struct)
-			case _ =>
-				val result = Expressions.evaluate(decl).get
-				List(result)
-	}
-
 	private def getStructRValues(initClause: IASTInitializerClause, struct: CStructure)(implicit state: State): List[ValueType] = {
 		initClause match
 			case list: IASTInitializerList =>
@@ -261,30 +278,5 @@ object Declarator {
 				List()
 			case _ =>
 				List()
-	}
-
-	def assign(dst: LValue, srcs: List[ValueType], equals: IASTInitializerClause, op: Int)(implicit state: State): LValue = {
-		if !dst.theType.isInstanceOf[CStructure] then
-			val result = evaluate(dst, srcs.head, op) match {
-				case file@FileRValue(_) => file
-				case x => TypeHelper.cast(dst.theType, x.value)
-			}
-			dst.setValue(result)
-		else if equals.isInstanceOf[IASTFunctionCallExpression] then
-			state.copy(dst.address, state.Stack.insertIndex - dst.sizeof, dst.sizeof)
-		else if equals.isInstanceOf[IASTTypeIdInitializerExpression] then
-			val otherStruct = Expressions.evaluate(equals).get.asInstanceOf[LValue]
-			state.copy(dst.address, otherStruct.address, dst.sizeof)
-		else if equals.isInstanceOf[IASTExpression] then // setting a struct equal to another struct
-			val otherStruct = srcs.head.asInstanceOf[LValue]
-			state.copy(dst.address, otherStruct.address, dst.sizeof)
-		else // e.g struct Test test = {1.0, 2, "three"}
-			val struct = dst.theType.asInstanceOf[CStructure]
-			struct.getFields.zip(srcs).foreach { case (field, newValue) =>
-				val theField = TypeHelper.offsetof(struct, dst.address, field.getName, state)
-				assign(theField, List(newValue), equals, op)
-			}
-
-		dst
 	}
 }
