@@ -239,11 +239,11 @@ object Declarator {
 				} else {
 					clause.asInstanceOf[IASTInitializerList].getClauses.map { x =>
 						Ast.step(x)
+
 						val result = state.context.popStack
-						if result.isInstanceOf[Variable] then
-							result.asInstanceOf[Variable].rValue
-						else
-							result
+						result match
+							case vari: Variable => vari.rValue
+							case _ => result
 					}.toList
 				}
 			} else {
