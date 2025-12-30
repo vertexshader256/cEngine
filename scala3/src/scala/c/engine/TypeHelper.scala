@@ -9,19 +9,19 @@ import scala.c.engine.ast.Expressions
 object TypeHelper {
 
 	// 8 bytes
-	val qword = new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
-	val intType = new CBasicType(IBasicType.Kind.eInt, 0)
-	val charType = new CBasicType(IBasicType.Kind.eChar, 0)
-	val unsignedIntType = new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED)
-	val doubleType = new CBasicType(IBasicType.Kind.eDouble, 0)
-	val floatType = new CBasicType(IBasicType.Kind.eFloat, 0)
+	val qword = CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
+	val intType = CBasicType(IBasicType.Kind.eInt, 0)
+	val charType = CBasicType(IBasicType.Kind.eChar, 0)
+	val unsignedIntType = CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED)
+	val doubleType = CBasicType(IBasicType.Kind.eDouble, 0)
+	val floatType = CBasicType(IBasicType.Kind.eFloat, 0)
 
 	val one = RValue(1, unsignedIntType)
 	val zero = RValue(0, unsignedIntType)
 	val negativeOne = RValue(-1, intType)
 
 	def getLong(lit: String) =
-		RValue(lit.toLong, new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
+		RValue(lit.toLong, CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
 
 	def castSign(theType: IType, newVal: AnyVal): RValue = {
 		val casted: AnyVal = theType match {
@@ -156,16 +156,16 @@ object TypeHelper {
 			}
 
 			var result: IType = simple.getType match {
-				case `t_unspecified` => new CBasicType(IBasicType.Kind.eInt, config)
-				case `t_int` => new CBasicType(IBasicType.Kind.eInt, config)
-				case `t_float` => new CBasicType(IBasicType.Kind.eFloat, config)
-				case `t_double` => new CBasicType(IBasicType.Kind.eDouble, config)
-				case `t_char` => new CBasicType(IBasicType.Kind.eChar, config)
-				case `t_void` => new CBasicType(IBasicType.Kind.eVoid, config)
+				case `t_unspecified` => CBasicType(IBasicType.Kind.eInt, config)
+				case `t_int` => CBasicType(IBasicType.Kind.eInt, config)
+				case `t_float` => CBasicType(IBasicType.Kind.eFloat, config)
+				case `t_double` => CBasicType(IBasicType.Kind.eDouble, config)
+				case `t_char` => CBasicType(IBasicType.Kind.eChar, config)
+				case `t_void` => CBasicType(IBasicType.Kind.eVoid, config)
 			}
 
 			for (ptr <- idExpr.getAbstractDeclarator.getPointerOperators) {
-				result = new CPointerType(result, 0)
+				result = CPointerType(result, 0)
 			}
 
 			TypeInfo(result)
@@ -188,14 +188,14 @@ object TypeHelper {
 		}
 
 		value match {
-			case bool: Boolean => new CBasicType(IBasicType.Kind.eBoolean, config)
-			case int: Int => new CBasicType(IBasicType.Kind.eInt, config)
-			case long: Long => new CBasicType(IBasicType.Kind.eInt, config)
-			case float: Float => new CBasicType(IBasicType.Kind.eFloat, config)
-			case doub: Double => new CBasicType(IBasicType.Kind.eDouble, config)
-			case char: Char => new CBasicType(IBasicType.Kind.eChar, config)
-			case short: Short => new CBasicType(IBasicType.Kind.eInt, config)
-			case char: char => new CBasicType(IBasicType.Kind.eChar, config)
+			case bool: Boolean => CBasicType(IBasicType.Kind.eBoolean, config)
+			case int: Int => CBasicType(IBasicType.Kind.eInt, config)
+			case long: Long => CBasicType(IBasicType.Kind.eInt, config)
+			case float: Float => CBasicType(IBasicType.Kind.eFloat, config)
+			case doub: Double => CBasicType(IBasicType.Kind.eDouble, config)
+			case char: Char => CBasicType(IBasicType.Kind.eChar, config)
+			case short: Short => CBasicType(IBasicType.Kind.eInt, config)
+			case char: char => CBasicType(IBasicType.Kind.eChar, config)
 		}
 	}
 

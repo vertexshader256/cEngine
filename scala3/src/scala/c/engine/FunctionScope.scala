@@ -9,11 +9,11 @@ import scala.collection.mutable.ListBuffer
 case class NodePath(node: IASTNode, var direction: Direction)
 
 class VariableScope() {
-	var varMap = new mutable.LinkedHashMap[String, Variable]() // linked to keep deterministic
+	var varMap = mutable.LinkedHashMap[String, Variable]() // linked to keep deterministic
 }
 
 class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, val returnType: IType) {
-	var variableScopes = List[VariableScope](new VariableScope()) // linked to keep deterministic
+	var variableScopes = List[VariableScope](VariableScope()) // linked to keep deterministic
 
 	private var stack = List[ValueType]()
 	var startingStackAddr = 0
@@ -24,7 +24,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 	var state: State = null
 
 	def pushVariableScope() = {
-		variableScopes = new VariableScope() +: variableScopes
+		variableScopes = VariableScope() +: variableScopes
 	}
 
 	def popVariableScope() = {

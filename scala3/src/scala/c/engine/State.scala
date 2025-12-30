@@ -39,7 +39,7 @@ object State {
 					val init = List(forStatement.getInitializerStatement)
 					val contents = recurse(forStatement.getBody)
 					val iter = forStatement.getIterationExpression
-					val beginLabel = new GotoLabel("")
+					val beginLabel = GotoLabel("")
 
 					state.breakLabelStack = state.breakLabelStack.tail
 					state.continueLabelStack = state.continueLabelStack.tail
@@ -61,8 +61,8 @@ object State {
 					state.continueLabelStack = continueLabel +: state.continueLabelStack
 
 					val contents = recurse(whileStatement.getBody)
-					val begin = new GotoLabel("")
-					val end = new GotoLabel("")
+					val begin = GotoLabel("")
+					val end = GotoLabel("")
 
 					state.breakLabelStack = state.breakLabelStack.tail
 					state.continueLabelStack = state.continueLabelStack.tail
@@ -175,7 +175,7 @@ object State {
 
 class State(val pointerSize: NumBits) {
 
-	val Stack = new Memory(500000)
+	val Stack = Memory(500000)
 
 	private var heapInsertIndex = 250000
 
@@ -183,9 +183,9 @@ class State(val pointerSize: NumBits) {
 
 	def context: FunctionScope = functionContexts.head
 
-	val functionList = new ListBuffer[Function]()
+	val functionList = ListBuffer[Function]()
 	val functionPointers = scala.collection.mutable.LinkedHashMap[String, Variable]()
-	val stdout = new ListBuffer[Char]()
+	val stdout = ListBuffer[Char]()
 
 	private var breakLabelStack = List[Label]()
 	private var continueLabelStack = List[Label]()
@@ -200,7 +200,7 @@ class State(val pointerSize: NumBits) {
 
 	val pointerType = pointerSize match
 		case NumBits.ThirtyTwoBits => TypeHelper.intType
-		case NumBits.SixtyFourBits => new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
+		case NumBits.SixtyFourBits => CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
 
 	val addressSize = TypeHelper.sizeof(pointerType)(using this)
 
@@ -351,7 +351,7 @@ class State(val pointerSize: NumBits) {
 
 					val newScope = scope.getOrElse {
 						val expressionType = call.getExpressionType
-						new FunctionScope(function.staticVars, functionContexts.headOption.orNull, expressionType)
+						FunctionScope(function.staticVars, functionContexts.headOption.orNull, expressionType)
 					}
 
 					newScope.init(List(function.node), this, scope.isEmpty)
@@ -449,8 +449,8 @@ class State(val pointerSize: NumBits) {
 		val withNull = (translateLineFeed.toCharArray :+ 0.toChar)
 			.map { char => RValue(char.toByte, TypeHelper.charType) }.toList // terminating null char
 
-		val inferredArrayType = new CArrayType(TypeHelper.charType)
-		inferredArrayType.setModifier(new CASTArrayModifier(new CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, str.length.toString.toCharArray)))
+		val inferredArrayType = CArrayType(TypeHelper.charType)
+		inferredArrayType.setModifier(CASTArrayModifier(CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, str.length.toString.toCharArray)))
 
 		val theArrayPtr = context.addArrayVariable(varName, inferredArrayType, withNull)
 		theArrayPtr

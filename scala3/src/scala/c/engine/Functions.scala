@@ -20,7 +20,7 @@ object Functions {
 
 	var varArgStartingAddr = List[Int]()
 
-	val scalaFunctions = new ListBuffer[Function]()
+	val scalaFunctions = ListBuffer[Function]()
 
 	scalaFunctions += new Function("rand", false) {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {

@@ -59,9 +59,9 @@ class SyntaxLogger extends Logger {
 
 class RunLogger {
 
-	def process = new ProcessIO(in, out, err)
+	def process = ProcessIO(in, out, err)
 
-	val stdout = new ListBuffer[String]()
+	val stdout = ListBuffer[String]()
 
 	def recordStdOut(lines: Seq[String]) = {
 		stdout ++= lines
@@ -80,7 +80,7 @@ class RunLogger {
 
 class LinkerLogger extends Logger {
 
-	val errors = new ListBuffer[String]()
+	val errors = ListBuffer[String]()
 
 	def addErrors(newErrors: Seq[String]) = {
 		errors ++= newErrors
