@@ -6,14 +6,12 @@ import scala.c.engine.Instructions._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-case class NodePath(node: IASTNode, var direction: Direction)
-
 class VariableScope() {
 	var varMap = mutable.LinkedHashMap[String, Variable]() // linked to keep deterministic
 }
 
 class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, val returnType: IType) {
-	var variableScopes = List[VariableScope](VariableScope()) // linked to keep deterministic
+	var variableScopes = List[VariableScope](VariableScope())
 
 	private var stack = List[ValueType]()
 	var startingStackAddr = 0

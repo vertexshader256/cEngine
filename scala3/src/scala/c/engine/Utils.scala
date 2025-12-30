@@ -12,20 +12,6 @@ import java.nio.charset.StandardCharsets
 import java.util.HashMap
 import scala.collection.mutable.ListBuffer
 
-sealed abstract class Direction
-
-object Stage1 extends Direction
-
-object Stage2 extends Direction
-
-object Stage3 extends Direction
-
-object PreLoop extends Direction
-
-object Exiting extends Direction
-
-object Gotoing extends Direction
-
 object Utils {
 
 	def stripQuotes(str: String): String = {
