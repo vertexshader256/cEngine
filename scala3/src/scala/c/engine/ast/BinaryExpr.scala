@@ -199,7 +199,7 @@ object BinaryExpr {
 				calculateBoolean(op1, op2, operator)
 	}
 
-	private def multiply[T](num1: AnyVal, num2: AnyVal) = {
+	private def multiply(num1: AnyVal, num2: AnyVal) = {
 		num1 match
 			case x: Double =>
 				num2 match
@@ -227,7 +227,7 @@ object BinaryExpr {
 					case y: Long => x * y
 	}
 
-	private def add[T](num1: AnyVal, num2: AnyVal) = {
+	private def add(num1: AnyVal, num2: AnyVal) = {
 		num1 match
 			case x: Double =>
 				num2 match
@@ -255,7 +255,7 @@ object BinaryExpr {
 					case y: Long => x + y
 	}
 
-	private def subtract[T](num1: AnyVal, num2: AnyVal) = {
+	private def subtract(num1: AnyVal, num2: AnyVal) = {
 		num1 match
 			case x: Double =>
 				num2 match
@@ -283,7 +283,7 @@ object BinaryExpr {
 					case y: Long => x - y
 	}
 
-	private def divide[T](num1: AnyVal, num2: AnyVal) = {
+	private def divide(num1: AnyVal, num2: AnyVal) = {
 		num1 match
 			case x: Double =>
 				num2 match
@@ -311,7 +311,7 @@ object BinaryExpr {
 					case y: Long => x / y
 	}
 
-	private def greaterThan[T](num1: AnyVal, num2: AnyVal) = {
+	private def greaterThan(num1: AnyVal, num2: AnyVal): Boolean = {
 		num1 match
 			case x: Double =>
 				num2 match
@@ -320,11 +320,7 @@ object BinaryExpr {
 					case y: Double => x > y
 					case y: Long => x > y
 			case x: Float =>
-				num2 match
-					case y: Int => x > y
-					case y: Float => x > y
-					case y: Double => x > y
-					case y: Long => x > y
+				greaterThan(x.toDouble, num2)
 			case x: Long =>
 				num2 match
 					case y: Int => x > y
@@ -332,10 +328,6 @@ object BinaryExpr {
 					case y: Double => x > y
 					case y: Long => x > y
 			case x: Int =>
-				num2 match
-					case y: Int => x > y
-					case y: Float => x > y
-					case y: Double => x > y
-					case y: Long => x > y
+				greaterThan(x.toLong, num2)
 	}
 }
