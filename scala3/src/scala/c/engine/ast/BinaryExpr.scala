@@ -68,11 +68,11 @@ object BinaryExpr {
 			case x => x
 
 		op1 match
-			case x: Int => calculateInt(x, operator, op1, op2)
-			case x: Long => calculateLong(x, operator, op1, op2)
+			case x: Int => calculateFixedPoint(x, operator, op1, op2)
+			case x: Long => calculateFixedPoint(x, operator, op1, op2)
 			case x: Double => calculateFloatingPoint(x, operator, op1, op2)
 			case x: Float => calculateFloatingPoint(x, operator, op1, op2)
-			case _ => calculateBoolean(op1, op2, operator)
+			case _: Boolean => calculateBoolean(op1, op2, operator)
 	}
 	
 	private def calculateBoolean(left: AnyVal, right: AnyVal, operator: Int): Boolean = {
@@ -95,43 +95,59 @@ object BinaryExpr {
 				!calculateBoolean(left, right, op_greaterThan)
 	}
 
-	private def calculateInt(x: Int, operator: Int, op1: AnyVal, op2: AnyVal)(implicit state: State): AnyVal = {
-		operator match
-			case `op_assign` =>
-				op2
-			case `op_multiply` | `op_multiplyAssign` =>
-				multiply(x, op2)
-			case `op_plus` | `op_plusAssign` =>
-				add(x, op2)
-			case `op_minus` | `op_minusAssign` =>
-				subtract(x, op2)
-			case `op_divide` | `op_divideAssign` =>
-				divide(x, op2)
-			case `op_shiftRight` | `op_shiftRightAssign` =>
-				x >> op2.asInstanceOf[Int]
-			case `op_shiftLeft` | `op_shiftLeftAssign` =>
-				x << op2.asInstanceOf[Int]
-			case `op_modulo` =>
-				op2 match
-					case y: Long => x % y
-					case y: Int => x % y
-			case `op_binaryOr` | `op_binaryOrAssign` =>
-				op2 match
-					case y: Int => x | y
-					case y: Long => x | y
-			case `op_binaryXor` | `op_binaryXorAssign` =>
-				op2 match
-					case y: Int => x ^ y
-					case y: Long => x ^ y
-			case `op_binaryAnd` | `op_binaryAndAssign` =>
-				op2 match
-					case y: Int => x & y
-					case y: Long => x & y
-			case _ =>
-				calculateBoolean(op1, op2, operator)
+	private def calculateBitwise(num: AnyVal, operator: Int, op1: AnyVal, op2: AnyVal): AnyVal = {
+		num match
+			case x: Int =>
+				operator match
+					case `op_shiftRight` | `op_shiftRightAssign` =>
+						x >> op2.asInstanceOf[Int]
+					case `op_shiftLeft` | `op_shiftLeftAssign` =>
+						x << op2.asInstanceOf[Int]
+					case `op_modulo` =>
+						op2 match
+							case y: Long => x % y
+							case y: Int => x % y
+					case `op_binaryOr` | `op_binaryOrAssign` =>
+						op2 match
+							case y: Int => x | y
+							case y: Long => x | y
+					case `op_binaryXor` | `op_binaryXorAssign` =>
+						op2 match
+							case y: Int => x ^ y
+							case y: Long => x ^ y
+					case `op_binaryAnd` | `op_binaryAndAssign` =>
+						op2 match
+							case y: Int => x & y
+							case y: Long => x & y
+					case _ =>
+						calculateBoolean(op1, op2, operator)
+			case x: Long =>
+				operator match
+					case `op_shiftRight` | `op_shiftRightAssign` =>
+						x >> op2.asInstanceOf[Int]
+					case `op_shiftLeft` | `op_shiftLeftAssign` =>
+						x << op2.asInstanceOf[Int]
+					case `op_modulo` =>
+						op2 match
+							case y: Long => x % y
+							case y: Int => x % y
+					case `op_binaryOr` | `op_binaryOrAssign` =>
+						op2 match
+							case y: Int => x | y
+							case y: Long => x | y
+					case `op_binaryXor` | `op_binaryXorAssign` =>
+						op2 match
+							case y: Int => x ^ y
+							case y: Long => x ^ y
+					case `op_binaryAnd` | `op_binaryAndAssign` =>
+						op2 match
+							case y: Int => x & y
+							case y: Long => x & y
+					case _ =>
+						calculateBoolean(op1, op2, operator)
 	}
 
-	private def calculateLong(x: Long, operator: Int, op1: AnyVal, op2: AnyVal): AnyVal = {
+	private def calculateFixedPoint(x: AnyVal, operator: Int, op1: AnyVal, op2: AnyVal)(implicit state: State): AnyVal = {
 		operator match
 			case `op_assign` =>
 				op2
@@ -143,28 +159,8 @@ object BinaryExpr {
 				subtract(x, op2)
 			case `op_divide` | `op_divideAssign` =>
 				divide(x, op2)
-			case `op_shiftRight` | `op_shiftRightAssign` =>
-				x >> op2.asInstanceOf[Int]
-			case `op_shiftLeft` | `op_shiftLeftAssign` =>
-				x << op2.asInstanceOf[Int]
-			case `op_modulo` =>
-				op2 match
-					case y: Long => x % y
-					case y: Int => x % y
-			case `op_binaryOr` | `op_binaryOrAssign` =>
-				op2 match
-					case y: Int => x | y
-					case y: Long => x | y
-			case `op_binaryXor` | `op_binaryXorAssign` =>
-				op2 match
-					case y: Int => x ^ y
-					case y: Long => x ^ y
-			case `op_binaryAnd` | `op_binaryAndAssign` =>
-				op2 match
-					case y: Int => x & y
-					case y: Long => x & y
 			case _ =>
-				calculateBoolean(op1, op2, operator)
+				calculateBitwise(x, operator, op1, op2)
 	}
 
 	private def calculateFloatingPoint(x: AnyVal, operator: Int, op1: AnyVal, op2: AnyVal): AnyVal = {
