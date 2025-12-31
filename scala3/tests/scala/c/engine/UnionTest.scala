@@ -1,32 +1,7 @@
 package scala.c.engine
 
 class UnionTestStaging extends StandardTest {
-	
-	"union to view floating point bits" should "print the correct results" in {
-		val code =
-			"""
-				int main() {
-						union {
-								double dbl_val;
-								long long int_val;
-						} u;
-				
-						u.dbl_val = -5.12345;
-						printf("Original double value: %f\n", u.dbl_val);
-						//printf("Binary representation (as long long): 0x%llx\n", u.int_val);
-				
-						// Example: flipping the sign bit (most significant bit)
-						// 0x8000000000000000ULL has the MSB set to 1
-						u.int_val ^= 0x8000000000000000ULL; 
-				
-						printf("Double value after bit flip: %f\n", u.dbl_val);
-				
-						return 0;
-				}"""
 
-		checkResults(code)
-	}
-	
 	"union struct" should "print the correct results" in {
 		val code =
 			"""

@@ -1,5 +1,52 @@
 package scala.c.engine
 
+class RobustFP extends StandardTest {
+	"union to view floating point bits" should "print the correct results" in {
+		val code =
+			"""
+				int main() {
+						union {
+								double dbl_val;
+								long long int_val;
+						} u;
+
+						u.dbl_val = -5.12345;
+						printf("Original double value: %f\n", u.dbl_val);
+						//printf("Binary representation (as long long): 0x%llx\n", u.int_val);
+
+						// Example: flipping the sign bit (most significant bit)
+						// 0x8000000000000000ULL has the MSB set to 1
+						u.int_val ^= 0x8000000000000000ULL;
+
+						printf("Double value after bit flip: %f\n", u.dbl_val);
+
+						return 0;
+				}"""
+
+		checkResults(code)
+	}
+
+	"FP and floating point casting" should "print the correct results" in {
+		val code =
+			"""
+				int main() {
+						double x = -5.12345;
+						printf("Original double value: %f\n", x);
+
+						// Cast the address of the double to a long long pointer
+						long long *ptr = (long long *)&x;
+
+						// Apply bitwise AND operation to the underlying bits
+						*ptr &= 0x7FFFFFFFFFFFFFFFLL; // Clears the sign bit
+
+						printf("Double value after bitwise AND: %f\n", x); // Will print the absolute value
+						return 0;
+				}"""
+
+		checkResults(code)
+	}
+}
+
 class ExtremeFP extends StandardTest {
 
 	"extreme floating point" should "print the correct results" in {
