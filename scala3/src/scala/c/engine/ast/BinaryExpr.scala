@@ -32,6 +32,7 @@ object BinaryExpr {
 
 		if (isLeftPointer && (operator == op_minus || operator == op_plus)) {
 			val rightValue = TypeHelper.cast(TypeHelper.intType, right.value).value.asInstanceOf[Int]
+			
 			if (isRightPointer) {
 				val leftSize = TypeHelper.sizeof(right.theType)
 				val result = (left.value.asInstanceOf[Int] - rightValue) / leftSize
@@ -66,57 +67,57 @@ object BinaryExpr {
 			case theShort: short => theShort.toInt
 			case x => x
 
-		op1 match {
+		op1 match
 			case x: Int => calculateInt(x, operator, op1, op2)
 			case x: Long => calculateLong(x, operator, op1, op2)
 			case x: Double => calculateDouble(x, operator, op1, op2)
 			case x: Float => calculateFloat(x, operator, op1, op2)
 			case _ => calculateBoolean(op1, op2, operator)
-		}
 	}
 	
-	private def calculateBoolean(left: AnyVal, right: AnyVal, operator: Int): Boolean = operator match {
-		case `op_greaterThan` =>
-			(left, right) match {
-				case (x: Int, y: Int) => x > y
-				case (x: Int, y: Float) => x > y
-				case (x: Int, y: Double) => x > y
-				case (x: Int, y: Long) => x > y
-
-				case (x: Float, y: Int) => x > y
-				case (x: Float, y: Double) => x > y
-				case (x: Float, y: Float) => x > y
-				case (x: Float, y: Long) => x > y
-
-				case (x: Double, y: Int) => x > y
-				case (x: Double, y: Double) => x > y
-				case (x: Double, y: Float) => x > y
-				case (x: Double, y: Long) => x > y
-
-				case (x: Long, y: Int) => x > y
-				case (x: Long, y: Float) => x > y
-				case (x: Long, y: Double) => x > y
-				case (x: Long, y: Long) => x > y
-				case _ => false
-			}
-		case `op_logicalAnd` =>
-			TypeHelper.resolveBoolean(left) && TypeHelper.resolveBoolean(right)
-		case `op_logicalOr` =>
-			TypeHelper.resolveBoolean(left) || TypeHelper.resolveBoolean(right)
-		case `op_equals` =>
-			left == right
-		case `op_notequals` =>
-			!calculateBoolean(left, right, op_equals)
-		case `op_greaterEqual` =>
-			calculateBoolean(left, right, op_greaterThan) || calculateBoolean(left, right, op_equals)
-		case `op_lessThan` =>
-			!calculateBoolean(left, right, op_greaterEqual)
-		case `op_lessEqual` =>
-			!calculateBoolean(left, right, op_greaterThan)
-	}
+	private def calculateBoolean(left: AnyVal, right: AnyVal, operator: Int): Boolean = {
+		operator match
+			case `op_greaterThan` =>
+				(left, right) match {
+					case (x: Int, y: Int) => x > y
+					case (x: Int, y: Float) => x > y
+					case (x: Int, y: Double) => x > y
+					case (x: Int, y: Long) => x > y
 	
+					case (x: Float, y: Int) => x > y
+					case (x: Float, y: Double) => x > y
+					case (x: Float, y: Float) => x > y
+					case (x: Float, y: Long) => x > y
+	
+					case (x: Double, y: Int) => x > y
+					case (x: Double, y: Double) => x > y
+					case (x: Double, y: Float) => x > y
+					case (x: Double, y: Long) => x > y
+	
+					case (x: Long, y: Int) => x > y
+					case (x: Long, y: Float) => x > y
+					case (x: Long, y: Double) => x > y
+					case (x: Long, y: Long) => x > y
+					case _ => false
+				}
+			case `op_logicalAnd` =>
+				TypeHelper.resolveBoolean(left) && TypeHelper.resolveBoolean(right)
+			case `op_logicalOr` =>
+				TypeHelper.resolveBoolean(left) || TypeHelper.resolveBoolean(right)
+			case `op_equals` =>
+				left == right
+			case `op_notequals` =>
+				!calculateBoolean(left, right, op_equals)
+			case `op_greaterEqual` =>
+				calculateBoolean(left, right, op_greaterThan) || calculateBoolean(left, right, op_equals)
+			case `op_lessThan` =>
+				!calculateBoolean(left, right, op_greaterEqual)
+			case `op_lessEqual` =>
+				!calculateBoolean(left, right, op_greaterThan)
+	}
+
 	private def calculateInt(x: Int, operator: Int, op1: AnyVal, op2: AnyVal)(implicit state: State): AnyVal = {
-		operator match {
+		operator match
 			case `op_assign` =>
 				op2
 			case `op_multiply` | `op_multiplyAssign` =>
@@ -165,11 +166,10 @@ object BinaryExpr {
 					case y: Long => x & y
 			case _ =>
 				calculateBoolean(op1, op2, operator)
-		}
 	}
 
 	private def calculateLong(x: Long, operator: Int, op1: AnyVal, op2: AnyVal): AnyVal = {
-		operator match {
+		operator match
 			case `op_assign` =>
 				op2
 			case `op_multiply` | `op_multiplyAssign` =>
@@ -218,11 +218,10 @@ object BinaryExpr {
 					case y: Long => x & y
 			case _ =>
 				calculateBoolean(op1, op2, operator)
-		}
 	}
 
 	private def calculateDouble(x: Double, operator: Int, op1: AnyVal, op2: AnyVal): AnyVal = {
-		operator match {
+		operator match
 			case `op_assign` =>
 				op2
 			case `op_multiply` | `op_multiplyAssign` =>
@@ -251,11 +250,10 @@ object BinaryExpr {
 					case y: Long => x / y
 			case _ =>
 				calculateBoolean(op1, op2, operator)
-		}
 	}
 
 	private def calculateFloat(x: Float, operator: Int, op1: AnyVal, op2: AnyVal): AnyVal = {
-		operator match {
+		operator match
 			case `op_assign` =>
 				op2
 			case `op_multiply` | `op_multiplyAssign` =>
@@ -284,6 +282,5 @@ object BinaryExpr {
 					case y: Long => x / y
 			case _ =>
 				calculateBoolean(op1, op2, operator)
-		}
 	}
 }
