@@ -78,28 +78,7 @@ object BinaryExpr {
 	private def calculateBoolean(left: AnyVal, right: AnyVal, operator: Int): Boolean = {
 		operator match
 			case `op_greaterThan` =>
-				(left, right) match {
-					case (x: Int, y: Int) => x > y
-					case (x: Int, y: Float) => x > y
-					case (x: Int, y: Double) => x > y
-					case (x: Int, y: Long) => x > y
-	
-					case (x: Float, y: Int) => x > y
-					case (x: Float, y: Double) => x > y
-					case (x: Float, y: Float) => x > y
-					case (x: Float, y: Long) => x > y
-	
-					case (x: Double, y: Int) => x > y
-					case (x: Double, y: Double) => x > y
-					case (x: Double, y: Float) => x > y
-					case (x: Double, y: Long) => x > y
-	
-					case (x: Long, y: Int) => x > y
-					case (x: Long, y: Float) => x > y
-					case (x: Long, y: Double) => x > y
-					case (x: Long, y: Long) => x > y
-					case _ => false
-				}
+				greaterThan(left, right)
 			case `op_logicalAnd` =>
 				TypeHelper.resolveBoolean(left) && TypeHelper.resolveBoolean(right)
 			case `op_logicalOr` =>
@@ -330,5 +309,33 @@ object BinaryExpr {
 					case y: Float => x / y
 					case y: Double => x / y
 					case y: Long => x / y
+	}
+
+	private def greaterThan[T](num1: AnyVal, num2: AnyVal) = {
+		num1 match
+			case x: Double =>
+				num2 match
+					case y: Int => x > y
+					case y: Float => x > y
+					case y: Double => x > y
+					case y: Long => x > y
+			case x: Float =>
+				num2 match
+					case y: Int => x > y
+					case y: Float => x > y
+					case y: Double => x > y
+					case y: Long => x > y
+			case x: Long =>
+				num2 match
+					case y: Int => x > y
+					case y: Float => x > y
+					case y: Double => x > y
+					case y: Long => x > y
+			case x: Int =>
+				num2 match
+					case y: Int => x > y
+					case y: Float => x > y
+					case y: Double => x > y
+					case y: Long => x > y
 	}
 }
