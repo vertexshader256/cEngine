@@ -121,29 +121,13 @@ object BinaryExpr {
 			case `op_assign` =>
 				op2
 			case `op_multiply` | `op_multiplyAssign` =>
-				op2 match
-					case y: Int => x * y
-					case y: Float => x * y
-					case y: Double => x * y
-					case y: Long => x * y
+				multiply(x, op2)
 			case `op_plus` | `op_plusAssign` =>
-				op2 match
-					case y: Int => x + y
-					case y: Float => x + y
-					case y: Double => x + y
-					case y: Long => x + y
+				add(x, op2)
 			case `op_minus` | `op_minusAssign` =>
-				op2 match
-					case y: Int => x - y
-					case y: Float => x - y
-					case y: Double => x - y
-					case y: Long => x - y
+				subtract(x, op2)
 			case `op_divide` | `op_divideAssign` =>
-				op2 match
-					case y: Int => x / y
-					case y: Float => x / y
-					case y: Double => x / y
-					case y: Long => x / y
+				divide(x, op2)
 			case `op_shiftRight` | `op_shiftRightAssign` =>
 				x >> op2.asInstanceOf[Int]
 			case `op_shiftLeft` | `op_shiftLeftAssign` =>
@@ -173,29 +157,13 @@ object BinaryExpr {
 			case `op_assign` =>
 				op2
 			case `op_multiply` | `op_multiplyAssign` =>
-				op2 match
-					case y: Int => x * y
-					case y: Float => x * y
-					case y: Double => x * y
-					case y: Long => x * y
+				multiply(x, op2)
 			case `op_plus` | `op_plusAssign` =>
-				op2 match
-					case y: Int => x + y
-					case y: Float => x + y
-					case y: Double => x + y
-					case y: Long => x + y
+				add(x, op2)
 			case `op_minus` | `op_minusAssign` =>
-				op2 match
-					case y: Int => x - y
-					case y: Float => x - y
-					case y: Double => x - y
-					case y: Long => x - y
+				subtract(x, op2)
 			case `op_divide` | `op_divideAssign` =>
-				op2 match
-					case y: Int => x / y
-					case y: Float => x / y
-					case y: Double => x / y
-					case y: Long => x / y
+				divide(x, op2)
 			case `op_shiftRight` | `op_shiftRightAssign` =>
 				x >> op2.asInstanceOf[Int]
 			case `op_shiftLeft` | `op_shiftLeftAssign` =>
@@ -225,29 +193,13 @@ object BinaryExpr {
 			case `op_assign` =>
 				op2
 			case `op_multiply` | `op_multiplyAssign` =>
-				op2 match
-					case y: Int => x * y
-					case y: Float => x * y
-					case y: Double => x * y
-					case y: Long => x * y
+				multiply(x, op2)
 			case `op_plus` | `op_plusAssign` =>
-				op2 match
-					case y: Int => x + y
-					case y: Float => x + y
-					case y: Double => x + y
-					case y: Long => x + y
+				add(x, op2)
 			case `op_minus` | `op_minusAssign` =>
-				op2 match
-					case y: Int => x - y
-					case y: Float => x - y
-					case y: Double => x - y
-					case y: Long => x - y
+				subtract(x, op2)
 			case `op_divide` | `op_divideAssign` =>
-				op2 match
-					case y: Int => x / y
-					case y: Float => x / y
-					case y: Double => x / y
-					case y: Long => x / y
+				divide(x, op2)
 			case _ =>
 				calculateBoolean(op1, op2, operator)
 	}
@@ -257,30 +209,126 @@ object BinaryExpr {
 			case `op_assign` =>
 				op2
 			case `op_multiply` | `op_multiplyAssign` =>
-				op2 match
+				multiply(x, op2)
+			case `op_plus` | `op_plusAssign` =>
+				add(x, op2)
+			case `op_minus` | `op_minusAssign` =>
+				subtract(x, op2)
+			case `op_divide` | `op_divideAssign` =>
+				divide(x, op2)
+			case _ =>
+				calculateBoolean(op1, op2, operator)
+	}
+
+	private def multiply[T](num1: AnyVal, num2: AnyVal) = {
+		num1 match
+			case x: Double =>
+				num2 match
 					case y: Int => x * y
 					case y: Float => x * y
 					case y: Double => x * y
 					case y: Long => x * y
-			case `op_plus` | `op_plusAssign` =>
-				op2 match
+			case x: Float =>
+				num2 match
+					case y: Int => x * y
+					case y: Float => x * y
+					case y: Double => x * y
+					case y: Long => x * y
+			case x: Long =>
+				num2 match
+					case y: Int => x * y
+					case y: Float => x * y
+					case y: Double => x * y
+					case y: Long => x * y
+			case x: Int =>
+				num2 match
+					case y: Int => x * y
+					case y: Float => x * y
+					case y: Double => x * y
+					case y: Long => x * y
+	}
+
+	private def add[T](num1: AnyVal, num2: AnyVal) = {
+		num1 match
+			case x: Double =>
+				num2 match
 					case y: Int => x + y
 					case y: Float => x + y
 					case y: Double => x + y
 					case y: Long => x + y
-			case `op_minus` | `op_minusAssign` =>
-				op2 match
+			case x: Float =>
+				num2 match
+					case y: Int => x + y
+					case y: Float => x + y
+					case y: Double => x + y
+					case y: Long => x + y
+			case x: Long =>
+				num2 match
+					case y: Int => x + y
+					case y: Float => x + y
+					case y: Double => x + y
+					case y: Long => x + y
+			case x: Int =>
+				num2 match
+					case y: Int => x + y
+					case y: Float => x + y
+					case y: Double => x + y
+					case y: Long => x + y
+	}
+
+	private def subtract[T](num1: AnyVal, num2: AnyVal) = {
+		num1 match
+			case x: Double =>
+				num2 match
 					case y: Int => x - y
 					case y: Float => x - y
 					case y: Double => x - y
 					case y: Long => x - y
-			case `op_divide` | `op_divideAssign` =>
-				op2 match
+			case x: Float =>
+				num2 match
+					case y: Int => x - y
+					case y: Float => x - y
+					case y: Double => x - y
+					case y: Long => x - y
+			case x: Long =>
+				num2 match
+					case y: Int => x - y
+					case y: Float => x - y
+					case y: Double => x - y
+					case y: Long => x - y
+			case x: Int =>
+				num2 match
+					case y: Int => x - y
+					case y: Float => x - y
+					case y: Double => x - y
+					case y: Long => x - y
+	}
+
+	private def divide[T](num1: AnyVal, num2: AnyVal) = {
+		num1 match
+			case x: Double =>
+				num2 match
 					case y: Int => x / y
 					case y: Float => x / y
 					case y: Double => x / y
 					case y: Long => x / y
-			case _ =>
-				calculateBoolean(op1, op2, operator)
+			case x: Float =>
+				num2 match
+					case y: Int => x / y
+					case y: Float => x / y
+					case y: Double => x / y
+					case y: Long => x / y
+			case x: Long =>
+				num2 match
+					case y: Int => x / y
+					case y: Float => x / y
+					case y: Double => x / y
+					case y: Long => x / y
+			case x: Int =>
+				num2 match
+					case y: Int => x / y
+					case y: Float => x / y
+					case y: Double => x / y
+					case y: Long => x / y
 	}
 }
