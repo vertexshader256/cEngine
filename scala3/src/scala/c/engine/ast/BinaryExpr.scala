@@ -70,8 +70,8 @@ object BinaryExpr {
 		op1 match
 			case x: Int => calculateInt(x, operator, op1, op2)
 			case x: Long => calculateLong(x, operator, op1, op2)
-			case x: Double => calculateDouble(x, operator, op1, op2)
-			case x: Float => calculateFloat(x, operator, op1, op2)
+			case x: Double => calculateFloatingPoint(x, operator, op1, op2)
+			case x: Float => calculateFloatingPoint(x, operator, op1, op2)
 			case _ => calculateBoolean(op1, op2, operator)
 	}
 	
@@ -167,23 +167,7 @@ object BinaryExpr {
 				calculateBoolean(op1, op2, operator)
 	}
 
-	private def calculateDouble(x: Double, operator: Int, op1: AnyVal, op2: AnyVal): AnyVal = {
-		operator match
-			case `op_assign` =>
-				op2
-			case `op_multiply` | `op_multiplyAssign` =>
-				multiply(x, op2)
-			case `op_plus` | `op_plusAssign` =>
-				add(x, op2)
-			case `op_minus` | `op_minusAssign` =>
-				subtract(x, op2)
-			case `op_divide` | `op_divideAssign` =>
-				divide(x, op2)
-			case _ =>
-				calculateBoolean(op1, op2, operator)
-	}
-
-	private def calculateFloat(x: Float, operator: Int, op1: AnyVal, op2: AnyVal): AnyVal = {
+	private def calculateFloatingPoint(x: AnyVal, operator: Int, op1: AnyVal, op2: AnyVal): AnyVal = {
 		operator match
 			case `op_assign` =>
 				op2
