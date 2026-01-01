@@ -54,7 +54,7 @@ object BinaryExpr {
 		}
 	}
 
-	private def calculate(left: AnyVal, right: AnyVal, operator: Int)(implicit state: State): AnyVal = {
+	private def calculate(left: cEngVal, right: cEngVal, operator: Int)(implicit state: State): cEngVal = {
 		// Because of integer promotion, C never does math on anything less than int's
 
 		val op1 = left match
@@ -75,7 +75,7 @@ object BinaryExpr {
 			case _: Boolean => calculateBoolean(op1, op2, operator)
 	}
 	
-	private def calculateBoolean(left: AnyVal, right: AnyVal, operator: Int): Boolean = {
+	private def calculateBoolean(left: cEngVal, right: cEngVal, operator: Int): Boolean = {
 		operator match
 			case `op_greaterThan` =>
 				greaterThan(left, right)
@@ -95,7 +95,7 @@ object BinaryExpr {
 				!calculateBoolean(left, right, op_greaterThan)
 	}
 
-	private def calculateBitwise(num: AnyVal, operator: Int, op1: AnyVal, op2: AnyVal): AnyVal = {
+	private def calculateBitwise(num: cEngVal, operator: Int, op1: cEngVal, op2: cEngVal): cEngVal = {
 		num match
 			case x: Int =>
 				operator match
@@ -147,7 +147,7 @@ object BinaryExpr {
 						calculateBoolean(op1, op2, operator)
 	}
 
-	private def calculateFixedPoint(x: AnyVal, operator: Int, op1: AnyVal, op2: AnyVal)(implicit state: State): AnyVal = {
+	private def calculateFixedPoint(x: cEngVal, operator: Int, op1: cEngVal, op2: cEngVal)(implicit state: State): cEngVal = {
 		operator match
 			case `op_assign` =>
 				op2
@@ -163,7 +163,7 @@ object BinaryExpr {
 				calculateBitwise(x, operator, op1, op2)
 	}
 
-	private def calculateFloatingPoint(x: AnyVal, operator: Int, op1: AnyVal, op2: AnyVal): AnyVal = {
+	private def calculateFloatingPoint(x: cEngVal, operator: Int, op1: cEngVal, op2: cEngVal): cEngVal = {
 		operator match
 			case `op_assign` =>
 				op2
@@ -179,7 +179,7 @@ object BinaryExpr {
 				calculateBoolean(op1, op2, operator)
 	}
 
-	private def multiply(num1: AnyVal, num2: AnyVal) = {
+	private def multiply(num1: cEngVal, num2: cEngVal) = {
 		num1 match
 			case x: Double =>
 				num2 match
@@ -207,7 +207,7 @@ object BinaryExpr {
 					case y: Long => x * y
 	}
 
-	private def add(num1: AnyVal, num2: AnyVal) = {
+	private def add(num1: cEngVal, num2: cEngVal) = {
 		num1 match
 			case x: Double =>
 				num2 match
@@ -235,7 +235,7 @@ object BinaryExpr {
 					case y: Long => x + y
 	}
 
-	private def subtract(num1: AnyVal, num2: AnyVal) = {
+	private def subtract(num1: cEngVal, num2: cEngVal) = {
 		num1 match
 			case x: Double =>
 				num2 match
@@ -263,7 +263,7 @@ object BinaryExpr {
 					case y: Long => x - y
 	}
 
-	private def divide(num1: AnyVal, num2: AnyVal) = {
+	private def divide(num1: cEngVal, num2: cEngVal) = {
 		num1 match
 			case x: Double =>
 				num2 match
@@ -291,7 +291,7 @@ object BinaryExpr {
 					case y: Long => x / y
 	}
 
-	private def greaterThan(num1: AnyVal, num2: AnyVal): Boolean = {
+	private def greaterThan(num1: cEngVal, num2: cEngVal): Boolean = {
 		num1 match
 			case x: Double =>
 				num2 match

@@ -102,7 +102,7 @@ class Tape(size: Int) {
 		tape.getFloat(address)
 	}
 
-	def writePointerToMemory(newVal: AnyVal, address: Int) = {
+	def writePointerToMemory(newVal: cEngVal, address: Int) = {
 		newVal match {
 			case int: Int => putInt(address, int)
 			case long: Long => putInt(address, long.toInt)

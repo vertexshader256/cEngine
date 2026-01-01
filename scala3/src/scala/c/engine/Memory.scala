@@ -12,7 +12,7 @@ class Memory(size: Int) {
 	val tape = new Tape(size)
 
 	// use Address type to prevent messing up argument order
-	def writeToMemory(newVal: AnyVal, address: Int, theType: IType, bitOffset: Int = 0, sizeInBits: Int = 0): Unit = {
+	def writeToMemory(newVal: cEngVal, address: Int, theType: IType, bitOffset: Int = 0, sizeInBits: Int = 0): Unit = {
 
 		TypeHelper.stripSyntheticTypeInfo(theType) match {
 			case basic: IBasicType if basic.getKind == eInt && basic.isShort =>

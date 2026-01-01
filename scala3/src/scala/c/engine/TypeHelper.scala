@@ -26,8 +26,8 @@ object TypeHelper {
 	def getLongLong(lit: String) =
 		RValue(lit.toLong, longlong)
 
-	def castSign(theType: IType, newVal: AnyVal): RValue = {
-		val casted: AnyVal = theType match {
+	def castSign(theType: IType, newVal: cEngVal): RValue = {
+		val casted: cEngVal = theType match {
 			case basic: IBasicType =>
 				if (basic.isUnsigned) {
 					newVal match {
@@ -56,8 +56,8 @@ object TypeHelper {
 	}
 
 	// Kind of hacky; this will do whatever it needs to match gcc.  casts 'AnyVal' to 'ValueInfo'
-	def cast(theType: IType, theVal: AnyVal): RValue = {
-		val cast: AnyVal = theType match {
+	def cast(theType: IType, theVal: cEngVal): RValue = {
+		val cast: cEngVal = theType match {
 			case basic: IBasicType =>
 
 				val newVal = if (basic.isUnsigned) {
@@ -179,7 +179,7 @@ object TypeHelper {
 			TypeInfo(elab.getName.resolveBinding().asInstanceOf[CStructure])
 	}
 
-	def getType(value: AnyVal): IBasicType = {
+	def getType(value: cEngVal): IBasicType = {
 		var config = 0
 
 		if (value.isInstanceOf[Long]) {
@@ -226,7 +226,7 @@ object TypeHelper {
 		}
 	}
 
-	def not(theVal: Any): AnyVal = theVal match {
+	def not(theVal: Any): cEngVal = theVal match {
 		case info@LValue(_, _) => not(info.rValue)
 		case RValue(theVal, _) => not(theVal)
 		case int: Int => if (int == 0) 1 else 0

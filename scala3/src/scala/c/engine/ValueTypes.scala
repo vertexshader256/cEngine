@@ -74,7 +74,7 @@ case class FileRValue(path: String) extends RValue {
 
 	val file: File = new File(path)
 
-	val value: AnyVal = if file.exists then 1 else 0
+	val value: cEngVal = if file.exists then 1 else 0
 
 	var byteArray = if file.exists then
 		Files.readAllBytes(Paths.get(path))

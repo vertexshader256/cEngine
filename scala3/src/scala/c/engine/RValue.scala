@@ -3,16 +3,16 @@ package scala.c.engine
 import org.eclipse.cdt.core.dom.ast.IType
 
 object RValue {
-	def unapply(rvalue: RValue): Option[(AnyVal, IType)] = Some((rvalue.value, rvalue.theType))
+	def unapply(rvalue: RValue): Option[(cEngVal, IType)] = Some((rvalue.value, rvalue.theType))
 
-	def apply(theValue: AnyVal, aType: IType) =
+	def apply(theValue: cEngVal, aType: IType) =
 		new RValue {
 			val theType = TypeHelper.stripSyntheticTypeInfo(aType);
 			val rawType = aType
 			val value = theValue
 		}
 
-	def apply(theValue: AnyVal) =
+	def apply(theValue: cEngVal) =
 		new RValue {
 			val theType: IType = null
 			val rawType: IType = null
@@ -22,7 +22,7 @@ object RValue {
 
 // An RValue is an expression that has a value, a type, and no memory address
 abstract class RValue extends ValueType {
-	val value: AnyVal
+	val value: cEngVal
 	val theType: IType
 
 	override def toString = {
