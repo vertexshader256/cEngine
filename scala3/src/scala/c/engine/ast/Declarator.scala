@@ -201,7 +201,7 @@ object Declarator {
 			val equals = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
 			val hasList = equals.getInitializerClause.isInstanceOf[IASTInitializerList]
 
-			if (TypeHelper.isPointerOrArray(theType) && TypeHelper.getPointerType(theType).isInstanceOf[CStructure]) {
+			if (TypeHelper.getPointerType(theType).isInstanceOf[CStructure]) {
 				// array of struct designations = [{1,2}] or [{.x = 1, .y = 2}]
 				val structType = TypeHelper.getPointerType(theType).asInstanceOf[CStructure]
 
