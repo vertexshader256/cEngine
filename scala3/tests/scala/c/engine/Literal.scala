@@ -62,6 +62,19 @@ class Literal extends StandardTest {
 		checkResults(code)
 	}
 
+	"parsing unsigned long long" should "print the correct results" in {
+		val code =
+			"""
+					int main() {
+						
+							unsigned long long x = 0x8000000000000000ULL;
+							printf("%f", x);
+							return 0;
+					}"""
+
+		checkResults(code)
+	}
+	
 	// TODO: Try and figure out unsigned long long
 	"an unsigned long long suffix test" should "print the correct results" in {
 		val code =
