@@ -23,8 +23,8 @@ object TypeHelper {
 	def getLong(lit: String) =
 		RValue(lit.toLong, CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
 
-	def getLongLong(lit: String) =
-		RValue(lit.toLong, longlong)
+	def getLongLong(bigInt: BigInt) =
+		RValue(bigInt, longlong)
 
 	def castSign(theType: IType, newVal: cEngVal): RValue = {
 		val casted: cEngVal = theType match {
@@ -35,6 +35,7 @@ object TypeHelper {
 						case int: Int => int & 0xFFFFFFFFL
 						case short: Short => short & 0xFFFF
 						case byte: Byte => byte & 0xFF
+						case bigInt: BigInt => bigInt.toLong & 0x00000000FFFFFFFFL
 					}
 				} else {
 					newVal

@@ -71,7 +71,14 @@ object Literal {
 		} else if (lit.head == '\'' && lit.last == '\'') {
 			RValue(lit.toCharArray.apply(1).toByte, new CBasicType(IBasicType.Kind.eChar, 0))
 		} else if (isUnsignedLongLong) {
-			TypeHelper.getLongLong(lit)
+
+			val bigInt = if (post.startsWith("0x")) {
+				new BigInteger(pre.drop(2), 16);
+			} else {
+				new BigInteger(pre);
+			}
+			
+			TypeHelper.getLongLong(bigInt)
 		} else if (isUnsignedLong) {
 			TypeHelper.getLong(lit)
 		} else if (isLong) {
