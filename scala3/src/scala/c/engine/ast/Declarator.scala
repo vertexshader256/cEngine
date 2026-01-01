@@ -208,7 +208,7 @@ object Declarator {
 
 				val structData = if (hasNamedDesignators) {
 					val values = getStructRValues(equals.getInitializerClause, structType)
-					values.map(x => x.asInstanceOf[RValue])
+					values.map(x => TypeHelper.resolve(x))
 				} else {
 					val data = List(Option(decl.getInitializer)).flatten
 					data.foreach(Ast.step)
