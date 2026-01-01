@@ -222,6 +222,29 @@ class StructTest extends StandardTest {
 		checkResults(code)
 	}
 
+	"struct array named init with strings" should "print the correct results" in {
+		val code =
+			"""
+
+				typedef struct {
+						char *x;
+						int y;
+						int z;
+					} item_t;
+
+					item_t items[] = {
+						{.x = "test",  .y = 150, .z = 1}
+					};
+
+					void main() {
+						printf("%s\n", items[0].x);
+						printf("%d\n", items[0].y);
+						printf("%d\n", items[0].z);
+					}"""
+
+		checkResults(code)
+	}
+
 	"advanced struct init" should "print the correct results" in {
 		val code =
 			"""
