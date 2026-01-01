@@ -184,20 +184,20 @@ object Declarator {
 	}
 
 	private def processArrayDecl(decl: IASTDeclarator, arrayDecl: IASTArrayDeclarator)(implicit state: State) = {
-		val initializer = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
-
+		
 		val name = if arrayDecl.getNestedDeclarator != null then
 			arrayDecl.getNestedDeclarator.getName
 		else
 			arrayDecl.getName
-
-		val theType = TypeHelper.getBindingType(name.resolveBinding())
 
 		// Oddly enough, it is possible to have a pointer to an array with no dimensions OR initializer:
 		//    extern char *x[]
 
 		if (decl.getInitializer != null) {
 
+			val initializer = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
+			val theType = TypeHelper.getBindingType(name.resolveBinding())
+			
 			val equals = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
 			val hasList = equals.getInitializerClause.isInstanceOf[IASTInitializerList]
 

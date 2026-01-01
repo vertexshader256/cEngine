@@ -210,13 +210,17 @@ class StructTest extends StandardTest {
 				} item_t;
 
 				item_t items[] = {
-					{.x = 9,  .y = 150, .z = 1}
+					{.x = 9,  .y = 150, .z = 1},
+			    {.z = 9,  .x = 150, .y = 1}
 				};
 
 				void main() {
 					printf("%d\n", items[0].x);
 					printf("%d\n", items[0].y);
 					printf("%d\n", items[0].z);
+					printf("%d\n", items[1].x);
+					printf("%d\n", items[1].y);
+					printf("%d\n", items[1].z);
 				}"""
 
 		checkResults(code)
