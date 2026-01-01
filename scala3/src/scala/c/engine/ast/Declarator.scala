@@ -164,23 +164,41 @@ object Declarator {
 	private def initializeArrayFromList(name: IASTName, decl: IASTDeclarator)(implicit state: State) = {
 		val theType = TypeHelper.getBindingType(name.resolveBinding())
 		val equals = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
+		val pointerType = TypeHelper.getPointerType(theType)
 
-		val initialArray = flattenInitList(equals.getInitializerClause).map(TypeHelper.resolve)
+		pointerType match
+			case struct: CStructure =>
+				// array of struct designations = [{1,2}] or [{.x = 1, .y = 2}]
+				val structData = equals.getInitializerClause.getChildren.flatMap { list =>
+					val values = getStructRValues(list, struct)
+					values.map(x => TypeHelper.resolve(x))
+				}.toList
 
-		if (initialArray.size == 1 && initialArray.head.value.isInstanceOf[Int] &&
-			initialArray.head.value.asInstanceOf[Int] == 0) { // e.g = {0}
-			val newVar = state.context.addArrayVariable(name.toString, theType, initialArray)
-			val zeroArray = (0 until newVar.sizeof).map { x => 0.toByte }.toArray
-			state.writeDataBlock(zeroArray, newVar.address)
-		} else {
-			val newArray = if !theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType] then
-				val baseType = TypeHelper.resolveBasic(theType)
-				initialArray.map { x => TypeHelper.cast(baseType, x.value) }
-			else
-				initialArray
-
-			state.context.addArrayVariable(name.toString, theType, newArray)
-		}
+				state.context.addArrayVariable(name.toString, theType, structData)
+			case _ =>
+				val isNullInitializer = if equals.getInitializerClause.getChildren.length == 1 then
+					val initialArray = flattenInitList(equals.getInitializerClause).map(TypeHelper.resolve)
+					initialArray.size == 1 && initialArray.head.value.isInstanceOf[Int] &&
+						initialArray.head.value.asInstanceOf[Int] == 0
+				else
+					false
+				
+				if (isNullInitializer) { // e.g = {0}
+					val initialArray = flattenInitList(equals.getInitializerClause).map(TypeHelper.resolve)
+					val newVar = state.context.addArrayVariable(name.toString, theType, initialArray)
+					val zeroArray = (0 until newVar.sizeof).map { x => 0.toByte }.toArray
+					state.writeDataBlock(zeroArray, newVar.address)
+				} else {
+					val initialArray = flattenInitList(equals.getInitializerClause).map(TypeHelper.resolve)
+					
+					val newArray = if !theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType] then
+						val baseType = TypeHelper.resolveBasic(theType)
+						initialArray.map { x => TypeHelper.cast(baseType, x.value) }
+					else
+						initialArray
+	
+					state.context.addArrayVariable(name.toString, theType, newArray)
+				}
 	}
 
 	private def processArrayDecl(decl: IASTDeclarator, arrayDecl: IASTArrayDeclarator)(implicit state: State) = {
@@ -201,23 +219,13 @@ object Declarator {
 			val equals = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
 			val hasList = equals.getInitializerClause.isInstanceOf[IASTInitializerList]
 
-			if (TypeHelper.getPointerType(theType).isInstanceOf[CStructure]) {
-				// array of struct designations = [{1,2}] or [{.x = 1, .y = 2}]
-				val structType = TypeHelper.getPointerType(theType).asInstanceOf[CStructure]
-
-				val structData = initializer.getInitializerClause.getChildren.flatMap { list =>
-					val values = getStructRValues(list, structType)
-					values.map(x => TypeHelper.resolve(x))
-				}.toList
-
-				state.context.addArrayVariable(name.toString, theType, structData)
-			} else if (TypeHelper.resolveBasic(theType).getKind == IBasicType.Kind.eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
+			if (TypeHelper.getPointerType(theType).isInstanceOf[CStructure] || hasList) {
+				initializeArrayFromList(name, decl)
+			} else if (TypeHelper.resolveBasic(theType).getKind == IBasicType.Kind.eChar) {
 				// e.g. char str[] = "Hello!\n";
 				List(Option(decl.getInitializer)).flatten.foreach(Ast.step)
 				val initString = state.context.popStack.asInstanceOf[StringLiteral].value
 				state.createStringArrayVariable(name.toString, initString)
-			} else if (hasList) { // e.g '= {1,2,3,4,5}' or x[2][2] = {{1,2},{3,4},{5,6},{7,8}}
-				initializeArrayFromList(name, decl)
 			} else { // initializing array to address, e.g int (*ptr)[5] = &x[1];
 				Ast.step(decl.getInitializer)
 				val initVal = TypeHelper.resolve(state.context.popStack)
