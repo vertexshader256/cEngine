@@ -9,7 +9,7 @@ import scala.c.engine.ast.Expressions
 object TypeHelper {
 
 	// 8 bytes
-	val qword = CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
+	val longlong = CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
 	val intType = CBasicType(IBasicType.Kind.eInt, 0)
 	val charType = CBasicType(IBasicType.Kind.eChar, 0)
 	val unsignedIntType = CBasicType(IBasicType.Kind.eInt, IBasicType.IS_UNSIGNED)
@@ -22,6 +22,9 @@ object TypeHelper {
 
 	def getLong(lit: String) =
 		RValue(lit.toLong, CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG))
+
+	def getLongLong(lit: String) =
+		RValue(lit.toLong, longlong)
 
 	def castSign(theType: IType, newVal: AnyVal): RValue = {
 		val casted: AnyVal = theType match {

@@ -70,6 +70,8 @@ object Literal {
 			StringLiteral(lit)
 		} else if (lit.head == '\'' && lit.last == '\'') {
 			RValue(lit.toCharArray.apply(1).toByte, new CBasicType(IBasicType.Kind.eChar, 0))
+		} else if (isUnsignedLongLong) {
+			TypeHelper.getLongLong(lit)
 		} else if (isUnsignedLong) {
 			TypeHelper.getLong(lit)
 		} else if (isLong) {
