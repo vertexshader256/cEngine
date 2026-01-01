@@ -162,7 +162,7 @@ object Declarator {
 		state.context.addVariable(name.toString, aType)
 	}
 
-	private def processList(name: IASTName, list: CASTInitializerList)(implicit state: State): Unit = {
+	private def processList(name: IASTName, list: CASTInitializerList)(implicit state: State): List[RValue] = {
 		val theType = TypeHelper.getBindingType(name.resolveBinding())
 
 		val isNullInitializer = if list.getChildren.length == 1 then
@@ -173,20 +173,15 @@ object Declarator {
 			false
 
 		if (isNullInitializer) { // e.g = {0}
-			val initialArray = flattenInitList(list).map(TypeHelper.resolve)
-			val newVar = state.context.addArrayVariable(name.toString, theType, initialArray)
-			val zeroArray = (0 until newVar.sizeof).map { x => 0.toByte }.toArray
-			state.writeDataBlock(zeroArray, newVar.address)
+			flattenInitList(list).map(TypeHelper.resolve)
 		} else {
 			val initialArray = flattenInitList(list).map(TypeHelper.resolve)
 
-			val newArray = if !theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType] then
+			if !theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType] then
 				val baseType = TypeHelper.resolveBasic(theType)
 				initialArray.map { x => TypeHelper.cast(baseType, x.value) }
 			else
 				initialArray
-
-			state.context.addArrayVariable(name.toString, theType, newArray)
 		}
 	}
 
@@ -205,7 +200,8 @@ object Declarator {
 
 				state.context.addArrayVariable(name.toString, theType, structData)
 			case _ =>
-				processList(name, equals.getInitializerClause.asInstanceOf[CASTInitializerList])
+				val initValues = processList(name, equals.getInitializerClause.asInstanceOf[CASTInitializerList])
+				state.context.addArrayVariable(name.toString, theType, initValues)
 	}
 
 	private def processArrayDecl(decl: IASTDeclarator, arrayDecl: IASTArrayDeclarator)(implicit state: State) = {
