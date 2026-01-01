@@ -7,5 +7,5 @@ package object engine {
 	type long = Int
 	type double = Double
 	type float = Float
-	type cEngVal = AnyVal
+	type cEngVal = AnyVal | BigInt
 }
