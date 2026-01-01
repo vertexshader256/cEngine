@@ -210,12 +210,10 @@ object Declarator {
 					val values = getStructRValues(equals.getInitializerClause, structType)
 					values.map(x => TypeHelper.resolve(x))
 				} else {
-					val data = List(Option(decl.getInitializer)).flatten
-					data.foreach(Ast.step)
-
 					initializer.getInitializerClause.getChildren.flatMap { list =>
-						structType.getFields.map { field => TypeHelper.resolve(state.context.popStack) }
-					}.reverse.toList
+						val values = getStructRValues(list, structType)
+						values.map(x => TypeHelper.resolve(x))
+					}.toList
 				}
 
 				state.context.addArrayVariable(name.toString, theType, structData)
