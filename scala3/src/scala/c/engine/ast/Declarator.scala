@@ -204,17 +204,11 @@ object Declarator {
 			if (TypeHelper.isPointerOrArray(theType) && TypeHelper.getPointerType(theType).isInstanceOf[CStructure]) {
 				// array of struct designations = [{1,2}] or [{.x = 1, .y = 2}]
 				val structType = TypeHelper.getPointerType(theType).asInstanceOf[CStructure]
-				val hasNamedDesignators = Utils.getDescendants(equals.getInitializerClause).exists{ x => x.isInstanceOf[CASTDesignatedInitializer] }
 
-				val structData = if (hasNamedDesignators) {
-					val values = getStructRValues(equals.getInitializerClause, structType)
+				val structData = initializer.getInitializerClause.getChildren.flatMap { list =>
+					val values = getStructRValues(list, structType)
 					values.map(x => TypeHelper.resolve(x))
-				} else {
-					initializer.getInitializerClause.getChildren.flatMap { list =>
-						val values = getStructRValues(list, structType)
-						values.map(x => TypeHelper.resolve(x))
-					}.toList
-				}
+				}.toList
 
 				state.context.addArrayVariable(name.toString, theType, structData)
 			} else if (TypeHelper.resolveBasic(theType).getKind == IBasicType.Kind.eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
