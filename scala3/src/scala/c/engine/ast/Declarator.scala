@@ -104,7 +104,7 @@ object Declarator {
 	}
 
 	private def processFcnDeclarator(fcnDec: IASTFunctionDeclarator)(implicit state: State) = {
-		if (getDescendants(fcnDec).exists { x => x.isInstanceOf[IASTEqualsInitializer] }) {
+		if (Utils.getDescendants(fcnDec).exists { x => x.isInstanceOf[IASTEqualsInitializer] }) {
 			setFunctionPointer(fcnDec)
 		} else {
 			val binding = fcnDec.getName.resolveBinding()
@@ -202,15 +202,21 @@ object Declarator {
 			val hasList = equals.getInitializerClause.isInstanceOf[IASTInitializerList]
 
 			if (TypeHelper.isPointerOrArray(theType) && TypeHelper.getPointerType(theType).isInstanceOf[CStructure]) {
-				val data = List(Option(decl.getInitializer)).flatten
-
-				data.foreach(Ast.step)
-
+				// array of struct designations = [{1,2}] or [{.x = 1, .y = 2}]
 				val structType = TypeHelper.getPointerType(theType).asInstanceOf[CStructure]
+				val hasNamedDesignators = Utils.getDescendants(equals.getInitializerClause).exists{ x => x.isInstanceOf[CASTDesignatedInitializer] }
 
-				val structData = initializer.getInitializerClause.getChildren.flatMap { list =>
-					structType.getFields.map { field => TypeHelper.resolve(state.context.popStack) }
-				}.reverse.toList
+				val structData = if (hasNamedDesignators) {
+					val values = getStructRValues(equals.getInitializerClause, structType)
+					values.map(x => x.asInstanceOf[RValue])
+				} else {
+					val data = List(Option(decl.getInitializer)).flatten
+					data.foreach(Ast.step)
+
+					initializer.getInitializerClause.getChildren.flatMap { list =>
+						structType.getFields.map { field => TypeHelper.resolve(state.context.popStack) }
+					}.reverse.toList
+				}
 
 				state.context.addArrayVariable(name.toString, theType, structData)
 			} else if (TypeHelper.resolveBasic(theType).getKind == IBasicType.Kind.eChar && !initializer.getInitializerClause.isInstanceOf[IASTInitializerList]) {
@@ -257,14 +263,10 @@ object Declarator {
 		Seq()
 	}
 
-	private def getDescendants(node: IASTNode): Seq[IASTNode] = {
-		node +: node.getChildren.toList.flatMap(getDescendants)
-	}
-
 	private def getStructRValues(initClause: IASTInitializerClause, struct: CStructure)(implicit state: State): List[ValueType] = {
 		initClause match
 			case list: IASTInitializerList =>
-				val descendants = getDescendants(initClause)
+				val descendants = Utils.getDescendants(initClause)
 				val hasNamedDesignator = descendants.exists { node => node.isInstanceOf[CASTDesignatedInitializer] } // {.y = 343, .x = 543, .next = 8578}
 
 				if (hasNamedDesignator) {

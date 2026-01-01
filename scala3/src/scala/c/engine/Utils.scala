@@ -37,6 +37,10 @@ object Utils {
 		parents.result
 	}
 
+	def getDescendants(node: IASTNode): Seq[IASTNode] = {
+		node +: node.getChildren.toList.flatMap(getDescendants)
+	}
+
 	private def readChar(address: Int)(implicit state: State): Char = {
 		state.Stack.readFromMemory(address, CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[Byte].toChar
 	}
