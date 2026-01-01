@@ -263,7 +263,7 @@ object Declarator {
 		Seq()
 	}
 
-	private def getStructRValues(initClause: IASTInitializerClause, struct: CStructure)(implicit state: State): List[ValueType] = {
+	private def getStructRValues(initClause: IASTNode, struct: CStructure)(implicit state: State): List[ValueType] = {
 		initClause match
 			case list: IASTInitializerList =>
 				val descendants = Utils.getDescendants(initClause)
