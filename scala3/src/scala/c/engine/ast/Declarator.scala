@@ -165,23 +165,29 @@ object Declarator {
 	private def processList(name: IASTName, list: CASTInitializerList)(implicit state: State): List[RValue] = {
 		val theType = TypeHelper.getBindingType(name.resolveBinding())
 
-		val isNullInitializer = if list.getChildren.length == 1 then
-			val initialArray = flattenInitList(list).map(TypeHelper.resolve)
-			initialArray.size == 1 && initialArray.head.value.isInstanceOf[Int] &&
-				initialArray.head.value.asInstanceOf[Int] == 0
-		else
-			false
-
-		if (isNullInitializer) { // e.g = {0}
-			flattenInitList(list).map(TypeHelper.resolve)
+		val childrenLists = list.getChildren.collect{ case list: CASTInitializerList => list }.toList
+		
+		if (childrenLists.nonEmpty) {
+			childrenLists.flatMap(l => processList(name, l))
 		} else {
-			val initialArray = flattenInitList(list).map(TypeHelper.resolve)
-
-			if !theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType] then
-				val baseType = TypeHelper.resolveBasic(theType)
-				initialArray.map { x => TypeHelper.cast(baseType, x.value) }
+			val isNullInitializer = if list.getChildren.length == 1 then
+				val initialArray = flattenInitList(list).map(TypeHelper.resolve)
+				initialArray.size == 1 && initialArray.head.value.isInstanceOf[Int] &&
+				initialArray.head.value.asInstanceOf[Int] == 0
 			else
-				initialArray
+				false
+
+			if (isNullInitializer) { // e.g = {0}
+				flattenInitList(list).map(TypeHelper.resolve)
+			} else {
+				val initialArray = flattenInitList(list).map(TypeHelper.resolve)
+
+				if !theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType] then
+					val baseType = TypeHelper.resolveBasic(theType)
+					initialArray.map { x => TypeHelper.cast(baseType, x.value) }
+				else
+					initialArray
+			}
 		}
 	}
 
