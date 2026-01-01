@@ -226,6 +226,33 @@ class StructTest extends StandardTest {
 		checkResults(code)
 	}
 
+	"struct array null initializer" should "print the correct results" in {
+		val code =
+			"""
+	
+				typedef struct {
+						int x;
+						int y;
+						int z;
+					} item_t;
+	
+					item_t items[] = {
+						{0},
+						{0}
+					};
+	
+					void main() {
+						printf("%d\n", items[0].x);
+						printf("%d\n", items[0].y);
+						printf("%d\n", items[0].z);
+						printf("%d\n", items[1].x);
+						printf("%d\n", items[1].y);
+						printf("%d\n", items[1].z);
+					}"""
+
+		checkResults(code)
+	}
+
 	"struct array named init with strings" should "print the correct results" in {
 		val code =
 			"""
