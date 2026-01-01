@@ -139,6 +139,7 @@ object BinaryExpr {
 						op2 match
 							case y: Int => x ^ y
 							case y: Long => x ^ y
+							case y: BigInt => x ^ y
 					case `op_binaryAnd` | `op_binaryAndAssign` =>
 						op2 match
 							case y: Int => x & y

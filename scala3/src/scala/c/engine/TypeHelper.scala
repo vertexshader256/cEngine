@@ -80,6 +80,7 @@ object TypeHelper {
 							case long: Long => long
 							case double: Double => double.toLong
 							case float: Float => float.toLong
+							case big: BigInt => big.toLong
 						}
 					case `eInt` if basic.isLong =>
 						newVal match {

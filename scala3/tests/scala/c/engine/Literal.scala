@@ -67,7 +67,7 @@ class Literal extends StandardTest {
 			"""
 					int main() {
 							unsigned long long x = 0x8000000000000000ULL;
-							printf("%f", x);
+							printf("%d", x);
 							return 0;
 					}"""
 
