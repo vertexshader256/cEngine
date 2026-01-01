@@ -10,166 +10,171 @@ import scala.c.engine.ast.{Declarator, Expressions}
 import scala.collection.mutable.ListBuffer
 
 object State {
+
+	private def compile(node: IASTNode)(implicit state: State): List[Any] = {
+		node match
+			case ifStatement: IASTIfStatement =>
+				compileIfStatement(ifStatement)
+			case forStatement: IASTForStatement =>
+				compileForStatement(forStatement)
+			case whileStatement: IASTWhileStatement =>
+				compileWhileStatement(whileStatement)
+			case doWhileStatement: IASTDoStatement =>
+				compileDoWhileStatement(doWhileStatement)
+			case switch: IASTSwitchStatement =>
+				compileSwitcheStatement(switch)
+			case x: IASTCaseStatement =>
+				List(CaseLabel(x))
+			case x: IASTDefaultStatement =>
+				List(DefaultLabel(x))
+			case _: IASTContinueStatement =>
+				List(JmpLabel(state.continueLabelStack.head))
+			case _: IASTBreakStatement =>
+				List(JmpLabel(state.breakLabelStack.head))
+			case _: IASTElaboratedTypeSpecifier =>
+				List()
+			case goto: IASTGotoStatement =>
+				List(JmpName(goto.getName.toString))
+			case fcn: IASTFunctionDefinition =>
+				List(fcn)
+			case compound: IASTCompoundStatement =>
+				compileCompoundStatement(compound)
+			case decl: IASTDeclarationStatement =>
+				decl.getChildren.toList.flatMap(compile)
+			case decl: CASTSimpleDeclaration =>
+				List(decl)
+			case _: IASTSimpleDeclSpecifier =>
+				List()
+			case _: CASTTypedefNameSpecifier =>
+				List()
+			case decl: IASTDeclarator =>
+				List(decl)
+			case label: IASTLabelStatement =>
+				GotoLabel(label.getName.toString) +: compile(label.getNestedStatement)
+			case exprState: CASTExpressionStatement =>
+				List(exprState.getExpression)
+			case _ =>
+				node +: node.getChildren.toList
+	}
+
 	def flattenNode(tUnit: IASTNode)(implicit state: State): List[Any] = {
+		tUnit.getChildren.flatMap(compile).toList
+	}
 
-		def recurse(node: IASTNode): List[Any] = {
+	private def compileIfStatement(ifStatement: IASTIfStatement)(implicit state: State) = {
+		val contents = PushVariableStack() +: compile(ifStatement.getThenClause) :+ PopVariableStack()
+		val elseContents = PushVariableStack() +: List(Option(ifStatement.getElseClause)).flatten.flatMap(compile) :+ PopVariableStack()
 
-			node match {
-				case ifStatement: IASTIfStatement =>
-					val contents = PushVariableStack() +: recurse(ifStatement.getThenClause) :+ PopVariableStack()
-					val elseContents = PushVariableStack() +: List(Option(ifStatement.getElseClause)).flatten.flatMap(recurse) :+ PopVariableStack()
+		val jmp = if ifStatement.getElseClause != null then
+			List(Jmp(elseContents.size))
+		else
+			List()
 
-					val jmp = if (ifStatement.getElseClause != null) {
-						List(Jmp(elseContents.size))
-					} else {
-						List()
-					}
+		val all = contents ++ jmp
 
-					val all = contents ++ jmp
+		// add +1 for the jmp statement
+		JmpIfNotEqual(ifStatement.getConditionExpression, all.size) +: (all ++ elseContents)
+	}
 
-					// add +1 for the jmp statement
-					JmpIfNotEqual(ifStatement.getConditionExpression, all.size) +: (all ++ elseContents)
-				case forStatement: IASTForStatement =>
+	private def compileForStatement(forStatement: IASTForStatement)(implicit state: State) = {
+		val breakLabel = BreakLabel()
+		state.breakLabelStack = breakLabel +: state.breakLabelStack
+		val continueLabel = ContinueLabel()
+		state.continueLabelStack = continueLabel +: state.continueLabelStack
 
-					val breakLabel = BreakLabel()
-					state.breakLabelStack = breakLabel +: state.breakLabelStack
-					val continueLabel = ContinueLabel()
-					state.continueLabelStack = continueLabel +: state.continueLabelStack
+		val init = List(forStatement.getInitializerStatement)
+		val contents = compile(forStatement.getBody)
+		val iter = forStatement.getIterationExpression
+		val beginLabel = GotoLabel("")
 
-					val init = List(forStatement.getInitializerStatement)
-					val contents = recurse(forStatement.getBody)
-					val iter = forStatement.getIterationExpression
-					val beginLabel = GotoLabel("")
+		state.breakLabelStack = state.breakLabelStack.tail
+		state.continueLabelStack = state.continueLabelStack.tail
 
-					state.breakLabelStack = state.breakLabelStack.tail
-					state.continueLabelStack = state.continueLabelStack.tail
+		val execution = contents ++ (if (iter != null) List(continueLabel, iter) else List(continueLabel))
 
-					val execution = contents ++ (if (iter != null) List(continueLabel, iter) else List(continueLabel))
+		val result = if forStatement.getConditionExpression != null then
+			init ++ (beginLabel +: JmpToLabelIfNotZero(forStatement.getConditionExpression, breakLabel) +: execution :+ JmpLabel(beginLabel)) :+ breakLabel
+		else
+			init ++ (beginLabel +: execution :+ JmpLabel(beginLabel)) :+ breakLabel
 
-					val result = (if (forStatement.getConditionExpression != null) {
-						init ++ (beginLabel +: JmpToLabelIfNotZero(forStatement.getConditionExpression, breakLabel) +: execution :+ JmpLabel(beginLabel)) :+ breakLabel
-					} else {
-						init ++ (beginLabel +: execution :+ JmpLabel(beginLabel)) :+ breakLabel
-					})
+		PushVariableStack() +: result :+ PopVariableStack()
+	}
 
-					PushVariableStack() +: result :+ PopVariableStack()
-				case whileStatement: IASTWhileStatement =>
+	private def compileWhileStatement(whileStatement: IASTWhileStatement)(implicit state: State) = {
+		val breakLabel = BreakLabel()
+		state.breakLabelStack = breakLabel +: state.breakLabelStack
+		val continueLabel = ContinueLabel()
+		state.continueLabelStack = continueLabel +: state.continueLabelStack
 
-					val breakLabel = BreakLabel()
-					state.breakLabelStack = breakLabel +: state.breakLabelStack
-					val continueLabel = ContinueLabel()
-					state.continueLabelStack = continueLabel +: state.continueLabelStack
+		val contents = compile(whileStatement.getBody)
+		val begin = GotoLabel("")
+		val end = GotoLabel("")
 
-					val contents = recurse(whileStatement.getBody)
-					val begin = GotoLabel("")
-					val end = GotoLabel("")
+		state.breakLabelStack = state.breakLabelStack.tail
+		state.continueLabelStack = state.continueLabelStack.tail
 
-					state.breakLabelStack = state.breakLabelStack.tail
-					state.continueLabelStack = state.continueLabelStack.tail
+		val result = List(JmpLabel(end), begin) ++ contents ++ List(end, continueLabel, JmpToLabelIfZero(whileStatement.getCondition, begin)) :+ breakLabel
 
-					val result = List(JmpLabel(end), begin) ++ contents ++ List(end, continueLabel, JmpToLabelIfZero(whileStatement.getCondition, begin)) :+ breakLabel
+		PushVariableStack() +: result :+ PopVariableStack()
+	}
 
-					PushVariableStack() +: result :+ PopVariableStack()
-				case doWhileStatement: IASTDoStatement =>
+	private def compileDoWhileStatement(doWhileStatement: IASTDoStatement)(implicit state: State) = {
+		val breakLabel = BreakLabel()
+		state.breakLabelStack = breakLabel +: state.breakLabelStack
+		val continueLabel = ContinueLabel()
+		state.continueLabelStack = continueLabel +: state.continueLabelStack
 
-					val breakLabel = BreakLabel()
-					state.breakLabelStack = breakLabel +: state.breakLabelStack
-					val continueLabel = ContinueLabel()
-					state.continueLabelStack = continueLabel +: state.continueLabelStack
+		val contents = compile(doWhileStatement.getBody)
+		val begin = new Label {}
 
-					val contents = recurse(doWhileStatement.getBody)
-					val begin = new Label {}
+		state.breakLabelStack = state.breakLabelStack.tail
+		state.continueLabelStack = state.continueLabelStack.tail
 
-					state.breakLabelStack = state.breakLabelStack.tail
-					state.continueLabelStack = state.continueLabelStack.tail
+		val result = begin +: (contents ++ List(continueLabel, JmpToLabelIfZero(doWhileStatement.getCondition, begin), breakLabel))
 
-					val result = begin +: (contents ++ List(continueLabel, JmpToLabelIfZero(doWhileStatement.getCondition, begin), breakLabel))
+		PushVariableStack() +: result :+ PopVariableStack()
+	}
 
-					PushVariableStack() +: result :+ PopVariableStack()
-				case switch: IASTSwitchStatement =>
+	private def compileSwitcheStatement(switch: IASTSwitchStatement)(implicit state: State) = {
+		val breakLabel = BreakLabel()
+		state.breakLabelStack = breakLabel +: state.breakLabelStack
 
-					val breakLabel = BreakLabel()
-					state.breakLabelStack = breakLabel +: state.breakLabelStack
+		val descendants = compile(switch.getBody)
 
-					val descendants = recurse(switch.getBody)
-
-					def getParentSwitchBody(node: IASTNode): IASTStatement = {
-						if (node.getParent.isInstanceOf[IASTSwitchStatement]) {
-							node.getParent.asInstanceOf[IASTSwitchStatement].getBody
-						} else {
-							getParentSwitchBody(node.getParent)
-						}
-					}
-
-					val jumpTable = descendants.flatMap {
-						case x@CaseLabel(caseStatement) if (switch.getBody == getParentSwitchBody(caseStatement)) =>
-							val cached = CachedRValue(switch.getControllerExpression)
-							cached +: List(JmpToLabelIfEqual(caseStatement.getExpression, cached, x))
-						case x@DefaultLabel(default) if (switch.getBody == getParentSwitchBody(default)) =>
-							List(JmpLabel(x))
-						case _ =>
-							List()
-					} :+ JmpLabel(breakLabel)
-
-					state.breakLabelStack = state.breakLabelStack.tail
-
-					val result = jumpTable ++ descendants :+ breakLabel
-
-					PushVariableStack() +: result :+ PopVariableStack()
-				case x: IASTCaseStatement =>
-					List(CaseLabel(x))
-				case x: IASTDefaultStatement =>
-					List(DefaultLabel(x))
-				case _: IASTContinueStatement =>
-					List(JmpLabel(state.continueLabelStack.head))
-				case _: IASTBreakStatement =>
-					List(JmpLabel(state.breakLabelStack.head))
-				case _: IASTElaboratedTypeSpecifier =>
-					List()
-				case goto: IASTGotoStatement =>
-					List(JmpName(goto.getName.toString))
-				case fcn: IASTFunctionDefinition =>
-					List(fcn)
-				case compound: IASTCompoundStatement =>
-
-					val isTypicalCompound = compound.getParent() match {
-						case x: IASTSwitchStatement => true
-						case x: CASTFunctionDefinition => true
-						case x: CASTForStatement => true
-						case x: CASTIfStatement => true
-						case x: CASTDoStatement => true
-						case x: CASTWhileStatement => true
-						case _ => false
-					}
-
-					if (isTypicalCompound) {
-						compound.getStatements.flatMap(recurse).toList
-					} else {
-						PushVariableStack() +: compound.getStatements.flatMap(recurse).toList :+ PopVariableStack()
-					}
-				case decl: IASTDeclarationStatement =>
-					decl.getChildren.toList.flatMap(recurse)
-				case decl: CASTSimpleDeclaration =>
-					List(decl)
-				case _: IASTSimpleDeclSpecifier =>
-					List()
-				case _: CASTTypedefNameSpecifier =>
-					List()
-				case decl: IASTDeclarator =>
-					List(decl)
-				case label: IASTLabelStatement =>
-					GotoLabel(label.getName.toString) +: recurse(label.getNestedStatement)
-				case exprState: CASTExpressionStatement =>
-					List(exprState.getExpression)
-				case _ =>
-					//println("SPLITTING: " + node.getClass.getSimpleName + " : " + node.getRawSignature)
-					node +: node.getChildren.toList
-			}
+		def getParentSwitchBody(node: IASTNode): IASTStatement = {
+			if node.getParent.isInstanceOf[IASTSwitchStatement] then
+				node.getParent.asInstanceOf[IASTSwitchStatement].getBody
+			else
+				getParentSwitchBody(node.getParent)
 		}
 
-		tUnit.getChildren.flatMap {
-			recurse
-		}.toList
+		val jumpTable = descendants.flatMap {
+			case x@CaseLabel(caseStatement) if switch.getBody == getParentSwitchBody(caseStatement) =>
+				val cached = CachedRValue(switch.getControllerExpression)
+				cached +: List(JmpToLabelIfEqual(caseStatement.getExpression, cached, x))
+			case x@DefaultLabel(default) if switch.getBody == getParentSwitchBody(default) =>
+				List(JmpLabel(x))
+			case _ =>
+				List()
+		} :+ JmpLabel(breakLabel)
+
+		state.breakLabelStack = state.breakLabelStack.tail
+
+		val result = jumpTable ++ descendants :+ breakLabel
+
+		PushVariableStack() +: result :+ PopVariableStack()
+	}
+
+	private def compileCompoundStatement(compound: IASTCompoundStatement)(implicit state: State) = {
+		val isTypicalCompound = compound.getParent match
+			case _: (IASTSwitchStatement | CASTFunctionDefinition | CASTForStatement |
+				CASTDoStatement | CASTWhileStatement) => true
+			case _ => false
+
+		if isTypicalCompound then
+			compound.getStatements.flatMap(compile).toList
+		else
+			PushVariableStack() +: compound.getStatements.flatMap(compile).toList :+ PopVariableStack()
 	}
 }
 
@@ -250,7 +255,6 @@ class State(val pointerSize: NumBits) {
 	}
 
 	private def addScalaFunctionDef(fcn: Function) = {
-
 		val count = functionPointers.size
 		fcn.index = count
 
@@ -339,7 +343,7 @@ class State(val pointerSize: NumBits) {
 				Stack.insertIndex = stackPos // pop the stack
 
 				returnVal.map:
-					case file@FileRValue(_) => file
+					case file @ FileRValue(_) => file
 					case rValue => RValue(rValue.value, TypeHelper.unsignedIntType)
 			} else {
 				if (function.name == "main" && isApi) {
@@ -349,27 +353,22 @@ class State(val pointerSize: NumBits) {
 					None
 				} else {
 
-					val newScope = scope.getOrElse {
+					val newScope = scope.getOrElse:
 						val expressionType = call.getExpressionType
 						FunctionScope(function.staticVars, functionContexts.headOption.orNull, expressionType)
-					}
 
 					newScope.init(List(function.node), this, scope.isEmpty)
 
 					val args: List[ValueType] = call.getArguments.map { x => Expressions.evaluate(x).head }.toList
 
-					val resolvedArgs = args.map {
-						TypeHelper.resolve
-					}
+					val resolvedArgs = args.map(TypeHelper.resolve)
 
 					// printf assumes all floating point numbers are doubles
-					val promoted = resolvedArgs.map { arg =>
-						if (arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eFloat) {
+					val promoted = resolvedArgs.map: arg =>
+						if arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eFloat then
 							TypeHelper.cast(TypeHelper.doubleType, arg.value)
-						} else {
+						else
 							arg
-						}
-					}
 
 					newScope.pushOntoStack(promoted)
 					newScope.pushOntoStack(RValue(resolvedArgs.size, TypeHelper.unsignedIntType))
@@ -378,18 +377,16 @@ class State(val pointerSize: NumBits) {
 
 					newScope.run(this)
 					newScope.getReturnValue.map { retVal =>
-						val valuesToPush: Option[Array[Byte]] = retVal match {
-							case structure@LValue(_, _: CStructure) =>
+						val valuesToPush: Option[Array[Byte]] = retVal match
+							case structure @ LValue(_, _: CStructure) =>
 								Some(structure.toByteArray)
 							case _ => None
-						}
 
 						popFunctionContext
 
-						valuesToPush.foreach { byteArray =>
-							val newAddr = state.allocateSpace(byteArray.size)
+						valuesToPush.foreach: byteArray =>
+							val newAddr = state.allocateSpace(byteArray.length)
 							state.writeDataBlock(byteArray, newAddr)
-						}
 
 						retVal
 					}.orElse {
@@ -463,10 +460,9 @@ class State(val pointerSize: NumBits) {
 	def writeDataBlock(array: List[RValue], startingAddress: Int)(implicit state: State): Unit = {
 		var address = startingAddress
 
-		array.foreach {
+		array.foreach:
 			case RValue(newVal, theType) =>
 				Stack.writeToMemory(newVal, address, theType)
 				address += TypeHelper.sizeof(theType)(using state)
-		}
 	}
 }

@@ -116,7 +116,7 @@ case class Field(state: State, address: Int, bitOffset: Int, theType: IType, siz
 object Variable {
 	def apply(name: String, state: State, aType: IType, initVals: List[RValue]): Variable = {
 
-		val size = if (aType.isInstanceOf[IArrayType] && initVals.size > 0) {
+		val size = if (aType.isInstanceOf[IArrayType] && initVals.nonEmpty) {
 			if (aType.asInstanceOf[IArrayType].hasSize) {
 				if initVals.size == aType.asInstanceOf[IArrayType].getSize.numericalValue().toInt then
 					initVals.map { init => TypeHelper.sizeof(init.theType)(using state) }.sum

@@ -28,30 +28,34 @@ object Utils {
 
 	def getAncestors(node: IASTNode): Seq[IASTNode] = {
 		var current = node.getParent
-		val results = new ListBuffer[IASTNode]()
+		val parents = new ListBuffer[IASTNode]()
 		while (current != null) {
-			results += current
+			parents += current
 			current = current.getParent
 		}
-		results.toSeq
+
+		parents.result
+	}
+
+	private def readChar(address: Int)(implicit state: State): Char = {
+		state.Stack.readFromMemory(address, CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[Byte].toChar
 	}
 
 	def readString(address: Int)(implicit state: State): String = {
 		var current: Char = 0
 		val stringBuilder = new ListBuffer[Char]()
-		var i = 0
+		var offset = 0
 
-		current = state.Stack.readFromMemory(address + i, CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[Byte].toChar
+		current = readChar(address + offset)
 
-		while (current != 0) {
-			if (current != 0) {
+		while current != 0 do
+			if current != 0 then
 				stringBuilder += current
-				i += 1
-			}
-			current = state.Stack.readFromMemory(address + i, CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[Byte].toChar
-		}
+				offset += 1
 
-		new String(stringBuilder.map(_.toByte).toArray, "UTF-8")
+			current = readChar(address + offset)
+
+		String(stringBuilder.map(_.toByte).toArray, "UTF-8")
 	}
 
 	def getTranslationUnit(code: String, includePaths: List[String]): IASTTranslationUnit = {
@@ -69,10 +73,6 @@ object Utils {
 		val fileContent = FileContent.create("test", preprocessed.toCharArray)
 
 		GCCLanguage.getDefault.getASTTranslationUnit(fileContent, info, includes, null, opts, log)
-	}
-
-	def getDescendants(node: IASTNode): Seq[IASTNode] = {
-		Seq(node) ++ node.getChildren.toList.flatMap { x => getDescendants(x) }
 	}
 
 	private def preprocessSource(code: String, includePaths: List[String]): String = {

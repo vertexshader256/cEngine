@@ -96,7 +96,7 @@ class LinkerLogger extends Logger {
 
 		val lines = scala.io.Source.fromInputStream(stream).getLines().toSeq
 
-		if (!lines.isEmpty) {
+		if (lines.nonEmpty) {
 			lines.foreach(x => println("LINKER ERROR: " + x))
 		}
 	}

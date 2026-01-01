@@ -10,7 +10,7 @@ class Tape(size: Int) {
 	def writeDataBlock(array: Array[Byte], startingAddress: Int): Unit = {
 		tape.mark()
 		tape.position(startingAddress)
-		tape.put(array, 0, array.size)
+		tape.put(array, 0, array.length)
 		tape.reset
 	}
 

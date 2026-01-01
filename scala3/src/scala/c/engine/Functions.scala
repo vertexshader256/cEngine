@@ -320,7 +320,6 @@ object Functions {
 
 	def printf(formattedOutputParams: Array[RValue], state: State): String = {
 		val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(using state)
-		//val formatString = str.replaceAll("^\"|\"$", "").replaceAll("%ld", "%d").replaceAll("%l", "%d")
 
 		val buffer = new StringBuffer()
 		val formatter = new Formatter(buffer, Locale.US)
@@ -331,6 +330,15 @@ object Functions {
 		val resolved = new ListBuffer[Object]()
 
 		val varArgs = formattedOutputParams.reverse.tail.toList
+
+		def convertBoolean(): Object = {
+			val x = TypeHelper.resolve(varArgs(paramCount))(using state).value
+			val convertedBool = x match
+				case bool: Boolean => if bool then 1 else 0
+				case _ => x
+
+			convertedBool.asInstanceOf[Object]
+		}
 
 		var resultingFormatString = ""
 		var formatFound = ""
@@ -345,44 +353,29 @@ object Functions {
 				val theVal = varArgs(paramCount).value
 				val stringAddr = theVal.asInstanceOf[Int]
 
-				if (stringAddr != 0) {
+				if stringAddr != 0 then
 					val str = Utils.readString(stringAddr)(using state)
 					resolved += str.split(System.lineSeparator()).mkString.asInstanceOf[Object]
-				} else {
+				else
 					resolved += "(null)".asInstanceOf[Object]
-				}
+
 				formatFound += c
 				resultingFormatString += formatFound
 				paramCount += 1
 			} else if (percentFound && (c == 'u')) {
 				formatFound += 'd'
-
-				val x = TypeHelper.resolve(varArgs(paramCount))(using state).value
-				resolved += (if (x.isInstanceOf[Boolean]) {
-					if (x.asInstanceOf[Boolean]) 1 else 0
-				} else {
-					x
-				}).asInstanceOf[Object]
-
+				resolved += convertBoolean()
 				resultingFormatString += 'd'
-
 				percentFound = false
 				paramCount += 1
 			} else if (percentFound && (c == 'd')) {
 				formatFound += c
+				resolved += convertBoolean()
 
-				val x = TypeHelper.resolve(varArgs(paramCount))(using state).value
-				resolved += (if (x.isInstanceOf[Boolean]) {
-					if (x.asInstanceOf[Boolean]) 1 else 0
-				} else {
-					x
-				}).asInstanceOf[Object]
-
-				if (formatFound != "ld" && formatFound != "lld") {
+				if formatFound != "ld" && formatFound != "lld" then
 					resultingFormatString += formatFound
-				} else {
+				else
 					resultingFormatString += 'd'
-				}
 
 				percentFound = false
 				paramCount += 1
@@ -400,15 +393,16 @@ object Functions {
 
 				val base = TypeHelper.resolve(varArgs(paramCount))(using state).value.asInstanceOf[Object]
 
-				base match
+				val convert = base match
 					case boolean: java.lang.Boolean =>
-						val converted = if boolean then 1.0 else 0.0
-						formatter2.format("%f", List(converted) *)
+						if boolean then 1.0 else 0.0
 					case int: java.lang.Integer =>
-						formatter2.format("%f", List(int.toFloat) *)
+						int.toFloat
 					case _ =>
-						formatter2.format("%f", List(base) *)
+						base
 
+				formatter2.format("%f", List(convert) *)
+				
 				if (buffer2.toString.contains("Infinity") || buffer2.toString.contains("NaN")) {
 					resultingFormatString += 's'
 					resolved += buffer2.toString.replace("Infinity", "inf")
@@ -636,7 +630,7 @@ object Functions {
 
 			val str1 = Utils.readString(src)(using state)
 
-			state.copy(dst, src, Math.min(str1.size + 1, num))
+			state.copy(dst, src, Math.min(str1.length + 1, num))
 			None
 		}
 	}
@@ -648,7 +642,7 @@ object Functions {
 
 			val str1 = Utils.readString(src)(using state)
 
-			state.copy(dst, src, str1.size + 1)
+			state.copy(dst, src, str1.length + 1)
 			None
 		}
 	}

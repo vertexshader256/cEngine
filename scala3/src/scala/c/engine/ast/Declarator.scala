@@ -29,82 +29,89 @@ object Declarator {
 
 	def assign(dst: LValue, srcs: List[ValueType], equals: IASTInitializerClause, op: Int)(implicit state: State): LValue = {
 		if !dst.theType.isInstanceOf[CStructure] then
-			val result = evaluate(dst, srcs.head, op) match {
-				case file@FileRValue(_) => file
+			val result = evaluate(dst, srcs.head, op) match
+				case file @ FileRValue(_) => file
 				case x => TypeHelper.cast(dst.theType, x.value)
-			}
+
 			dst.setValue(result)
-		else if equals.isInstanceOf[IASTFunctionCallExpression] then
-			state.copy(dst.address, state.Stack.insertIndex - dst.sizeof, dst.sizeof)
-		else if equals.isInstanceOf[IASTTypeIdInitializerExpression] then
-			val otherStruct = Expressions.evaluate(equals).get.asInstanceOf[LValue]
-			state.copy(dst.address, otherStruct.address, dst.sizeof)
-		else if equals.isInstanceOf[IASTExpression] then // setting a struct equal to another struct
-			val otherStruct = srcs.head.asInstanceOf[LValue]
-			state.copy(dst.address, otherStruct.address, dst.sizeof)
-		else // e.g struct Test test = {1.0, 2, "three"}
-			val struct = dst.theType.asInstanceOf[CStructure]
-			struct.getFields.zip(srcs).foreach { case (field, newValue) =>
-				val theField = TypeHelper.offsetof(struct, dst.address, field.getName, state)
-				assign(theField, List(newValue), equals, op)
-			}
+		else
+			equals match
+				case _: IASTFunctionCallExpression =>
+					state.copy(dst.address, state.Stack.insertIndex - dst.sizeof, dst.sizeof)
+				case _: IASTTypeIdInitializerExpression =>
+					val otherStruct = Expressions.evaluate(equals).get.asInstanceOf[LValue]
+					state.copy(dst.address, otherStruct.address, dst.sizeof)
+				case _: IASTExpression =>
+					val otherStruct = srcs.head.asInstanceOf[LValue]
+					state.copy(dst.address, otherStruct.address, dst.sizeof)
+				case _ =>
+					val struct = dst.theType.asInstanceOf[CStructure]
+					struct.getFields.zip(srcs).foreach:
+						case (field, newValue) =>
+							val theField = TypeHelper.offsetof(struct, dst.address, field.getName, state)
+							assign(theField, List(newValue), equals, op)
 
 		dst
 	}
 
-	private def processFcnDeclarator(fcnDec: IASTFunctionDeclarator)(implicit state: State) = {
-		if (Utils.getDescendants(fcnDec).exists { x => x.isInstanceOf[IASTEqualsInitializer] }) {
-			// when you're initializing a function pointer: int (*funcPtr2)(int, int) = blah2;
+	private def setFunctionPointer(fcnDec: IASTFunctionDeclarator)(implicit state: State): Unit = {
+		// when you're initializing a function pointer: int (*funcPtr2)(int, int) = blah2;
+		val nameBinding = fcnDec.getNestedDeclarator.getName.resolveBinding()
+		val name = fcnDec.getNestedDeclarator.getName
 
-			val nameBinding = fcnDec.getNestedDeclarator.getName.resolveBinding()
-			val name = fcnDec.getNestedDeclarator.getName
-
-			if (nameBinding.isInstanceOf[IVariable]) {
-				val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
+		nameBinding match
+			case vari: IVariable =>
+				val theType = TypeHelper.stripSyntheticTypeInfo(vari.getType)
 				val variable = state.context.addVariable(name.toString, theType)
 				Ast.step(fcnDec.getInitializer)
 				variable.setValue(TypeHelper.resolve(state.context.popStack))
-			}
-		} else {
+			case _ =>
+	}
 
-			val isInFunctionPrototype = !Utils.getAncestors(fcnDec).exists(_.isInstanceOf[IASTFunctionDefinition])
+	private def writeFcnArguments(fcnDec: IASTFunctionDeclarator)(implicit state: State): Array[IASTNode] = {
+		val others = fcnDec.getChildren.filter { x => !x.isInstanceOf[IASTParameterDeclaration] && !x.isInstanceOf[IASTName] }
 
-			if (fcnDec.getName.resolveBinding().isInstanceOf[CFunction] && !fcnDec.getName.resolveBinding().asInstanceOf[CFunction].getParameters.isEmpty) {
+		val isInFunctionPrototype = !Utils.getAncestors(fcnDec).exists(_.isInstanceOf[IASTFunctionDefinition])
 
-				val fcn = fcnDec.getName.resolveBinding().asInstanceOf[CFunction]
-				var numArgs = 0
+		if (!isInFunctionPrototype) {
+			val numArgs = state.context.popStack.asInstanceOf[RValue].value.asInstanceOf[Integer]
+			val args = (0 until numArgs).map { _ => state.context.popStack }.reverse
 
-				val others = fcnDec.getChildren.filter { x => !x.isInstanceOf[IASTParameterDeclaration] && !x.isInstanceOf[IASTName] }
+			val resolvedArgs = args.map(TypeHelper.resolve)
+			val binding = fcnDec.getName.resolveBinding()
+			val fcn = binding.asInstanceOf[CFunction]
+			val paramDecls = fcn.getParameters.toList
+			val zipped = resolvedArgs.zip(paramDecls)
 
-				if (!isInFunctionPrototype) {
-					numArgs = state.context.popStack.asInstanceOf[RValue].value.asInstanceOf[Integer]
-					val args = (0 until numArgs).map { arg => state.context.popStack }.reverse
-
-					val resolvedArgs = args.map(TypeHelper.resolve)
-
-					var paramDecls = fcn.getParameters.toList
-
-					resolvedArgs.foreach { arg =>
-						if (!isInFunctionPrototype && !paramDecls.isEmpty) {
-							val paramDecl = paramDecls.head
-							paramDecls = paramDecls.tail
-							val newVar = state.context.addVariable(paramDecl.getName, paramDecl.getType)
-							val casted = TypeHelper.cast(newVar.theType, arg.value).value
-							state.Stack.writeToMemory(casted, newVar.address, newVar.theType)
-						} else {
-							// 12-26-25: This code isn't being hit
-							val theType = TypeHelper.getType(arg.value)
-							val sizeof = TypeHelper.sizeof(theType)
-							val space = state.allocateSpace(Math.max(sizeof, 4))
-							state.Stack.writeToMemory(arg.value, space, theType)
-						}
-					}
+			zipped.foreach { (arg, param) =>
+				val (value, addr, theType) = if (!isInFunctionPrototype) {
+					val newVar = state.context.addVariable(param.getName, param.getType)
+					val casted = TypeHelper.cast(newVar.theType, arg.value).value
+					(casted, newVar.address, newVar.theType)
+				} else {
+					// 12-26-25: This code isn't being hit
+					val theType = TypeHelper.getType(arg.value)
+					val sizeof = TypeHelper.sizeof(theType)
+					val space = state.allocateSpace(Math.max(sizeof, 4))
+					(arg.value, space, theType)
 				}
 
-				others
-			} else {
-				Seq()
+				state.Stack.writeToMemory(value, addr, theType)
 			}
+		}
+
+		others
+	}
+
+	private def processFcnDeclarator(fcnDec: IASTFunctionDeclarator)(implicit state: State) = {
+		if (getDescendants(fcnDec).exists { x => x.isInstanceOf[IASTEqualsInitializer] }) {
+			setFunctionPointer(fcnDec)
+		} else {
+			val binding = fcnDec.getName.resolveBinding()
+
+			binding match
+				case fcn: CFunction if fcn.getParameters.nonEmpty => writeFcnArguments(fcnDec)
+				case _ => Seq()
 		}
 	}
 
@@ -127,13 +134,53 @@ object Declarator {
 	}
 
 	private def createdSizedArrayType(theType: CArrayType, dimensions: List[Int]): CArrayType = {
-		val arrayType = if theType.getType.isInstanceOf[CArrayType] then
-			CArrayType(createdSizedArrayType(theType.getType.asInstanceOf[CArrayType], dimensions.tail))
-		else
-			CArrayType(theType.getType)
+		val theArrayType = theType.getType match
+			case array: CArrayType => createdSizedArrayType(theType.getType.asInstanceOf[CArrayType], dimensions.tail)
+			case _ => theType.getType
 
+		val arrayType = CArrayType(theArrayType)
 		arrayType.setModifier(CASTArrayModifier(CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, dimensions.head.toString.toCharArray)))
 		arrayType
+	}
+
+	private def initializeNullArray(name: IASTName, arrayDecl: IASTArrayDeclarator)(implicit state: State) = {
+		val theType = TypeHelper.getBindingType(name.resolveBinding())
+
+		val dimensions = arrayDecl.getArrayModifiers.toList.filter {
+			_.getConstantExpression != null
+		}.map { _ =>
+			arrayDecl.getArrayModifiers.foreach(Ast.step)
+			val value = TypeHelper.resolve(state.context.popStack).value
+			TypeHelper.cast(TypeHelper.intType, value).value.asInstanceOf[Int]
+		}
+
+		val aType = theType match
+			case array: CArrayType if dimensions.nonEmpty => createdSizedArrayType(array, dimensions.reverse)
+			case _ => theType
+
+		state.context.addVariable(name.toString, aType)
+	}
+
+	private def initializeArrayFromList(name: IASTName, decl: IASTDeclarator)(implicit state: State) = {
+		val theType = TypeHelper.getBindingType(name.resolveBinding())
+		val equals = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
+
+		val initialArray = flattenInitList(equals.getInitializerClause).map(TypeHelper.resolve)
+
+		if (initialArray.size == 1 && initialArray.head.value.isInstanceOf[Int] &&
+			initialArray.head.value.asInstanceOf[Int] == 0) { // e.g = {0}
+			val newVar = state.context.addArrayVariable(name.toString, theType, initialArray)
+			val zeroArray = (0 until newVar.sizeof).map { x => 0.toByte }.toArray
+			state.writeDataBlock(zeroArray, newVar.address)
+		} else {
+			val newArray = if !theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType] then
+				val baseType = TypeHelper.resolveBasic(theType)
+				initialArray.map { x => TypeHelper.cast(baseType, x.value) }
+			else
+				initialArray
+
+			state.context.addArrayVariable(name.toString, theType, newArray)
+		}
 	}
 
 	private def processArrayDecl(decl: IASTDeclarator, arrayDecl: IASTArrayDeclarator)(implicit state: State) = {
@@ -172,50 +219,16 @@ object Declarator {
 				val initString = state.context.popStack.asInstanceOf[StringLiteral].value
 				state.createStringArrayVariable(name.toString, initString)
 			} else if (hasList) { // e.g '= {1,2,3,4,5}' or x[2][2] = {{1,2},{3,4},{5,6},{7,8}}
-
-				val initialArray = flattenInitList(equals.getInitializerClause).map(TypeHelper.resolve)
-
-				if (initialArray.size == 1 && initialArray.head.value.isInstanceOf[Int] &&
-					initialArray.head.value.asInstanceOf[Int] == 0) { // e.g = {0}
-					val newVar = state.context.addArrayVariable(name.toString, theType, initialArray)
-					val zeroArray = (0 until newVar.sizeof).map { x => 0.toByte }.toArray
-					state.writeDataBlock(zeroArray, newVar.address)
-				} else {
-					val newArray = if !theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType] then
-						val baseType = TypeHelper.resolveBasic(theType)
-						initialArray.map { x => TypeHelper.cast(baseType, x.value) }
-					else
-						initialArray
-
-					state.context.addArrayVariable(name.toString, theType, newArray)
-				}
+				initializeArrayFromList(name, decl)
 			} else { // initializing array to address, e.g int (*ptr)[5] = &x[1];
 				Ast.step(decl.getInitializer)
 				val initVal = TypeHelper.resolve(state.context.popStack)
 				val newArray = List(initVal)
 				state.context.addArrayVariable(name.toString, theType, newArray)
 			}
-
-			Seq()
-		} else { // no initializer
-
-			val dimensions = arrayDecl.getArrayModifiers.toList.filter {
-				_.getConstantExpression != null
-			}.map { _ =>
-				arrayDecl.getArrayModifiers.foreach(Ast.step)
-				val value = TypeHelper.resolve(state.context.popStack).value
-				TypeHelper.cast(TypeHelper.intType, value).value.asInstanceOf[Int]
-			}
-
-			val aType = if (theType.isInstanceOf[CArrayType] && !theType.asInstanceOf[CArrayType].isConst && !dimensions.isEmpty) { // an array bounded by a variable e.g x[y]
-				createdSizedArrayType(theType.asInstanceOf[CArrayType], dimensions.reverse)
-			} else {
-				theType
-			}
-
-			state.context.addVariable(name.toString, aType)
+		} else {
+			initializeNullArray(name, arrayDecl) // no initializer
 		}
-		Seq()
 	}
 
 	private def processCastDecl(decl: CASTDeclarator)(implicit state: State) = {
@@ -244,10 +257,14 @@ object Declarator {
 		Seq()
 	}
 
+	private def getDescendants(node: IASTNode): Seq[IASTNode] = {
+		node +: node.getChildren.toList.flatMap(getDescendants)
+	}
+
 	private def getStructRValues(initClause: IASTInitializerClause, struct: CStructure)(implicit state: State): List[ValueType] = {
 		initClause match
 			case list: IASTInitializerList =>
-				val descendants = Utils.getDescendants(initClause)
+				val descendants = getDescendants(initClause)
 				val hasNamedDesignator = descendants.exists { node => node.isInstanceOf[CASTDesignatedInitializer] } // {.y = 343, .x = 543, .next = 8578}
 
 				if (hasNamedDesignator) {
