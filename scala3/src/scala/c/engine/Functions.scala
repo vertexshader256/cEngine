@@ -403,7 +403,9 @@ object Functions {
 				base match
 					case boolean: java.lang.Boolean =>
 						val converted = if boolean then 1.0 else 0.0
-						formatter2.format("%f", List(converted)*)
+						formatter2.format("%f", List(converted) *)
+					case int: java.lang.Integer =>
+						formatter2.format("%f", List(int.toFloat) *)
 					case _ =>
 						formatter2.format("%f", List(base) *)
 
@@ -418,6 +420,8 @@ object Functions {
 						case boolean: java.lang.Boolean =>
 							val converted = if boolean then 1.0f else 0.0f
 							resolved += Float.box(converted)
+						case int: java.lang.Integer =>
+							resolved += Float.box(int.toFloat)
 						case _ =>
 							resolved += base
 				}
