@@ -280,14 +280,19 @@ object Declarator {
 						initValues.getOrElse(field.getName, TypeHelper.zero)
 					}.toList
 				} else {
-					list.getClauses.map { x =>
-						Ast.step(x)
-
-						val result = state.context.popStack
-						result match
-							case vari: Variable => vari.rValue
-							case _ => result
-					}.toList
+					val isNullInit = list.getClauses.length == 1 && list.getClauses.toList.head.getRawSignature == "0" // e.g struct = {0}
+					
+					if (isNullInit) {
+						struct.getFields.toList.map(x => TypeHelper.zero)
+					} else {
+						list.getClauses.map { x =>
+							Ast.step(x)
+							val result = state.context.popStack
+							result match
+								case vari: Variable => vari.rValue
+								case _ => result
+						}.toList
+					}
 				}
 			case idExpr: IASTIdExpression =>
 				List(state.context.resolveId(idExpr.getName).get)
