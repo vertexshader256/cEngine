@@ -229,18 +229,18 @@ class StructTest extends StandardTest {
 	"struct array null initializer" should "print the correct results" in {
 		val code =
 			"""
-	
+
 				typedef struct {
 						int x;
 						int y;
 						int z;
 					} item_t;
-	
+
 					item_t items[] = {
 						{0},
 						{0}
 					};
-	
+
 					void main() {
 						printf("%d\n", items[0].x);
 						printf("%d\n", items[0].y);
@@ -249,6 +249,78 @@ class StructTest extends StandardTest {
 						printf("%d\n", items[1].y);
 						printf("%d\n", items[1].z);
 					}"""
+
+		checkResults(code)
+	}
+
+	"robust struct array null initializer" should "print the correct results" in {
+		val code =
+			"""
+					typedef struct {
+							int x;
+							long y;
+							float z;
+							double k;
+						} item_t;
+
+						item_t items[] = {
+							{0}
+						};
+
+						void main() {
+							printf("%d\n", items[0].x);
+							printf("%d\n", items[0].y);
+							printf("%f\n", items[0].z);
+							printf("%f\n", items[1].k);
+						}"""
+
+		checkResults(code)
+	}
+
+	"robust struct array null initializer 2" should "print the correct results" in {
+		val code =
+			"""
+				typedef struct {
+						int x;
+						long y;
+						float z;
+						double k;
+					} item_t;
+
+					void main() {
+						item_t test[2] = {0};
+						printf("%d\n", test[0].x);
+						printf("%d\n", test[0].y);
+						printf("%f\n", test[0].z);
+						printf("%f\n", test[0].k);
+						printf("%d\n", test[1].x);
+						printf("%d\n", test[1].y);
+						printf("%f\n", test[1].z);
+						printf("%f\n", test[1].k);
+					}"""
+
+		checkResults(code)
+	}
+
+	"weird struct array null initializer" should "print the correct results" in {
+		val code =
+			"""
+
+					typedef struct {
+							int x;
+							int y;
+							int z;
+						} item_t;
+
+						item_t items[] = {
+							{00}
+						};
+
+						void main() {
+							printf("%d\n", items[0].x);
+							printf("%d\n", items[0].y);
+							printf("%d\n", items[0].z);
+						}"""
 
 		checkResults(code)
 	}

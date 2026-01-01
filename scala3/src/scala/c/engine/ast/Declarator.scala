@@ -2,10 +2,11 @@ package scala.c.engine
 package ast
 
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.op_assign
-import org.eclipse.cdt.core.dom.ast._
-import org.eclipse.cdt.internal.core.dom.parser.c._
+import org.eclipse.cdt.core.dom.ast.*
+import org.eclipse.cdt.internal.core.dom.parser.c.*
 
 import scala.c.engine.ast.BinaryExpr.evaluate
+import scala.util.Try
 
 object Declarator {
 
@@ -263,6 +264,16 @@ object Declarator {
 		Seq()
 	}
 
+	// should return 'true' if this list is equivilant to {0}
+	private def isNullInitializer(list: IASTInitializerList): Boolean = {
+		if (list.getClauses.length == 1) {
+			val rawSig = list.getClauses.toList.head.getRawSignature
+			Try(rawSig.toInt == 0).getOrElse(false)
+		} else {
+			false
+		}
+	}
+	
 	private def getStructRValues(initClause: IASTNode, struct: CStructure)(implicit state: State): List[ValueType] = {
 		initClause match
 			case list: IASTInitializerList =>
@@ -280,9 +291,7 @@ object Declarator {
 						initValues.getOrElse(field.getName, TypeHelper.zero)
 					}.toList
 				} else {
-					val isNullInit = list.getClauses.length == 1 && list.getClauses.toList.head.getRawSignature == "0" // e.g struct = {0}
-					
-					if (isNullInit) {
+					if (isNullInitializer(list)) {
 						struct.getFields.toList.map(x => TypeHelper.zero)
 					} else {
 						list.getClauses.map { x =>
