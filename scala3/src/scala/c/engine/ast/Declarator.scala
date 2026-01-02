@@ -162,13 +162,11 @@ object Declarator {
 		state.context.addVariable(name.toString, aType)
 	}
 
-	private def processList(name: IASTName, list: CASTInitializerList)(implicit state: State): List[RValue] = {
-		val theType = TypeHelper.getBindingType(name.resolveBinding())
-
+	private def processList(theType: IType, list: CASTInitializerList)(implicit state: State): List[RValue] = {
 		val childrenLists = list.getChildren.collect{ case list: CASTInitializerList => list }.toList
 		
 		if (childrenLists.nonEmpty) {
-			childrenLists.flatMap(l => processList(name, l))
+			childrenLists.flatMap(l => processList(theType, l))
 		} else {
 			val isNullInitializer = if list.getChildren.length == 1 then
 				val initialArray = flattenInitList(list).map(TypeHelper.resolve)
@@ -206,7 +204,8 @@ object Declarator {
 
 				state.context.addArrayVariable(name.toString, theType, structData)
 			case _ =>
-				val initValues = processList(name, equals.getInitializerClause.asInstanceOf[CASTInitializerList])
+				val theType = TypeHelper.getBindingType(name.resolveBinding())
+				val initValues = processList(theType, equals.getInitializerClause.asInstanceOf[CASTInitializerList])
 				state.context.addArrayVariable(name.toString, theType, initValues)
 	}
 
