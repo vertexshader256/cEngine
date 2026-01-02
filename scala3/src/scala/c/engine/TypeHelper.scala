@@ -45,6 +45,28 @@ object TypeHelper {
 		RValue(casted, theType)
 	}
 
+	def isStructure(theType: IType): Boolean = theType match {
+		case enumer: CEnumeration => false
+		case struct: CStructure => true
+		case basicType: IBasicType => false
+		case typedef: ITypedef => isStructure(typedef.getType)
+		case ptrType: IPointerType => isStructure(ptrType.getType)
+		case arrayType: IArrayType => isStructure(arrayType.getType)
+		case qualType: IQualifierType => isStructure(qualType.getType)
+		case fcn: IFunctionType => false
+	}
+
+	def isPointer(theType: IType): Boolean = theType match {
+		case enumer: CEnumeration => false
+		case struct: CStructure => false
+		case basicType: IBasicType => false
+		case typedef: ITypedef => isPointer(typedef.getType)
+		case ptrType: IPointerType => true
+		case arrayType: IArrayType => isPointer(arrayType.getType)
+		case qualType: IQualifierType => isPointer(qualType.getType)
+		case fcn: IFunctionType => false
+	}
+
 	def stripSyntheticTypeInfo(theType: IType): IType = theType match {
 		case enumer: CEnumeration => enumer
 		case struct: CStructure => struct

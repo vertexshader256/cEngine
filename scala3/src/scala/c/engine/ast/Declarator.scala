@@ -162,6 +162,19 @@ object Declarator {
 		state.context.addVariable(name.toString, aType)
 	}
 
+	private def isNullInitializer(list: CASTInitializerList)(implicit state: State): Boolean = {
+		val flattened = flattenInitList(list).map(TypeHelper.resolve)
+
+		if list.getChildren.length == 1 then
+			val initialArray = flattened.head
+
+			initialArray.value match
+				case int: Int => int == 0
+				case _ => false
+		else
+			false
+	}
+
 	private def processList(theType: IType, list: CASTInitializerList)(implicit state: State): List[RValue] = {
 		val childrenLists = list.getChildren.collect{ case list: CASTInitializerList => list }.toList
 
@@ -169,37 +182,16 @@ object Declarator {
 			childrenLists.flatMap(l => processList(theType, l))
 		} else {
 			val flattened = flattenInitList(list).map(TypeHelper.resolve)
-			
-			val isNullInitializer = if list.getChildren.length == 1 then
-				val initialArray = flattened.head
-				
-				initialArray.value match
-					case int: Int => int == 0
-					case _ => false
-			else
-				false
 
-			if (isNullInitializer) { // e.g = {0}
+			if (isNullInitializer(list)) // e.g = {0}
 				flattened.map(TypeHelper.resolve)
-			} else {
-				val stripped = TypeHelper.stripSyntheticTypeInfo(theType)
-				var shouldGo = false
-				
-				if stripped.isInstanceOf[CArrayType] then
-					val strip2 = TypeHelper.stripSyntheticTypeInfo(stripped.asInstanceOf[CArrayType].getType)
-					if strip2.isInstanceOf[CArrayType] then
-						val strip3 = TypeHelper.stripSyntheticTypeInfo(strip2.asInstanceOf[CArrayType].getType)
-						if strip3.isInstanceOf[CStructure] then
-							shouldGo = true
-				
-				if shouldGo then
-					flattened
-				else if !theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType] then
-					val baseType = TypeHelper.resolveBasic(theType)
-					flattened.map { x => TypeHelper.cast(baseType, x.value) }
-				else
-					flattened
-			}
+			else if TypeHelper.isStructure(theType) then
+				flattened
+			else if !TypeHelper.isPointer(theType) then
+				val baseType = TypeHelper.resolveBasic(theType)
+				flattened.map { x => TypeHelper.cast(baseType, x.value) }
+			else
+				flattened
 		}
 	}
 
