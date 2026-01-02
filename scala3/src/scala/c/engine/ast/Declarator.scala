@@ -164,7 +164,7 @@ object Declarator {
 
 	private def processList(theType: IType, list: CASTInitializerList)(implicit state: State): List[RValue] = {
 		val childrenLists = list.getChildren.collect{ case list: CASTInitializerList => list }.toList
-		
+
 		if (childrenLists.nonEmpty) {
 			childrenLists.flatMap(l => processList(theType, l))
 		} else {
@@ -182,7 +182,19 @@ object Declarator {
 			if (isNullInitializer) { // e.g = {0}
 				flattened.map(TypeHelper.resolve)
 			} else {
-				if !theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType] then
+				val stripped = TypeHelper.stripSyntheticTypeInfo(theType)
+				var shouldGo = false
+				
+				if stripped.isInstanceOf[CArrayType] then
+					val strip2 = TypeHelper.stripSyntheticTypeInfo(stripped.asInstanceOf[CArrayType].getType)
+					if strip2.isInstanceOf[CArrayType] then
+						val strip3 = TypeHelper.stripSyntheticTypeInfo(strip2.asInstanceOf[CArrayType].getType)
+						if strip3.isInstanceOf[CStructure] then
+							shouldGo = true
+				
+				if shouldGo then
+					flattened
+				else if !theType.asInstanceOf[CArrayType].getType.isInstanceOf[CPointerType] then
 					val baseType = TypeHelper.resolveBasic(theType)
 					flattened.map { x => TypeHelper.cast(baseType, x.value) }
 				else
