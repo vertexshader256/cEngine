@@ -7,7 +7,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c.CPointerType
 object BinaryExpr {
 
 	def evaluatePointerArithmetic(ptr: ValueType, offset: Int, operator: Int)(implicit state: State): RValue = {
-		val rValue = TypeHelper.resolve(ptr)
+		val rValue = TypeHelper.toRValue(ptr)
 
 		// For some reason double pointers should only use sizeof().  Not sure why.
 		val theType = if ptr.isInstanceOf[LValue] && !TypeHelper.getPointerType(ptr.theType).isInstanceOf[CPointerType] then
@@ -24,8 +24,8 @@ object BinaryExpr {
 	}
 	
 	def evaluate(x: ValueType, y: ValueType, operator: Int)(implicit state: State): RValue = {
-		val left = TypeHelper.resolve(x)
-		val right = TypeHelper.resolve(y)
+		val left = TypeHelper.toRValue(x)
+		val right = TypeHelper.toRValue(y)
 
 		val isLeftPointer = TypeHelper.isPointerOrArray(x)
 		val isRightPointer = TypeHelper.isPointerOrArray(y)

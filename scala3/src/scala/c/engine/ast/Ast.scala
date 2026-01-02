@@ -14,7 +14,7 @@ object Ast {
 		case PopVariableStack() =>
 			state.context.popVariableScope()
 		case cached@CachedRValue(expr) =>
-			cached.cachedValue = TypeHelper.resolve(Expressions.evaluate(expr).get)
+			cached.cachedValue = TypeHelper.toRValue(Expressions.evaluate(expr).get)
 		case JmpIfNotEqual(expr, lines) =>
 			val raw = Expressions.evaluate(expr).get
 			val result = TypeHelper.resolveBoolean(raw)
@@ -33,7 +33,7 @@ object Ast {
 			if result then
 				state.context.setAddress(label.address)
 		case JmpToLabelIfEqual(expr1, cached, label) =>
-			val raw1 = TypeHelper.resolve(Expressions.evaluate(expr1).get).value
+			val raw1 = TypeHelper.toRValue(Expressions.evaluate(expr1).get).value
 			val raw2 = cached.cachedValue.value
 			if raw1 == raw2 then
 				state.context.setAddress(label.address)

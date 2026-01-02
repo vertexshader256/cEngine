@@ -337,7 +337,7 @@ class State(val pointerSize: NumBits) {
 				val stackPos = Stack.insertIndex
 				val args = call.getArguments.map { x => Expressions.evaluate(x) }
 
-				val resolvedArgs: Array[RValue] = args.flatten.map(TypeHelper.resolve)
+				val resolvedArgs: Array[RValue] = args.flatten.map(TypeHelper.toRValue)
 
 				val returnVal = function.run(resolvedArgs.reverse, this)
 				Stack.insertIndex = stackPos // pop the stack
@@ -361,7 +361,7 @@ class State(val pointerSize: NumBits) {
 
 					val args: List[ValueType] = call.getArguments.map { x => Expressions.evaluate(x).head }.toList
 
-					val resolvedArgs = args.map(TypeHelper.resolve)
+					val resolvedArgs = args.map(TypeHelper.toRValue)
 
 					// printf assumes all floating point numbers are doubles
 					val promoted = resolvedArgs.map: arg =>

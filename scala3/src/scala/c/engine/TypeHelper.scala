@@ -227,10 +227,10 @@ object TypeHelper {
 	}
 
 	// resolves 'ValueType' to 'RValue'
-	def resolve(any: ValueType)(implicit state: State): RValue = {
+	def toRValue(any: ValueType)(implicit state: State): RValue = {
 		any match {
-			case info@LValue(_, _) => info.rValue
-			case rValue@RValue(_, _) => rValue
+			case info @ LValue(_, _) => info.rValue
+			case rValue @ RValue(_, _) => rValue
 			case StringLiteral(str) => state.getString(str)
 		}
 	}

@@ -65,7 +65,7 @@ object Declarator {
 				val theType = TypeHelper.stripSyntheticTypeInfo(vari.getType)
 				val variable = state.context.addVariable(name.toString, theType)
 				Ast.step(fcnDec.getInitializer)
-				variable.setValue(TypeHelper.resolve(state.context.popStack))
+				variable.setValue(TypeHelper.toRValue(state.context.popStack))
 			case _ =>
 	}
 
@@ -78,7 +78,7 @@ object Declarator {
 			val numArgs = state.context.popStack.asInstanceOf[RValue].value.asInstanceOf[Integer]
 			val args = (0 until numArgs).map { _ => state.context.popStack }.reverse
 
-			val resolvedArgs = args.map(TypeHelper.resolve)
+			val resolvedArgs = args.map(TypeHelper.toRValue)
 			val binding = fcnDec.getName.resolveBinding()
 			val fcn = binding.asInstanceOf[CFunction]
 			val paramDecls = fcn.getParameters.toList
@@ -151,7 +151,7 @@ object Declarator {
 			_.getConstantExpression != null
 		}.map { _ =>
 			arrayDecl.getArrayModifiers.foreach(Ast.step)
-			val value = TypeHelper.resolve(state.context.popStack).value
+			val value = TypeHelper.toRValue(state.context.popStack).value
 			TypeHelper.cast(TypeHelper.intType, value).value.asInstanceOf[Int]
 		}
 
@@ -163,7 +163,7 @@ object Declarator {
 	}
 
 	private def isNullInitializer(list: CASTInitializerList)(implicit state: State): Boolean = {
-		val flattened = flattenInitList(list).map(TypeHelper.resolve)
+		val flattened = flattenInitList(list).map(TypeHelper.toRValue)
 
 		if list.getChildren.length == 1 then
 			val initialArray = flattened.head
@@ -181,10 +181,10 @@ object Declarator {
 		if (childrenLists.nonEmpty) {
 			childrenLists.flatMap(l => processList(theType, l))
 		} else {
-			val flattened = flattenInitList(list).map(TypeHelper.resolve)
+			val flattened = flattenInitList(list).map(TypeHelper.toRValue)
 
 			if (isNullInitializer(list)) // e.g = {0}
-				flattened.map(TypeHelper.resolve)
+				flattened.map(TypeHelper.toRValue)
 			else if TypeHelper.isStructure(theType) then
 				flattened
 			else if !TypeHelper.isPointer(theType) then
@@ -203,7 +203,7 @@ object Declarator {
 			case struct: CStructure => // array of structs
 				init.getChildren.flatMap { list =>
 					val rValues = getStructRValues(list, struct)
-					rValues.map(TypeHelper.resolve)
+					rValues.map(TypeHelper.toRValue)
 				}.toList
 			case _ =>
 				val theType = TypeHelper.getBindingType(name.resolveBinding())
@@ -236,7 +236,7 @@ object Declarator {
 					state.createStringArrayVariable(name.toString, initString)
 				} else { // initializing array to address, e.g int (*ptr)[5] = &x[1];
 					Ast.step(decl.getInitializer)
-					val initVal = TypeHelper.resolve(state.context.popStack)
+					val initVal = TypeHelper.toRValue(state.context.popStack)
 					val newArray = List(initVal)
 					state.context.addArrayVariable(name.toString, theType, newArray)
 				}

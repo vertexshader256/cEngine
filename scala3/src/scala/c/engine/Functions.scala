@@ -332,7 +332,7 @@ object Functions {
 		val varArgs = formattedOutputParams.reverse.tail.toList
 
 		def convertBoolean(): Object = {
-			val x = TypeHelper.resolve(varArgs(paramCount))(using state).value
+			val x = TypeHelper.toRValue(varArgs(paramCount))(using state).value
 			val convertedBool = x match
 				case bool: Boolean => if bool then 1 else 0
 				case _ => x
@@ -380,7 +380,7 @@ object Functions {
 				percentFound = false
 				paramCount += 1
 			} else if (percentFound && c == 'c') {
-				resolved += TypeHelper.resolve(varArgs(paramCount))(using state).value.asInstanceOf[Object]
+				resolved += TypeHelper.toRValue(varArgs(paramCount))(using state).value.asInstanceOf[Object]
 				percentFound = false
 				formatFound += c
 				resultingFormatString += formatFound
@@ -391,7 +391,7 @@ object Functions {
 				val buffer2 = new StringBuffer()
 				val formatter2 = new Formatter(buffer2, Locale.US)
 
-				val base = TypeHelper.resolve(varArgs(paramCount))(using state).value.asInstanceOf[Object]
+				val base = TypeHelper.toRValue(varArgs(paramCount))(using state).value.asInstanceOf[Object]
 
 				val convert = base match
 					case boolean: java.lang.Boolean =>

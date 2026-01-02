@@ -91,7 +91,7 @@ object Expressions {
 			left = right
 			right = temp
 
-		val base = TypeHelper.resolve(left).value.asInstanceOf[Int]
+		val base = TypeHelper.toRValue(left).value.asInstanceOf[Int]
 
 		val indexType = left match
 			case RValue(_, theType) =>
@@ -99,7 +99,7 @@ object Expressions {
 			case LValue(_, theType) =>
 				TypeHelper.getPointerType(theType)
 
-		val rightValue = TypeHelper.resolve(right).value
+		val rightValue = TypeHelper.toRValue(right).value
 		val index = rightValue.toString.toInt
 		val offset = base + index * TypeHelper.sizeof(indexType)
 
