@@ -162,18 +162,18 @@ object Declarator {
 		state.context.addVariable(name.toString, aType)
 	}
 
-	private def isNullInitializer(list: CASTInitializerList)(implicit state: State): Boolean = {
-		val flattened = flattenInitList(list).map(TypeHelper.toRValue)
-
-		if list.getChildren.length == 1 then
-			val initialArray = flattened.head
-
-			initialArray.value match
-				case int: Int => int == 0
-				case _ => false
-		else
-			false
-	}
+//	private def isNullInitializer(list: CASTInitializerList)(implicit state: State): Boolean = {
+//		val flattened = flattenInitList(list).map(TypeHelper.toRValue)
+//
+//		if list.getChildren.length == 1 then
+//			val initialArray = flattened.head
+//
+//			initialArray.value match
+//				case int: Int => int == 0
+//				case _ => false
+//		else
+//			false
+//	}
 
 	private def processList(theType: IType, list: CASTInitializerList)(implicit state: State): List[RValue] = {
 		val childrenLists = list.getChildren.collect{ case list: CASTInitializerList => list }.toList
@@ -183,11 +183,7 @@ object Declarator {
 		} else {
 			val flattened = flattenInitList(list).map(TypeHelper.toRValue)
 
-			if (isNullInitializer(list)) // e.g = {0}
-				flattened.map(TypeHelper.toRValue)
-			else if TypeHelper.isStructure(theType) then
-				flattened
-			else if !TypeHelper.isPointer(theType) then
+			if !TypeHelper.isPointer(theType) && !TypeHelper.isStructure(theType) then
 				val baseType = TypeHelper.resolveBasic(theType)
 				flattened.map { x => TypeHelper.cast(baseType, x.value) }
 			else
@@ -224,7 +220,7 @@ object Declarator {
 			val hasList = equals.getInitializerClause.isInstanceOf[IASTInitializerList]
 
 			if (hasList) {
-				val init = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
+				val init = equals.getInitializerClause
 				initializeArrayFromList(name, init)
 			} else {
 				val theType = TypeHelper.getBindingType(name.resolveBinding())
@@ -260,7 +256,6 @@ object Declarator {
 
 			if (!variable.isInitialized) {
 				if (decl.getInitializer.isInstanceOf[IASTEqualsInitializer]) {
-
 					val initClause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
 					val initVals = getRValues(initClause, theType)
 					assign(variable, initVals, initClause, op_assign)

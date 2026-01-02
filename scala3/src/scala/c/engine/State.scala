@@ -209,6 +209,14 @@ class State(val pointerSize: NumBits) {
 
 	val addressSize = TypeHelper.sizeof(pointerType)(using this)
 
+	// ************************************************* //
+	//                  Constructor                      //
+	// ************************************************* //
+	
+	Functions.scalaFunctions.foreach(addScalaFunctionDef)
+
+	pushScope(new FunctionScope(List(), null, null) {})
+	
 	def pushScope(scope: FunctionScope): Unit = {
 		functionContexts = scope +: functionContexts
 	}
@@ -235,11 +243,7 @@ class State(val pointerSize: NumBits) {
 	def hasFunction(name: String): Boolean = functionList.exists { fcn => fcn.name == name }
 
 	def getFunctionByIndex(index: Int): Function = functionList.find { fcn => fcn.index == index }.get
-
-	Functions.scalaFunctions.foreach(addScalaFunctionDef)
-
-	pushScope(new FunctionScope(List(), null, null) {})
-
+	
 	def init(codes: Seq[String], includePaths: List[String]): List[IASTNode] = {
 		sources = codes.map { code => Utils.getTranslationUnit(code, includePaths) }.toList
 
@@ -276,12 +280,11 @@ class State(val pointerSize: NumBits) {
 					case vari: IVariable =>
 						if (vari.isStatic) {
 							val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
-
 							val variable = Variable(decl.getName.toString, state, vari.getType)
-							if (decl.getInitializer != null) {
+							
+							if decl.getInitializer != null then
 								val initVals = Declarator.getRValues(decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause, theType)
 								Declarator.assign(variable, initVals, null, op_assign)
-							}
 
 							variable.isInitialized = true
 
