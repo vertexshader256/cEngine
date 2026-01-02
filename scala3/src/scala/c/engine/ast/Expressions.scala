@@ -30,7 +30,7 @@ object Expressions {
 
 			evaluate(expr)
 		case cast: IASTCastExpression =>
-			castExpression(cast)
+			Some(castExpression(cast))
 		case fieldRef: IASTFieldReference =>
 			fieldReference(fieldRef)
 		case subscript: IASTArraySubscriptExpression =>
@@ -57,26 +57,26 @@ object Expressions {
 		val theType = TypeHelper.getType(cast.getTypeId).theType
 		val operand = evaluate(cast.getOperand).get
 
-		Some(operand match {
-			case str@StringLiteral(_) => str
+		operand match {
+			case str @ StringLiteral(_) => str
 			case LValue(addr, aType) =>
+				val newAddr = state.allocateSpace(TypeHelper.sizeof(theType))
+
 				theType match {
 					case ptr: IPointerType if aType.isInstanceOf[IArrayType] =>
-						val newAddr = state.allocateSpace(TypeHelper.sizeof(theType))
 						state.Stack.writeToMemory(addr, newAddr, theType)
-						LValue(state, newAddr, theType)
 					case _ =>
 						val currentVal = state.Stack.readFromMemory(addr, aType) // read current variable value
 						val casted = TypeHelper.cast(theType, currentVal.value).value
-						val newAddr = state.allocateSpace(TypeHelper.sizeof(theType))
 						state.Stack.writeToMemory(casted, newAddr, theType) // write the casted data out
-						LValue(state, newAddr, theType)
 				}
+
+				LValue(state, newAddr, theType)
 			case RValue(value, _) =>
 				val newAddr = state.allocateSpace(TypeHelper.sizeof(theType))
 				state.Stack.writeToMemory(TypeHelper.cast(theType, value).value, newAddr, theType)
 				LValue(state, newAddr, theType)
-		})
+		}
 	}
 
 	private def arraySubscriptExpression(subscript: IASTArraySubscriptExpression)(implicit state: State) = {
@@ -169,7 +169,7 @@ object Expressions {
 
 		Some(LValue(state, newAddr, theType))
 	}
-	
+
 	private def isAssignment(op: Int) = {
 		op == op_assign ||
 			op == op_plusAssign ||
