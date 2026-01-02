@@ -285,6 +285,28 @@ class StructTest extends StandardTest {
 		checkResults(code)
 	}
 
+	"2D struct array null initializer 2" should "print the correct results" in {
+		val code =
+			"""
+				typedef struct {
+						int x;
+						int y;
+						int z;
+					} item_t;
+
+					item_t items[1][1] = {
+						{{1,2,3}}
+					};
+
+					void main() {
+						printf("%d\n", items[0][0].x);
+						printf("%d\n", items[0][0].y);
+						printf("%d\n", items[0][0].z);
+					}"""
+
+		checkResults(code)
+	}
+
 	"robust struct array null initializer" should "print the correct results" in {
 		val code =
 			"""
