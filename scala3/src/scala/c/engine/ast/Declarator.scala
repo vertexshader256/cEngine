@@ -194,19 +194,17 @@ object Declarator {
 		val equals = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
 		val pointerType = TypeHelper.getPointerType(theType)
 
-		pointerType match
-			case struct: CStructure =>
-				// array of struct designations = [{1,2}] or [{.x = 1, .y = 2}]
-				val structData = equals.getInitializerClause.getChildren.flatMap { list =>
-					val values = getStructRValues(list, struct)
-					values.map(x => TypeHelper.resolve(x))
+		val values = pointerType match
+			case struct: CStructure => // array of structs
+				equals.getInitializerClause.getChildren.flatMap { list =>
+					val rValues = getStructRValues(list, struct)
+					rValues.map(TypeHelper.resolve)
 				}.toList
-
-				state.context.addArrayVariable(name.toString, theType, structData)
 			case _ =>
 				val theType = TypeHelper.getBindingType(name.resolveBinding())
-				val initValues = processList(theType, equals.getInitializerClause.asInstanceOf[CASTInitializerList])
-				state.context.addArrayVariable(name.toString, theType, initValues)
+				processList(theType, equals.getInitializerClause.asInstanceOf[CASTInitializerList])
+
+		state.context.addArrayVariable(name.toString, theType, values)
 	}
 
 	private def processArrayDecl(decl: IASTDeclarator, arrayDecl: IASTArrayDeclarator)(implicit state: State) = {
