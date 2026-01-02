@@ -134,6 +134,7 @@ object BinaryExpr {
 						op2 match
 							case y: Int => x | y
 							case y: Long => x | y
+							case y: BigInt => x | y
 					case `op_binaryXor` | `op_binaryXorAssign` =>
 						op2 match
 							case y: Int => x ^ y
@@ -143,6 +144,7 @@ object BinaryExpr {
 						op2 match
 							case y: Int => x & y
 							case y: Long => x & y
+							case y: BigInt => x & y
 					case _ =>
 						calculateBoolean(op1, op2, operator)
 	}
