@@ -7,9 +7,10 @@ import org.scalatest.flatspec.AsyncFlatSpec
 
 import java.io.{File, PrintWriter}
 import java.util.concurrent.atomic.AtomicInteger
-import scala.c.engine.NumBits._
+import scala.c.engine.NumBits.*
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.*
+import scala.concurrent.duration.Duration
 import scala.io.Source
 import scala.sys.process.Process
 
@@ -147,6 +148,92 @@ class StandardTest extends AsyncFlatSpec {
 		result
 	}
 
+	private def getGccResults(files: Seq[File], pointerSize: NumBits = ThirtyTwoBits,
+														args: List[String] = List(), includePaths: List[String] = List()): Future[Seq[String]] = {
+
+		val logger = new SyntaxLogger
+		val exeFile = new java.io.File("a" + StandardTest.exeCount.incrementAndGet + ".exe")
+
+		val compileFuture = Future {
+
+			val moreIncludes = includePaths.flatMap { inc =>
+				Seq("-I", inc)
+			}
+
+			val sourceFileTokens = files.flatMap { file => Seq(file.getAbsolutePath) }
+			val includeTokens = Seq("-I", Utils.mainPath) ++ moreIncludes
+
+			val size = pointerSize match {
+				case ThirtyTwoBits => Seq("gcc")
+				case SixtyFourBits => Seq("gcc")
+			}
+
+			val processTokens =
+				size ++ sourceFileTokens ++ includeTokens ++ Seq("-o", exeFile.getAbsolutePath) ++ Seq("-D", "ALLOC_TESTING")
+
+			val builder = Process(processTokens, new java.io.File("."))
+			val compile = builder.run(logger.process)
+
+			compile.exitValue()
+		}.recover {
+			case e => println(logger.errors.toList)
+		}
+
+		compileFuture.map { _ =>
+			val numErrors = 0 //logger.errors.length
+
+			val gccOutput = if (numErrors == 0) {
+
+				var isDone = false
+				val maxTries = 50 // 50 is proven to work
+				var i = 0
+				var result: Seq[String] = null
+
+				Thread.sleep(30)
+
+				// 3/1/19: Protip - This helps tests run reliably!
+				while (!isDone && i < maxTries) {
+
+					i += 1
+					try {
+						val runLogger = new RunLogger
+						// run the actual executable
+						val runner = Process(Seq(exeFile.getAbsolutePath) ++ args, new File("."))
+						val run = runner.run(runLogger.process)
+
+						files.foreach {
+							_.delete()
+						}
+
+						run.exitValue()
+
+						result = runLogger.stdout.clone().toList
+
+						if (result.nonEmpty) {
+							isDone = true
+							exeFile.delete()
+						}
+					} catch {
+						case e =>
+							Thread.sleep(50)
+					}
+				}
+
+				result
+			} else {
+				logger.errors.toSeq
+			}
+
+			if (gccOutput != null) {
+				gccOutput.toList
+			} else {
+				logger.errors.toSeq
+			}
+		}.recover {
+			case e => logger.errors.toSeq
+		}
+	}
+
 	def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits,
 										args: List[String] = List(), includePaths: List[String] = List()) = {
 
@@ -162,109 +249,28 @@ class StandardTest extends AsyncFlatSpec {
 				file
 			}
 
-			val exeFile = new java.io.File("a" + StandardTest.exeCount.incrementAndGet + ".exe")
-			val logger = new SyntaxLogger
+			val gccResults = Future {
+				TestResults.loadSavedResults()
+
+				TestResults.getSavedResult(codeBeingRun).map: priorRunResult =>
+					priorRunResult
+				.getOrElse:
+					val runGcc = getGccResults(files, pointerSize, args, includePaths)
+					val gccOutput = Await.result(runGcc, Duration.fromNanos(1000000000.0 * 60))
+					TestResults.addResult(codeBeingRun, gccOutput)
+					TestResults.writeResultsFile()
+					gccOutput
+			}
 
 			val cEngineFuture = Future {
 				getCEngineResults(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
-			}.recover {
-				case e => List()
 			}
 
-			val compileFuture = Future {
-
-				val moreIncludes = includePaths.flatMap { inc =>
-					Seq("-I", inc)
-				}
-
-				val sourceFileTokens = files.flatMap { file => Seq(file.getAbsolutePath) }
-				val includeTokens = Seq("-I", Utils.mainPath) ++ moreIncludes
-
-				val size = pointerSize match {
-					case ThirtyTwoBits => Seq("gcc")
-					case SixtyFourBits => Seq("gcc")
-				}
-
-				val processTokens =
-					size ++ sourceFileTokens ++ includeTokens ++ Seq("-o", exeFile.getAbsolutePath) ++ Seq("-D", "ALLOC_TESTING")
-
-				val builder = Process(processTokens, new java.io.File("."))
-				val compile = builder.run(logger.process)
-
-				compile.exitValue()
-			}.recover {
-				case e => println(logger.errors.toList)
-			}
-
-			val gccExeFut = compileFuture.map { _ =>
-				val numErrors = 0 //logger.errors.length
-
-				val gccOutput = if (numErrors == 0) {
-
-					var isDone = false
-					val maxTries = 50 // 50 is proven to work
-					var i = 0
-					var result: Seq[String] = null
-
-					Thread.sleep(30)
-
-					// 3/1/19: Protip - This helps tests run reliably!
-					while (!isDone && i < maxTries) {
-
-						i += 1
-						try {
-							val runLogger = new RunLogger
-							// run the actual executable
-							val runner = Process(Seq(exeFile.getAbsolutePath) ++ args, new File("."))
-							val run = runner.run(runLogger.process)
-
-							files.foreach {
-								_.delete()
-							}
-
-							run.exitValue()
-
-							result = runLogger.stdout.clone().toList
-
-							if (result.nonEmpty) {
-								isDone = true
-								exeFile.delete()
-							}
-						} catch {
-							case e =>
-								Thread.sleep(50)
-						}
-					}
-
-					result
-				} else {
-					logger.errors.toSeq
-				}
-
-				if (gccOutput != null) {
-					gccOutput.toList
-				} else {
-					logger.errors.toSeq
-				}
-			}.recover {
-				case e => logger.errors.toSeq
-			}
-
-
-
-			val completion = Future.sequence(List(cEngineFuture, gccExeFut))
+			val completion = Future.sequence(List(cEngineFuture, gccResults))
 
 			completion.map { x =>
 				val cEngineOutput = x.head
 				val gccOutput = x.last
-
-				TestResults.loadSavedResults()
-
-				val priorRunResults = TestResults.getSavedResult(codeBeingRun)
-				println("SAVED RESULT: " + priorRunResults)
-
-				TestResults.addResult(codeBeingRun, gccOutput.mkString)
-				TestResults.writeResultsFile()
 
 				info("C_Engine output: " + cEngineOutput)
 				info("Gcc      output: " + gccOutput)

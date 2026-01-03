@@ -11,7 +11,7 @@ import java.nio.file.{Files, Paths}
 object TestResults {
 	var areResultsLoaded = false
 	val digest = MessageDigest.getInstance("SHA-256")
-	val results: mutable.Map[String, String] = mutable.HashMap()
+	val resultCache: mutable.Map[String, Seq[String]] = mutable.HashMap()
 	val resultsFileName = "results.json"
 
 	private def getHash(key: String): String = {
@@ -31,27 +31,29 @@ object TestResults {
 		hexString.toString
 	}
 
-	def addResult(test: String, result: String) = {
+	def addResult(test: String, results: Seq[String]) = {
 		val key = getHash(test)
-		results.put(key, result)
+		resultCache.put(key, results)
 	}
 
-	def getSavedResult(test: String): Option[String] = {
+	def getSavedResult(test: String): Option[Seq[String]] = {
 		val key = getHash(test)
-		results.get(key)
+		resultCache.get(key)
 	}
 
 	def loadSavedResults() = {
-		if !areResultsLoaded then
-			val resultsBytes = Files.readAllBytes(Paths.get(resultsFileName))
-			val priorResults = read[Map[String, String]](resultsBytes)
-			results ++= priorResults
+		val resultsFile = Paths.get(resultsFileName)
+
+		if !areResultsLoaded && resultsFile.toFile.exists() then
+			val resultsBytes = Files.readAllBytes(resultsFile)
+			val priorResults = read[Map[String, Seq[String]]](resultsBytes)
+			resultCache ++= priorResults
 			println(s"Loading saved results for ${priorResults.size} tests")
 			areResultsLoaded = true
 	}
 
 	def writeResultsFile() = {
-		val jsonString: String = write(results)
+		val jsonString: String = write(resultCache)
 
 		val bw = new BufferedWriter(new FileWriter(new File(resultsFileName)))
 		bw.write(jsonString)
