@@ -30,13 +30,12 @@ object TypeHelper {
 		val casted: cEngVal = theType match {
 			case basic: IBasicType =>
 				if (basic.isUnsigned) {
-					newVal match {
+					newVal match
 						case long: Long => long & 0x00000000FFFFFFFFL
 						case int: Int => int & 0xFFFFFFFFL
 						case short: Short => short & 0xFFFF
 						case byte: Byte => byte & 0xFF
 						case bigInt: BigInt => bigInt.toLong & 0x00000000FFFFFFFFL
-					}
 				} else {
 					newVal
 				}
@@ -83,64 +82,56 @@ object TypeHelper {
 		val cast: cEngVal = theType match {
 			case basic: IBasicType =>
 
-				val newVal = if (basic.isUnsigned) {
+				val newVal = if basic.isUnsigned then
 					castSign(theType, theVal).value
-				} else {
+				else
 					theVal
-				}
 
 				basic.getKind match {
 					case `eChar` =>
-						newVal match {
+						newVal match
 							case int: Int => int.toChar.toByte
 							case long: Long => long.toChar.toByte
 							case char: Byte => char
-						}
 					case `eInt` if basic.isLongLong =>
-						newVal match {
+						newVal match
 							case int: Int => int.toLong
 							case long: Long => long
 							case double: Double => double.toLong
 							case float: Float => float.toLong
 							case big: BigInt => big.toLong
-						}
 					case `eInt` if basic.isLong =>
-						newVal match {
+						newVal match
 							case int: Int => int.toLong
 							case long: Long => long
 							case double: Double => double.toLong
 							case float: Float => float.toLong
-						}
 					case `eInt` if basic.isShort =>
-						newVal match {
+						newVal match
 							case int: Int => int.toShort
 							case short: Short => short
 							case long: Long => long.toShort
-						}
 					case `eInt` =>
-						newVal match {
-							case boolean: Boolean => if (boolean) 1 else 0
+						newVal match
+							case boolean: Boolean => if boolean then 1 else 0
 							case long: Long => long.toInt
 							case int: Int => int
 							case short: Short => short.toInt
 							case char: char => char.toInt
 							case double: Double => double.toInt
 							case float: Float => float.toInt
-						}
 					case `eFloat` =>
-						newVal match {
+						newVal match
 							case int: Int => int.toFloat
 							case double: Double => double.toFloat
 							case float: Float => float
 							case long: Long => long.toFloat
-						}
 					case `eDouble` =>
-						newVal match {
+						newVal match
 							case int: Int => int.toDouble
 							case long: Long => long.toDouble
 							case double: Double => double
 							case float: Float => float.toDouble
-						}
 					case `eBoolean` =>
 						if (TypeHelper.resolveBoolean(newVal)) 1 else 0
 					case `eVoid` =>
@@ -164,36 +155,30 @@ object TypeHelper {
 
 			var config = 0
 
-			if (simple.isLongLong) {
+			if simple.isLongLong then
 				config |= IBasicType.IS_LONG_LONG
-			}
 
-			if (simple.isLong) {
+			if simple.isLong then
 				config |= IBasicType.IS_LONG
-			}
 
-			if (simple.isShort) {
+			if simple.isShort then
 				config |= IBasicType.IS_SHORT
-			}
 
-			if (simple.isUnsigned) {
+			if simple.isUnsigned then
 				config |= IBasicType.IS_UNSIGNED
-			} else {
+			else
 				config |= IBasicType.IS_SIGNED
-			}
 
-			var result: IType = simple.getType match {
+			var result: IType = simple.getType match
 				case `t_unspecified` => CBasicType(IBasicType.Kind.eInt, config)
 				case `t_int` => CBasicType(IBasicType.Kind.eInt, config)
 				case `t_float` => CBasicType(IBasicType.Kind.eFloat, config)
 				case `t_double` => CBasicType(IBasicType.Kind.eDouble, config)
 				case `t_char` => CBasicType(IBasicType.Kind.eChar, config)
 				case `t_void` => CBasicType(IBasicType.Kind.eVoid, config)
-			}
 
-			for (ptr <- idExpr.getAbstractDeclarator.getPointerOperators) {
+			for ptr <- idExpr.getAbstractDeclarator.getPointerOperators do
 				result = CPointerType(result, 0)
-			}
 
 			TypeInfo(result)
 
@@ -206,57 +191,51 @@ object TypeHelper {
 	def getType(value: cEngVal): IBasicType = {
 		var config = 0
 
-		if (value.isInstanceOf[Long]) {
+		if value.isInstanceOf[Long] then
 			config |= IBasicType.IS_LONG
-		}
 
-		if (value.isInstanceOf[Short]) {
+		if value.isInstanceOf[Short] then
 			config |= IBasicType.IS_SHORT
-		}
 
-		value match {
-			case bool: Boolean => CBasicType(IBasicType.Kind.eBoolean, config)
-			case int: Int => CBasicType(IBasicType.Kind.eInt, config)
-			case long: Long => CBasicType(IBasicType.Kind.eInt, config)
-			case float: Float => CBasicType(IBasicType.Kind.eFloat, config)
-			case doub: Double => CBasicType(IBasicType.Kind.eDouble, config)
-			case char: Char => CBasicType(IBasicType.Kind.eChar, config)
-			case short: Short => CBasicType(IBasicType.Kind.eInt, config)
-			case char: char => CBasicType(IBasicType.Kind.eChar, config)
-		}
+		val theType = value match
+			case bool: Boolean => IBasicType.Kind.eBoolean
+			case int: Int => IBasicType.Kind.eInt
+			case long: Long => IBasicType.Kind.eInt
+			case float: Float => IBasicType.Kind.eFloat
+			case doub: Double => IBasicType.Kind.eDouble
+			case char: Char => IBasicType.Kind.eChar
+			case short: Short => IBasicType.Kind.eInt
+			case char: char => IBasicType.Kind.eChar
+
+		CBasicType(IBasicType.Kind.eChar, config)
 	}
 
 	// resolves 'ValueType' to 'RValue'
 	def toRValue(any: ValueType)(implicit state: State): RValue = {
-		any match {
+		any match
 			case info @ LValue(_, _) => info.rValue
 			case rValue @ RValue(_, _) => rValue
 			case StringLiteral(str) => state.getString(str)
-		}
 	}
 
-	def isPointerOrArray(value: ValueType): Boolean = {
+	def isPointerOrArray(value: ValueType): Boolean =
 		isPointerOrArray(value.theType) || value.isInstanceOf[Address]
-	}
 
-	def isPointerOrArray(theType: IType): Boolean = {
+	def isPointerOrArray(theType: IType): Boolean =
 		theType.isInstanceOf[IPointerType] || theType.isInstanceOf[IArrayType]
-	}
 
-	def getBindingType(binding: IBinding) = {
-		binding match {
-			case typedef: CTypedef => stripSyntheticTypeInfo(typedef)
-			case vari: IVariable => stripSyntheticTypeInfo(vari.getType)
-		}
+	def getBindingType(binding: IBinding) = binding match {
+		case typedef: CTypedef => stripSyntheticTypeInfo(typedef)
+		case vari: IVariable => stripSyntheticTypeInfo(vari.getType)
 	}
 
 	def not(theVal: Any): cEngVal = theVal match {
 		case info@LValue(_, _) => not(info.rValue)
 		case RValue(theVal, _) => not(theVal)
-		case int: Int => if (int == 0) 1 else 0
-		case long: Long => if (long == 0) 1 else 0
+		case int: Int => if int == 0 then 1 else 0
+		case long: Long => if long == 0 then 1 else 0
 		case bool: Boolean => !bool
-		case char: char => if (char == 0) 1 else 0
+		case char: char => if char == 0 then 1 else 0
 	}
 
 	def resolveBasic(theType: IType)(implicit state: State): IBasicType = theType match {
@@ -274,16 +253,13 @@ object TypeHelper {
 		case typedef: ITypedef => s"TypeDef(${printType(typedef.getType)})"
 		case ptrType: IPointerType => s"CPointerType(${printType(ptrType.getType)})"
 		case arrayType: IArrayType =>
-			if (arrayType.hasSize) {
+			if arrayType.hasSize then
 				s"CArrayType(${printType(arrayType.getType)})[${arrayType.getSize.numericalValue().toInt}]"
-			} else {
+			else
 				s"CArrayType(${printType(arrayType.getType)})[]"
-			}
 		case qualType: IQualifierType => s"QualifiedType(${printType(qualType.getType)})"
 		case fcn: IFunctionType => s"FunctionType(${
-			fcn.getParameterTypes.map(printType).reduce {
-				_ + ", " + _
-			}
+			fcn.getParameterTypes.map(printType).reduce(_ + ", " + _)
 		})"
 		case _ => "null"
 	}
@@ -308,9 +284,8 @@ object TypeHelper {
 	def offsetof(struct: CStructure, memberName: String, state: State): Int = {
 		val largestField = struct.getFields.filter { f => f.getType.isInstanceOf[CBasicType] }.map { x => TypeHelper.sizeInBits(x)(using state) / 8 }.sorted.maxOption.getOrElse(0)
 		val fields = struct.getFields.takeWhile { field => field.getName != memberName }.map { x => TypeHelper.sizeInBits(x)(using state) / 8 }
-		val paddedFields = fields.map(f => if (f < largestField) {
-			largestField
-		} else f) // gcc adds padding
+		val paddedFields = fields.map: f =>
+			if f < largestField then largestField else f // gcc adds padding
 		paddedFields.sum
 	}
 
@@ -321,40 +296,31 @@ object TypeHelper {
 		structType.getKey match {
 			case ICompositeType.k_struct =>
 				structType.getFields.foreach { field =>
-					if (field.getName == fieldName) {
+					if field.getName == fieldName then
 						// can assume names are unique
 						resultAddress = Field(state, baseAddress + offsetInBits / 8, offsetInBits % 8, field.getType, TypeHelper.sizeInBits(field)(using state))
-					} else {
+					else
 						offsetInBits += TypeHelper.sizeInBits(field)(using state)
-					}
 				}
 			case ICompositeType.k_union =>
 				// TODO: Unions and bit fields dont work
-				structType.getFields.find { field => field.getName == fieldName }.foreach { field =>
+				structType.getFields.find { field => field.getName == fieldName }.foreach: field =>
 					resultAddress = Field(state, baseAddress, 0, field.getType, TypeHelper.sizeInBits(field)(using state))
-				}
 		}
 		resultAddress
 	}
 
 	def resolveStruct(theType: IType): CStructure = theType match {
-		case qual: CQualifierType =>
-			resolveStruct(qual.getType)
-		case typedef: CTypedef =>
-			resolveStruct(typedef.getType)
+		case qual: CQualifierType => resolveStruct(qual.getType)
+		case typedef: CTypedef => resolveStruct(typedef.getType)
 		case struct: CStructure => struct
-		case ptr: IPointerType =>
-			resolveStruct(ptr.getType)
+		case ptr: IPointerType => resolveStruct(ptr.getType)
 	}
 
-	def getPointerSize(theType: IType)(implicit state: State): Int = {
-		theType match {
-			case ptr: IPointerType =>
-				state.addressSize
-			case array: IArrayType if array.hasSize =>
-				TypeHelper.sizeof(array.getType) * array.getSize.numericalValue().toInt
-			case _ => TypeHelper.sizeof(theType)(using state)
-		}
+	def getPointerSize(theType: IType)(implicit state: State): Int = theType match {
+		case ptr: IPointerType => state.addressSize
+		case array: IArrayType if array.hasSize => TypeHelper.sizeof(array.getType) * array.getSize.numericalValue().toInt
+		case _ => TypeHelper.sizeof(theType)(using state)
 	}
 
 	def sizeof(theType: IType)(implicit state: State): Int = theType match {
@@ -371,9 +337,8 @@ object TypeHelper {
 					var maxSize = 0
 					struct.getFields.foreach { field =>
 						val size = sizeInBits(field)
-						if (size > maxSize) {
+						if size > maxSize then
 							maxSize = size
-						}
 					}
 					maxSize
 			}
@@ -388,7 +353,7 @@ object TypeHelper {
 		case qual: IQualifierType =>
 			sizeof(qual.getType)
 		case basic: IBasicType =>
-			basic.getKind match {
+			basic.getKind match
 				case `eInt` if basic.isLongLong => 8
 				case `eInt` if basic.isLong => 4
 				case `eInt` if basic.isShort => 2
@@ -398,19 +363,16 @@ object TypeHelper {
 				case `eChar` => 1
 				case `eVoid` => 1
 				case `eBoolean` => 4
-			}
 	}
 
 	private def sizeInBits(field: IField)(implicit state: State): Int = {
 		val parent = field.asInstanceOf[CField].getDefinition.getParent
-		parent match {
+		parent match
 			case field: CASTFieldDeclarator => Expressions.evaluate(field.getBitFieldSize).get.asInstanceOf[RValue].value.asInstanceOf[Int]
-			case _ => field.getType match {
+			case _ => field.getType match
 				case array: IArrayType =>
 					sizeof(array.getType) * array.getSize.numericalValue().toInt * 8
 				case x =>
 					sizeof(x) * 8
-			}
-		}
 	}
 }

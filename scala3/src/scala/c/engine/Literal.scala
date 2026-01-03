@@ -17,13 +17,12 @@ object Literal {
 
 		var index = 0
 		while (index < theStr.size - 1) {
-			(theStr(index), Try(theStr(index + 1)).getOrElse(null)) match {
+			(theStr(index), Try(theStr(index + 1)).getOrElse(null)) match
 				case ('\\', '\\') => result += '\\'; index += 2
 				case ('\\', 'n') => result += '\n'; index += 2
 				case ('\\', 'r') => result += '\r'; index += 2
 				case ('\\', '0') => result += '\u0000'; index += 2
 				case x => result += x._1; index += 1
-			}
 		}
 
 		result += theStr.last
@@ -43,28 +42,26 @@ object Literal {
 		val isUnsignedLong = litStr.takeRight(2).toLowerCase == "ul"
 		val isUnsignedLongLong = litStr.takeRight(3).toLowerCase == "ull"
 
-		val pre: String = if (isUnsignedLongLong) {
+		val pre: String = if isUnsignedLongLong then
 			litStr.take(litStr.length - 3).mkString
-		} else if (isLongLoong) {
+		else if isLongLoong then
 			litStr.take(litStr.length - 2).mkString
-		} else if (isUnsignedLong) {
+		else if isUnsignedLong then
 			litStr.take(litStr.length - 2).mkString
-		} else if (isLong) {
+		else if isLong then
 			litStr.take(litStr.length - 1).mkString
-		} else if (isUnsigned) {
+		else if isUnsigned then
 			litStr.take(litStr.length - 1).mkString
-		} else {
+		else
 			litStr
-		}
 
 		val post = process(pre)
 
-		val lit = if (post.startsWith("0x")) {
+		val lit = if post.startsWith("0x") then
 			val bigInt = new BigInteger(pre.drop(2), 16);
 			bigInt.toString
-		} else {
+		else
 			post
-		}
 
 		val result = if (lit.head == '\"' && lit.last == '\"') {
 			StringLiteral(lit)
@@ -72,11 +69,10 @@ object Literal {
 			RValue(lit.toCharArray.apply(1).toByte, new CBasicType(IBasicType.Kind.eChar, 0))
 		} else if (isUnsignedLongLong) {
 
-			val bigInt = if (post.startsWith("0x")) {
+			val bigInt = if post.startsWith("0x") then
 				new BigInteger(pre.drop(2), 16);
-			} else {
+			else
 				new BigInteger(pre);
-			}
 			
 			TypeHelper.getLongLong(bigInt)
 		} else if (isUnsignedLong) {
