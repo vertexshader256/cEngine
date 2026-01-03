@@ -184,9 +184,9 @@ object State {
 
 class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
-	val Stack = Memory(500000)
+	val Stack = Memory(40000)
 
-	private var heapInsertIndex = 250000
+	private var heapInsertIndex = 20000
 
 	var functionContexts = List[FunctionScope]()
 
