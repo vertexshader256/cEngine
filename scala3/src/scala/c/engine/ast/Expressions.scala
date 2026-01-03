@@ -38,7 +38,7 @@ object Expressions {
 		case unary: IASTUnaryExpression =>
 			Some(UnaryExpression.execute(unary))
 		case lit: IASTLiteralExpression =>
-			Some(Literal.cast(lit.toString))
+			Some(Literal.parse(lit.toString))
 		case id: IASTIdExpression =>
 			Some(state.context.resolveId(id.getName).get)
 		case typeExpr: IASTTypeIdExpression =>

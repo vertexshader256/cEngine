@@ -4,6 +4,18 @@ import java.math.BigInteger
 import scala.util.Try
 
 object Literal {
+
+	def parse(literal: String): ValueType = {
+		if isQuoted(literal) then
+			val post = encodeSpecialChars(literal)
+			StringLiteral(post)
+		else if isChar(literal) then
+			val post = encodeSpecialChars(literal)
+			RValue(post(1).toByte, TypeHelper.charType)
+		else
+			castNumericLiteral(literal)
+	}
+
 	private def encodeSpecialChars(str: String): String = {
 		val result = new StringBuilder()
 
@@ -43,34 +55,27 @@ object Literal {
 
 		val pre = string.take(string.length - charsToStrip).mkString
 
-		val post = encodeSpecialChars(pre)
-
-		if post.startsWith("0x") then
+		if pre.startsWith("0x") then
 			val bigInt = BigInteger(pre.drop(2), 16);
 			bigInt.toString
 		else
-			post
+			pre
 	}
 
-	def cast(litStr: String): ValueType = {
+	private def isQuoted(s: String) = s.head == '\"' && s.last == '\"'
+	private def isChar(s: String) = s.head == '\'' && s.last == '\''
+	private def isIntNumber(s: String) = s.toIntOption.isDefined
+	private def isLongNumber(s: String) = s.toLongOption.isDefined
 
-		def isIntNumber(s: String) = s.toIntOption.isDefined
-		def isLongNumber(s: String) = s.toLongOption.isDefined
-		def isQuoted(s: String) = s.head == '\"' && s.last == '\"'
-		def isChar(s: String) = s.head == '\'' && s.last == '\''
+	private def castNumericLiteral(literal: String) = {
+		val isFloat = hasSuffix(literal, "f")
+		val isLong = hasSuffix(literal, "l")
+		val isUnsignedLong = hasSuffix(literal, "ul") || hasSuffix(literal, "lu")
+		val isUnsignedLongLong = hasSuffix(literal, "ull") || hasSuffix(literal, "llu")
 
-		val isFloat = hasSuffix(litStr, "f")
-		val isLong = hasSuffix(litStr, "l")
-		val isUnsignedLong = hasSuffix(litStr, "ul") || hasSuffix(litStr, "lu")
-		val isUnsignedLongLong = hasSuffix(litStr, "ull") || hasSuffix(litStr, "llu")
+		val lit = stripFixedPointSuffix(literal)
 
-		val lit = stripFixedPointSuffix(litStr)
-
-		val result = if isQuoted(lit) then
-			StringLiteral(lit)
-		else if isChar(lit) then
-			RValue(lit(1).toByte, TypeHelper.charType)
-		else if isUnsignedLongLong then
+		if isUnsignedLongLong then
 			val bigInt = BigInteger(lit)
 			TypeHelper.getLongLong(bigInt)
 		else if isUnsignedLong || isLong then
@@ -84,7 +89,5 @@ object Literal {
 			RValue(num.toFloat, TypeHelper.floatType)
 		else
 			RValue(lit.toDouble, TypeHelper.doubleType)
-
-		result
 	}
 }
