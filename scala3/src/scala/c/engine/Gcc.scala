@@ -30,7 +30,8 @@ object Gcc {
        $code
     """
 
-		state.init(Seq(exeCode), includePaths)
+		val ast = State.parseCode(Seq(exeCode), includePaths)
+		state.addMain(ast)
 	}
 }
 
