@@ -90,7 +90,8 @@ object State {
 		state.breakLabelStack = state.breakLabelStack.tail
 		state.continueLabelStack = state.continueLabelStack.tail
 
-		val execution = contents ++ (if (iter != null) List(continueLabel, iter) else List(continueLabel))
+		val iterExpr = if iter != null then List(iter) else List()
+		val execution = (contents :+ continueLabel) ++ iterExpr
 
 		val jmpnz = if forStatement.getConditionExpression != null then
 			List(JmpToLabelIfNotZero(forStatement.getConditionExpression, breakLabel))
@@ -116,7 +117,7 @@ object State {
 		state.breakLabelStack = state.breakLabelStack.tail
 		state.continueLabelStack = state.continueLabelStack.tail
 
-		val result = List(JmpLabel(end), begin) ++ contents ++ List(end, continueLabel, JmpToLabelIfZero(whileStatement.getCondition, begin)) :+ breakLabel
+		val result = List(JmpLabel(end), begin) ++ contents ++ List(end, continueLabel, JmpToLabelIfZero(whileStatement.getCondition, begin), breakLabel)
 
 		PushVariableStack() +: result :+ PopVariableStack()
 	}
