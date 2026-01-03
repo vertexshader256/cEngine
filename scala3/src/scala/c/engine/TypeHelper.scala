@@ -1,29 +1,28 @@
 package scala.c.engine
 
-import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.internal.core.dom.parser.c._
 import org.eclipse.cdt.core.dom.ast.IASTSimpleDeclSpecifier._
 import scala.c.engine.ast.Expressions
-import IBasicType.Kind
+import IBasicType.Kind.*
 import IBasicType.*
 
 object TypeHelper {
 
 	// 8 bytes
-	val longlong = CBasicType(Kind.eInt, IS_LONG_LONG)
-	val intType = CBasicType(Kind.eInt, 0)
-	val charType = CBasicType(Kind.eChar, 0)
-	val unsignedIntType = CBasicType(Kind.eInt, IS_UNSIGNED)
-	val doubleType = CBasicType(Kind.eDouble, 0)
-	val floatType = CBasicType(Kind.eFloat, 0)
+	val longlong = CBasicType(eInt, IS_LONG_LONG)
+	val intType = CBasicType(eInt, 0)
+	val charType = CBasicType(eChar, 0)
+	val unsignedIntType = CBasicType(eInt, IS_UNSIGNED)
+	val doubleType = CBasicType(eDouble, 0)
+	val floatType = CBasicType(eFloat, 0)
 
 	val one = RValue(1, unsignedIntType)
 	val zero = RValue(0, unsignedIntType)
 	val negativeOne = RValue(-1, intType)
 
 	def getLong(lit: String) =
-		RValue(lit.toLong, CBasicType(Kind.eInt, IS_LONG))
+		RValue(lit.toLong, CBasicType(eInt, IS_LONG))
 
 	def getLongLong(bigInt: BigInt) =
 		RValue(bigInt, longlong)
@@ -166,12 +165,12 @@ object TypeHelper {
 				config |= IS_SIGNED
 
 			val basicType = simple.getType match
-				case `t_unspecified` => Kind.eInt
-				case `t_int` => Kind.eInt
-				case `t_float` => Kind.eFloat
-				case `t_double` => Kind.eDouble
-				case `t_char` => Kind.eChar
-				case `t_void` => Kind.eVoid
+				case `t_unspecified` => eInt
+				case `t_int` => eInt
+				case `t_float` => eFloat
+				case `t_double` => eDouble
+				case `t_char` => eChar
+				case `t_void` => eVoid
 
 			var result: IType = CBasicType(basicType, config)
 
@@ -196,14 +195,14 @@ object TypeHelper {
 			config |= IS_SHORT
 
 		val theType = value match
-			case bool: Boolean => Kind.eBoolean
-			case int: Int => Kind.eInt
-			case long: Long => Kind.eInt
-			case float: Float => Kind.eFloat
-			case doub: Double => Kind.eDouble
-			case char: Char => Kind.eChar
-			case short: Short => Kind.eInt
-			case char: char => Kind.eChar
+			case bool: Boolean => eBoolean
+			case int: Int => eInt
+			case long: Long => eInt
+			case float: Float => eFloat
+			case doub: Double => eDouble
+			case char: Char => eChar
+			case short: Short => eInt
+			case char: char => eChar
 
 		CBasicType(theType, config)
 	}
