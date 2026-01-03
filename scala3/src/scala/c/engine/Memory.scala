@@ -74,10 +74,10 @@ class Memory(size: Int) {
 			case basic: IBasicType =>
 				val res = if basic.isShort then
 					val result = tape.getShort(address)
-					(result << (16 - sizeInBits - bitOffset) >>> (16 - sizeInBits)).toShort
+					(result << (16 - sizeInBits - bitOffset) >> (16 - sizeInBits)).toShort
 				else if basic.getKind == eInt && basic.isLongLong then
 					val result = tape.getLong(address)
-					result << (64 - sizeInBits - bitOffset) >>> (64 - sizeInBits)
+					result << (64 - sizeInBits - bitOffset) >> (64 - sizeInBits)
 				else if basic.getKind == eInt || basic.getKind == eBoolean then
 					val result = tape.getInt(address)
 					result << (32 - sizeInBits - bitOffset) >>> (32 - sizeInBits)
