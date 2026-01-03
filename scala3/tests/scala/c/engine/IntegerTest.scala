@@ -28,7 +28,7 @@ class IntegerTest extends StandardTest {
 						unsigned long long x = 0xBFFFFFFFFFFFFFFFULL;
 						printf("before: %d\n", x);
 						x &= 0xBFFFFFFFFFFFFFFFULL;
-						printf("after: %f\n", x);
+						printf("after: %d\n", x);
 
 						return 0;
 					}"""
