@@ -1,11 +1,12 @@
 package scala.c.engine
 
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.op_assign
-import org.eclipse.cdt.core.dom.ast._
-import org.eclipse.cdt.internal.core.dom.parser.c._
+import org.eclipse.cdt.core.dom.ast.*
+import org.eclipse.cdt.internal.core.dom.parser.c.*
 
 import java.util
-import scala.c.engine.Instructions._
+import scala.annotation.tailrec
+import scala.c.engine.Instructions.*
 import scala.c.engine.ast.{Declarator, Expressions}
 import scala.collection.mutable.ListBuffer
 
@@ -145,11 +146,10 @@ object State {
 
 		val descendants = compile(switch.getBody)
 
-		def getParentSwitchBody(node: IASTNode): IASTStatement = {
-			if node.getParent.isInstanceOf[IASTSwitchStatement] then
-				node.getParent.asInstanceOf[IASTSwitchStatement].getBody
-			else
-				getParentSwitchBody(node.getParent)
+		@tailrec
+		def getParentSwitchBody(node: IASTNode): IASTStatement = node.getParent match {
+			case switch: IASTSwitchStatement => switch.getBody
+			case _ => getParentSwitchBody(node.getParent)
 		}
 
 		val jumpTable = descendants.flatMap {
@@ -325,7 +325,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	}
 
 	def callFunctionFromScala(name: String, args: Array[RValue]): Seq[IASTNode] = {
-		functionList.find(_.name == name).map { fcn =>
+		functionList.find(_.name == name).foreach { fcn =>
 			// this is a function simulated in scala
 			fcn.run(args.reverse, this).foreach(context.pushOntoStack)
 		}
@@ -370,10 +370,9 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 					// printf assumes all floating point numbers are doubles
 					val promoted = resolvedArgs.map: arg =>
-						if arg.theType.isInstanceOf[IBasicType] && arg.theType.asInstanceOf[IBasicType].getKind == IBasicType.Kind.eFloat then
-							TypeHelper.cast(TypeHelper.doubleType, arg.value)
-						else
-							arg
+						arg.theType match
+							case basic: IBasicType if basic.getKind == IBasicType.Kind.eFloat => TypeHelper.cast(TypeHelper.doubleType, arg.value)
+							case _ => arg
 
 					newScope.pushOntoStack(promoted)
 					newScope.pushOntoStack(RValue(resolvedArgs.size, TypeHelper.unsignedIntType))
