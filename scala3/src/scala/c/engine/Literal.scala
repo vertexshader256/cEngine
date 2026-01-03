@@ -42,18 +42,16 @@ object Literal {
 		val isUnsignedLong = litStr.takeRight(2).toLowerCase == "ul"
 		val isUnsignedLongLong = litStr.takeRight(3).toLowerCase == "ull"
 
-		val pre: String = if isUnsignedLongLong then
-			litStr.take(litStr.length - 3).mkString
-		else if isLongLoong then
-			litStr.take(litStr.length - 2).mkString
-		else if isUnsignedLong then
-			litStr.take(litStr.length - 2).mkString
-		else if isLong then
-			litStr.take(litStr.length - 1).mkString
-		else if isUnsigned then
-			litStr.take(litStr.length - 1).mkString
+		val charsToStrip = if isUnsignedLongLong then
+			3
+		else if isLongLoong || isUnsignedLong then
+			2
+		else if isLong || isUnsigned then
+			1
 		else
-			litStr
+			0
+
+		val pre = litStr.take(litStr.length - charsToStrip).mkString
 
 		val post = process(pre)
 
