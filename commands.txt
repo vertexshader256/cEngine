@@ -1,0 +1,11 @@
+// to compile
+gcc -c what.c
+
+// to link
+gcc helloworld.o -o helloworld.exe
+
+// to output assembly from a .c file
+gcc -S what.c
+
+// to compile a .s file
+gcc what.s
