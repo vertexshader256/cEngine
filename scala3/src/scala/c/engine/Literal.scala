@@ -11,7 +11,7 @@ import scala.util.control.Exception.allCatch
 object Literal {
 	private def process(str: String): String = {
 
-		val theStr = str.toCharArray.toList
+		val theStr = str.toCharArray
 
 		val result = new ListBuffer[Char]()
 
@@ -27,7 +27,7 @@ object Literal {
 
 		result += theStr.last
 
-		result.toList.mkString
+		result.mkString
 	}
 
 	private def hasSuffix(string: String, suffix: String): Boolean =
