@@ -5,13 +5,16 @@ import scala.util.Try
 
 // raw string - may contains quotes, prefixes and postfixes
 case class Lit(s: String) {
-	def isQuoted = s.head == '\"' && s.last == '\"'
-	def isChar = s.head == '\'' && s.last == '\''
-	def isIntNumber = s.toIntOption.isDefined
-	def isLongNumber = s.toLongOption.isDefined
+	val isQuoted = s.head == '\"' && s.last == '\"'
+	val isChar = s.head == '\'' && s.last == '\''
+	val isIntNumber = s.toIntOption.isDefined
+	val isLongNumber = s.toLongOption.isDefined
 
 	private def hasSuffix(string: String, suffix: String): Boolean =
 		string.toLowerCase.endsWith(suffix)
+
+	val isUnsigned = hasSuffix(s, "u")
+	val isLongLong = hasSuffix(s, "ll")
 
 	val isFloat = hasSuffix(s, "f")
 	val isLong = hasSuffix(s, "l")
@@ -55,37 +58,29 @@ object Literal {
 	private def hasSuffix(string: String, suffix: String): Boolean =
 		string.toLowerCase.endsWith(suffix)
 
-	private def stripFixedPointSuffix(string: String): String = {
-		val isUnsigned = hasSuffix(string, "u")
-		val isLong = hasSuffix(string, "l")
-		val isLongLong = hasSuffix(string, "ll")
-		val isUnsignedLong = hasSuffix(string, "ul") || hasSuffix(string, "lu")
-		val isUnsignedLongLong = hasSuffix(string, "ull") || hasSuffix(string, "llu")
-
-		val charsToStrip = if isUnsignedLongLong then
+	private def stripFixedPointSuffix(literal: Lit): String = {
+		val charsToStrip = if literal.isUnsignedLongLong then
 			3
-		else if isLongLong || isUnsignedLong then
+		else if literal.isLongLong || literal.isUnsignedLong then
 			2
-		else if isLong || isUnsigned then
+		else if literal.isLong || literal.isUnsigned then
 			1
 		else
 			0
 
-		val pre = string.take(string.length - charsToStrip).mkString
+		val withoutSuffix = literal.s.take(literal.s.length - charsToStrip).mkString
 
-		if pre.startsWith("0x") then
-			val bigInt = BigInteger(pre.drop(2), 16);
+		if withoutSuffix.startsWith("0x") then
+			val bigInt = BigInteger(withoutSuffix.drop(2), 16);
 			bigInt.toString
 		else
-			pre
+			withoutSuffix
 	}
-
-
 
 	private def castNumericLiteral(str: String) = {
 		val literal = Lit(str)
 
-		val lit = stripFixedPointSuffix(literal.s)
+		val lit = stripFixedPointSuffix(literal)
 
 		if literal.isUnsignedLongLong then
 			val bigInt = BigInteger(lit)
