@@ -492,6 +492,19 @@ class BinaryExpr extends StandardTest {
 		checkResults(code)
 	}
 
+	"A modulus assign test" should "print the correct results" in {
+		val code =
+			"""
+				void main() {
+					int x = 20;
+					printf("%d\n", x);
+					x %= 7;
+					printf("%d\n", x);
+				}"""
+
+		checkResults(code)
+	}
+
 	"A binary OR test" should "print the correct results" in {
 		val code =
 			"""
