@@ -93,13 +93,13 @@ object State {
 		val execution = contents ++ (if (iter != null) List(continueLabel, iter) else List(continueLabel))
 
 		val result = if forStatement.getConditionExpression != null then
-			JmpToLabelIfNotZero(forStatement.getConditionExpression, breakLabel) +: execution :+ JmpLabel(beginLabel)
+			List(JmpToLabelIfNotZero(forStatement.getConditionExpression, breakLabel)) ++ execution
 		else
-			execution :+ JmpLabel(beginLabel)
+			execution
 
 		val start = List(PushVariableStack()) ++ init :+ beginLabel
 
-		start ++ (beginLabel +: result :+ breakLabel :+ PopVariableStack())
+		start ++ (beginLabel +: result :+ JmpLabel(beginLabel) :+ breakLabel :+ PopVariableStack())
 	}
 
 	private def compileWhileStatement(whileStatement: IASTWhileStatement)(implicit state: State) = {
