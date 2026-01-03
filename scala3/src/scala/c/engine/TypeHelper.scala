@@ -3,7 +3,7 @@ package scala.c.engine
 import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
 import org.eclipse.cdt.core.dom.ast._
 import org.eclipse.cdt.internal.core.dom.parser.c._
-
+import org.eclipse.cdt.core.dom.ast.IASTSimpleDeclSpecifier._
 import scala.c.engine.ast.Expressions
 
 object TypeHelper {
@@ -151,14 +151,12 @@ object TypeHelper {
 
 	def getType(idExpr: IASTTypeId) = idExpr.getDeclSpecifier match {
 		case simple: IASTSimpleDeclSpecifier =>
-			import org.eclipse.cdt.core.dom.ast.IASTSimpleDeclSpecifier._
 
 			var config = 0
 
 			if simple.isLongLong then
 				config |= IBasicType.IS_LONG_LONG
-
-			if simple.isLong then
+			else if simple.isLong then
 				config |= IBasicType.IS_LONG
 
 			if simple.isShort then
@@ -169,13 +167,15 @@ object TypeHelper {
 			else
 				config |= IBasicType.IS_SIGNED
 
-			var result: IType = simple.getType match
-				case `t_unspecified` => CBasicType(IBasicType.Kind.eInt, config)
-				case `t_int` => CBasicType(IBasicType.Kind.eInt, config)
-				case `t_float` => CBasicType(IBasicType.Kind.eFloat, config)
-				case `t_double` => CBasicType(IBasicType.Kind.eDouble, config)
-				case `t_char` => CBasicType(IBasicType.Kind.eChar, config)
-				case `t_void` => CBasicType(IBasicType.Kind.eVoid, config)
+			val basicType = simple.getType match
+				case `t_unspecified` => IBasicType.Kind.eInt
+				case `t_int` => IBasicType.Kind.eInt
+				case `t_float` => IBasicType.Kind.eFloat
+				case `t_double` => IBasicType.Kind.eDouble
+				case `t_char` => IBasicType.Kind.eChar
+				case `t_void` => IBasicType.Kind.eVoid
+
+			var result: IType = CBasicType(basicType, config)
 
 			for ptr <- idExpr.getAbstractDeclarator.getPointerOperators do
 				result = CPointerType(result, 0)
@@ -188,13 +188,13 @@ object TypeHelper {
 			TypeInfo(elab.getName.resolveBinding().asInstanceOf[CStructure])
 	}
 
+	// 1-2-26: This isnt being hit
 	def getType(value: cEngVal): IBasicType = {
 		var config = 0
 
 		if value.isInstanceOf[Long] then
 			config |= IBasicType.IS_LONG
-
-		if value.isInstanceOf[Short] then
+		else if value.isInstanceOf[Short] then
 			config |= IBasicType.IS_SHORT
 
 		val theType = value match
@@ -207,7 +207,7 @@ object TypeHelper {
 			case short: Short => IBasicType.Kind.eInt
 			case char: char => IBasicType.Kind.eChar
 
-		CBasicType(IBasicType.Kind.eChar, config)
+		CBasicType(theType, config)
 	}
 
 	// resolves 'ValueType' to 'RValue'
