@@ -30,56 +30,67 @@ object Literal {
 		result.toList.mkString
 	}
 
-	def cast(litStr: String): ValueType = {
+	private def hasSuffix(string: String, suffix: String): Boolean =
+		string.toLowerCase.endsWith(suffix)
 
-		def isIntNumber(s: String): Boolean = (allCatch opt s.toInt).isDefined
-		def isLongNumber(s: String): Boolean = (allCatch opt s.toLong).isDefined
-
-		val isFloat = litStr.takeRight(1).toLowerCase == "f"
-		val isUnsigned = litStr.takeRight(1).toLowerCase == "u"
-		val isLong = litStr.takeRight(1).toLowerCase == "l"
-		val isLongLoong = litStr.takeRight(2).toLowerCase == "ll"
-		val isUnsignedLong = litStr.takeRight(2).toLowerCase == "ul"
-		val isUnsignedLongLong = litStr.takeRight(3).toLowerCase == "ull"
+	private def stripSuffix(string: String): String = {
+		val isFloat = hasSuffix(string, "f")
+		val isUnsigned = hasSuffix(string, "u")
+		val isLong = hasSuffix(string, "l")
+		val isLongLong = hasSuffix(string, "ll")
+		val isUnsignedLong = hasSuffix(string, "ul")
+		val isUnsignedLongLong = hasSuffix(string, "ull")
 
 		val charsToStrip = if isUnsignedLongLong then
 			3
-		else if isLongLoong || isUnsignedLong then
+		else if isLongLong || isUnsignedLong then
 			2
 		else if isLong || isUnsigned then
 			1
 		else
 			0
 
-		val pre = litStr.take(litStr.length - charsToStrip).mkString
+		val pre = string.take(string.length - charsToStrip).mkString
 
 		val post = process(pre)
 
-		val lit = if post.startsWith("0x") then
-			val bigInt = new BigInteger(pre.drop(2), 16);
+		if post.startsWith("0x") then
+			val bigInt = BigInteger(pre.drop(2), 16);
 			bigInt.toString
 		else
 			post
+	}
 
-		val result = if (lit.head == '\"' && lit.last == '\"') {
+	def cast(litStr: String): ValueType = {
+
+		def isIntNumber(s: String): Boolean = s.toIntOption.isDefined
+		def isLongNumber(s: String): Boolean = s.toLongOption.isDefined
+
+		val isFloat = hasSuffix(litStr, "f")
+		val isLong = hasSuffix(litStr, "l")
+		val isUnsignedLong = hasSuffix(litStr, "ul")
+		val isUnsignedLongLong = hasSuffix(litStr, "ull")
+
+		val lit = stripSuffix(litStr)
+
+		val result = if lit.head == '\"' && lit.last == '\"' then
 			StringLiteral(lit)
-		} else if (lit.head == '\'' && lit.last == '\'') {
-			RValue(lit.toCharArray.apply(1).toByte, new CBasicType(IBasicType.Kind.eChar, 0))
-		} else if (isUnsignedLongLong) {
-			val bigInt = new BigInteger(lit)
+		else if lit.head == '\'' && lit.last == '\'' then
+			RValue(lit.toCharArray.apply(1).toByte, TypeHelper.charType)
+		else if isUnsignedLongLong then
+			val bigInt = BigInteger(lit)
 			TypeHelper.getLongLong(bigInt)
-		} else if (isUnsignedLong || isLong) {
+		else if isUnsignedLong || isLong then
 			TypeHelper.getLong(lit)
-		} else if (isIntNumber(lit)) {
+		else if isIntNumber(lit) then
 			RValue(lit.toInt, TypeHelper.intType)
-		} else if (isLongNumber(lit)) {
+		else if isLongNumber(lit) then
 			TypeHelper.getLong(lit)
-		} else if (isFloat) {
+		else if isFloat then
 			val num = lit.toCharArray.filter(x => x != 'f' && x != 'F').mkString
 			RValue(num.toFloat, TypeHelper.floatType)
-		} else {
+		else
 			RValue(lit.toDouble, TypeHelper.doubleType)
-		}
 
 		result
 	}

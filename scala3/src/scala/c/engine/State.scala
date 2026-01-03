@@ -266,7 +266,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 		functionList += fcn
 
-		val fcnType = new CFunctionType(new CBasicType(IBasicType.Kind.eVoid, 0), null)
+		val fcnType = CFunctionType(CBasicType(IBasicType.Kind.eVoid, 0), null)
 		val newVar = Variable(fcn.name, State.this, fcnType)
 		Stack.writeToMemory(count, newVar.address, fcnType)
 

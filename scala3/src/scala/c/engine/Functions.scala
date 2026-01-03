@@ -590,13 +590,13 @@ object Functions {
 			var current: char = 0
 			var i = 0
 
-			current = state.Stack.readFromMemory(straddy + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[char]
+			current = state.Stack.readFromMemory(straddy + i, TypeHelper.charType).value.asInstanceOf[char]
 
 			while (current != 0) {
 				if (current != 0) {
 					i += 1
 				}
-				current = state.Stack.readFromMemory(straddy + i, new CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[char]
+				current = state.Stack.readFromMemory(straddy + i, TypeHelper.charType).value.asInstanceOf[char]
 			}
 			Some(RValue(i))
 		}
@@ -686,7 +686,7 @@ object Functions {
 			var same = true
 
 			for (i <- (0 until numBytes)) {
-				same &= state.Stack.readFromMemory(memaddy + i, new CBasicType(IBasicType.Kind.eChar, 0)).value == state.Stack.readFromMemory(memaddy2 + i, new CBasicType(IBasicType.Kind.eChar, 0)).value
+				same &= state.Stack.readFromMemory(memaddy + i, TypeHelper.charType).value == state.Stack.readFromMemory(memaddy2 + i, CBasicType(IBasicType.Kind.eChar, 0)).value
 			}
 
 			Some(RValue((if (same) 0 else 1)))
@@ -709,9 +709,9 @@ object Functions {
 				case "unsigned int" => (4, TypeHelper.unsignedIntType)
 				case "int" => (4, TypeHelper.intType)
 				case "double" => (8, TypeHelper.doubleType)
-				case "char" => (1, new CBasicType(IBasicType.Kind.eChar, 0))
-				case "char *" => (4, new CPointerType(new CBasicType(IBasicType.Kind.eChar, 0), 0))
-				case "unsigned long" => (8, new CPointerType(new CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG), 0))
+				case "char" => (1, TypeHelper.charType)
+				case "char *" => (4, CPointerType(TypeHelper.charType, 0))
+				case "unsigned long" => (8, CPointerType(CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG), 0))
 			})
 
 			val current = varArgStartingAddr.head
@@ -761,7 +761,7 @@ object Functions {
 			val index = result1.indexOf('.')
 			val resultString = result1.replace(".", "")
 
-			val array = resultString.toCharArray.map { char => RValue(char.toByte, new CBasicType(IBasicType.Kind.eChar, 0)) }.toList
+			val array = resultString.toCharArray.map { char => RValue(char.toByte, TypeHelper.charType) }.toList
 
 			state.Stack.writeToMemory(index, decpt, TypeHelper.intType)
 

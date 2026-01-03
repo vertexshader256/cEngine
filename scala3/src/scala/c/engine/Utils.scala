@@ -38,7 +38,7 @@ object Utils {
 	}
 
 	private def readChar(address: Int)(implicit state: State): Char = {
-		state.Stack.readFromMemory(address, CBasicType(IBasicType.Kind.eChar, 0)).value.asInstanceOf[Byte].toChar
+		state.Stack.readFromMemory(address, TypeHelper.charType).value.asInstanceOf[Byte].toChar
 	}
 
 	def readString(address: Int)(implicit state: State): String = {
