@@ -33,8 +33,7 @@ object Literal {
 	private def hasSuffix(string: String, suffix: String): Boolean =
 		string.toLowerCase.endsWith(suffix)
 
-	private def stripSuffix(string: String): String = {
-		val isFloat = hasSuffix(string, "f")
+	private def stripFixedPointSuffix(string: String): String = {
 		val isUnsigned = hasSuffix(string, "u")
 		val isLong = hasSuffix(string, "l")
 		val isLongLong = hasSuffix(string, "ll")
@@ -63,20 +62,22 @@ object Literal {
 
 	def cast(litStr: String): ValueType = {
 
-		def isIntNumber(s: String): Boolean = s.toIntOption.isDefined
-		def isLongNumber(s: String): Boolean = s.toLongOption.isDefined
+		def isIntNumber(s: String) = s.toIntOption.isDefined
+		def isLongNumber(s: String) = s.toLongOption.isDefined
+		def isQuoted(s: String) = s.head == '\"' && s.last == '\"'
+		def isChar(s: String) = s.head == '\'' && s.last == '\''
 
 		val isFloat = hasSuffix(litStr, "f")
 		val isLong = hasSuffix(litStr, "l")
 		val isUnsignedLong = hasSuffix(litStr, "ul")
 		val isUnsignedLongLong = hasSuffix(litStr, "ull")
 
-		val lit = stripSuffix(litStr)
+		val lit = stripFixedPointSuffix(litStr)
 
-		val result = if lit.head == '\"' && lit.last == '\"' then
+		val result = if isQuoted(lit) then
 			StringLiteral(lit)
-		else if lit.head == '\'' && lit.last == '\'' then
-			RValue(lit.toCharArray.apply(1).toByte, TypeHelper.charType)
+		else if isChar(lit) then
+			RValue(lit(1).toByte, TypeHelper.charType)
 		else if isUnsignedLongLong then
 			val bigInt = BigInteger(lit)
 			TypeHelper.getLongLong(bigInt)
