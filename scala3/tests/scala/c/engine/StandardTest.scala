@@ -82,12 +82,45 @@ class StandardTest extends AsyncFlatSpec {
 		}
 	}
 
-	private def getCEngineOutput(codeInFiles: Seq[String], shouldBootstrap: Boolean, pointerSize: NumBits, arguments: List[String], includePaths: List[String]): List[String] = {
-		var result = List[String]()
+	private def callMain(state: State, arguments: List[String]) = {
+		state.parseGlobals(state.sources)
 
+		val program = state.context
+
+		val args = List(".") ++ arguments
+
+		val functionCall = if (args.nonEmpty) {
+			val fcnName = new CASTIdExpression(new CASTName("main".toCharArray))
+			val factory = state.sources.head.getTranslationUnit.getASTNodeFactory
+			val sizeExpr = factory.newLiteralExpression(IASTLiteralExpression.lk_integer_constant, args.size.toString)
+
+			val stringType = new CPointerType(new CBasicType(IBasicType.Kind.eChar, IBasicType.IS_UNSIGNED), 0)
+
+			val stringAddresses = args.map { arg =>
+				val addr = state.getString("\"" + arg + "\"").value
+				RValue(addr, stringType)
+			}
+
+			val theType = new CPointerType(stringType, 0)
+			val newVar = program.addVariable("mainInfo", theType)
+			val start = state.allocateSpace(stringAddresses.size * 4)
+			state.writeDataBlock(stringAddresses, start)(state)
+			newVar.setValue(RValue(start, TypeHelper.intType))
+
+			val varExpr = factory.newIdExpression(factory.newName("mainInfo"))
+
+			new CASTFunctionCallExpression(fcnName, List(sizeExpr, varExpr).toArray)
+		} else {
+			null
+		}
+
+		state.callTheFunction("main", functionCall, Some(program))(state)
+	}
+
+	private def getCEngineOutput(codeInFiles: Seq[String], shouldBootstrap: Boolean, pointerSize: NumBits,
+															 arguments: List[String], includePaths: List[String]): List[String] = {
 		try {
-			//val start = System.nanoTime
-			
+
 			val state = if (shouldBootstrap) {
 				val ast = State.parseCode(codeInFiles, includePaths)
 				val state = new State(ast, pointerSize)
@@ -104,49 +137,15 @@ class StandardTest extends AsyncFlatSpec {
 
 			val errors = state.sources.flatMap { tUnit => getErrors(tUnit, List()) }
 
-			if (errors.isEmpty) {
-
-				state.parseGlobals(state.sources)
-
-				val program = state.context
-
-				val args = List(".") ++ arguments
-
-				val functionCall = if (args.nonEmpty) {
-					val fcnName = new CASTIdExpression(new CASTName("main".toCharArray))
-					val factory = state.sources.head.getTranslationUnit.getASTNodeFactory
-					val sizeExpr = factory.newLiteralExpression(IASTLiteralExpression.lk_integer_constant, args.size.toString)
-
-					val stringType = new CPointerType(new CBasicType(IBasicType.Kind.eChar, IBasicType.IS_UNSIGNED), 0)
-
-					val stringAddresses = args.map { arg =>
-						val addr = state.getString("\"" + arg + "\"").value
-						RValue(addr, stringType)
-					}
-
-					val theType = new CPointerType(stringType, 0)
-					val newVar = program.addVariable("mainInfo", theType)
-					val start = state.allocateSpace(stringAddresses.size * 4)
-					state.writeDataBlock(stringAddresses, start)(state)
-					newVar.setValue(RValue(start, TypeHelper.intType))
-
-					val varExpr = factory.newIdExpression(factory.newName("mainInfo"))
-
-					new CASTFunctionCallExpression(fcnName, List(sizeExpr, varExpr).toArray)
-				} else {
-					null
-				}
-
-				state.callTheFunction("main", functionCall, Some(program))(state)
-				result = getResults(state.stdout.toList)
-			} else {
-				result = errors
-			}
+			if errors.isEmpty then
+				// Good to go!
+				callMain(state, arguments)
+				getResults(state.stdout.toList)
+			else
+				errors
 		} catch {
-			case e => e.printStackTrace()
+			case e => e.printStackTrace(); List()
 		}
-
-		result
 	}
 
 	// blocking
@@ -207,9 +206,7 @@ class StandardTest extends AsyncFlatSpec {
 					val runner = Process(Seq(exeFile.getAbsolutePath) ++ args, new File("."))
 					val run = runner.run(runLogger.process)
 
-					files.foreach {
-						_.delete()
-					}
+					files.foreach(_.delete())
 
 					run.exitValue()
 
