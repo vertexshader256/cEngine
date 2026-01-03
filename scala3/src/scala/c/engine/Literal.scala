@@ -29,8 +29,8 @@ object Literal {
 		val isUnsigned = hasSuffix(string, "u")
 		val isLong = hasSuffix(string, "l")
 		val isLongLong = hasSuffix(string, "ll")
-		val isUnsignedLong = hasSuffix(string, "ul")
-		val isUnsignedLongLong = hasSuffix(string, "ull")
+		val isUnsignedLong = hasSuffix(string, "ul") || hasSuffix(string, "lu")
+		val isUnsignedLongLong = hasSuffix(string, "ull") || hasSuffix(string, "llu")
 
 		val charsToStrip = if isUnsignedLongLong then
 			3
@@ -61,8 +61,8 @@ object Literal {
 
 		val isFloat = hasSuffix(litStr, "f")
 		val isLong = hasSuffix(litStr, "l")
-		val isUnsignedLong = hasSuffix(litStr, "ul")
-		val isUnsignedLongLong = hasSuffix(litStr, "ull")
+		val isUnsignedLong = hasSuffix(litStr, "ul") || hasSuffix(litStr, "lu")
+		val isUnsignedLongLong = hasSuffix(litStr, "ull") || hasSuffix(litStr, "llu")
 
 		val lit = stripFixedPointSuffix(litStr)
 

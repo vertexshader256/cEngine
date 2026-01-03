@@ -56,7 +56,8 @@ class Literal extends StandardTest {
 				unsigned long j = 43423uL;
 				unsigned long k = 43423Ul;
 				unsigned long z = 43423ul;
-        printf("%ul %ul %ul %ul %ul\n", x, y, j, k, z);
+				unsigned long z2 = 43423lu;
+        printf("%ul %ul %ul %ul %ul %ul\n", x, y, j, k, z, z2);
       }"""
 
 		checkResults(code)
@@ -74,29 +75,32 @@ class Literal extends StandardTest {
 		checkResults(code)
 	}
 
-	"parsing shorter unsigned long long 2" should "print the correct results" in {
-		val code =
-			"""
-			int main() {
-					unsigned long long x = 0x800000045400000ULL;
-					printf("%d", x);
-					return 0;
-			}"""
-		checkResults(code)
-	}
-
-	// TODO: Try and figure out unsigned long long
 	"an unsigned long long suffix test" should "print the correct results" in {
 		val code =
 			"""
       void main() {
-	 			//unsigned long long j = 18446744073709551615ULL; // max value of a long long
 		 		unsigned long long j = 23452345ULL;
 				unsigned long long k = 2342342ull;
 				unsigned long long l = 2342342uLL;
-        printf("%ull %ull %ull\n", j, k, l);
+				unsigned long long z = 2342342Ull;
+			  unsigned long long z2 = 2342342uLL;
+        printf("%ull %ull %ull %ull %ull\n", j, k, l, z, z2);
       }"""
 
+		checkResults(code)
+	}
+
+	"an unsigned long long suffix test 2" should "print the correct results" in {
+		val code =
+			"""
+				int main() {
+						unsigned long long x = 0x800000045400000ULL;
+						unsigned long long y = 0x800000045400000LLU;
+						unsigned long long x2 = 0x800000045400000ull;
+						unsigned long long y2 = 0x800000045400000llu;
+						printf("%d %d %d %d", x, y, x2, y2);
+						return 0;
+				}"""
 		checkResults(code)
 	}
 }
