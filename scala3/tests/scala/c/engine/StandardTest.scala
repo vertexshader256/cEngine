@@ -1,18 +1,11 @@
 package scala.c.engine
 
-import org.eclipse.cdt.core.dom.ast.*
-import org.eclipse.cdt.internal.core.dom.parser.c.*
 import org.scalatest.*
 import org.scalatest.flatspec.AsyncFlatSpec
 
-import java.io.{File, PrintWriter}
 import java.util.concurrent.atomic.AtomicInteger
 import scala.c.engine.NumBits.*
-import scala.collection.mutable.ListBuffer
 import scala.concurrent.*
-import scala.concurrent.duration.Duration
-import scala.io.Source
-import scala.sys.process.Process
 
 object StandardTest {
 	val cFileCount = new AtomicInteger()
@@ -36,7 +29,6 @@ object StandardTest {
 }
 
 abstract class StandardTest2(name: String = "", code: String) extends StandardTest {
-
 	val numBits: NumBits = SixtyFourBits
 
 	name should "print the correct results" in {
@@ -45,7 +37,6 @@ abstract class StandardTest2(name: String = "", code: String) extends StandardTe
 }
 
 class StandardTest extends AsyncFlatSpec {
-
 	implicit override def executionContext: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
 	def checkResults(code: String, shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits,
@@ -53,8 +44,6 @@ class StandardTest extends AsyncFlatSpec {
 		testGccVsCEngine(Seq(code), shouldBootstrap, pointerSize, args, includePaths)
 	}
 
-	
-	
 	def testGccVsCEngine(codeInFiles: Seq[String], shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits,
 										args: List[String] = List(), includePaths: List[String] = List()) = {
 
