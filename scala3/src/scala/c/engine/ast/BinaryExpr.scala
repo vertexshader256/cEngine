@@ -102,7 +102,7 @@ object BinaryExpr {
 						x >> op2.asInstanceOf[Int]
 					case `op_shiftLeft` | `op_shiftLeftAssign` =>
 						x << op2.asInstanceOf[Int]
-					case `op_modulo` =>
+					case `op_modulo` | `op_moduloAssign` =>
 						op2 match
 							case y: Long => x % y
 							case y: Int => x % y
