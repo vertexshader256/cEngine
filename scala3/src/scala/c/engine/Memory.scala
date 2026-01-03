@@ -15,27 +15,27 @@ class Memory(size: Int) {
 	def writeToMemory(newVal: cEngVal, address: Int, theType: IType, bitOffset: Int = 0, sizeInBits: Int = 0): Unit = {
 
 		TypeHelper.stripSyntheticTypeInfo(theType) match {
-			case basic: IBasicType if basic.getKind == eInt && basic.isShort =>
+			case basic: IBasicType if basic.isShort =>
 				newVal match
 					case int: Int => tape.putShort(address, int.asInstanceOf[Short])
 					case short: Short => tape.putShort(address, short)
-			case basic: IBasicType if basic.getKind == eInt && basic.isLongLong =>
+			case basic: IBasicType if basic.isLongLong =>
 				newVal match
 					case long: Long => tape.putLong(address, long)
 					case int: Int => tape.putInt(address, int)
-			case basic: IBasicType if basic.getKind == eInt && basic.isLong =>
+			case basic: IBasicType if basic.isLong =>
 				newVal match
 					case long: Long => tape.putInt(address, long.toInt)
 			case _: CEnumeration =>
 				newVal match
 					case int: Int => tape.putInt(address, int)
-			case basic: IBasicType if basic.getKind == eInt || basic.getKind == eVoid =>
+			case basic: IBasicType if basic.getKind == eInt =>
 				newVal match {
 					case int: Int =>
 						val x = if (bitOffset != 0) {
 							val currentVal = tape.getInt(address)
 							val right = currentVal << (32 - bitOffset) >>> (32 - bitOffset)
-							val left = currentVal >>> (sizeInBits + bitOffset) << (sizeInBits + bitOffset)
+							val left = currentVal >> (sizeInBits + bitOffset) << (sizeInBits + bitOffset)
 
 							val newVal = int << bitOffset
 							left + newVal + right
@@ -46,17 +46,15 @@ class Memory(size: Int) {
 						tape.putInt(address, x)
 					case long: Long => tape.putInt(address, long.toInt)
 				}
-			case basic: IBasicType if basic.getKind == eDouble =>
+			case basic: IBasicType if basic.getKind == eDouble || basic.getKind == eFloat =>
 				newVal match
 					case double: Double => tape.putDouble(address, double)
-			case basic: IBasicType if basic.getKind == eFloat =>
-				newVal match
 					case float: Float => tape.putFloat(address, float)
 			case basic: IBasicType if basic.getKind == eChar =>
 				newVal match
 					case char: char => tape.putByte(address, char)
 					case int: Int => tape.putByte(address, int.toByte)
-			case basic: IBasicType if basic.getKind == eBoolean =>
+			case basic: IBasicType =>
 				tape.putInt(address, newVal.asInstanceOf[Int])
 			case _: IFunctionType =>
 				tape.writePointerToMemory(newVal, address)
