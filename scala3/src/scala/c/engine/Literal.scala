@@ -3,11 +3,20 @@ package scala.c.engine
 import java.math.BigInteger
 import scala.util.Try
 
+// raw string - may contains quotes, prefixes and postfixes
 case class Lit(s: String) {
 	def isQuoted = s.head == '\"' && s.last == '\"'
 	def isChar = s.head == '\'' && s.last == '\''
 	def isIntNumber = s.toIntOption.isDefined
 	def isLongNumber = s.toLongOption.isDefined
+
+	private def hasSuffix(string: String, suffix: String): Boolean =
+		string.toLowerCase.endsWith(suffix)
+
+	val isFloat = hasSuffix(s, "f")
+	val isLong = hasSuffix(s, "l")
+	val isUnsignedLong = hasSuffix(s, "ul") || hasSuffix(s, "lu")
+	val isUnsignedLongLong = hasSuffix(s, "ull") || hasSuffix(s, "llu")
 }
 
 object Literal {
@@ -73,25 +82,21 @@ object Literal {
 
 
 
-	private def castNumericLiteral(literal: String) = {
-		val isFloat = hasSuffix(literal, "f")
-		val isLong = hasSuffix(literal, "l")
-		val isUnsignedLong = hasSuffix(literal, "ul") || hasSuffix(literal, "lu")
-		val isUnsignedLongLong = hasSuffix(literal, "ull") || hasSuffix(literal, "llu")
+	private def castNumericLiteral(str: String) = {
+		val literal = Lit(str)
 
-		val lit = stripFixedPointSuffix(literal)
+		val lit = stripFixedPointSuffix(literal.s)
 
-
-		if isUnsignedLongLong then
+		if literal.isUnsignedLongLong then
 			val bigInt = BigInteger(lit)
 			TypeHelper.getLongLong(bigInt)
-		else if isUnsignedLong || isLong then
+		else if literal.isUnsignedLong || literal.isLong then
 			TypeHelper.getLong(lit)
 		else if Lit(lit).isIntNumber then
 			RValue(lit.toInt, TypeHelper.intType)
 		else if Lit(lit).isLongNumber then
 			TypeHelper.getLong(lit)
-		else if isFloat then
+		else if literal.isFloat then
 			val num = lit.toCharArray.filter(x => x != 'f' && x != 'F').mkString
 			RValue(num.toFloat, TypeHelper.floatType)
 		else
