@@ -103,4 +103,15 @@ class Literal extends StandardTest {
 				}"""
 		checkResults(code)
 	}
+
+	"UTF-8 encoding test" should "print the correct results" in {
+		val code =
+			"""
+			int main() {
+					char *x = u8"test";
+					printf("%s", x);
+					return 0;
+			}"""
+		checkResults(code)
+	}
 }
