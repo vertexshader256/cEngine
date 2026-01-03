@@ -66,12 +66,7 @@ object Literal {
 		} else if (lit.head == '\'' && lit.last == '\'') {
 			RValue(lit.toCharArray.apply(1).toByte, new CBasicType(IBasicType.Kind.eChar, 0))
 		} else if (isUnsignedLongLong) {
-
-			val bigInt = if post.startsWith("0x") then
-				new BigInteger(pre.drop(2), 16);
-			else
-				new BigInteger(pre);
-			
+			val bigInt = new BigInteger(lit)
 			TypeHelper.getLongLong(bigInt)
 		} else if (isUnsignedLong || isLong) {
 			TypeHelper.getLong(lit)
