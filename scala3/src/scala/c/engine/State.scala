@@ -176,6 +176,10 @@ object State {
 		else
 			PushVariableStack() +: compound.getStatements.flatMap(compile).toList :+ PopVariableStack()
 	}
+
+	def parseCode(codes: Seq[String], includePaths: List[String]): List[IASTTranslationUnit] = {
+		codes.map { code => Utils.getTranslationUnit(code, includePaths) }.toList
+	}
 }
 
 class State(val pointerSize: NumBits) {
@@ -247,6 +251,16 @@ class State(val pointerSize: NumBits) {
 	def init(codes: Seq[String], includePaths: List[String]): Unit = {
 		sources = codes.map { code => Utils.getTranslationUnit(code, includePaths) }.toList
 
+		sources.foreach { tUnit =>
+			tUnit.getChildren.collect { case x: IASTFunctionDefinition => x }
+				.filter(fcn => fcn.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
+				.foreach { fcnDef =>
+					addFunctionDef(fcnDef, fcnDef.getDeclarator.getName.toString == "main")
+				}
+		}
+	}
+	
+	def addMain(sources: List[IASTTranslationUnit]) = {
 		sources.foreach { tUnit =>
 			tUnit.getChildren.collect { case x: IASTFunctionDefinition => x }
 				.filter(fcn => fcn.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)

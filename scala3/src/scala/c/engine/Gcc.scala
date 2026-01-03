@@ -16,11 +16,11 @@ object Gcc {
         }
       """
 
-		state.init(Seq(exeCode), includePaths.toList)
+		val ast = State.parseCode(Seq(exeCode), includePaths.toList)
+		state.addMain(ast)
 		state.callTheFunction("main", null, Some(program), true)(using state)
-		val main = state.functionList.find {
-			_.name == "main"
-		}.get
+
+		val main = state.functionList.find(_.name == "main").get
 		state.functionList -= main
 	}
 
