@@ -35,3 +35,5 @@ shared/.jvm
 bin/
 .cache-tests
 .cache-main
+
+results.json

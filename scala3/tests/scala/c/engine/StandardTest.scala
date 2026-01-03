@@ -150,6 +150,8 @@ class StandardTest extends AsyncFlatSpec {
 	def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits,
 										args: List[String] = List(), includePaths: List[String] = List()) = {
 
+		val codeBeingRun = codeInFiles.mkString
+
 		try {
 
 			val files = codeInFiles.map { code =>
@@ -248,11 +250,22 @@ class StandardTest extends AsyncFlatSpec {
 				case e => logger.errors.toSeq
 			}
 
+
+
 			val completion = Future.sequence(List(cEngineFuture, gccExeFut))
 
 			completion.map { x =>
 				val cEngineOutput = x.head
 				val gccOutput = x.last
+
+				TestResults.loadSavedResults()
+
+				val priorRunResults = TestResults.getSavedResult(codeBeingRun)
+				println("SAVED RESULT: " + priorRunResults)
+
+				TestResults.addResult(codeBeingRun, gccOutput.mkString)
+				TestResults.writeResultsFile()
+
 				info("C_Engine output: " + cEngineOutput)
 				info("Gcc      output: " + gccOutput)
 

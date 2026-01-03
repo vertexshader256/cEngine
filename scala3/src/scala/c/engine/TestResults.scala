@@ -5,10 +5,11 @@ import java.security.MessageDigest
 import scala.collection.mutable
 import upickle.default.*
 
-import java.io.{File, PrintWriter}
+import java.io.{BufferedWriter, File, FileWriter, PrintWriter}
 import java.nio.file.{Files, Paths}
 
 object TestResults {
+	var areResultsLoaded = false
 	val digest = MessageDigest.getInstance("SHA-256")
 	val results: mutable.Map[String, String] = mutable.HashMap()
 	val resultsFileName = "results.json"
@@ -41,13 +42,19 @@ object TestResults {
 	}
 
 	def loadSavedResults() = {
-		val resultsBytes = Files.readAllBytes(Paths.get(resultsFileName))
-		results ++= read[Map[String, String]](resultsBytes)
+		if !areResultsLoaded then
+			val resultsBytes = Files.readAllBytes(Paths.get(resultsFileName))
+			val priorResults = read[Map[String, String]](resultsBytes)
+			results ++= priorResults
+			println(s"Loading saved results for ${priorResults.size} tests")
+			areResultsLoaded = true
 	}
 
 	def writeResultsFile() = {
 		val jsonString: String = write(results)
-		val writer = new PrintWriter(new File(resultsFileName))
-		writer.write(jsonString)
+
+		val bw = new BufferedWriter(new FileWriter(new File(resultsFileName)))
+		bw.write(jsonString)
+		bw.close()
 	}
 }
