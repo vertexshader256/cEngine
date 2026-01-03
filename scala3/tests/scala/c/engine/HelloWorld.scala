@@ -7,6 +7,6 @@ class HelloWorld extends StandardTest {
 		import Interpreter._
 		implicit val state = new State(List(), ThirtyTwoBits)
 		c"""printf("Hello World!\n");"""
-		assert(getResults(state.stdout.toList) == List("Hello World!"))
+		assert(CEngine.getResults(state.stdout.toList) == List("Hello World!"))
 	}
 }

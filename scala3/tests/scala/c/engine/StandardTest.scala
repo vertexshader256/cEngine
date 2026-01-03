@@ -17,6 +17,22 @@ import scala.sys.process.Process
 object StandardTest {
 	val cFileCount = new AtomicInteger()
 	val exeCount = new AtomicInteger()
+
+	private def getGccOutput(codeInFiles: Seq[String], pointerSize: NumBits = ThirtyTwoBits,
+													 args: List[String] = List(), includePaths: List[String] = List()) = {
+		TestResults.loadSavedResults()
+
+		val codeBeingRun = codeInFiles.mkString
+
+		TestResults.getSavedGccOutput(codeBeingRun).map: priorRunResult =>
+			priorRunResult
+		.getOrElse:
+			val testId = StandardTest.exeCount.incrementAndGet.toString
+			val gccOutput = Gcc.getGccOutput(codeInFiles, testId, pointerSize, args, includePaths)
+			TestResults.addGccResult(codeBeingRun, gccOutput)
+			TestResults.writeResultsFile()
+			gccOutput
+	}
 }
 
 abstract class StandardTest2(name: String = "", code: String) extends StandardTest {
@@ -32,225 +48,22 @@ class StandardTest extends AsyncFlatSpec {
 
 	implicit override def executionContext: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-	def getResults(stdout: List[Char]): List[String] = {
-		if (!stdout.isEmpty) {
-			val results = new ListBuffer[String]()
-
-			var currentString = new ListBuffer[Char]()
-			var writeLast = false
-
-			var index = 0
-			while (index < stdout.size) {
-
-				if (stdout(index) == '\r') {
-					results += currentString.mkString
-					currentString = new ListBuffer[Char]()
-					writeLast = false
-					index += 1
-				} else if (stdout(index) == '\n') {
-					results += currentString.mkString
-					currentString = new ListBuffer[Char]()
-					writeLast = false
-					index += 1
-				} else {
-					currentString += stdout(index)
-					writeLast = true
-					index += 1
-				}
-			}
-
-			if (writeLast) {
-				results += currentString.mkString
-			}
-			results.toList
-		} else {
-			List()
-		}
-	}
-
 	def checkResults(code: String, shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits,
 									 args: List[String] = List(), includePaths: List[String] = List()) = {
 		testGccVsCEngine(Seq(code), shouldBootstrap, pointerSize, args, includePaths)
 	}
 
-	private def getErrors(node: IASTNode, errors: List[String]): List[String] = {
-		node match {
-			case prob: CASTProblemDeclaration =>
-				println("ERROR: " + prob.getProblem.getRawSignature)
-				List("Error on: " + prob.getFileLocation.getFileName + ".c:" + prob.getFileLocation.getStartingLineNumber + ":" + prob.getParent.getRawSignature)
-			case _ => errors ++ node.getChildren.toList.flatMap { x => getErrors(x, errors) }
-		}
-	}
-
-	private def callMain(state: State, arguments: List[String]) = {
-		state.parseGlobals(state.sources)
-
-		val program = state.context
-
-		val args = List(".") ++ arguments
-
-		val functionCall = if (args.nonEmpty) {
-			val fcnName = new CASTIdExpression(new CASTName("main".toCharArray))
-			val factory = state.sources.head.getTranslationUnit.getASTNodeFactory
-			val sizeExpr = factory.newLiteralExpression(IASTLiteralExpression.lk_integer_constant, args.size.toString)
-
-			val stringType = new CPointerType(new CBasicType(IBasicType.Kind.eChar, IBasicType.IS_UNSIGNED), 0)
-
-			val stringAddresses = args.map { arg =>
-				val addr = state.getString("\"" + arg + "\"").value
-				RValue(addr, stringType)
-			}
-
-			val theType = new CPointerType(stringType, 0)
-			val newVar = program.addVariable("mainInfo", theType)
-			val start = state.allocateSpace(stringAddresses.size * 4)
-			state.writeDataBlock(stringAddresses, start)(state)
-			newVar.setValue(RValue(start, TypeHelper.intType))
-
-			val varExpr = factory.newIdExpression(factory.newName("mainInfo"))
-
-			new CASTFunctionCallExpression(fcnName, List(sizeExpr, varExpr).toArray)
-		} else {
-			null
-		}
-
-		state.callTheFunction("main", functionCall, Some(program))(state)
-	}
-
-	private def getCEngineOutput(codeInFiles: Seq[String], shouldBootstrap: Boolean, pointerSize: NumBits,
-															 arguments: List[String], includePaths: List[String]): List[String] = {
-		try {
-
-			val state = if (shouldBootstrap) {
-				val ast = State.parseCode(codeInFiles, includePaths)
-				val state = new State(ast, pointerSize)
-				state.addMain(ast)
-				state
-			} else {
-				val eePrint = Source.fromFile("./src/scala/c/engine/ee_printf.c", "utf-8").mkString
-				val code = Seq("#define HAS_FLOAT\n" + eePrint) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }
-				val ast = State.parseCode(code, includePaths)
-				val state = new State(ast, pointerSize)
-				state.addMain(ast)
-				state
-			}
-
-			val errors = state.sources.flatMap { tUnit => getErrors(tUnit, List()) }
-
-			if errors.isEmpty then
-				// Good to go!
-				callMain(state, arguments)
-				getResults(state.stdout.toList)
-			else
-				errors
-		} catch {
-			case e => e.printStackTrace(); List()
-		}
-	}
-
-	// blocking
-	private def getGccResults(cSourceCode: Seq[String], pointerSize: NumBits = ThirtyTwoBits,
-														args: List[String] = List(), includePaths: List[String] = List()): Seq[String] = {
-
-		val logger = new SyntaxLogger
-		val exeFile = new java.io.File("a" + StandardTest.exeCount.incrementAndGet + ".exe")
-
-		val files = cSourceCode.map { code =>
-			val file = new java.io.File(StandardTest.cFileCount.incrementAndGet + ".c")
-			val pw = new PrintWriter(file)
-			pw.write("#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n" + code)
-			pw.close()
-			file
-		}
-
-		val moreIncludes = includePaths.flatMap { inc =>
-			Seq("-I", inc)
-		}
-
-		val sourceFileTokens = files.flatMap { file => Seq(file.getAbsolutePath) }
-		val includeTokens = Seq("-I", Utils.mainPath) ++ moreIncludes
-
-		val size = pointerSize match {
-			case ThirtyTwoBits => Seq("gcc")
-			case SixtyFourBits => Seq("gcc")
-		}
-
-		val processTokens =
-			size ++ sourceFileTokens ++ includeTokens ++ Seq("-o", exeFile.getAbsolutePath) ++ Seq("-D", "ALLOC_TESTING")
-
-		val builder = Process(processTokens, new java.io.File("."))
-		val compile = builder.run(logger.process)
-
-		compile.exitValue()
-
-		logger.errors.toList.foreach(println)
-
-		val numErrors = 0 //logger.errors.length
-
-		val gccOutput = if (numErrors == 0) {
-
-			var isDone = false
-			val maxTries = 50 // 50 is proven to work
-			var i = 0
-			var result: Seq[String] = null
-
-			Thread.sleep(30)
-
-			// 3/1/19: Protip - This helps tests run reliably!
-			while (!isDone && i < maxTries) {
-
-				i += 1
-				try {
-					val runLogger = new RunLogger
-					// run the actual executable
-					val runner = Process(Seq(exeFile.getAbsolutePath) ++ args, new File("."))
-					val run = runner.run(runLogger.process)
-
-					files.foreach(_.delete())
-
-					run.exitValue()
-
-					result = runLogger.stdout.clone().toList
-
-					if (result.nonEmpty) {
-						isDone = true
-						exeFile.delete()
-					}
-				} catch {
-					case e: Throwable => Thread.sleep(50)
-				}
-			}
-
-			result
-		} else {
-			logger.errors.toSeq
-		}
-
-		if gccOutput != null then
-			gccOutput.toList
-		else
-			logger.errors.toSeq
-	}
-
+	
+	
 	def testGccVsCEngine(codeInFiles: Seq[String], shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits,
 										args: List[String] = List(), includePaths: List[String] = List()) = {
 
 		val gccResults = Future {
-			TestResults.loadSavedResults()
-
-			val codeBeingRun = codeInFiles.mkString
-
-			TestResults.getSavedGccOutput(codeBeingRun).map: priorRunResult =>
-				priorRunResult
-			.getOrElse:
-				val gccOutput = getGccResults(codeInFiles, pointerSize, args, includePaths)
-				TestResults.addGccResult(codeBeingRun, gccOutput)
-				TestResults.writeResultsFile()
-				gccOutput
+			StandardTest.getGccOutput(codeInFiles, pointerSize, args, includePaths)
 		}
 
 		val cEngineResults = Future {
-			getCEngineOutput(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
+			CEngine.getCEngineOutput(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
 		}
 
 		for {
