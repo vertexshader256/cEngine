@@ -86,18 +86,18 @@ class StandardTest extends AsyncFlatSpec {
 		try {
 			//val start = System.nanoTime
 			val state = new State(pointerSize)
-			val translationUnits = if (shouldBootstrap) {
+			if (shouldBootstrap) {
 				state.init(codeInFiles, includePaths)
 			} else {
 				val eePrint = Source.fromFile("./src/scala/c/engine/ee_printf.c", "utf-8").mkString
 				state.init(Seq("#define HAS_FLOAT\n" + eePrint) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }, includePaths)
 			}
 
-			val errors = translationUnits.flatMap { tUnit => getErrors(tUnit, List()) }
+			val errors = state.sources.flatMap { tUnit => getErrors(tUnit, List()) }
 
 			if (errors.isEmpty) {
 
-				state.parseGlobals(translationUnits)
+				state.parseGlobals(state.sources)
 
 				val program = state.context
 
@@ -105,7 +105,7 @@ class StandardTest extends AsyncFlatSpec {
 
 				val functionCall = if (args.nonEmpty) {
 					val fcnName = new CASTIdExpression(new CASTName("main".toCharArray))
-					val factory = translationUnits.head.getTranslationUnit.getASTNodeFactory
+					val factory = state.sources.head.getTranslationUnit.getASTNodeFactory
 					val sizeExpr = factory.newLiteralExpression(IASTLiteralExpression.lk_integer_constant, args.size.toString)
 
 					val stringType = new CPointerType(new CBasicType(IBasicType.Kind.eChar, IBasicType.IS_UNSIGNED), 0)

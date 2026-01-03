@@ -244,7 +244,7 @@ class State(val pointerSize: NumBits) {
 
 	def getFunctionByIndex(index: Int): Function = functionList.find { fcn => fcn.index == index }.get
 	
-	def init(codes: Seq[String], includePaths: List[String]): List[IASTNode] = {
+	def init(codes: Seq[String], includePaths: List[String]): Unit = {
 		sources = codes.map { code => Utils.getTranslationUnit(code, includePaths) }.toList
 
 		sources.foreach { tUnit =>
@@ -254,8 +254,6 @@ class State(val pointerSize: NumBits) {
 					addFunctionDef(fcnDef, fcnDef.getDeclarator.getName.toString == "main")
 				}
 		}
-
-		sources
 	}
 
 	private def addScalaFunctionDef(fcn: Function) = {
