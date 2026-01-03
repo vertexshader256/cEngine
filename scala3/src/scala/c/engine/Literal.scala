@@ -3,13 +3,22 @@ package scala.c.engine
 import java.math.BigInteger
 import scala.util.Try
 
+case class Lit(s: String) {
+	def isQuoted = s.head == '\"' && s.last == '\"'
+	def isChar = s.head == '\'' && s.last == '\''
+	def isIntNumber = s.toIntOption.isDefined
+	def isLongNumber = s.toLongOption.isDefined
+}
+
 object Literal {
 
 	def parse(literal: String): ValueType = {
-		if isQuoted(literal) then
+		val lit = Lit(literal)
+
+		if lit.isQuoted then
 			val post = encodeSpecialChars(literal)
 			StringLiteral(post)
-		else if isChar(literal) then
+		else if lit.isChar then
 			val post = encodeSpecialChars(literal)
 			RValue(post(1).toByte, TypeHelper.charType)
 		else
@@ -62,10 +71,7 @@ object Literal {
 			pre
 	}
 
-	private def isQuoted(s: String) = s.head == '\"' && s.last == '\"'
-	private def isChar(s: String) = s.head == '\'' && s.last == '\''
-	private def isIntNumber(s: String) = s.toIntOption.isDefined
-	private def isLongNumber(s: String) = s.toLongOption.isDefined
+
 
 	private def castNumericLiteral(literal: String) = {
 		val isFloat = hasSuffix(literal, "f")
@@ -75,14 +81,15 @@ object Literal {
 
 		val lit = stripFixedPointSuffix(literal)
 
+
 		if isUnsignedLongLong then
 			val bigInt = BigInteger(lit)
 			TypeHelper.getLongLong(bigInt)
 		else if isUnsignedLong || isLong then
 			TypeHelper.getLong(lit)
-		else if isIntNumber(lit) then
+		else if Lit(lit).isIntNumber then
 			RValue(lit.toInt, TypeHelper.intType)
-		else if isLongNumber(lit) then
+		else if Lit(lit).isLongNumber then
 			TypeHelper.getLong(lit)
 		else if isFloat then
 			val num = lit.toCharArray.filter(x => x != 'f' && x != 'F').mkString
