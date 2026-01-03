@@ -1,23 +1,16 @@
 package scala.c.engine
 
-import org.eclipse.cdt.core.dom.ast._
-import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
-
 import java.math.BigInteger
 import scala.collection.mutable.ListBuffer
 import scala.util.Try
-import scala.util.control.Exception.allCatch
 
 object Literal {
-	private def process(str: String): String = {
-
-		val theStr = str.toCharArray
-
+	private def encodeSpecialChars(str: String): String = {
 		val result = new ListBuffer[Char]()
 
 		var index = 0
-		while (index < theStr.size - 1) {
-			(theStr(index), Try(theStr(index + 1)).getOrElse(null)) match
+		while (index < str.length - 1) {
+			(str(index), Try(str(index + 1)).getOrElse(null)) match
 				case ('\\', '\\') => result += '\\'; index += 2
 				case ('\\', 'n') => result += '\n'; index += 2
 				case ('\\', 'r') => result += '\r'; index += 2
@@ -25,7 +18,7 @@ object Literal {
 				case x => result += x._1; index += 1
 		}
 
-		result += theStr.last
+		result += str.last
 
 		result.mkString
 	}
@@ -51,7 +44,7 @@ object Literal {
 
 		val pre = string.take(string.length - charsToStrip).mkString
 
-		val post = process(pre)
+		val post = encodeSpecialChars(pre)
 
 		if post.startsWith("0x") then
 			val bigInt = BigInteger(pre.drop(2), 16);
