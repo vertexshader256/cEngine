@@ -72,7 +72,7 @@ class Memory(size: Int) {
 	def readFromMemory(address: Int, theType: IType, bitOffset: Int = 0, sizeInBits: Int = 0): RValue = {
 		theType match {
 			case basic: IBasicType =>
-				var res: AnyVal = 0
+				var res: cEngVal = 0
 
 				if basic.getKind == eInt && basic.isShort then
 					val result = tape.getShort(address)

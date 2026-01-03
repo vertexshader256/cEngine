@@ -7,5 +7,7 @@ package object engine {
 	type long = Int
 	type double = Double
 	type float = Float
-	type cEngVal = AnyVal | BigInt
+	type FixedPoint = Byte | Int | Short | Long | BigInt
+	type FloatingPoint = Double | Float
+	type cEngVal = Boolean | FixedPoint | FloatingPoint
 }

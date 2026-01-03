@@ -27,7 +27,7 @@ object TypeHelper {
 	def getLongLong(bigInt: BigInt) =
 		RValue(bigInt, longlong)
 
-	private def castToUnsigned(value: cEngVal): cEngVal = value match {
+	private def castToUnsigned(value: FixedPoint): FixedPoint = value match {
 		case long: Long => long & 0x00000000FFFFFFFFL
 		case int: Int => int & 0xFFFFFFFFL
 		case short: Short => short & 0xFFFF
@@ -39,7 +39,7 @@ object TypeHelper {
 		val casted: cEngVal = theType match {
 			case basic: IBasicType =>
 				if basic.isUnsigned then
-					castToUnsigned(newVal)
+					castToUnsigned(newVal.asInstanceOf[FixedPoint])
 				else
 					newVal
 		}
