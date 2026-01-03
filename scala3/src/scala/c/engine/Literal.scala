@@ -75,9 +75,7 @@ object Literal {
 				new BigInteger(pre);
 			
 			TypeHelper.getLongLong(bigInt)
-		} else if (isUnsignedLong) {
-			TypeHelper.getLong(lit)
-		} else if (isLong) {
+		} else if (isUnsignedLong || isLong) {
 			TypeHelper.getLong(lit)
 		} else if (isIntNumber(lit)) {
 			RValue(lit.toInt, TypeHelper.intType)
