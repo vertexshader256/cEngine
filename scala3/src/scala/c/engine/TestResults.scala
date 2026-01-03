@@ -31,12 +31,12 @@ object TestResults {
 		hexString.toString
 	}
 
-	def addResult(test: String, results: Seq[String]) = {
+	def addGccResult(test: String, results: Seq[String]) = {
 		val key = getHash(test)
 		resultCache.put(key, results)
 	}
 
-	def getSavedResult(test: String): Option[Seq[String]] = {
+	def getSavedGccOutput(test: String): Option[Seq[String]] = {
 		val key = getHash(test)
 		resultCache.get(key)
 	}

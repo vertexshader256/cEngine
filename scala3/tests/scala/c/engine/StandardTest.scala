@@ -148,11 +148,19 @@ class StandardTest extends AsyncFlatSpec {
 		result
 	}
 
-	private def getGccResults(files: Seq[File], pointerSize: NumBits = ThirtyTwoBits,
+	private def getGccResults(cSourceCode: Seq[String], pointerSize: NumBits = ThirtyTwoBits,
 														args: List[String] = List(), includePaths: List[String] = List()): Future[Seq[String]] = {
 
 		val logger = new SyntaxLogger
 		val exeFile = new java.io.File("a" + StandardTest.exeCount.incrementAndGet + ".exe")
+
+		val files = cSourceCode.map { code =>
+			val file = new java.io.File(StandardTest.cFileCount.incrementAndGet + ".c")
+			val pw = new PrintWriter(file)
+			pw.write("#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n" + code)
+			pw.close
+			file
+		}
 
 		val compileFuture = Future {
 
@@ -237,46 +245,33 @@ class StandardTest extends AsyncFlatSpec {
 	def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits,
 										args: List[String] = List(), includePaths: List[String] = List()) = {
 
-		val codeBeingRun = codeInFiles.mkString
+		val gccResults = Future {
+			TestResults.loadSavedResults()
 
-		try {
+			val codeBeingRun = codeInFiles.mkString
 
-			val files = codeInFiles.map { code =>
-				val file = new java.io.File(StandardTest.cFileCount.incrementAndGet + ".c")
-				val pw = new PrintWriter(file)
-				pw.write("#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n" + code)
-				pw.close
-				file
-			}
+			TestResults.getSavedGccOutput(codeBeingRun).map: priorRunResult =>
+				priorRunResult
+			.getOrElse:
+				val runGcc = getGccResults(codeInFiles, pointerSize, args, includePaths)
+				val gccOutput = Await.result(runGcc, Duration.fromNanos(1000000000.0 * 60))
+				TestResults.addGccResult(codeBeingRun, gccOutput)
+				TestResults.writeResultsFile()
+				gccOutput
+		}
 
-			val gccResults = Future {
-				TestResults.loadSavedResults()
+		val cEngineResults = Future {
+			getCEngineResults(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
+		}
 
-				TestResults.getSavedResult(codeBeingRun).map: priorRunResult =>
-					priorRunResult
-				.getOrElse:
-					val runGcc = getGccResults(files, pointerSize, args, includePaths)
-					val gccOutput = Await.result(runGcc, Duration.fromNanos(1000000000.0 * 60))
-					TestResults.addResult(codeBeingRun, gccOutput)
-					TestResults.writeResultsFile()
-					gccOutput
-			}
+		for {
+			gccOutput <- gccResults
+			cEngineOutput <- cEngineResults
+		} yield {
+			info("C_Engine output: " + cEngineOutput)
+			info("Gcc      output: " + gccOutput)
 
-			val cEngineFuture = Future {
-				getCEngineResults(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
-			}
-
-			val completion = Future.sequence(List(cEngineFuture, gccResults))
-
-			completion.map { x =>
-				val cEngineOutput = x.head
-				val gccOutput = x.last
-
-				info("C_Engine output: " + cEngineOutput)
-				info("Gcc      output: " + gccOutput)
-
-				assert(cEngineOutput === gccOutput)
-			}
+			assert(cEngineOutput === gccOutput)
 		}
 	}
 }
