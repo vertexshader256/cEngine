@@ -69,8 +69,9 @@ class StandardTest extends AsyncFlatSpec {
 	}
 
 	def checkResults(code: String, shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits,
-									 args: List[String] = List(), includePaths: List[String] = List()) =
-		checkResults2(Seq(code), shouldBootstrap, pointerSize, args, includePaths)
+									 args: List[String] = List(), includePaths: List[String] = List()) = {
+		testGccVsCEngine(Seq(code), shouldBootstrap, pointerSize, args, includePaths)
+	}
 
 	private def getErrors(node: IASTNode, errors: List[String]): List[String] = {
 		node match {
@@ -81,7 +82,7 @@ class StandardTest extends AsyncFlatSpec {
 		}
 	}
 
-	def getCEngineResults(codeInFiles: Seq[String], shouldBootstrap: Boolean, pointerSize: NumBits, arguments: List[String], includePaths: List[String]) = {
+	private def getCEngineOutput(codeInFiles: Seq[String], shouldBootstrap: Boolean, pointerSize: NumBits, arguments: List[String], includePaths: List[String]): List[String] = {
 		var result = List[String]()
 
 		try {
@@ -148,8 +149,9 @@ class StandardTest extends AsyncFlatSpec {
 		result
 	}
 
+	// blocking
 	private def getGccResults(cSourceCode: Seq[String], pointerSize: NumBits = ThirtyTwoBits,
-														args: List[String] = List(), includePaths: List[String] = List()): Future[Seq[String]] = {
+														args: List[String] = List(), includePaths: List[String] = List()): Seq[String] = {
 
 		val logger = new SyntaxLogger
 		val exeFile = new java.io.File("a" + StandardTest.exeCount.incrementAndGet + ".exe")
@@ -158,91 +160,82 @@ class StandardTest extends AsyncFlatSpec {
 			val file = new java.io.File(StandardTest.cFileCount.incrementAndGet + ".c")
 			val pw = new PrintWriter(file)
 			pw.write("#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n" + code)
-			pw.close
+			pw.close()
 			file
 		}
 
-		val compileFuture = Future {
-
-			val moreIncludes = includePaths.flatMap { inc =>
-				Seq("-I", inc)
-			}
-
-			val sourceFileTokens = files.flatMap { file => Seq(file.getAbsolutePath) }
-			val includeTokens = Seq("-I", Utils.mainPath) ++ moreIncludes
-
-			val size = pointerSize match {
-				case ThirtyTwoBits => Seq("gcc")
-				case SixtyFourBits => Seq("gcc")
-			}
-
-			val processTokens =
-				size ++ sourceFileTokens ++ includeTokens ++ Seq("-o", exeFile.getAbsolutePath) ++ Seq("-D", "ALLOC_TESTING")
-
-			val builder = Process(processTokens, new java.io.File("."))
-			val compile = builder.run(logger.process)
-
-			compile.exitValue()
-		}.recover {
-			case e => println(logger.errors.toList)
+		val moreIncludes = includePaths.flatMap { inc =>
+			Seq("-I", inc)
 		}
 
-		compileFuture.map { _ =>
-			val numErrors = 0 //logger.errors.length
+		val sourceFileTokens = files.flatMap { file => Seq(file.getAbsolutePath) }
+		val includeTokens = Seq("-I", Utils.mainPath) ++ moreIncludes
 
-			val gccOutput = if (numErrors == 0) {
+		val size = pointerSize match {
+			case ThirtyTwoBits => Seq("gcc")
+			case SixtyFourBits => Seq("gcc")
+		}
 
-				var isDone = false
-				val maxTries = 50 // 50 is proven to work
-				var i = 0
-				var result: Seq[String] = null
+		val processTokens =
+			size ++ sourceFileTokens ++ includeTokens ++ Seq("-o", exeFile.getAbsolutePath) ++ Seq("-D", "ALLOC_TESTING")
 
-				Thread.sleep(30)
+		val builder = Process(processTokens, new java.io.File("."))
+		val compile = builder.run(logger.process)
 
-				// 3/1/19: Protip - This helps tests run reliably!
-				while (!isDone && i < maxTries) {
+		compile.exitValue()
 
-					i += 1
-					try {
-						val runLogger = new RunLogger
-						// run the actual executable
-						val runner = Process(Seq(exeFile.getAbsolutePath) ++ args, new File("."))
-						val run = runner.run(runLogger.process)
+		logger.errors.toList.foreach(println)
 
-						files.foreach {
-							_.delete()
-						}
+		val numErrors = 0 //logger.errors.length
 
-						run.exitValue()
+		val gccOutput = if (numErrors == 0) {
 
-						result = runLogger.stdout.clone().toList
+			var isDone = false
+			val maxTries = 50 // 50 is proven to work
+			var i = 0
+			var result: Seq[String] = null
 
-						if (result.nonEmpty) {
-							isDone = true
-							exeFile.delete()
-						}
-					} catch {
-						case e =>
-							Thread.sleep(50)
+			Thread.sleep(30)
+
+			// 3/1/19: Protip - This helps tests run reliably!
+			while (!isDone && i < maxTries) {
+
+				i += 1
+				try {
+					val runLogger = new RunLogger
+					// run the actual executable
+					val runner = Process(Seq(exeFile.getAbsolutePath) ++ args, new File("."))
+					val run = runner.run(runLogger.process)
+
+					files.foreach {
+						_.delete()
 					}
+
+					run.exitValue()
+
+					result = runLogger.stdout.clone().toList
+
+					if (result.nonEmpty) {
+						isDone = true
+						exeFile.delete()
+					}
+				} catch {
+					case e: Throwable => Thread.sleep(50)
 				}
-
-				result
-			} else {
-				logger.errors.toSeq
 			}
 
-			if (gccOutput != null) {
-				gccOutput.toList
-			} else {
-				logger.errors.toSeq
-			}
-		}.recover {
-			case e => logger.errors.toSeq
+			result
+		} else {
+			logger.errors.toSeq
 		}
+
+		if gccOutput != null then
+			gccOutput.toList
+		else
+			logger.errors.toSeq
 	}
 
-	def checkResults2(codeInFiles: Seq[String], shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits,
+	def testGccVsCEngine(codeInFiles: Seq[String], shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits,
 										args: List[String] = List(), includePaths: List[String] = List()) = {
 
 		val gccResults = Future {
@@ -253,15 +246,14 @@ class StandardTest extends AsyncFlatSpec {
 			TestResults.getSavedGccOutput(codeBeingRun).map: priorRunResult =>
 				priorRunResult
 			.getOrElse:
-				val runGcc = getGccResults(codeInFiles, pointerSize, args, includePaths)
-				val gccOutput = Await.result(runGcc, Duration.fromNanos(1000000000.0 * 60))
+				val gccOutput = getGccResults(codeInFiles, pointerSize, args, includePaths)
 				TestResults.addGccResult(codeBeingRun, gccOutput)
 				TestResults.writeResultsFile()
 				gccOutput
 		}
 
 		val cEngineResults = Future {
-			getCEngineResults(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
+			getCEngineOutput(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
 		}
 
 		for {

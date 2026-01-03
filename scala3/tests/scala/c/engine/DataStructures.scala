@@ -32,7 +32,7 @@ class VectorTest extends StandardTest {
 
 		val allCode = Seq(vectorText, vecTestText)
 
-		checkResults2(allCode, includePaths = List(root))
+		testGccVsCEngine(allCode, includePaths = List(root))
 	}
 }
 
@@ -49,7 +49,7 @@ class HeapTest extends StandardTest {
 
 		val allCode = Seq(vectorText, heapText, heapTestText)
 
-		checkResults2(allCode, includePaths = List(root))
+		testGccVsCEngine(allCode, includePaths = List(root))
 	}
 }
 
@@ -66,7 +66,7 @@ class HashMapTest extends StandardTest {
 
 		val allCode = Seq(vectorText, hashmapText, maptestText)
 
-		checkResults2(allCode, includePaths = List(root))
+		testGccVsCEngine(allCode, includePaths = List(root))
 	}
 }
 
@@ -267,6 +267,6 @@ class RegexTest extends StandardTest {
 
 		val allCode = Seq(slreText, code)
 
-		checkResults2(allCode, includePaths = List(root))
+		testGccVsCEngine(allCode, includePaths = List(root))
 	}
 }
