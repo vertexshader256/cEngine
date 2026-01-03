@@ -1,12 +1,11 @@
 package scala.c.engine
 
 import java.math.BigInteger
-import scala.collection.mutable.ListBuffer
 import scala.util.Try
 
 object Literal {
 	private def encodeSpecialChars(str: String): String = {
-		val result = new ListBuffer[Char]()
+		val result = new StringBuilder()
 
 		var index = 0
 		while (index < str.length - 1) {
