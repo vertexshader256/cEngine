@@ -5,7 +5,10 @@ lazy val scala3Module = (project in file("scala3"))
 		scalaVersion := "3.7.4",
 		Compile / scalaSource := baseDirectory.value / "src",
 		Test / scalaSource := baseDirectory.value / "tests",
-		libraryDependencies ++= Seq("org.anarres" % "jcpp" % "1.4.14", "org.scalactic" %% "scalactic" % "3.2.19", "org.scalatest" %% "scalatest" % "3.2.19")
+		libraryDependencies ++= Seq("org.anarres" % "jcpp" % "1.4.14",
+			"org.scalactic" %% "scalactic" % "3.2.19",
+			"org.scalatest" %% "scalatest" % "3.2.19",
+			"org.scala-lang" %% "toolkit" % "0.7.0")
 	)
 
 lazy val root = (project in file("."))
