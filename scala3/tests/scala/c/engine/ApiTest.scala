@@ -8,7 +8,7 @@ import scala.c.engine.NumBits.ThirtyTwoBits
 class JavaApiTest extends StandardTest {
 	"java api test one" should "print the correct results" in {
 
-		val state = new State(ThirtyTwoBits)
+		val state = new State(List(), ThirtyTwoBits)
 		val api = new JavaAPI()
 		api.runC("""int i = 1432;""", state)
 		api.runC("""printf("%d\n", i);""", state)
@@ -26,7 +26,7 @@ class JavaApiTest extends StandardTest {
 class ApiTest extends StandardTest {
 	"interp test one" should "print the correct results" in {
 
-		implicit val state = new State(ThirtyTwoBits)
+		implicit val state = new State(List(), ThirtyTwoBits)
 
 		c"""int i = 1432;"""
 		c"""printf("%d\n", i);"""
@@ -42,7 +42,7 @@ class ApiTest extends StandardTest {
 class ApiTest2 extends StandardTest {
 	"func interpolator" should "print the correct results" in {
 		import Interpreter._
-		implicit val state = new State(ThirtyTwoBits)
+		implicit val state = new State(List(), ThirtyTwoBits)
 
 		func"""
       int add(int x, int y) {
@@ -73,7 +73,7 @@ class ApiTest2 extends StandardTest {
 class ApiTest3 extends StandardTest {
 	"func interpolator 2" should "print the correct results" in {
 		import Interpreter._
-		implicit val state = new State(ThirtyTwoBits)
+		implicit val state = new State(List(), ThirtyTwoBits)
 
 		c"""
       float blah = 4.34;

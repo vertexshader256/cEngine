@@ -182,7 +182,7 @@ object State {
 	}
 }
 
-class State(val pointerSize: NumBits) {
+class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 	val Stack = Memory(500000)
 
@@ -199,9 +199,7 @@ class State(val pointerSize: NumBits) {
 	private var breakLabelStack = List[Label]()
 	private var continueLabelStack = List[Label]()
 
-	var sources: List[IASTTranslationUnit] = null
-
-	lazy val structs = sources.flatMap { src =>
+	val structs = sources.flatMap { src =>
 		src.getDeclarations.collect { case simp: CASTSimpleDeclaration => simp.getDeclSpecifier }
 			.collect { case comp: CASTCompositeTypeSpecifier => comp }
 			.map { x => x.getName.resolveBinding().asInstanceOf[CStructure] }
@@ -247,19 +245,7 @@ class State(val pointerSize: NumBits) {
 	def hasFunction(name: String): Boolean = functionList.exists { fcn => fcn.name == name }
 
 	def getFunctionByIndex(index: Int): Function = functionList.find { fcn => fcn.index == index }.get
-	
-	def init(codes: Seq[String], includePaths: List[String]): Unit = {
-		sources = codes.map { code => Utils.getTranslationUnit(code, includePaths) }.toList
 
-		sources.foreach { tUnit =>
-			tUnit.getChildren.collect { case x: IASTFunctionDefinition => x }
-				.filter(fcn => fcn.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
-				.foreach { fcnDef =>
-					addFunctionDef(fcnDef, fcnDef.getDeclarator.getName.toString == "main")
-				}
-		}
-	}
-	
 	def addMain(sources: List[IASTTranslationUnit]) = {
 		sources.foreach { tUnit =>
 			tUnit.getChildren.collect { case x: IASTFunctionDefinition => x }

@@ -85,12 +85,19 @@ class StandardTest extends AsyncFlatSpec {
 
 		try {
 			//val start = System.nanoTime
-			val state = new State(pointerSize)
-			if (shouldBootstrap) {
-				state.init(codeInFiles, includePaths)
+			
+			val state = if (shouldBootstrap) {
+				val ast = State.parseCode(codeInFiles, includePaths)
+				val state = new State(ast, pointerSize)
+				state.addMain(ast)
+				state
 			} else {
 				val eePrint = Source.fromFile("./src/scala/c/engine/ee_printf.c", "utf-8").mkString
-				state.init(Seq("#define HAS_FLOAT\n" + eePrint) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }, includePaths)
+				val code = Seq("#define HAS_FLOAT\n" + eePrint) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }
+				val ast = State.parseCode(code, includePaths)
+				val state = new State(ast, pointerSize)
+				state.addMain(ast)
+				state
 			}
 
 			val errors = state.sources.flatMap { tUnit => getErrors(tUnit, List()) }
