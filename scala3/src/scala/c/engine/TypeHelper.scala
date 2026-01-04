@@ -142,7 +142,7 @@ object TypeHelper {
 		case _ => theVal
 	}
 
-	def cast(theType: IType, value: cEngVal): RValue = {
+	def cast(value: cEngVal, theType: IType): RValue = {
 		val castedValue = castValue(theType, value)
 		RValue(castedValue, theType)
 	}

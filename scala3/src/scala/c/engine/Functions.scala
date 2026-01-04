@@ -295,7 +295,7 @@ object Functions {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val resultBuffer = formattedOutputParams(3).value.asInstanceOf[Int]
 			val size = formattedOutputParams(2).value.asInstanceOf[Int]
-			val numMembers = TypeHelper.cast(TypeHelper.intType, formattedOutputParams(1).value).value.asInstanceOf[Int]
+			val numMembers = TypeHelper.cast(formattedOutputParams(1).value, TypeHelper.intType).value.asInstanceOf[Int]
 			val fp = formattedOutputParams(0).asInstanceOf[FileRValue]
 
 			state.writeDataBlock(fp.fread(numMembers * size), resultBuffer)(using state)
@@ -547,8 +547,8 @@ object Functions {
 
 	scalaFunctions += new Function("fmod", false) {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-			val first = TypeHelper.cast(TypeHelper.doubleType, formattedOutputParams.last.value).value.asInstanceOf[Double]
-			val second = TypeHelper.cast(TypeHelper.doubleType, formattedOutputParams.head.value).value.asInstanceOf[Double]
+			val first = TypeHelper.cast(formattedOutputParams.last.value, TypeHelper.doubleType).value.asInstanceOf[Double]
+			val second = TypeHelper.cast(formattedOutputParams.head.value, TypeHelper.doubleType).value.asInstanceOf[Double]
 
 			Some(RValue(first % second))
 		}

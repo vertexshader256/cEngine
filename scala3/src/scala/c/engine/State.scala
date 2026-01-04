@@ -371,7 +371,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 					// printf assumes all floating point numbers are doubles
 					val promoted = resolvedArgs.map: arg =>
 						arg.theType match
-							case basic: IBasicType if basic.getKind == IBasicType.Kind.eFloat => TypeHelper.cast(TypeHelper.doubleType, arg.value)
+							case basic: IBasicType if basic.getKind == IBasicType.Kind.eFloat => TypeHelper.cast(arg.value, TypeHelper.doubleType)
 							case _ => arg
 
 					newScope.pushOntoStack(promoted)

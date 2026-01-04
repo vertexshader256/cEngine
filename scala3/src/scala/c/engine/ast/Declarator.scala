@@ -32,7 +32,7 @@ object Declarator {
 		if !dst.theType.isInstanceOf[CStructure] then
 			val result = evaluate(dst, srcs.head, op) match
 				case file @ FileRValue(_) => file
-				case x => TypeHelper.cast(dst.theType, x.value)
+				case x => TypeHelper.cast(x.value, dst.theType)
 
 			dst.setValue(result)
 		else
@@ -87,7 +87,7 @@ object Declarator {
 			zipped.foreach { (arg, param) =>
 				val (value, addr, theType) = if (!isInFunctionPrototype) {
 					val newVar = state.context.addVariable(param.getName, param.getType)
-					val casted = TypeHelper.cast(newVar.theType, arg.value).value
+					val casted = TypeHelper.cast(arg.value, newVar.theType).value
 					(casted, newVar.address, newVar.theType)
 				} else {
 					// 12-26-25: This code isn't being hit
@@ -152,7 +152,7 @@ object Declarator {
 		}.map { _ =>
 			arrayDecl.getArrayModifiers.foreach(Ast.step)
 			val value = TypeHelper.toRValue(state.context.popStack).value
-			TypeHelper.cast(TypeHelper.intType, value).value.asInstanceOf[Int]
+			TypeHelper.cast(value, TypeHelper.intType).value.asInstanceOf[Int]
 		}
 
 		val aType = theType match
@@ -185,7 +185,7 @@ object Declarator {
 
 			if !TypeHelper.isPointer(theType) && !TypeHelper.isStructure(theType) then
 				val baseType = TypeHelper.resolveBasic(theType)
-				flattened.map { x => TypeHelper.cast(baseType, x.value) }
+				flattened.map { x => TypeHelper.cast(x.value, baseType) }
 			else
 				flattened
 		}

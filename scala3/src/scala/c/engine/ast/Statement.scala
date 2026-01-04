@@ -20,9 +20,9 @@ object Statement {
 					case structure@LValue(addr, struct: CStructure) =>
 						structure
 					case info@LValue(_, _) =>
-						TypeHelper.cast(functionScope.returnType, info.rValue.value)
+						TypeHelper.cast(info.rValue.value, functionScope.returnType)
 					case value@RValue(_, _) if functionScope.returnType != null =>
-						TypeHelper.cast(functionScope.returnType, value.value)
+						TypeHelper.cast(value.value, functionScope.returnType)
 					case value@RValue(_, _) => value
 				}
 
