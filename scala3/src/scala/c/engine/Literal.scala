@@ -5,6 +5,7 @@ import scala.util.Try
 
 // raw string - may contains quotes, prefixes and postfixes
 case class Lit(s: String) {
+	val isUtf8 = s.startsWith("u8")
 	val isQuoted = s.head == '\"' && s.last == '\"'
 	val isChar = s.head == '\'' && s.last == '\''
 	val isInt = s.toIntOption.isDefined
@@ -50,14 +51,18 @@ object Literal {
 	def parse(literal: String): ValueType = {
 		val lit = Lit(literal)
 
-		if lit.isQuoted then
+		if lit.isUtf8 then
+			val post = lit.s.drop(2)
+			StringLiteral(post)
+		else if lit.isQuoted then
 			val post = encodeSpecialChars(literal)
 			StringLiteral(post)
 		else if lit.isChar then
 			val post = encodeSpecialChars(literal)
 			RValue(post(1).toByte, TypeHelper.charType)
-		else
+		else {
 			castNumericLiteral(literal)
+		}
 	}
 
 	private def encodeSpecialChars(str: String): String = {
