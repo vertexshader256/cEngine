@@ -47,6 +47,11 @@ object TypeHelper {
 		RValue(casted, theType)
 	}
 
+	def getRValue(value: cEngVal): RValue = {
+		val theType = getType(value)
+		RValue(value, theType)
+	}
+	
 	def isStructure(theType: IType): Boolean = theType match {
 		case struct: CStructure => true
 		case basicType: IBasicType => false

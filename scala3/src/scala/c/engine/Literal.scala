@@ -120,9 +120,11 @@ object Literal {
 		else
 			val lit = literal.stripFloatingPointSuffix
 
-			if literal.isFloatViaSuffix then
-				RValue(lit.toFloat, TypeHelper.floatType)
+			val value = if literal.isFloatViaSuffix then
+				lit.toFloat
 			else
-				RValue(lit.toDouble, TypeHelper.doubleType)
+				lit.toDouble
+				
+			TypeHelper.getRValue(value)
 	}
 }
