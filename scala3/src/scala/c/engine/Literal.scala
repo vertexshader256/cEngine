@@ -26,6 +26,19 @@ case class Lit(s: String) {
 
 	private def hasSuffix(string: String, suffix: String): Boolean =
 		string.toLowerCase.endsWith(suffix)
+
+	def stripSuffix: String = {
+		val charsToStrip = if isUnsignedLongLongViaSuffix then
+			3
+		else if isLongLongViaSuffix || isUnsignedLongViaSuffix then
+			2
+		else if isLongViaSuffix || isUnsignedViaSuffix then
+			1
+		else
+			0
+
+		s.take(s.length - charsToStrip).mkString
+	}
 }
 
 object Literal {
@@ -65,16 +78,7 @@ object Literal {
 		string.toLowerCase.endsWith(suffix)
 
 	private def stripFixedPointSuffix(literal: Lit): String = {
-		val charsToStrip = if literal.isUnsignedLongLongViaSuffix then
-			3
-		else if literal.isLongLongViaSuffix || literal.isUnsignedLongViaSuffix then
-			2
-		else if literal.isLongViaSuffix || literal.isUnsignedViaSuffix then
-			1
-		else
-			0
-
-		val withoutSuffix = literal.s.take(literal.s.length - charsToStrip).mkString
+		val withoutSuffix = literal.stripSuffix
 
 		if withoutSuffix.startsWith("0x") then
 			val bigInt = BigInteger(withoutSuffix.drop(2), 16);
