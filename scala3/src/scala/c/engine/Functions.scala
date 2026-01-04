@@ -1,11 +1,12 @@
 package scala.c.engine
 
-import org.eclipse.cdt.core.dom.ast._
-import org.eclipse.cdt.internal.core.dom.parser.c._
+import org.eclipse.cdt.core.dom.ast.*
+import org.eclipse.cdt.internal.core.dom.parser.c.*
 
 import java.io.File
 import java.util.{Formatter, Locale}
 import scala.collection.mutable.ListBuffer
+import scala.util.Try
 
 // 'isNative' implies the function is in C, not Scala
 abstract case class Function(name: String, isNative: Boolean) {
@@ -217,11 +218,18 @@ object Functions {
 		}
 	}
 
+	// a return value of 0 indicates the file was successfully deleted
 	scalaFunctions += new Function("remove", false) {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val path = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(using state)
-			new File(path).delete()
-			None
+			val file = File(path)
+
+			Try(file.delete()).toOption.map { wasDeleted =>
+				if wasDeleted then
+					RValue(0)
+				else
+					RValue(-1)
+			}.orElse(Some(RValue(-1)))
 		}
 	}
 

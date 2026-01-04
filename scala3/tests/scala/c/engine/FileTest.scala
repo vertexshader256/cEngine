@@ -4,7 +4,7 @@ import java.io.File
 
 class FileTest extends StandardTest {
 
-	"file test" should "print the correct results" in {
+	"file read test" should "print the correct results" in {
 
 		import java.io._
 		val pw = new PrintWriter(new File("file.txt"))
@@ -26,63 +26,21 @@ class FileTest extends StandardTest {
 
         /* Read and display data */
         fread(buffer, 1, 5, fp);
-        printf("%s", buffer);
+        printf("%s\n", buffer);
 
         fread(buffer, 1, 2, fp);
-        printf("%s", buffer);
+        printf("%s\n", buffer);
+
+				int closed = fclose(fp);
+			  printf("%d\n", closed);
       }"""
 
-		checkResults(code, runConcurrent = false).map { result =>
-			new File("file.txt").delete()
+		checkResults(code, runConcurrent = false).map: result =>
+			new File("file.txt").delete() // this file was created outside the test, delete after the test
 			result
-		}
 	}
 
-	"file write test" should "print the correct results" in {
-
-		import java.io._
-		val file = new File("filewritetest.txt")
-		val fileName = file.getName
-		val pw = new PrintWriter(file)
-		pw.write("zzzzzzzzzzzzzzzzzz\n")
-		pw.close
-
-		val code =
-			s"""
-
-				#include <stdio.h>
-
-				void main() {
-					FILE *fp;
-					char buffer[100] = {0};
-					char *arr = "ok43234";
-
-					/* Open file for both reading and writing */
-					fp = fopen("$fileName", "w");
-		 			printf("%s\\n", buffer);
-
-					printf("%s", arr);
-		 			fwrite(arr, 1, 2, fp);
-
-				  if (fclose(fp) == 0) {
-						printf("File closed successfully.\\n");
-					} else {
-						printf("Error closing file\\n");
-					}
-
-					fread(buffer, 1, 2, fp);
-					printf("%s\\n", buffer);
-		      printf("%s\\n", "done");
-		      remove("$fileName");
-				}"""
-
-		checkResults(code, runConcurrent = false).map { result =>
-			file.delete()
-			result
-		}
-	}
-
-	"create file test" should "print the correct results" in {
+	"create and write file test" should "print the correct results" in {
 
 		val code =
 			"""
@@ -90,23 +48,21 @@ class FileTest extends StandardTest {
       #include <stdio.h>
 
       void main() {
-          FILE *passwd_text=fopen("passwd.txt", "w");
+          FILE *passwd_text=fopen("filecreatetest.txt", "w");
           int rec_num;
           fprintf(passwd_text, "test!\n");
           fclose(passwd_text);
 
           char buff[100];
-          FILE *f = fopen("passwd.txt", "r");
+          FILE *f = fopen("filecreatetest.txt", "r");
           fgets(buff, 100, f);
           printf("String read: %s\n", buff);
           fclose(f);
-
+					int wasDeleted = remove("filecreatetest.txt");
+					printf("%d\n", wasDeleted);
       }"""
 
-		checkResults(code, runConcurrent = false).map { result =>
-			new File("passwd.txt").delete()
-			result
-		}
+		checkResults(code, runConcurrent = false)
 	}
 
 	"file which doesnt exist" should "print the correct results" in {
@@ -120,7 +76,8 @@ class FileTest extends StandardTest {
           FILE *f = fopen("fsdfsdf.txt", "r");
           printf("file opened: %d\n", f);
           fclose(f);
-
+					int wasDeleted = remove("fsdfsdf.txt");
+					printf("%d\n", wasDeleted);
       }"""
 
 		checkResults(code, runConcurrent = false)
@@ -156,13 +113,12 @@ class FileTest extends StandardTest {
             printf("HERE\n");
           }
 
-          remove("""" + rand2 +
+					fclose(nothere2);
+          int wasDeleted = remove("""" + rand2 +
 				""".txt");
-
+					printf("%d\n", wasDeleted);
       }"""
 
-		checkResults(code, runConcurrent = false).map { result =>
-			result
-		}
+		checkResults(code, runConcurrent = false)
 	}
 }
