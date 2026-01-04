@@ -193,6 +193,7 @@ object TypeHelper {
 			config |= IS_SHORT
 
 		val theType = value match
+			case big: BigInt => eInt
 			case bool: Boolean => eBoolean
 			case int: Int => eInt
 			case long: Long => eInt

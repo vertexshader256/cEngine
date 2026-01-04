@@ -108,15 +108,16 @@ object Literal {
 		if literal.isFixedPoint then
 			val lit = literal.stripFixedPointSuffix
 
-			if literal.isUnsignedLongLongViaSuffix then
-				val bigInt = BigInteger(lit)
-				TypeHelper.getLongLong(bigInt)
+			val value: cEngVal = if literal.isUnsignedLongLongViaSuffix then
+				BigInteger(lit)
 			else if literal.isUnsignedLongViaSuffix || literal.isLongViaSuffix then
-				TypeHelper.getLong(lit)
+				lit.toLong
 			else if Lit(lit).isInt then
-				RValue(lit.toInt, TypeHelper.intType)
+				lit.toInt
 			else
-				TypeHelper.getLong(lit)
+				lit.toLong
+
+			TypeHelper.getRValue(value)
 		else
 			val lit = literal.stripFloatingPointSuffix
 
