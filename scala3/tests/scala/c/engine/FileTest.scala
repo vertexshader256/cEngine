@@ -44,7 +44,7 @@ class FileTest extends StandardTest {
 		val file = new File("filewritetest.txt")
 		val fileName = file.getName
 		val pw = new PrintWriter(file)
-		pw.write("1234\n")
+		pw.write("zzzzzzzzzzzzzzzzzz\n")
 		pw.close
 
 		val code =
@@ -55,16 +55,24 @@ class FileTest extends StandardTest {
 				void main() {
 					FILE *fp;
 					char buffer[100] = {0};
-					char *arr = "ok";
+					char *arr = "ok43234";
 
 					/* Open file for both reading and writing */
 					fp = fopen("$fileName", "w");
+		 			printf("%s\\n", buffer);
 
 					printf("%s", arr);
 		 			fwrite(arr, 1, 2, fp);
 
+				  if (fclose(fp) == 0) {
+						printf("File closed successfully.\\n");
+					} else {
+						printf("Error closing file\\n");
+					}
+
 					fread(buffer, 1, 2, fp);
-					printf("%s", buffer);
+					printf("%s\\n", buffer);
+		      printf("%s\\n", "done");
 		      remove("$fileName");
 				}"""
 

@@ -237,7 +237,7 @@ object Functions {
 			var isDone = false
 
 			while (count < size && lastRead.toChar != '\n' && !isDone) {
-				val z = fp.fread(1)
+				val z = fp.read(1)
 				if (z.isEmpty) {
 					isDone = true
 				} else {
@@ -253,9 +253,12 @@ object Functions {
 		}
 	}
 
+	// returns 0 on success
 	scalaFunctions += new Function("fclose", false) {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-			None
+			val fp = formattedOutputParams.last.asInstanceOf[FileRValue]
+			fp.close()
+			Some(RValue(0))
 		}
 	}
 
@@ -264,7 +267,7 @@ object Functions {
 			val fp = formattedOutputParams.last.asInstanceOf[FileRValue]
 
 			val formattedStr = printf(formattedOutputParams.drop(1), state)
-			fp.fprintf(formattedStr)
+			fp.printf(formattedStr)
 			None
 		}
 	}
@@ -298,7 +301,7 @@ object Functions {
 			val numMembers = TypeHelper.cast(formattedOutputParams(1).value, TypeHelper.intType).value.asInstanceOf[Int]
 			val fp = formattedOutputParams(0).asInstanceOf[FileRValue]
 
-			state.writeDataBlock(fp.fread(numMembers * size), resultBuffer)(using state)
+			state.writeDataBlock(fp.read(numMembers * size), resultBuffer)(using state)
 			Some(RValue(numMembers))
 		}
 	}
@@ -312,7 +315,7 @@ object Functions {
 
 			val bytes = state.readDataBlock(buffer, size * numMembers)(using state)
 
-			fp.fwrite(bytes, size * numMembers)
+			fp.write(bytes, size * numMembers)
 
 			None
 		}

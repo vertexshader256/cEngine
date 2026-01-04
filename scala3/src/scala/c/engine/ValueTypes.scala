@@ -75,6 +75,7 @@ case class FileRValue(path: String) extends RValue {
 	val file: File = new File(path)
 
 	val value: cEngVal = if file.exists then 1 else 0
+	var isOpen = true
 
 	var byteArray = if file.exists then
 		Files.readAllBytes(Paths.get(path))
@@ -83,13 +84,21 @@ case class FileRValue(path: String) extends RValue {
 
 	var currentPosition = 0
 
-	def fread(numBytes: Int): Array[Byte] = {
-		val result = byteArray.drop(currentPosition).take(numBytes)
-		currentPosition += numBytes
-		result
+	def close(): Boolean = {
+		isOpen = false
+		true
 	}
 
-	def fwrite(bytes: Array[Byte], numBytes: Int) = {
+	def read(numBytes: Int): Array[Byte] = {
+		if isOpen then
+			val result = byteArray.drop(currentPosition).take(numBytes)
+			currentPosition += numBytes
+			result
+		else
+			Array()
+	}
+
+	def write(bytes: Array[Byte], numBytes: Int) = {
 		val head = byteArray.take(currentPosition)
 		val tail = byteArray.drop(currentPosition)
 
@@ -98,7 +107,7 @@ case class FileRValue(path: String) extends RValue {
 		currentPosition += numBytes
 	}
 
-	def fprintf(str: String) = {
+	def printf(str: String) = {
 		import java.io._
 		val pw = new PrintWriter(file)
 		pw.write(str)
