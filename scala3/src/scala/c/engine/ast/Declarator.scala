@@ -24,11 +24,10 @@ object Declarator {
 			case struct: CStructure =>
 				getStructRValues(decl, struct)
 			case _ =>
-				val result = Expressions.evaluate(decl).get
-				List(result)
+				List(Expressions.evaluate(decl).get)
 	}
 
-	def assign(dst: LValue, srcs: List[ValueType], equals: IASTInitializerClause, op: Int)(implicit state: State): LValue = {
+	def assign(dst: LValue, srcs: List[ValueType], equals: IASTInitializerClause, op: Int)(implicit state: State): Unit = {
 		if !dst.theType.isInstanceOf[CStructure] then
 			val result = evaluate(dst, srcs.head, op) match
 				case file @ FileRValue(_) => file
@@ -51,8 +50,6 @@ object Declarator {
 						case (field, newValue) =>
 							val theField = TypeHelper.offsetof(struct, dst.address, field.getName, state)
 							assign(theField, List(newValue), equals, op)
-
-		dst
 	}
 
 	private def setFunctionPointer(fcnDec: IASTFunctionDeclarator)(implicit state: State): Unit = {

@@ -16,15 +16,14 @@ object Statement {
 				val returnVal = Expressions.evaluate(ret.getReturnValue).head
 				val functionScope = state.getFunctionScope
 
-				val retVal = returnVal match {
+				val retVal = returnVal match
 					case structure@LValue(addr, struct: CStructure) =>
 						structure
-					case info@LValue(_, _) =>
+					case info @ LValue(_, _) =>
 						TypeHelper.cast(info.rValue.value, functionScope.returnType)
-					case value@RValue(_, _) if functionScope.returnType != null =>
+					case value @ RValue(_, _) if functionScope.returnType != null =>
 						TypeHelper.cast(value.value, functionScope.returnType)
-					case value@RValue(_, _) => value
-				}
+					case value @ RValue(_, _) => value
 
 				state.context.pushOntoStack(retVal)
 			}

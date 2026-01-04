@@ -127,14 +127,15 @@ object Expressions {
 
 	private def binaryExpression(bin: IASTBinaryExpression)(implicit state: State) = {
 		(bin.getOperator, evaluate(bin.getOperand1).head) match {
-			case (IASTBinaryExpression.op_logicalOr, op1@RValue(x: Boolean, _)) if x => Some(op1)
-			case (IASTBinaryExpression.op_logicalAnd, op1@RValue(x: Boolean, _)) if !x => Some(op1)
+			case (IASTBinaryExpression.op_logicalOr, op1 @ RValue(x: Boolean, _)) if x => Some(op1)
+			case (IASTBinaryExpression.op_logicalAnd, op1 @ RValue(x: Boolean, _)) if !x => Some(op1)
 			case (_, op1) =>
 				val op2 = evaluate(bin.getOperand2).head
 
-				val result = if isAssignment(bin.getOperator) then
+				val result = if isAssignment(bin.getOperator) then {
 					Declarator.assign(op1.asInstanceOf[LValue], List(op2), bin.getOperand2, bin.getOperator)
-				else
+					op1
+				} else
 					BinaryExpr.evaluate(op1, op2, bin.getOperator)
 
 				Some(result)
