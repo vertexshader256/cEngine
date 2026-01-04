@@ -7,8 +7,9 @@ import scala.util.Try
 case class Lit(s: String) {
 	val isQuoted = s.head == '\"' && s.last == '\"'
 	val isChar = s.head == '\'' && s.last == '\''
-	val isIntNumber = s.toIntOption.isDefined
-	val isLongNumber = s.toLongOption.isDefined
+	val isInt = s.toIntOption.isDefined
+	val isLong = s.toLongOption.isDefined
+	val isFloatingPoint = s.toDoubleOption.isDefined
 
 	val isUnsignedViaSuffix = hasSuffix(s, "u")
 	val isLongLongViaSuffix = hasSuffix(s, "ll")
@@ -17,6 +18,8 @@ case class Lit(s: String) {
 	val isLongViaSuffix = hasSuffix(s, "l")
 	val isUnsignedLongViaSuffix = hasSuffix(s, "ul") || hasSuffix(s, "lu")
 	val isUnsignedLongLongViaSuffix = hasSuffix(s, "ull") || hasSuffix(s, "llu")
+
+	val isFP = isFloatViaSuffix || isFloatingPoint
 
 	private def hasSuffix(string: String, suffix: String): Boolean =
 		string.toLowerCase.endsWith(suffix)
@@ -87,9 +90,9 @@ object Literal {
 			TypeHelper.getLongLong(bigInt)
 		else if literal.isUnsignedLongViaSuffix || literal.isLongViaSuffix then
 			TypeHelper.getLong(lit)
-		else if Lit(lit).isIntNumber then
+		else if Lit(lit).isInt then
 			RValue(lit.toInt, TypeHelper.intType)
-		else if Lit(lit).isLongNumber then
+		else if Lit(lit).isLong then
 			TypeHelper.getLong(lit)
 		else if literal.isFloatViaSuffix then
 			val num = lit.toCharArray.filter(x => x != 'f' && x != 'F').mkString
