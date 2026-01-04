@@ -27,6 +27,10 @@ case class Lit(s: String) {
 	private def hasSuffix(string: String, suffix: String): Boolean =
 		string.toLowerCase.endsWith(suffix)
 
+	def convertHex: String = {
+		BigInteger(s.drop(2), 16).toString
+	}
+
 	def stripSuffix: String = {
 		val charsToStrip = if isUnsignedLongLongViaSuffix then
 			3
@@ -78,16 +82,15 @@ object Literal {
 		string.toLowerCase.endsWith(suffix)
 
 	private def stripFixedPointSuffix(literal: Lit): String = {
-		val withoutSuffix = literal.stripSuffix
+		val withoutSuffix = Lit(literal.stripSuffix)
 
-		if withoutSuffix.startsWith("0x") then
-			val bigInt = BigInteger(withoutSuffix.drop(2), 16);
-			bigInt.toString
+		if literal.isHex then
+			withoutSuffix.convertHex
 		else
-			withoutSuffix
+			withoutSuffix.s
 	}
 
-	private def castNumericLiteral(str: String) = {
+	private def castNumericLiteral(str: String): RValue = {
 		val literal = Lit(str)
 
 		if literal.isFixedPoint then
