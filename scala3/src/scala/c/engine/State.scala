@@ -153,10 +153,10 @@ object State {
 		}
 
 		val jumpTable = descendants.flatMap {
-			case x@CaseLabel(caseStatement) if switch.getBody == getParentSwitchBody(caseStatement) =>
+			case x @ CaseLabel(caseStatement) if switch.getBody == getParentSwitchBody(caseStatement) =>
 				val cached = CachedRValue(switch.getControllerExpression)
 				cached +: List(JmpToLabelIfEqual(caseStatement.getExpression, cached, x))
-			case x@DefaultLabel(default) if switch.getBody == getParentSwitchBody(default) =>
+			case x @ DefaultLabel(default) if switch.getBody == getParentSwitchBody(default) =>
 				List(JmpLabel(x))
 			case _ =>
 				List()

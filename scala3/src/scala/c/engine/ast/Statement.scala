@@ -17,7 +17,7 @@ object Statement {
 				val functionScope = state.getFunctionScope
 
 				val retVal = returnVal match
-					case structure@LValue(addr, struct: CStructure) =>
+					case structure @ LValue(addr, struct: CStructure) =>
 						structure
 					case info @ LValue(_, _) =>
 						TypeHelper.cast(info.rValue.value, functionScope.returnType)

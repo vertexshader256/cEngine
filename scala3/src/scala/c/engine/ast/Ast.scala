@@ -13,7 +13,7 @@ object Ast {
 			state.context.pushVariableScope()
 		case PopVariableStack() =>
 			state.context.popVariableScope()
-		case cached@CachedRValue(expr) =>
+		case cached @ CachedRValue(expr) =>
 			cached.cachedValue = TypeHelper.toRValue(Expressions.evaluate(expr).get)
 		case JmpIfNotEqual(expr, lines) =>
 			val raw = Expressions.evaluate(expr).get

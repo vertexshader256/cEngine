@@ -150,7 +150,7 @@ object Expressions {
 			case list: IASTInitializerList =>
 				val rVals = list.getClauses.map { clause =>
 					evaluate(clause).get match
-						case r@RValue(x, y) => r
+						case r @ RValue(x, y) => r
 						case l: LValue => l.rValue
 				}.toList
 
