@@ -53,6 +53,13 @@ case class Lit(s: String) {
 		else
 			withoutSuffix.s
 	}
+
+	def stripFloatingPointSuffix: String = {
+		if isFloatViaSuffix then
+			s.toCharArray.filter(x => x != 'f' && x != 'F').mkString
+		else
+			s
+	}
 }
 
 object Literal {
@@ -111,10 +118,11 @@ object Literal {
 			else
 				TypeHelper.getLong(lit)
 		else
+			val lit = literal.stripFloatingPointSuffix
+
 			if literal.isFloatViaSuffix then
-				val num = literal.s.toCharArray.filter(x => x != 'f' && x != 'F').mkString
-				RValue(num.toFloat, TypeHelper.floatType)
+				RValue(lit.toFloat, TypeHelper.floatType)
 			else
-				RValue(literal.s.toDouble, TypeHelper.doubleType)
+				RValue(lit.toDouble, TypeHelper.doubleType)
 	}
 }
