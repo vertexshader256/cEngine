@@ -12,7 +12,7 @@ object StandardTest {
 	val exeCount = new AtomicInteger()
 
 	private def getGccOutput(codeInFiles: Seq[String], pointerSize: NumBits = ThirtyTwoBits,
-													 args: List[String] = List(), includePaths: List[String] = List()) = {
+													 args: List[String] = List(), includePaths: List[String] = List()): Seq[String] = {
 		TestResults.loadSavedResults()
 
 		val codeBeingRun = codeInFiles.mkString
@@ -22,9 +22,12 @@ object StandardTest {
 		.getOrElse:
 			val testId = StandardTest.exeCount.incrementAndGet.toString
 			val gccOutput = Gcc.getGccOutput(codeInFiles, testId, pointerSize, args, includePaths)
-			TestResults.addGccResult(codeBeingRun, gccOutput)
-			TestResults.writeResultsFile()
-			gccOutput
+
+			if gccOutput.wasSuccess then // only cache results if gcc was successful ran
+				TestResults.addGccResult(codeBeingRun, gccOutput.output)
+				TestResults.writeResultsFile()
+
+			gccOutput.output
 	}
 }
 

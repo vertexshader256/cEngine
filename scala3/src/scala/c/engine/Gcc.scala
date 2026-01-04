@@ -6,6 +6,8 @@ import scala.collection.mutable.ListBuffer
 import scala.sys.process.ProcessIO
 import scala.sys.process.Process
 
+case class GccOutput(output: Seq[String], wasSuccess: Boolean)
+
 object Gcc {
 
 	val program = new FunctionScope(List(), null, null) {}
@@ -38,7 +40,7 @@ object Gcc {
 
 	// blocking
 	def getGccOutput(cSourceCode: Seq[String], testId: String, pointerSize: NumBits = ThirtyTwoBits,
-														args: List[String] = List(), includePaths: List[String] = List()): Seq[String] = {
+														args: List[String] = List(), includePaths: List[String] = List()): GccOutput = {
 
 		val logger = new SyntaxLogger
 		val exeFile = new java.io.File("a" + testId + ".exe")
@@ -109,15 +111,15 @@ object Gcc {
 				}
 			}
 
-			result
+			GccOutput(result, true)
 		} else {
-			logger.errors.toSeq
+			GccOutput(logger.errors.toSeq, false)
 		}
 
 		if gccOutput != null then
-			gccOutput.toList
+			gccOutput
 		else
-			logger.errors.toSeq
+			GccOutput(logger.errors.toSeq, false)
 	}
 }
 
