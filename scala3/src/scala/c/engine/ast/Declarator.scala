@@ -63,7 +63,6 @@ object Declarator {
 				val variable = state.context.addVariable(name.toString, theType)
 				Ast.step(fcnDec.getInitializer)
 				variable.setValue(TypeHelper.toRValue(state.context.popStack))
-			case _ =>
 	}
 
 	private def writeFcnArguments(fcnDec: IASTFunctionDeclarator)(implicit state: State): Array[IASTNode] = {
@@ -124,11 +123,9 @@ object Declarator {
 			val variable = Expressions.evaluate(id).get.asInstanceOf[Variable]
 			List(variable.rValue)
 		case bin: IASTBinaryExpression =>
-			Expressions.evaluate(bin).get match {
+			Expressions.evaluate(bin).get match
 				case variable: Variable => List(variable.rValue)
 				case rVal: RValue => List(rVal)
-			}
-		case x => println("ERROR FLATTEN INIT LIST"); println(x.getClass.getSimpleName); null;
 	}
 
 	private def createdSizedArrayType(theType: CArrayType, dimensions: List[Int]): CArrayType = {
