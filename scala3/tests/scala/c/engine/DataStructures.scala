@@ -30,9 +30,9 @@ class VectorTest extends StandardTest {
 		val vectorText = Source.fromFile(vector.toFile, "utf-8").mkString
 		val vecTestText = Source.fromFile(vecTest.toFile, "utf-8").mkString
 
-		val allCode = Seq(vectorText, vecTestText)
+		val allCode = vectorText + vecTestText
 
-		testGccVsCEngine(allCode, includePaths = List(root))
+		checkResults(allCode, includePaths = List(root))
 	}
 }
 
@@ -47,9 +47,9 @@ class HeapTest extends StandardTest {
 		val heapText = Source.fromFile(heap.toFile, "utf-8").mkString
 		val heapTestText = Source.fromFile(heapTest.toFile, "utf-8").mkString
 
-		val allCode = Seq(vectorText, heapText, heapTestText)
+		val allCode = vectorText + heapText + heapTestText
 
-		testGccVsCEngine(allCode, includePaths = List(root))
+		checkResults(allCode, includePaths = List(root))
 	}
 }
 
@@ -64,9 +64,9 @@ class HashMapTest extends StandardTest {
 		val hashmapText = Source.fromFile(hashmap.toFile, "utf-8").mkString
 		val maptestText = Source.fromFile(maptest.toFile, "utf-8").mkString
 
-		val allCode = Seq(vectorText, hashmapText, maptestText)
+		val allCode = vectorText + hashmapText + maptestText
 
-		testGccVsCEngine(allCode, includePaths = List(root))
+		checkResults(allCode, includePaths = List(root))
 	}
 }
 
@@ -265,8 +265,8 @@ class RegexTest extends StandardTest {
 
 		val slreText = Source.fromFile(slre.toFile, "utf-8").mkString
 
-		val allCode = Seq(slreText, code)
+		val allCode = slreText + code
 
-		testGccVsCEngine(allCode, includePaths = List(root))
+		checkResults(allCode, includePaths = List(root))
 	}
 }
