@@ -1,6 +1,6 @@
 package scala.c.engine
 
-class Literal extends StandardTest {
+class LiteralTest extends StandardTest {
 	"a basic literal backslash test" should "print the correct results" in {
 		val code =
 			"""

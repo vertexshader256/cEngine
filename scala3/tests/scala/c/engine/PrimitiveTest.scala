@@ -258,14 +258,20 @@ class CharTest extends StandardTest2("char test",
       }"""
 )
 
-class HexTest extends StandardTest2("hex test",
-	"""
-      void main() {
-        int x = 0xFFFFFFFF;
-        int i  = 0x5f3759df - ( x >> 1 );
-        printf("%d %d\n", x, i);
-      }"""
-)
+class HexTest extends StandardTest {
+
+	"hex test" should "print the correct results" in {
+		val code =
+			"""
+				void main() {
+					int x = 0xFFFFFFFF;
+					int i  = 0x5f3759df - ( x >> 1 );
+					printf("%d %d\n", x, i);
+				}"""
+
+		checkResults(code)
+	}
+}
 
 class ShortTest extends StandardTest2("short test",
 	"""

@@ -9,7 +9,8 @@ case class Lit(s: String) {
 	val isChar = s.head == '\'' && s.last == '\''
 	val isInt = s.toIntOption.isDefined
 	val isLong = s.toLongOption.isDefined
-	val isFloatingPoint = s.toDoubleOption.isDefined
+	val isRawFloatingPoint = s.toDoubleOption.isDefined
+	val isHex = s.startsWith("0x")
 
 	val isUnsignedViaSuffix = hasSuffix(s, "u")
 	val isLongLongViaSuffix = hasSuffix(s, "ll")
@@ -19,7 +20,9 @@ case class Lit(s: String) {
 	val isUnsignedLongViaSuffix = hasSuffix(s, "ul") || hasSuffix(s, "lu")
 	val isUnsignedLongLongViaSuffix = hasSuffix(s, "ull") || hasSuffix(s, "llu")
 
-	val isFP = isFloatViaSuffix || isFloatingPoint
+	val isFP = isFloatViaSuffix || isRawFloatingPoint
+	val isFixedPoint = isLong || isUnsignedViaSuffix || isLongLongViaSuffix ||
+		isLongViaSuffix || isUnsignedLongViaSuffix || isUnsignedLongLongViaSuffix || isHex
 
 	private def hasSuffix(string: String, suffix: String): Boolean =
 		string.toLowerCase.endsWith(suffix)
@@ -83,21 +86,23 @@ object Literal {
 	private def castNumericLiteral(str: String) = {
 		val literal = Lit(str)
 
-		val lit = stripFixedPointSuffix(literal)
+		if literal.isFixedPoint then
+			val lit = stripFixedPointSuffix(literal)
 
-		if literal.isUnsignedLongLongViaSuffix then
-			val bigInt = BigInteger(lit)
-			TypeHelper.getLongLong(bigInt)
-		else if literal.isUnsignedLongViaSuffix || literal.isLongViaSuffix then
-			TypeHelper.getLong(lit)
-		else if Lit(lit).isInt then
-			RValue(lit.toInt, TypeHelper.intType)
-		else if Lit(lit).isLong then
-			TypeHelper.getLong(lit)
-		else if literal.isFloatViaSuffix then
-			val num = lit.toCharArray.filter(x => x != 'f' && x != 'F').mkString
-			RValue(num.toFloat, TypeHelper.floatType)
+			if literal.isUnsignedLongLongViaSuffix then
+				val bigInt = BigInteger(lit)
+				TypeHelper.getLongLong(bigInt)
+			else if literal.isUnsignedLongViaSuffix || literal.isLongViaSuffix then
+				TypeHelper.getLong(lit)
+			else if Lit(lit).isInt then
+				RValue(lit.toInt, TypeHelper.intType)
+			else
+				TypeHelper.getLong(lit)
 		else
-			RValue(lit.toDouble, TypeHelper.doubleType)
+			if literal.isFloatViaSuffix then
+				val num = literal.s.toCharArray.filter(x => x != 'f' && x != 'F').mkString
+				RValue(num.toFloat, TypeHelper.floatType)
+			else
+				RValue(literal.s.toDouble, TypeHelper.doubleType)
 	}
 }
