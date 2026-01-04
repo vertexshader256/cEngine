@@ -40,29 +40,40 @@ class StandardTest extends AsyncFlatSpec {
 	implicit override def executionContext: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
 	def checkResults(code: String, shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits,
-									 args: List[String] = List(), includePaths: List[String] = List()) = {
-		testGccVsCEngine(Seq(code), shouldBootstrap, pointerSize, args, includePaths)
+									 args: List[String] = List(), includePaths: List[String] = List(), runConcurrent: Boolean = true) = {
+		testGccVsCEngine(Seq(code), shouldBootstrap, pointerSize, args, includePaths, runConcurrent)
 	}
 
 	def testGccVsCEngine(codeInFiles: Seq[String], shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits,
-										args: List[String] = List(), includePaths: List[String] = List()) = {
+										args: List[String] = List(), includePaths: List[String] = List(), runConcurrent: Boolean = true): Future[Assertion] = {
 
-		val gccResults = Future {
-			StandardTest.getGccOutput(codeInFiles, pointerSize, args, includePaths)
-		}
+		if (runConcurrent) {
+			val gccResults = Future {
+				StandardTest.getGccOutput(codeInFiles, pointerSize, args, includePaths)
+			}
 
-		val cEngineResults = Future {
-			CEngine.getCEngineOutput(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
-		}
+			val cEngineResults = Future {
+				CEngine.getCEngineOutput(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
+			}
 
-		for {
-			gccOutput <- gccResults
-			cEngineOutput <- cEngineResults
-		} yield {
-			info("C_Engine output: " + cEngineOutput)
-			info("Gcc      output: " + gccOutput)
+			for {
+				gccOutput <- gccResults
+				cEngineOutput <- cEngineResults
+			} yield {
+				info("C_Engine output: " + cEngineOutput)
+				info("Gcc      output: " + gccOutput)
 
-			assert(cEngineOutput === gccOutput)
+				assert(cEngineOutput === gccOutput)
+			}
+		} else {
+			Future {
+				val gccOutput = StandardTest.getGccOutput(codeInFiles, pointerSize, args, includePaths)
+				val cEngineOutput = CEngine.getCEngineOutput(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
+				info("C_Engine output: " + cEngineOutput)
+				info("Gcc      output: " + gccOutput)
+
+				assert(cEngineOutput === gccOutput)
+			}
 		}
 	}
 }

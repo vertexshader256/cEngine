@@ -19,6 +19,7 @@ class FileTest extends StandardTest {
       void main() {
         FILE *fp;
         char buffer[100] = {0};
+			  char *arr = "ok";
 
         /* Open file for both reading and writing */
         fp = fopen("file.txt", "r");
@@ -31,8 +32,44 @@ class FileTest extends StandardTest {
         printf("%s", buffer);
       }"""
 
-		checkResults(code).map { result =>
+		checkResults(code, runConcurrent = false).map { result =>
 			new File("file.txt").delete()
+			result
+		}
+	}
+
+	"file write test" should "print the correct results" in {
+
+		import java.io._
+		val file = new File("filewritetest.txt")
+		val fileName = file.getName
+		val pw = new PrintWriter(file)
+		pw.write("1234\n")
+		pw.close
+
+		val code =
+			s"""
+
+				#include <stdio.h>
+
+				void main() {
+					FILE *fp;
+					char buffer[100] = {0};
+					char *arr = "ok";
+
+					/* Open file for both reading and writing */
+					fp = fopen("$fileName", "w");
+
+					printf("%s", arr);
+		 			fwrite(arr, 1, 2, fp);
+
+					fread(buffer, 1, 2, fp);
+					printf("%s", buffer);
+		      remove("$fileName");
+				}"""
+
+		checkResults(code, runConcurrent = false).map { result =>
+			file.delete()
 			result
 		}
 	}
@@ -58,7 +95,7 @@ class FileTest extends StandardTest {
 
       }"""
 
-		checkResults(code).map { result =>
+		checkResults(code, runConcurrent = false).map { result =>
 			new File("passwd.txt").delete()
 			result
 		}
@@ -78,7 +115,7 @@ class FileTest extends StandardTest {
 
       }"""
 
-		checkResults(code)
+		checkResults(code, runConcurrent = false)
 	}
 
 	"file existence check" should "print the correct results" in {
@@ -116,7 +153,7 @@ class FileTest extends StandardTest {
 
       }"""
 
-		checkResults(code).map { result =>
+		checkResults(code, runConcurrent = false).map { result =>
 			result
 		}
 	}
