@@ -46,7 +46,7 @@ object UnaryExpression {
 					case long: Long => ~long
 				}
 
-				TypeHelper.cast(info.theType, result)
+				RValue(result, info.theType)
 	}
 
 	private def processSizeof(value: ValueType)(implicit state: State) = {

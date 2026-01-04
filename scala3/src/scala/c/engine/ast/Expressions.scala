@@ -1,19 +1,8 @@
 package scala.c.engine
 package ast
 
-import org.eclipse.cdt.core.dom.ast._
-import org.anarres.cpp.{InputLexerSource, Preprocessor, Token}
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.*
-import org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage
 import org.eclipse.cdt.core.dom.ast.*
-import org.eclipse.cdt.core.parser.{DefaultLogService, FileContent, IncludeFileContentProvider, ScannerInfo}
-import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
-
-import java.io.{ByteArrayInputStream, File}
-import java.nio.charset.StandardCharsets
-import java.util
-import java.util.HashMap
-import scala.collection.mutable.ListBuffer
 
 object Expressions {
 
