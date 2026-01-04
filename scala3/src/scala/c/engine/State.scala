@@ -4,7 +4,6 @@ import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.op_assign
 import org.eclipse.cdt.core.dom.ast.*
 import org.eclipse.cdt.internal.core.dom.parser.c.*
 
-import java.util
 import scala.annotation.tailrec
 import scala.c.engine.Instructions.*
 import scala.c.engine.ast.{Declarator, Expressions}
@@ -20,8 +19,8 @@ object State {
 				compileForStatement(forStatement)
 			case whileStatement: IASTWhileStatement =>
 				compileWhileStatement(whileStatement)
-			case doWhileStatement: IASTDoStatement =>
-				compileDoWhileStatement(doWhileStatement)
+			case doWhile: IASTDoStatement =>
+				compileDoWhileStatement(doWhile)
 			case switch: IASTSwitchStatement =>
 				compileSwitcheStatement(switch)
 			case x: IASTCaseStatement =>
@@ -63,8 +62,8 @@ object State {
 	}
 
 	private def compileIfStatement(ifStatement: IASTIfStatement)(implicit state: State) = {
-		val contents = PushVariableStack() +: compile(ifStatement.getThenClause) :+ PopVariableStack()
-		val elseContents = PushVariableStack() +: List(Option(ifStatement.getElseClause)).flatten.flatMap(compile) :+ PopVariableStack()
+		val contents = compile(ifStatement.getThenClause)
+		val elseContents = List(Option(ifStatement.getElseClause)).flatten.flatMap(compile)
 
 		val jmp = if ifStatement.getElseClause != null then
 			List(Jmp(elseContents.size))
@@ -73,7 +72,6 @@ object State {
 
 		val all = contents ++ jmp
 
-		// add +1 for the jmp statement
 		JmpIfNotEqual(ifStatement.getConditionExpression, all.size) +: (all ++ elseContents)
 	}
 
@@ -118,9 +116,9 @@ object State {
 		state.breakLabelStack = state.breakLabelStack.tail
 		state.continueLabelStack = state.continueLabelStack.tail
 
-		val result = List(JmpLabel(end), begin) ++ contents ++ List(end, continueLabel, JmpToLabelIfZero(whileStatement.getCondition, begin), breakLabel)
+		val body = List(JmpLabel(end), begin) ++ contents ++ List(end, continueLabel, JmpToLabelIfZero(whileStatement.getCondition, begin), breakLabel)
 
-		PushVariableStack() +: result :+ PopVariableStack()
+		PushVariableStack() +: body :+ PopVariableStack()
 	}
 
 	private def compileDoWhileStatement(doWhileStatement: IASTDoStatement)(implicit state: State) = {
@@ -135,9 +133,9 @@ object State {
 		state.breakLabelStack = state.breakLabelStack.tail
 		state.continueLabelStack = state.continueLabelStack.tail
 
-		val result = begin +: (contents ++ List(continueLabel, JmpToLabelIfZero(doWhileStatement.getCondition, begin), breakLabel))
+		val body = begin +: (contents ++ List(continueLabel, JmpToLabelIfZero(doWhileStatement.getCondition, begin), breakLabel))
 
-		PushVariableStack() +: result :+ PopVariableStack()
+		PushVariableStack() +: body :+ PopVariableStack()
 	}
 
 	private def compileSwitcheStatement(switch: IASTSwitchStatement)(implicit state: State) = {
@@ -160,11 +158,11 @@ object State {
 				List(JmpLabel(x))
 			case _ =>
 				List()
-		} :+ JmpLabel(breakLabel)
+		}
 
 		state.breakLabelStack = state.breakLabelStack.tail
 
-		val result = jumpTable ++ descendants :+ breakLabel
+		val result = (jumpTable :+ JmpLabel(breakLabel)) ++ descendants :+ breakLabel
 
 		PushVariableStack() +: result :+ PopVariableStack()
 	}
