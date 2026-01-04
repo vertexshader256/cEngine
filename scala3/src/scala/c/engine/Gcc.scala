@@ -116,9 +116,19 @@ object Gcc {
 			GccOutput(logger.errors.toSeq, false)
 		}
 
-		if gccOutput != null then
-			gccOutput
-		else
+		if gccOutput != null then {
+
+			if (gccOutput.output != null) {
+				val hasNoCompileError = !gccOutput.output.exists(x => x.contains("returned 1 exit status"))
+
+				if hasNoCompileError then
+					gccOutput
+				else
+					GccOutput(gccOutput.output, false)
+			} else {
+				GccOutput(Seq("Compilation error"), false)
+			}
+		} else
 			GccOutput(logger.errors.toSeq, false)
 	}
 }
