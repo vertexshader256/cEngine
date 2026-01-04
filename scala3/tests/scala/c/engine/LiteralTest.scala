@@ -104,6 +104,20 @@ class LiteralTest extends StandardTest {
 		checkResults(code)
 	}
 
+	"an unsigned long suffix test" should "print the correct results" in {
+		val code =
+			"""
+				int main() {
+						unsigned long x = 0x845400UL;
+						unsigned long y = 0x845000LU;
+						unsigned long x2 = 0x845000ul;
+						unsigned long y2 = 0x845400lu;
+						printf("%d %d %d %d", x, y, x2, y2);
+						return 0;
+				}"""
+		checkResults(code)
+	}
+
 	"UTF-8 encoding test" should "print the correct results" in {
 		val code =
 			"""
