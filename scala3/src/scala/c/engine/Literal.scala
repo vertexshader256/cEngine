@@ -10,16 +10,16 @@ case class Lit(s: String) {
 	val isIntNumber = s.toIntOption.isDefined
 	val isLongNumber = s.toLongOption.isDefined
 
+	val isUnsignedViaSuffix = hasSuffix(s, "u")
+	val isLongLongViaSuffix = hasSuffix(s, "ll")
+
+	val isFloatViaSuffix = hasSuffix(s, "f")
+	val isLongViaSuffix = hasSuffix(s, "l")
+	val isUnsignedLongViaSuffix = hasSuffix(s, "ul") || hasSuffix(s, "lu")
+	val isUnsignedLongLongViaSuffix = hasSuffix(s, "ull") || hasSuffix(s, "llu")
+
 	private def hasSuffix(string: String, suffix: String): Boolean =
 		string.toLowerCase.endsWith(suffix)
-
-	val isUnsigned = hasSuffix(s, "u")
-	val isLongLong = hasSuffix(s, "ll")
-
-	val isFloat = hasSuffix(s, "f")
-	val isLong = hasSuffix(s, "l")
-	val isUnsignedLong = hasSuffix(s, "ul") || hasSuffix(s, "lu")
-	val isUnsignedLongLong = hasSuffix(s, "ull") || hasSuffix(s, "llu")
 }
 
 object Literal {
@@ -59,11 +59,11 @@ object Literal {
 		string.toLowerCase.endsWith(suffix)
 
 	private def stripFixedPointSuffix(literal: Lit): String = {
-		val charsToStrip = if literal.isUnsignedLongLong then
+		val charsToStrip = if literal.isUnsignedLongLongViaSuffix then
 			3
-		else if literal.isLongLong || literal.isUnsignedLong then
+		else if literal.isLongLongViaSuffix || literal.isUnsignedLongViaSuffix then
 			2
-		else if literal.isLong || literal.isUnsigned then
+		else if literal.isLongViaSuffix || literal.isUnsignedViaSuffix then
 			1
 		else
 			0
@@ -82,16 +82,16 @@ object Literal {
 
 		val lit = stripFixedPointSuffix(literal)
 
-		if literal.isUnsignedLongLong then
+		if literal.isUnsignedLongLongViaSuffix then
 			val bigInt = BigInteger(lit)
 			TypeHelper.getLongLong(bigInt)
-		else if literal.isUnsignedLong || literal.isLong then
+		else if literal.isUnsignedLongViaSuffix || literal.isLongViaSuffix then
 			TypeHelper.getLong(lit)
 		else if Lit(lit).isIntNumber then
 			RValue(lit.toInt, TypeHelper.intType)
 		else if Lit(lit).isLongNumber then
 			TypeHelper.getLong(lit)
-		else if literal.isFloat then
+		else if literal.isFloatViaSuffix then
 			val num = lit.toCharArray.filter(x => x != 'f' && x != 'F').mkString
 			RValue(num.toFloat, TypeHelper.floatType)
 		else
