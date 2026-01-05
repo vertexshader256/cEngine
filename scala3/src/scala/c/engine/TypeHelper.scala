@@ -34,7 +34,14 @@ object TypeHelper {
 					newVal match {
 						case long: Long => long & 0x00000000FFFFFFFFL
 						case int: Int => int & 0xFFFFFFFFL
-						case short: Short => short & 0xFFFF
+						case short: Short =>
+							theType match
+								case basic: CBasicType =>
+									if basic.getKind == Kind.eInt && !basic.isShort then
+										short & 0xFFFFFFFF
+									else
+										short & 0xFFFF
+								case _ => short & 0xFFFF
 						case byte: Byte => byte & 0xFF
 						case float: Float => float.toInt & 0xFFFFFFFFL
 						case double: Double => double.toInt & 0xFFFFFFFFL
