@@ -57,11 +57,19 @@ object Printf {
 				paramCount += 1
 			} else if (percentFound && (c == 'd')) {
 				formatFound += c
-				resolved += convertBoolean()
 
-				if formatFound != "ld" && formatFound != "lld" then
+				if formatFound != "ld" && formatFound != "lld" then {
+					val num = TypeHelper.toRValue(varArgs(paramCount))(using state).value
+
+					num match
+						case long: Long => resolved += 
+							// trying to print a long with the %d format
+							Int.box(long.toInt)
+						case _ => resolved += convertBoolean()
+
 					resultingFormatString += formatFound
-				else
+				} else
+					resolved += convertBoolean()
 					resultingFormatString += 'd'
 
 				percentFound = false
