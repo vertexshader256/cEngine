@@ -32,6 +32,8 @@ object TypeHelper {
 		case int: Int => int & 0xFFFFFFFFL
 		case short: Short => short & 0xFFFF
 		case byte: Byte => byte & 0xFF
+		case float: Float => castToUnsigned(float.toInt)
+		case double: Double => castToUnsigned(double.toInt)
 		case bigInt: BigInt => castToUnsigned(bigInt.toLong)
 	}
 

@@ -56,12 +56,12 @@ class CastTest extends StandardTest {
 		s"""
 			void main() {
 				char x = 'a';
-				short x2 = 435;
-		    int x3 = 435;
-			  long x4 = 435;
-		    long long x5 = 435;
-			  float x6 = 21312.045;
-		    double x7 = 3432.54534;
+				short x2 = -435;
+		    int x3 = -435;
+			  long x4 = -435;
+		    long long x5 = -435;
+			  float x6 = -21312.045;
+		    double x7 = -3432.54534;
 				$theType y = ($theType)x;
 				$theType y2 = ($theType)x2;
 				$theType y3 = ($theType)x3;
@@ -78,21 +78,42 @@ class CastTest extends StandardTest {
 		checkResults(getCastingTest("long long", "d"))
 	}
 
+	"Casting various types to a unsigned long long" should "print the correct results" in {
+		checkResults(getCastingTest("unsigned long long", "d"))
+	}
+
 	"Casting various types to a short" should "print the correct results" in {
 		checkResults(getCastingTest("short", "d"))
+	}
+
+	"Casting various types to an unsigned short" should "print the correct results" in {
+		checkResults(getCastingTest("unsigned short", "d"))
 	}
 
 	"Casting various types to a char" should "print the correct results" in {
 		checkResults(getCastingTest("char", "d"))
 	}
 
+	"Casting various types to an unsigned char" should "print the correct results" in {
+		checkResults(getCastingTest("unsigned char", "d"))
+	}
+	
+	"Casting various types to a long" should "print the correct results" in {
+		checkResults(getCastingTest("long", "d"))
+	}
+
+	"Casting various types to an unsigned long" should "print the correct results" in {
+		checkResults(getCastingTest("unsigned long", "d"))
+	}
+
 	"Casting various types to a int" should "print the correct results" in {
 		checkResults(getCastingTest("int", "d"))
 	}
 
-	"Casting various types to a long" should "print the correct results" in {
-		checkResults(getCastingTest("long", "d"))
+	"Casting various types to an unsigned int" should "print the correct results" in {
+		checkResults(getCastingTest("unsigned int", "d"))
 	}
+
 
 	"Casting various types to a float" should "print the correct results" in {
 		checkResults(getCastingTest("float", "f"))
