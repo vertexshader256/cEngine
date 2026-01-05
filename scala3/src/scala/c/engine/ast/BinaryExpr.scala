@@ -69,6 +69,7 @@ object BinaryExpr {
 		op1 match
 			case x: Int => calculateFixedPoint(x, operator, op1, op2)
 			case x: Long => calculateFixedPoint(x, operator, op1, op2)
+			case x: BigInt => calculateFixedPoint(x, operator, op1, op2)
 			case x: Double => calculateFloatingPoint(x, operator, op1, op2)
 			case x: Float => calculateFloatingPoint(x, operator, op1, op2)
 			case _: Boolean => calculateBoolean(op1, op2, operator)
@@ -234,6 +235,10 @@ object BinaryExpr {
 					case y: Int => x + y
 					case y: Float => x + y
 					case y: Double => x + y
+					case y: Long => x + y
+			case x: BigInt =>
+				num2 match
+					case y: Int => x + y
 					case y: Long => x + y
 	}
 

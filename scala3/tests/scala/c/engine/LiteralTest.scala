@@ -75,7 +75,7 @@ class LiteralTest extends StandardTest {
 		checkResults(code)
 	}
 
-	"printing a float as a %d" should "print the correct results" in {
+	"initializing a long long without the suffix" should "print the correct results" in {
 		val code =
 			"""
 				int main() {

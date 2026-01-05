@@ -51,7 +51,7 @@ object TypeHelper {
 		val theType = getType(value)
 		RValue(value, theType)
 	}
-	
+
 	def isStructure(theType: IType): Boolean = theType match {
 		case struct: CStructure => true
 		case basicType: IBasicType => false
@@ -106,11 +106,13 @@ object TypeHelper {
 						case long: Long => long
 						case double: Double => double.toLong
 						case float: Float => float.toLong
+						case big: BigInt => big.toLong
 				case `eInt` if basic.isShort =>
 					newVal match
 						case int: Int => int.toShort
 						case short: Short => short
 						case long: Long => long.toShort
+						case big: BigInt => big.toShort
 				case `eInt` =>
 					newVal match
 						case boolean: Boolean => if boolean then 1 else 0
@@ -120,6 +122,7 @@ object TypeHelper {
 						case char: char => char.toInt
 						case double: Double => double.toInt
 						case float: Float => float.toInt
+						case big: BigInt => big.toInt
 				case `eFloat` =>
 					newVal match
 						case int: Int => int.toFloat
@@ -132,6 +135,7 @@ object TypeHelper {
 						case long: Long => long.toDouble
 						case double: Double => double
 						case float: Float => float.toDouble
+						case big: BigInt => big.toDouble
 				case `eBoolean` =>
 					if (TypeHelper.resolveBoolean(newVal)) 1 else 0
 				case `eVoid` =>

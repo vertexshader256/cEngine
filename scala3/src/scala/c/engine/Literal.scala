@@ -21,6 +21,13 @@ case class Lit(s: String) {
 	val isUnsignedLongViaSuffix = hasSuffix(s, "ul") || hasSuffix(s, "lu")
 	val isUnsignedLongLongViaSuffix = hasSuffix(s, "ull") || hasSuffix(s, "llu")
 
+	val isLongLong: Boolean = Try {
+		if isHex then {
+			BigInt(s.drop(2), 16) > BigInt(2147483647)
+		} else
+			BigInt(s) > BigInt(2147483647)
+	}.getOrElse(false)
+
 	val isFP = isFloatViaSuffix || isRawFloatingPoint
 	val isFixedPoint = isLong || isUnsignedViaSuffix || isLongLongViaSuffix ||
 		isLongViaSuffix || isUnsignedLongViaSuffix || isUnsignedLongLongViaSuffix || isHex
@@ -108,7 +115,7 @@ object Literal {
 		if literal.isFixedPoint then
 			val lit = literal.stripFixedPointSuffix
 
-			val value: cEngVal = if literal.isUnsignedLongLongViaSuffix then
+			val value: cEngVal = if literal.isUnsignedLongLongViaSuffix || literal.isLongLong then
 				BigInteger(lit)
 			else if literal.isUnsignedLongViaSuffix || literal.isLongViaSuffix then
 				lit.toLong
