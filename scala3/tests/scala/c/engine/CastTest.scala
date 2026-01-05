@@ -52,11 +52,23 @@ class CastTest extends StandardTest {
 		checkResults(code)
 	}
 
+	"A cast fron a negative short to an unsigned int" should "print the correct results" in {
+		val code =
+			"""
+				void main() {
+			    short x = -1;
+			    unsigned int y = (unsigned int)x;
+					printf("%d\n", y);
+				}"""
+
+		checkResults(code)
+	}
+
 	private def getCastingTest(theType: String, z: String) = {
 		s"""
 			void main() {
 				char x = 'a';
-				short x2 = -435;
+				short x2 = -1;
 		    int x3 = -435;
 			  long x4 = -435;
 		    long long x5 = -435;
@@ -97,7 +109,7 @@ class CastTest extends StandardTest {
 	"Casting various types to an unsigned char" should "print the correct results" in {
 		checkResults(getCastingTest("unsigned char", "d"))
 	}
-	
+
 	"Casting various types to a long" should "print the correct results" in {
 		checkResults(getCastingTest("long", "d"))
 	}
@@ -113,7 +125,6 @@ class CastTest extends StandardTest {
 	"Casting various types to an unsigned int" should "print the correct results" in {
 		checkResults(getCastingTest("unsigned int", "d"))
 	}
-
 
 	"Casting various types to a float" should "print the correct results" in {
 		checkResults(getCastingTest("float", "f"))
