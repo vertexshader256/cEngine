@@ -27,21 +27,19 @@ object TypeHelper {
 	def getLongLong(bigInt: BigInt) =
 		RValue(bigInt, longlong)
 
-	private def castToUnsigned(value: FixedPoint): FixedPoint = value match {
-		case long: Long => long & 0x00000000FFFFFFFFL
-		case int: Int => int & 0xFFFFFFFFL
-		case short: Short => short & 0xFFFF
-		case byte: Byte => byte & 0xFF
-		case float: Float => castToUnsigned(float.toInt)
-		case double: Double => castToUnsigned(double.toInt)
-		case bigInt: BigInt => castToUnsigned(bigInt.toLong)
-	}
-
 	def castSign(theType: IType, newVal: cEngVal): RValue = {
 		val casted: cEngVal = theType match {
 			case basic: IBasicType =>
 				if basic.isUnsigned then
-					castToUnsigned(newVal.asInstanceOf[FixedPoint])
+					newVal match {
+						case long: Long => long & 0x00000000FFFFFFFFL
+						case int: Int => int & 0xFFFFFFFFL
+						case short: Short => short & 0xFFFF
+						case byte: Byte => byte & 0xFF
+						case float: Float => float.toInt & 0xFFFFFFFFL
+						case double: Double => double.toInt & 0xFFFFFFFFL
+						case bigInt: BigInt => bigInt.toInt & 0xFFFFFFFFL
+					}
 				else
 					newVal
 		}
