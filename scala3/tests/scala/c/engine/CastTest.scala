@@ -74,6 +74,7 @@ class CastTest extends StandardTest {
 		    long long x5 = -435;
 			  float x6 = -21312.045;
 		    double x7 = -3432.54534;
+		    unsigned long long x8 = 0xFFFFFFFFFFFFFFFFULL;
 				$theType y = ($theType)x;
 				$theType y2 = ($theType)x2;
 				$theType y3 = ($theType)x3;
@@ -81,7 +82,8 @@ class CastTest extends StandardTest {
 				$theType y5 = ($theType)x5;
 				$theType y6 = ($theType)x6;
 				$theType y7 = ($theType)x7;
-				printf("%$z %$z %$z %$z %$z %$z %$z\\n", y, y2, y3, y4, y5, y6, y7);
+		    $theType y8 = ($theType)x8;
+				printf("%$z %$z %$z %$z %$z %$z %$z %$z\\n", y, y2, y3, y4, y5, y6, y7, y8);
 			}
 			""".stripMargin
 	}
