@@ -90,11 +90,16 @@ object TypeHelper {
 			basic.getKind match {
 				case `eChar` =>
 					newVal match
+						case short: Short => short.toByte
 						case int: Int => int.toChar.toByte
 						case long: Long => long.toChar.toByte
 						case char: Byte => char
+						case float: Float => float.toByte
+						case double: Double => double.toByte
 				case `eInt` if basic.isLongLong =>
 					newVal match
+						case char: Byte => char.toLong
+						case short: Short => short.toLong
 						case int: Int => int.toLong
 						case long: Long => long
 						case double: Double => double.toLong
@@ -102,6 +107,8 @@ object TypeHelper {
 						case big: BigInt => big.toLong
 				case `eInt` if basic.isLong =>
 					newVal match
+						case char: Byte => char.toLong
+						case short: Short => short.toLong
 						case int: Int => int.toLong
 						case long: Long => long
 						case double: Double => double.toLong
@@ -109,8 +116,11 @@ object TypeHelper {
 						case big: BigInt => big.toLong
 				case `eInt` if basic.isShort =>
 					newVal match
+						case char: Byte => char.toShort
 						case int: Int => int.toShort
 						case short: Short => short
+						case float: Float => float.toShort
+						case double: Double => double.toShort
 						case long: Long => long.toShort
 						case big: BigInt => big.toShort
 				case `eInt` =>
@@ -119,18 +129,22 @@ object TypeHelper {
 						case long: Long => long.toInt
 						case int: Int => int
 						case short: Short => short.toInt
-						case char: char => char.toInt
+						case char: Byte => char.toInt
 						case double: Double => double.toInt
 						case float: Float => float.toInt
 						case big: BigInt => big.toInt
 				case `eFloat` =>
 					newVal match
+						case char: Byte => char.toFloat
+						case short: Short => short.toFloat
 						case int: Int => int.toFloat
 						case double: Double => double.toFloat
 						case float: Float => float
 						case long: Long => long.toFloat
 				case `eDouble` =>
 					newVal match
+						case char: Byte => char.toDouble
+						case short: Short => short.toDouble
 						case int: Int => int.toDouble
 						case long: Long => long.toDouble
 						case double: Double => double

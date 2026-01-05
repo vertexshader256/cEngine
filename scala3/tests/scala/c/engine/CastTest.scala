@@ -52,6 +52,56 @@ class CastTest extends StandardTest {
 		checkResults(code)
 	}
 
+	private def getCastingTest(theType: String, z: String) = {
+		s"""
+			void main() {
+				char x = 'a';
+				short x2 = 435;
+		    int x3 = 435;
+			  long x4 = 435;
+		    long long x5 = 435;
+			  float x6 = 21312.045;
+		    double x7 = 3432.54534;
+				$theType y = ($theType)x;
+				$theType y2 = ($theType)x2;
+				$theType y3 = ($theType)x3;
+				$theType y4 = ($theType)x4;
+				$theType y5 = ($theType)x5;
+				$theType y6 = ($theType)x6;
+				$theType y7 = ($theType)x7;
+				printf("%$z %$z %$z %$z %$z %$z %$z\\n", y, y2, y3, y4, y5, y6, y7);
+			}
+			""".stripMargin
+	}
+
+	"Casting various types to a long long" should "print the correct results" in {
+		checkResults(getCastingTest("long long", "d"))
+	}
+
+	"Casting various types to a short" should "print the correct results" in {
+		checkResults(getCastingTest("short", "d"))
+	}
+
+	"Casting various types to a char" should "print the correct results" in {
+		checkResults(getCastingTest("char", "d"))
+	}
+
+	"Casting various types to a int" should "print the correct results" in {
+		checkResults(getCastingTest("int", "d"))
+	}
+
+	"Casting various types to a long" should "print the correct results" in {
+		checkResults(getCastingTest("long", "d"))
+	}
+
+	"Casting various types to a float" should "print the correct results" in {
+		checkResults(getCastingTest("float", "f"))
+	}
+
+	"Casting various types to a double" should "print the correct results" in {
+		checkResults(getCastingTest("double", "f"))
+	}
+
 	"Robust casting for code coverage" should "print the correct results" in {
 		val code =
 			"""
