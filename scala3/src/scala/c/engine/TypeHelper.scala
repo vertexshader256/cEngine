@@ -34,11 +34,24 @@ object TypeHelper {
 					newVal match
 						case long: Long => castSign(theType, long.toInt).value
 						case int: Int => int & 0xFFFFFFFFL
-						case short: Short => castShort(theType, short)
+						case short: Short =>
+							theType match {
+								case basic: CBasicType =>
+									if basic.getKind == Kind.eInt && !basic.isShort then
+										short & 0xFFFFFFFF
+									else
+										short & 0xFFFF
+								case _ =>
+									short & 0xFFFF
+							}
 						case byte: Byte => byte & 0xFF
 						case float: Float => castSign(theType, float.toInt).value
 						case double: Double => castSign(theType, double.toInt).value
-						case bigInt: BigInt => castSign(theType, bigInt.toInt).value
+						case bigInt: BigInt => 
+							if bigInt < 0 then
+								bigInt * -1
+							else 
+								bigInt
 				else
 					newVal
 		}
@@ -284,16 +297,6 @@ object TypeHelper {
 			fcn.getParameterTypes.map(printType).reduce(_ + ", " + _)
 		})"
 		case _ => "null"
-	}
-
-	private def castShort(theType: IType, short: Short): cEngVal = theType match {
-		case basic: CBasicType =>
-			if basic.getKind == Kind.eInt && !basic.isShort then
-				short & 0xFFFFFFFF
-			else
-				short & 0xFFFF
-		case _ =>
-			short & 0xFFFF
 	}
 
 	// Kind of hacky; this will do whatever it needs to match gcc.
