@@ -20,16 +20,4 @@ class IntegerTest extends StandardTest {
 
 		checkResults(code)
 	}
-
-	"printing a 9-byte hex number" should "print the correct results" in {
-		val code =
-			"""
-					int main() {
-						unsigned long long x = 0xFFFFFFFF;
-						printf("after: %d\n", x);
-						return 0;
-					}"""
-
-		checkResults(code)
-	}
 }

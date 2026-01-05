@@ -75,6 +75,18 @@ class LiteralTest extends StandardTest {
 		checkResults(code)
 	}
 
+	"printing a float as a %d" should "print the correct results" in {
+		val code =
+			"""
+				int main() {
+					unsigned long long x = 0xFFFFFFFFFFFFFFFF;
+					printf("after: %ull\n", x);
+					return 0;
+				}"""
+
+		checkResults(code)
+	}
+	
 	"an unsigned long long suffix test" should "print the correct results" in {
 		val code =
 			"""

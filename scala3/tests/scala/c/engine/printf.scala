@@ -19,6 +19,18 @@ class printf extends StandardTest {
 	//    checkResults(code, false)
 	//  }
 
+	"printing a long long as a %d" should "print the correct results" in {
+		val code =
+			"""
+				int main() {
+					unsigned long long x = 0xFFFFFFFF;
+					printf("after: %d\n", x);
+					return 0;
+				}"""
+
+		checkResults(code)
+	}
+
 	"printing a string with inline pointer arithmetic" should "print the correct results" in {
 		val code =
 			"""
