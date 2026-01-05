@@ -18,6 +18,17 @@ class PrintTest extends StandardTest {
 
 class RobustPrint extends StandardTest {
 
+	"printing a unsigned long long" should "print the correct results" in {
+		val code =
+			"""
+					void main() {
+						unsigned long long x = 0xFFFFFFFFFFFFFFFFULL;
+						printf("%llu\n", x);
+					}"""
+
+		checkResults(code)
+	}
+	
 	"printing long as float" should "print the correct results" in {
 		val code =
 			"""#include <stdio.h>

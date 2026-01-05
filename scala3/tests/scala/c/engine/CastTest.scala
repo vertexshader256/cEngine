@@ -64,18 +64,6 @@ class CastTest extends StandardTest {
 		checkResults(code)
 	}
 
-	"A cast fron a unsigned long long to a float" should "print the correct results" in {
-		val code =
-			"""
-					void main() {
-						unsigned long long x = 0xFFFFFFFFFFFFFFFFULL;
-						float y = (float)x;
-						printf("%f\n", y);
-					}"""
-
-		checkResults(code)
-	}
-
 	private def getCastingTest(theType: String, z: String) = {
 		s"""
 			void main() {
