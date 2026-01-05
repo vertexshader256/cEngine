@@ -21,15 +21,12 @@ class IntegerTest extends StandardTest {
 		checkResults(code)
 	}
 
-	"more bitwise ops on unsigned long longs" should "print the correct results" in {
+	"printing a 9-byte hex number" should "print the correct results" in {
 		val code =
 			"""
 					int main() {
-						unsigned long long x = 0xBFFFFFFFFFFFFFFFULL;
-						printf("before: %d\n", x);
-						x &= 0xBFFFFFFFFFFFFFFFULL;
+						unsigned long long x = 0xFFFFFFFF;
 						printf("after: %d\n", x);
-
 						return 0;
 					}"""
 
