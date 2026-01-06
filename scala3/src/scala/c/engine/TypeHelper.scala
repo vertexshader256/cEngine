@@ -318,14 +318,14 @@ object TypeHelper {
 						case float: Float => float.toByte
 						case double: Double => double.toByte
 				case `eInt` if basic.isLongLong =>
-					newVal match
+					newVal match // TODO: Should probably turn these all into BigInt
 						case char: Byte => char.toLong
 						case short: Short => short.toLong
 						case int: Int => int.toLong
 						case long: Long => long
 						case double: Double => double.toLong
 						case float: Float => float.toLong
-						case big: BigInt => big.toLong
+						case big: BigInt => big
 				case `eInt` if basic.isLong =>
 					newVal match
 						case char: Byte => char.toLong

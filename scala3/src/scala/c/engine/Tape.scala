@@ -1,5 +1,6 @@
 package scala.c.engine
 
+import java.math.BigInteger
 import java.nio.{ByteBuffer, ByteOrder}
 import java.util
 
@@ -68,6 +69,12 @@ class Tape(size: Int) {
 
 	def getLong(address: Int): Long = {
 		tape.getLong(address)
+	}
+
+	def getLongLong(address: Int): BigInt = {
+		val bytes = new Array[Byte](8)
+		tape.get(address, bytes)
+		new BigInteger(bytes)
 	}
 
 	def putInt(address: Int, int: Int) = {

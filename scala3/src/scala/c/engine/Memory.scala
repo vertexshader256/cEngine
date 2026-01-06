@@ -23,6 +23,7 @@ class Memory(size: Int) {
 				newVal match
 					case long: Long => tape.putLong(address, long)
 					case int: Int => tape.putInt(address, int)
+					case bigInt: BigInt => tape.putLong(address, bigInt.toLong)
 			case basic: IBasicType if basic.isLong =>
 				newVal match
 					case long: Long => tape.putInt(address, long.toInt)
