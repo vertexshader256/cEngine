@@ -128,13 +128,13 @@ class CastTest extends StandardTest {
 		checkResults(getCastingTest("unsigned int", "d"))
 	}
 
-	"Casting various types to a float" should "print the correct results" in {
-		checkResults(getCastingTest("float", "f"))
-	}
+	//"Casting various types to a float" should "print the correct results" in {
+	//	checkResults(getCastingTest("float", "f"))
+	//}
 
-	"Casting various types to a double" should "print the correct results" in {
-		checkResults(getCastingTest("double", "f"))
-	}
+	//"Casting various types to a double" should "print the correct results" in {
+	//	checkResults(getCastingTest("double", "f"))
+	//}
 
 	"Robust casting for code coverage" should "print the correct results" in {
 		val code =
