@@ -23,7 +23,12 @@ class Memory(size: Int) {
 				newVal match
 					case long: Long => tape.putLong(address, long)
 					case int: Int => tape.putInt(address, int)
-					case bigInt: BigInt => tape.putLong(address, bigInt.toLong)
+					case bigInt: BigInt =>
+						if basic.isUnsigned then
+							val unsigned = java.lang.Long.parseUnsignedLong(bigInt.toString)
+							tape.putLong(address, unsigned)
+						else
+							tape.putLong(address, bigInt.toLong)
 			case basic: IBasicType if basic.isLong =>
 				newVal match
 					case long: Long => tape.putInt(address, long.toInt)
