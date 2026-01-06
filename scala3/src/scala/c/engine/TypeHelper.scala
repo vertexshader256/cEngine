@@ -30,29 +30,33 @@ object TypeHelper {
 	def castSign(theType: IType, newVal: cEngVal): RValue = {
 		val casted: cEngVal = theType match {
 			case basic: IBasicType =>
-				if basic.isUnsigned then
-					newVal match
-						case long: Long => castSign(theType, long.toInt).value
-						case int: Int => int & 0xFFFFFFFFL
-						case short: Short =>
-							theType match {
-								case basic: CBasicType =>
-									if basic.getKind == Kind.eInt && !basic.isShort then
-										short & 0xFFFFFFFF
-									else
+				if basic.isUnsigned then {
+
+					if basic.isLongLong && basic.isUnsigned && newVal == -1 then
+						newVal
+					else
+						newVal match
+							case long: Long => castSign(theType, long.toInt).value
+							case int: Int => int & 0xFFFFFFFFL
+							case short: Short =>
+								theType match {
+									case basic: CBasicType =>
+										if basic.getKind == Kind.eInt && !basic.isShort then
+											short & 0xFFFFFFFF
+										else
+											short & 0xFFFF
+									case _ =>
 										short & 0xFFFF
-								case _ =>
-									short & 0xFFFF
-							}
-						case byte: Byte => byte & 0xFF
-						case float: Float => castSign(theType, float.toInt).value
-						case double: Double => castSign(theType, double.toInt).value
-						case bigInt: BigInt => 
-							if bigInt < 0 then
-								bigInt * -1
-							else 
-								bigInt
-				else
+								}
+							case byte: Byte => byte & 0xFF
+							case float: Float => castSign(theType, float.toInt).value
+							case double: Double => castSign(theType, double.toInt).value
+							case bigInt: BigInt =>
+								if bigInt < 0 then
+									bigInt * -1
+								else
+									bigInt
+				} else
 					newVal
 		}
 

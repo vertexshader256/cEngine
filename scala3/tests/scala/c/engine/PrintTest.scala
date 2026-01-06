@@ -18,7 +18,19 @@ class PrintTest extends StandardTest {
 
 class RobustPrint extends StandardTest {
 
-	"printing a unsigned long long" should "print the correct results" in {
+	"printing a unsigned long long with u format" should "print the correct results" in {
+		val code =
+			"""
+				int main() {
+					unsigned long long x = 0xFFFFFFFFFFFFFFFF;
+					printf("after: %u\n", x);
+					return 0;
+				}"""
+
+		checkResults(code)
+	}
+
+	"printing a unsigned long long with llu format" should "print the correct results" in {
 		val code =
 			"""
 					void main() {

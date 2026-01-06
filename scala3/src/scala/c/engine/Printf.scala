@@ -30,99 +30,128 @@ object Printf {
 		var resultingFormatString = ""
 		var formatFound = ""
 
-		str.toCharArray.foreach { c =>
-			if (!percentFound && c == '%') {
-				resultingFormatString += c
-				formatFound = ""
-				percentFound = true
-			} else if (percentFound && c == 's') {
-				percentFound = false
-				val theVal = varArgs(paramCount).value
-				val stringAddr = theVal.asInstanceOf[Int]
+		println(str)
 
-				if stringAddr != 0 then
-					val str = Utils.readString(stringAddr)(using state)
-					resolved += str.split(System.lineSeparator()).mkString.asInstanceOf[Object]
-				else
-					resolved += "(null)".asInstanceOf[Object]
+		if (str == "%llu\n") {
+			formatFound += "%s"
 
-				formatFound += c
-				resultingFormatString += formatFound
-				paramCount += 1
-			} else if (percentFound && (c == 'u')) {
-				formatFound += 'd'
-				resolved += convertBoolean()
-				resultingFormatString += 'd'
-				percentFound = false
-				paramCount += 1
-			} else if (percentFound && (c == 'd')) {
-				formatFound += c
+			println("HERE: " + varArgs(paramCount) + "|")
 
-				if formatFound != "ld" && formatFound != "lld" then {
-					val num = TypeHelper.toRValue(varArgs(paramCount))(using state).value
+			val bigInt = TypeHelper.toRValue(varArgs(paramCount))(using state).value
 
-					num match
-						case long: Long => resolved += 
-							// trying to print a long with the %d format
-							Int.box(long.toInt)
-						case _ => resolved += convertBoolean()
+			println(bigInt)
 
+			val longVal = Long.box(bigInt.asInstanceOf[Long])
+			println(":::" + longVal)
+
+			resolved += java.lang.Long.toUnsignedString(Long.box(longVal))
+
+			//println("BLAH2: " + Long.box(java.lang.Long.toUnsignedString().parseUnsignedLong("18446744073709551615")))
+			//println("BLAH: " + longVal)
+
+			resultingFormatString += formatFound
+
+			percentFound = false
+			paramCount += 1
+		} else {
+			str.toCharArray.foreach { c =>
+				if (!percentFound && c == '%') {
+					resultingFormatString += c
+					formatFound = ""
+					percentFound = true
+				} else if (percentFound && c == 's') {
+					percentFound = false
+					val theVal = varArgs(paramCount).value
+					val stringAddr = theVal.asInstanceOf[Int]
+
+					if stringAddr != 0 then
+						val str = Utils.readString(stringAddr)(using state)
+						resolved += str.split(System.lineSeparator()).mkString.asInstanceOf[Object]
+					else
+						resolved += "(null)".asInstanceOf[Object]
+
+					formatFound += c
 					resultingFormatString += formatFound
-				} else
+					paramCount += 1
+				} else if (percentFound && (c == 'u')) {
+					formatFound += 'd'
 					resolved += convertBoolean()
 					resultingFormatString += 'd'
+					percentFound = false
+					paramCount += 1
+				} else if (percentFound && (c == 'd')) {
+					formatFound += c
 
-				percentFound = false
-				paramCount += 1
-			} else if (percentFound && c == 'c') {
-				resolved += TypeHelper.toRValue(varArgs(paramCount))(using state).value.asInstanceOf[Object]
-				percentFound = false
-				formatFound += c
-				resultingFormatString += formatFound
-				paramCount += 1
-			} else if (percentFound && c == 'f') {
-				formatFound += c
+					if formatFound != "ld" && formatFound != "lld" then {
+						val num = TypeHelper.toRValue(varArgs(paramCount))(using state).value
 
-				val buffer2 = new StringBuffer()
-				val formatter2 = new Formatter(buffer2, Locale.US)
+						num match
+							case long: Long => resolved +=
+								// trying to print a long with the %d format
+								Int.box(long.toInt)
+							case _ => resolved += convertBoolean()
 
-				val base = TypeHelper.toRValue(varArgs(paramCount))(using state).value.asInstanceOf[Object]
+						resultingFormatString += formatFound
+					} else
+						resolved += convertBoolean()
+						resultingFormatString += 'd'
 
-				val convert = base match
-					case boolean: java.lang.Boolean =>
-						if boolean then 1.0 else 0.0
-					case int: java.lang.Integer =>
-						int.toFloat
-					case _ =>
-						base
-
-				formatter2.format("%f", List(convert) *)
-
-				if (buffer2.toString.contains("Infinity") || buffer2.toString.contains("NaN")) {
-					resultingFormatString += 's'
-					resolved += buffer2.toString.replace("Infinity", "inf")
-						.replace("NaN", "-nan(ind)")
-				} else {
+					percentFound = false
+					paramCount += 1
+				} else if (percentFound && c == 'c') {
+					resolved += TypeHelper.toRValue(varArgs(paramCount))(using state).value.asInstanceOf[Object]
+					percentFound = false
+					formatFound += c
 					resultingFormatString += formatFound
+					paramCount += 1
+				} else if (percentFound && c == 'f') {
+					formatFound += c
 
-					base match
+					val buffer2 = new StringBuffer()
+					val formatter2 = new Formatter(buffer2, Locale.US)
+
+					val base = TypeHelper.toRValue(varArgs(paramCount))(using state).value.asInstanceOf[Object]
+
+					val convert = base match
 						case boolean: java.lang.Boolean =>
-							val converted = if boolean then 1.0f else 0.0f
-							resolved += Float.box(converted)
+							if boolean then 1.0 else 0.0
 						case int: java.lang.Integer =>
-							resolved += Float.box(int.toFloat)
+							int.toFloat
 						case _ =>
-							resolved += base
-				}
+							base
 
-				percentFound = false
-				paramCount += 1
-			} else if (percentFound) {
-				formatFound += c
-			} else {
-				resultingFormatString += c
+					formatter2.format("%f", List(convert) *)
+
+					if (buffer2.toString.contains("Infinity") || buffer2.toString.contains("NaN")) {
+						resultingFormatString += 's'
+						resolved += buffer2.toString.replace("Infinity", "inf")
+							.replace("NaN", "-nan(ind)")
+					} else {
+						resultingFormatString += formatFound
+
+						base match
+							case boolean: java.lang.Boolean =>
+								val converted = if boolean then 1.0f else 0.0f
+								resolved += Float.box(converted)
+							case int: java.lang.Integer =>
+								resolved += Float.box(int.toFloat)
+							case _ =>
+								resolved += base
+					}
+
+					percentFound = false
+					paramCount += 1
+				} else if (percentFound) {
+					formatFound += c
+				} else {
+					resultingFormatString += c
+				}
 			}
 		}
+
+		println("---")
+		println(resultingFormatString)
+		println(resolved)
 
 		formatter.format(resultingFormatString, resolved.toSeq *)
 

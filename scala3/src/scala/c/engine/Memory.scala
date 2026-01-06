@@ -81,6 +81,7 @@ class Memory(size: Int) {
 					(result << (16 - sizeInBits - bitOffset) >> (16 - sizeInBits)).toShort
 				else if basic.getKind == eInt && basic.isLongLong then
 					val result = tape.getLong(address)
+					println("...." + result)
 					result << (64 - sizeInBits - bitOffset) >> (64 - sizeInBits)
 				else if basic.getKind == eInt || basic.getKind == eBoolean then
 					val result = tape.getInt(address)
