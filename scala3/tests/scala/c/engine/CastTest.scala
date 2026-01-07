@@ -67,16 +67,70 @@ class CastTest extends StandardTest {
 	"casting a short to unsigned" should "print the correct results" in {
 		val code =
 			"""
+
+					#include <stdio.h>
+					#include <limits.h>
+					#include <stdint.h> // For fixed-width types
+
 					void main() {
-						short signed_val = -1;
-						unsigned short unsigned_val = (unsigned short)signed_val;
+						short positive_short = 100;
+						unsigned int unsigned_positive = (unsigned int)positive_short;
+						printf("--- Positive Value Test ---\n");
+						printf("Signed short value: %hd\n", positive_short);
+						printf("As unsigned int (cast): %u\n\n", unsigned_positive);
 
-						printf("Signed short: %d\n", signed_val);       // Output: -1
-						printf("Unsigned short: %u\n", unsigned_val); // Output: 65535 (UINT_MAX)
+						// The value should remain the same for positive numbers that fit within both types
+						if (positive_short == (short)unsigned_positive) {
+								printf("TEST 1 PASSED: Positive value conversion is correct.\n\n");
+						} else {
+								printf("TEST 1 FAILED: Positive value conversion is incorrect.\n\n");
+						}
 
-						short positive_val = 100;
-						unsigned short unsigned_pos = (unsigned short)positive_val;
-						printf("Positive unsigned short: %u\n", unsigned_pos); // Output: 100
+						// --- Test 2: Negative values (the critical test case) ---
+						short negative_short = -1;
+						unsigned int unsigned_negative = (unsigned int)negative_short;
+						printf("--- Negative Value Test ---\n");
+						printf("Signed short value: %hd\n", negative_short);
+						printf("As unsigned int (cast): %u\n", unsigned_negative);
+						printf("Expected result (UINT_MAX): %u\n\n", UINT_MAX);
+
+						// With two's complement and standard C rules, -1 should convert to UINT_MAX
+						if (unsigned_negative == UINT_MAX) {
+								printf("TEST 2 PASSED: Negative value conversion to UINT_MAX is correct.\n\n");
+						} else {
+								printf("TEST 2 FAILED: Negative value conversion is incorrect.\n\n");
+						}
+
+						// --- Test 3: Large negative value test ---
+						short large_negative_short = -100;
+						unsigned int unsigned_large_negative = (unsigned int)large_negative_short;
+						printf("--- Large Negative Value Test ---\n");
+						printf("Signed short value: %hd\n", large_negative_short);
+						printf("As unsigned int (cast): %u\n", unsigned_large_negative);
+						// Expected result: UINT_MAX - 99 (or 2^N - 100 on a 32-bit int system)
+						printf("Expected result (UINT_MAX - 99): %u\n\n", UINT_MAX - 99);
+
+						 if (unsigned_large_negative == (UINT_MAX - 99U)) {
+								printf("TEST 3 PASSED: Large negative value conversion is correct.\n\n");
+						} else {
+								printf("TEST 3 FAILED: Large negative value conversion is incorrect.\n\n");
+						}
+
+
+						// --- Test 4: Maximum and Minimum `short` values ---
+						short max_short = SHRT_MAX;
+						short min_short = SHRT_MIN;
+						unsigned int unsigned_max_short = (unsigned int)max_short;
+						unsigned int unsigned_min_short = (unsigned int)min_short;
+						printf("--- Min/Max Short Test ---\n");
+						printf("Max short (%hd) as unsigned int: %u\n", max_short, unsigned_max_short);
+						printf("Min short (%hd) as unsigned int: %u\n\n", min_short, unsigned_min_short);
+
+						if (unsigned_max_short == (unsigned int)SHRT_MAX && unsigned_min_short == (unsigned int)SHRT_MIN) {
+								 printf("TEST 4 PASSED: Min/Max value conversions are correct.\n\n");
+						} else {
+								 printf("TEST 4 FAILED: Min/Max value conversions are incorrect.\n\n");
+						}
 					}"""
 
 		checkResults(code)
