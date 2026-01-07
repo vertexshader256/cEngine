@@ -73,8 +73,8 @@ class Memory(size: Int) {
 		}
 	}
 
-	def readFromMemBasicType(basic: IBasicType, address: Int, bitOffset: Int = 0, sizeInBits: Int = 0) = {
-		val res = if basic.isShort then
+	def readFromMemoryRaw(basic: IBasicType, address: Int, bitOffset: Int = 0, sizeInBits: Int = 0): cEngVal = {
+		if basic.isShort then
 			val result = tape.getShort(address)
 			(result << (16 - sizeInBits - bitOffset) >> (16 - sizeInBits)).toShort
 		else if basic.getKind == eInt && basic.isLongLong then
@@ -90,7 +90,10 @@ class Memory(size: Int) {
 			tape.getFloat(address)
 		else
 			tape.getByte(address) // a C 'char' is a Java 'byte'
+	}
 
+	def readFromMemBasicType(basic: IBasicType, address: Int, bitOffset: Int = 0, sizeInBits: Int = 0): RValue = {
+		val res = readFromMemoryRaw(basic, address, bitOffset, sizeInBits)
 		TypeHelper.castSign(basic, res)
 	}
 
