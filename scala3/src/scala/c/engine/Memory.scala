@@ -96,8 +96,7 @@ class Memory(size: Int) {
 
 	def readFromMemory(address: Int, theType: IType, bitOffset: Int = 0, sizeInBits: Int = 0): RValue = {
 		theType match {
-			case basic: IBasicType =>
-				readFromMemBasicType(basic, address, bitOffset, sizeInBits)
+			case basic: IBasicType => readFromMemBasicType(basic, address, bitOffset, sizeInBits)
 			case typedef: CTypedef => readFromMemory(address, typedef.getType)
 			case _ => RValue(tape.getInt(address), theType)
 		}
