@@ -28,26 +28,22 @@ object TypeHelper {
 		RValue(bigInt, longlong)
 
 	def castToUnsigned(theType: IBasicType, newVal: cEngVal): cEngVal = {
-		if (newVal.isInstanceOf[BigInt]) {
-			newVal
-		} else {
-			newVal match
-				case long: Long => long.toInt & 0xFFFFFFFFL
-				case int: Int => int & 0xFFFFFFFFL
-				case short: Short =>
-					if !theType.isShort then
-						short & 0xFFFFFFFF
-					else
-						short & 0xFFFF
-				case byte: Byte => byte & 0xFF
-				case float: Float => float.toInt & 0xFFFFFFFFL
-				case double: Double => double.toInt & 0xFFFFFFFFL
-				case bigInt: BigInt =>
-					if bigInt < 0 then
-						bigInt * -1
-					else
-						bigInt
-		}
+		newVal match
+			case long: Long => long.toInt & 0xFFFFFFFFL
+			case int: Int => int & 0xFFFFFFFFL
+			case short: Short =>
+				if !theType.isShort then
+					short & 0xFFFFFFFF
+				else
+					short & 0xFFFF
+			case byte: Byte => byte & 0xFF
+			case float: Float => float.toInt & 0xFFFFFFFFL
+			case double: Double => double.toInt & 0xFFFFFFFFL
+			case bigInt: BigInt =>
+				if bigInt < 0 then
+					bigInt * -1
+				else
+					bigInt
 	}
 
 	def castSign(theType: IType, newVal: cEngVal): RValue = {
