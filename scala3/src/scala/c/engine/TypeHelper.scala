@@ -37,8 +37,8 @@ object TypeHelper {
 				else
 					short & 0xFFFF
 			case byte: Byte => byte & 0xFF
-			case float: Float => float.toInt & 0xFFFFFFFFL
-			case double: Double => double.toInt & 0xFFFFFFFFL
+			case float: Float => float.toInt
+			case double: Double => double.toInt
 			case bigInt: BigInt => bigInt
 	}
 
