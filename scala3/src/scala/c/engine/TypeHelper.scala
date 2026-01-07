@@ -27,12 +27,12 @@ object TypeHelper {
 	def getLongLong(bigInt: BigInt) =
 		RValue(bigInt, longlong)
 
-	def castToUnsigned(theType: IBasicType, newVal: cEngVal): cEngVal = {
+	def castToUnsigned(isShort: Boolean, newVal: cEngVal): cEngVal = {
 		newVal match
-			case long: Long => long.toInt & 0xFFFFFFFFL
+			case long: Long => long & 0xFFFFFFFFL
 			case int: Int => int & 0xFFFFFFFFL
 			case short: Short =>
-				if !theType.isShort then
+				if !isShort then
 					short & 0xFFFFFFFF
 				else
 					short & 0xFFFF
@@ -50,7 +50,7 @@ object TypeHelper {
 		val casted: cEngVal = theType match {
 			case basic: IBasicType =>
 				if basic.isUnsigned then
-					castToUnsigned(basic, newVal)
+					castToUnsigned(basic.isShort, newVal)
 				else
 					newVal
 		}
