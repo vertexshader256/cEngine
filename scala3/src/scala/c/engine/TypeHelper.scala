@@ -28,7 +28,7 @@ object TypeHelper {
 		RValue(bigInt, longlong)
 
 	def castToUnsigned(theType: IBasicType, newVal: cEngVal) = {
-		if (theType.isLongLong && newVal == -1) {
+		if (newVal.isInstanceOf[BigInt] && newVal == -1) {
 			newVal
 		} else {
 			newVal match
