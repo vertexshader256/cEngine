@@ -32,7 +32,7 @@ object TypeHelper {
 			newVal
 		} else {
 			newVal match
-				case long: Long => castToUnsigned(theType, long.toInt)
+				case long: Long => long.toInt & 0xFFFFFFFFL
 				case int: Int => int & 0xFFFFFFFFL
 				case short: Short =>
 					if !theType.isShort then
@@ -40,8 +40,8 @@ object TypeHelper {
 					else
 						short & 0xFFFF
 				case byte: Byte => byte & 0xFF
-				case float: Float => castToUnsigned(theType, float.toInt)
-				case double: Double => castToUnsigned(theType, double.toInt)
+				case float: Float => float.toInt & 0xFFFFFFFFL
+				case double: Double => double.toInt & 0xFFFFFFFFL
 				case bigInt: BigInt =>
 					if bigInt < 0 then
 						bigInt * -1
