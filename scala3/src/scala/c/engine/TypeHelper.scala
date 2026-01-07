@@ -39,11 +39,7 @@ object TypeHelper {
 			case byte: Byte => byte & 0xFF
 			case float: Float => float.toInt & 0xFFFFFFFFL
 			case double: Double => double.toInt & 0xFFFFFFFFL
-			case bigInt: BigInt =>
-				if bigInt < 0 then
-					bigInt * -1
-				else
-					bigInt
+			case bigInt: BigInt => bigInt
 	}
 
 	def castSign(theType: IType, newVal: cEngVal): RValue = {
