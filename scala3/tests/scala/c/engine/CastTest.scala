@@ -64,6 +64,24 @@ class CastTest extends StandardTest {
 		checkResults(code)
 	}
 
+	"casting a short to unsigned" should "print the correct results" in {
+		val code =
+			"""
+					void main() {
+						short signed_val = -1;
+						unsigned short unsigned_val = (unsigned short)signed_val;
+
+						printf("Signed short: %d\n", signed_val);       // Output: -1
+						printf("Unsigned short: %u\n", unsigned_val); // Output: 65535 (UINT_MAX)
+
+						short positive_val = 100;
+						unsigned short unsigned_pos = (unsigned short)positive_val;
+						printf("Positive unsigned short: %u\n", unsigned_pos); // Output: 100
+					}"""
+
+		checkResults(code)
+	}
+
 	private def getCastingTest(theType: String, z: String) = {
 		s"""
 			void main() {
