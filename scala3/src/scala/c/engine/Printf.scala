@@ -77,10 +77,8 @@ object Printf {
 					formatFound += 'd'
 
 					val x = TypeHelper.toRValue(varArgs(paramCount))(using state).value
-					val convertedBool = x match
-						case _ => x
 
-					resolved += convertedBool.asInstanceOf[Object]
+					resolved += TypeHelper.castToUnsigned(false, x).asInstanceOf[Object]
 
 					resultingFormatString += 'd'
 					percentFound = false
