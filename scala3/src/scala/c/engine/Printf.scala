@@ -75,7 +75,13 @@ object Printf {
 					paramCount += 1
 				} else if (percentFound && (c == 'u')) {
 					formatFound += 'd'
-					resolved += convertBoolean()
+
+					val x = TypeHelper.toRValue(varArgs(paramCount))(using state).value
+					val convertedBool = x match
+						case _ => x
+
+					resolved += convertedBool.asInstanceOf[Object]
+
 					resultingFormatString += 'd'
 					percentFound = false
 					paramCount += 1
