@@ -23,7 +23,8 @@ class RobustPrint extends StandardTest {
 			"""
 				int main() {
 					unsigned long long x = 0xFFFFFFFFFFFFFFFF;
-					printf("after: %u\n", x);
+					unsigned long long x2 = 0xFFFFFFFFFFFFFFFE;
+					printf("after: %u %u\n", x, x2);
 					return 0;
 				}"""
 
