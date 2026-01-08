@@ -118,15 +118,12 @@ object Printf {
 						val formatter2 = new Formatter(buffer2, Locale.US)
 						val resolved = new ListBuffer[Object]()
 
-						val x = TypeHelper.toRValue(varArgs(paramCount))(using state).value
+						val bigInt = TypeHelper.toRValue(varArgs(paramCount))(using state).value
+						val longVal = Long.box(bigInt.asInstanceOf[Long])
 
-						val value = x match
-							case long: Long => long
-							case _ => TypeHelper.castToUnsigned(false, x)
+						resolved += java.lang.Long.toUnsignedString(Long.box(longVal))
 
-						resolved += value.asInstanceOf[Object]
-
-						formatter2.format("%d", resolved.toSeq *)
+						formatter2.format("%s", resolved.toSeq *)
 						println("HERE3")
 						output.append(buffer2.toString)
 
