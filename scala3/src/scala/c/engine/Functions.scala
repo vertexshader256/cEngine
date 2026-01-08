@@ -485,13 +485,15 @@ object Functions {
 			var current: char = 0
 			var i = 0
 
-			current = state.Stack.readFromMemBasicType(TypeHelper.charType, straddy + i).value.asInstanceOf[char]
+			val value = state.Stack.readFromMemoryRaw(TypeHelper.charType, straddy + i)
+			current = TypeHelper.castSign(TypeHelper.charType, value).value.asInstanceOf[char]
 
 			while (current != 0) {
 				if (current != 0) {
 					i += 1
 				}
-				current = state.Stack.readFromMemBasicType(TypeHelper.charType, straddy + i).value.asInstanceOf[char]
+				val value = state.Stack.readFromMemoryRaw(TypeHelper.charType, straddy + i)
+				current = TypeHelper.castSign(TypeHelper.charType, value).value.asInstanceOf[char]
 			}
 			Some(RValue(i))
 		}
@@ -581,7 +583,14 @@ object Functions {
 			var same = true
 
 			for (i <- (0 until numBytes)) {
-				same &= state.Stack.readFromMemBasicType(TypeHelper.charType, memaddy + i).value == state.Stack.readFromMemBasicType(CBasicType(IBasicType.Kind.eChar, 0), memaddy2 + i).value
+
+				val value = state.Stack.readFromMemoryRaw(TypeHelper.charType, memaddy + i)
+				val value1 = TypeHelper.castSign(TypeHelper.charType, value).value
+
+				val value2 = state.Stack.readFromMemoryRaw(CBasicType(IBasicType.Kind.eChar, 0), memaddy2 + i)
+				val value3 = TypeHelper.castSign(TypeHelper.charType, value2).value
+
+				same &= value1 == value3
 			}
 
 			Some(RValue((if (same) 0 else 1)))

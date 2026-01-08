@@ -38,7 +38,8 @@ object Utils {
 	}
 
 	private def readChar(address: Int)(implicit state: State): Char = {
-		state.Stack.readFromMemBasicType(TypeHelper.charType, address).value.asInstanceOf[Byte].toChar
+		val value = state.Stack.readFromMemoryRaw(TypeHelper.charType, address)
+		TypeHelper.castSign(TypeHelper.charType, value).value.asInstanceOf[Byte].toChar
 	}
 
 	def readString(address: Int)(implicit state: State): String = {

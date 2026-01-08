@@ -92,14 +92,11 @@ class Memory(size: Int) {
 			tape.getByte(address) // a C 'char' is a Java 'byte'
 	}
 
-	def readFromMemBasicType(basic: IBasicType, address: Int, bitOffset: Int = 0, sizeInBits: Int = 0): RValue = {
-		val value = readFromMemoryRaw(basic, address, bitOffset, sizeInBits)
-		TypeHelper.castSign(basic, value)
-	}
-
 	def readFromMemory(address: Int, theType: IType, bitOffset: Int = 0, sizeInBits: Int = 0): RValue = {
 		theType match
-			case basic: IBasicType => readFromMemBasicType(basic, address, bitOffset, sizeInBits)
+			case basic: IBasicType =>
+				val value = readFromMemoryRaw(basic, address, bitOffset, sizeInBits)
+				TypeHelper.castSign(basic, value)
 			case typedef: CTypedef => readFromMemory(address, typedef.getType)
 			case _ => RValue(tape.getInt(address), theType)
 	}
