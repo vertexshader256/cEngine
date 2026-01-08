@@ -84,7 +84,11 @@ object Printf {
 						val formatter2 = new Formatter(buffer2, Locale.US)
 						val resolved = new ListBuffer[Object]()
 
-						resolved += convertBoolean()
+						val num = TypeHelper.toRValue(varArgs(paramCount))(using state).value
+
+						num match
+							case long: Long => resolved += Int.box(long.toInt)
+							case _ => resolved += convertBoolean()
 
 						formatter2.format("%d", resolved.toSeq *)
 						println("HERE")
