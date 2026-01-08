@@ -8,9 +8,6 @@ object Printf {
 	def printf(formattedOutputParams: Array[RValue], state: State): String = {
 		val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(using state)
 
-		val buffer = new StringBuffer()
-		val formatter = new Formatter(buffer, Locale.US)
-
 		var percentFound = false
 		var paramCount = 0
 
@@ -146,8 +143,10 @@ object Printf {
 			}
 		}
 
+		val output = new StringBuffer()
+		val formatter = new Formatter(output, Locale.US)
 		formatter.format(resultingFormatString, resolved.toSeq *)
 
-		buffer.toString
+		output.toString
 	}
 }
