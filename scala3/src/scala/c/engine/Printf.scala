@@ -78,7 +78,11 @@ object Printf {
 
 					val x = TypeHelper.toRValue(varArgs(paramCount))(using state).value
 
-					resolved += TypeHelper.castToUnsigned(false, x).asInstanceOf[Object]
+					val value = x match
+						case long: Long => long & 0xFFFFFFFFL
+						case _ => TypeHelper.castToUnsigned(false, x)
+
+					resolved += value.asInstanceOf[Object]
 
 					resultingFormatString += 'd'
 					percentFound = false

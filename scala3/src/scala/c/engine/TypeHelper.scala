@@ -29,7 +29,12 @@ object TypeHelper {
 
 	def castToUnsigned(isShort: Boolean, newVal: cEngVal): cEngVal = {
 		newVal match
-			case long: Long => long & 0xFFFFFFFFL
+			case long: Long =>
+				if long == -1 then {
+					// handles the case of 0xFFFFFFFF
+					long
+				} else
+					long & 0xFFFFFFFFL
 			case int: Int => int & 0xFFFFFFFFL
 			case short: Short =>
 				if !isShort then
