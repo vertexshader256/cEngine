@@ -30,24 +30,13 @@ object Printf {
 		var resultingFormatString = ""
 		var formatFound = ""
 
-		println(str)
-
 		if (str == "%llu\n") {
 			formatFound += "%s"
 
-			println("HERE: " + varArgs(paramCount) + "|")
-
 			val bigInt = TypeHelper.toRValue(varArgs(paramCount))(using state).value
-
-			println(bigInt)
-
 			val longVal = Long.box(bigInt.asInstanceOf[Long])
-			println(":::" + longVal)
 
 			resolved += java.lang.Long.toUnsignedString(Long.box(longVal))
-
-			//println("BLAH2: " + Long.box(java.lang.Long.toUnsignedString().parseUnsignedLong("18446744073709551615")))
-			//println("BLAH: " + longVal)
 
 			resultingFormatString += formatFound
 
@@ -156,10 +145,6 @@ object Printf {
 				}
 			}
 		}
-
-		println("---")
-		println(resultingFormatString)
-		println(resolved)
 
 		formatter.format(resultingFormatString, resolved.toSeq *)
 
