@@ -139,13 +139,9 @@ object Printf {
 						val formatter2 = new Formatter(buffer2, Locale.US)
 						val num = TypeHelper.toRValue(varArgs(paramCount))(using state).value
 						val resolved = new ListBuffer[Object]()
-						val value = num match
-							case long: Long =>
-								// trying to print a long with the %d format
-								resolved += Int.box(long.toInt)
-							case _ => resolved += convertBoolean()
+						resolved += convertBoolean()
 
-						formatter2.format("%" + currentFormatString, List(resolved) *)
+						formatter2.format("%d", resolved.toSeq *)
 						output.append(buffer2)
 
 						remainder = remainder.drop(2)
@@ -156,13 +152,10 @@ object Printf {
 						val formatter2 = new Formatter(buffer2, Locale.US)
 						val num = TypeHelper.toRValue(varArgs(paramCount))(using state).value
 						val resolved = new ListBuffer[Object]()
-						val value = num match
-							case long: Long =>
-								// trying to print a long with the %d format
-								resolved += Int.box(long.toInt)
-							case _ => resolved += convertBoolean()
 
-						formatter2.format("%d", List(value) *)
+						resolved += convertBoolean()
+
+						formatter2.format("%d", resolved.toSeq *)
 						output.append(buffer2)
 
 						remainder = remainder.drop(3)
