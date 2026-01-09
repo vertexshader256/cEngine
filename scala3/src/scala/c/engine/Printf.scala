@@ -283,7 +283,15 @@ object Printf {
 					}
 				} // while
 			} else {
-				output.append(currentChar)
+
+				// convert tabs "\t" string to '\t' character
+				if (remainder.headOption.contains('t') && currentChar == '\\') {
+					output.append("\t")
+					currentChar = remainder.headOption.getOrElse('_')
+					remainder = remainder.drop(1)
+				} else {
+					output.append(currentChar)
+				}
 			}
 
 			if (remainder.isEmpty) {
