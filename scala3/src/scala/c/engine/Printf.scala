@@ -194,15 +194,7 @@ object Printf {
 						remainder = remainder.drop(3)
 						wasFormatStringFound = true
 					} else if (remainder.startsWith("ld")) {
-						val buffer2 = new StringBuffer()
-						val formatter2 = new Formatter(buffer2, Locale.US)
-						val num = TypeHelper.toRValue(varArgs(paramCount))(using state).value
-						val resolved = new ListBuffer[Object]()
-						resolved += convertBoolean()
-
-						formatter2.format("%d", resolved.toSeq *)
-						output.append(buffer2)
-
+						output.append(printDeciminal(currentFormatString, TypeHelper.toRValue(varArgs(paramCount))(using state)))
 						remainder = remainder.drop(2)
 						paramCount += 1
 						wasFormatStringFound = true
