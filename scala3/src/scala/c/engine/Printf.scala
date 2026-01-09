@@ -83,6 +83,23 @@ object Printf {
 						paramCount += 1
 						remainder = remainder.drop(1)
 						wasFormatStringFound = true
+					} else if (remainder.startsWith("hd")) {
+						val buffer2 = new StringBuffer()
+						val formatter2 = new Formatter(buffer2, Locale.US)
+						val resolved = new ListBuffer[Object]()
+
+						val num = TypeHelper.toRValue(varArgs(paramCount))(using state).value
+
+						num match
+							case long: Long => resolved += Int.box(long.toInt)
+							case _ => resolved += convertBoolean()
+
+						formatter2.format("%d", resolved.toSeq *)
+						output.append(buffer2.toString)
+
+						paramCount += 1
+						remainder = remainder.drop(2)
+						wasFormatStringFound = true
 					} else if (remainder.startsWith("d")) {
 						val buffer2 = new StringBuffer()
 						val formatter2 = new Formatter(buffer2, Locale.US)
@@ -96,7 +113,6 @@ object Printf {
 							case _ => resolved += convertBoolean()
 
 						formatter2.format("%" + currentFormatString, resolved.toSeq *)
-						println("HERE")
 						output.append(buffer2.toString)
 
 						paramCount += 1
@@ -116,7 +132,6 @@ object Printf {
 						resolved += value.asInstanceOf[Object]
 
 						formatter2.format("%d", resolved.toSeq *)
-						println("HERE")
 						output.append(buffer2.toString)
 
 						paramCount += 1
@@ -133,7 +148,6 @@ object Printf {
 						resolved += java.lang.Long.toUnsignedString(Long.box(longVal))
 
 						formatter2.format("%s", resolved.toSeq *)
-						println("HERE3")
 						output.append(buffer2.toString)
 
 						paramCount += 1
@@ -179,7 +193,6 @@ object Printf {
 						else
 							"(null)".asInstanceOf[Object]
 
-						println(currentFormatString)
 						formatter2.format("%" + currentFormatString + "s", List(value) *)
 						output.append(buffer2)
 
