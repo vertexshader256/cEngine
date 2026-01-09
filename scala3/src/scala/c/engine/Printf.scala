@@ -29,7 +29,9 @@ object Printf {
 		val formatter2 = new Formatter(buffer2, Locale.US)
 
 		val theVal = theValue.value
-		val stringAddr = theVal.asInstanceOf[Int]
+		val stringAddr = theVal match
+			case int: Int => int
+			case long: Long => long.toInt
 
 		val value = if stringAddr != 0 then
 			val str = Utils.readString(stringAddr)

@@ -42,6 +42,16 @@ class RobustPrint extends StandardTest {
 		checkResults(code)
 	}
 
+	"printing dynamic width string" should "print the correct results" in {
+		val code =
+			"""
+					void main() {
+						printf("[%*s]\n", 5, "Hi");
+					}"""
+
+		checkResults(code)
+	}
+
 	"printing a unsigned long long with hex format" should "print the correct results" in {
 		val code =
 			"""
