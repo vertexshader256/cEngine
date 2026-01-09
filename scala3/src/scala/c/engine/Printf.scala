@@ -216,44 +216,47 @@ object Printf {
 				var charsToDrop: Int = 0
 
 				while (!wasFormatStringFound) {
+
+					def variable = TypeHelper.toRValue(varArgs(paramCount))(using state)
+
 					if (remainder.startsWith("f")) {
-						val theType = TypeHelper.toRValue(varArgs(paramCount))(using state).value.asInstanceOf[Object]
+						val theType = variable.value.asInstanceOf[Object]
 						val floatOutput = printFloat(currentFormatString, theType)
 						output.append(floatOutput)
 						charsToDrop = 1
 					} else if (remainder.startsWith("hd")) {
-						output.append(printDeciminal(currentFormatString, TypeHelper.toRValue(varArgs(paramCount))(using state), true))
+						output.append(printDeciminal(currentFormatString, variable, true))
 						charsToDrop = 2
 					} else if (remainder.startsWith("d")) {
-						output.append(printDeciminal(currentFormatString, TypeHelper.toRValue(varArgs(paramCount))(using state), true))
+						output.append(printDeciminal(currentFormatString, variable, true))
 						charsToDrop = 1
 					} else if (remainder.startsWith("u")) { // unsigned
-						output.append(printUnsigned(currentFormatString, TypeHelper.toRValue(varArgs(paramCount))(using state)))
+						output.append(printUnsigned(currentFormatString, variable))
 						charsToDrop = 1
 					} else if (remainder.startsWith("llu")) { // long long unsigned
-						output.append(printLongLongUnsigned(currentFormatString, TypeHelper.toRValue(varArgs(paramCount))(using state)))
+						output.append(printLongLongUnsigned(currentFormatString, variable))
 						charsToDrop = 3
 					} else if (remainder.startsWith("ld")) {
-						output.append(printDeciminal(currentFormatString, TypeHelper.toRValue(varArgs(paramCount))(using state), true))
+						output.append(printDeciminal(currentFormatString, variable, true))
 						charsToDrop = 2
 					} else if (remainder.startsWith("lld")) {
-						output.append(printDeciminal("", TypeHelper.toRValue(varArgs(paramCount))(using state), false))
+						output.append(printDeciminal("", variable, false))
 						charsToDrop = 3
 					} else if (remainder.startsWith("s")) {
 						output.append(printString(currentFormatString, varArgs(paramCount))(using state))
 						charsToDrop = 1
 					} else if (remainder.startsWith("c")) {
-						output.append(printChar(TypeHelper.toRValue(varArgs(paramCount))(using state)))
+						output.append(printChar(variable))
 						charsToDrop = 1
 					} else if (remainder.startsWith("#x") || remainder.startsWith("#X")) {
-						output.append(printHex(remainder.take(2).mkString, TypeHelper.toRValue(varArgs(paramCount))(using state)))
+						output.append(printHex(remainder.take(2).mkString, variable))
 						charsToDrop = 2
 					} else if (remainder.startsWith("x") || remainder.startsWith("X")) {
 						currentFormatString += currentChar + remainder.head.toString
-						output.append(printHex(currentFormatString, TypeHelper.toRValue(varArgs(paramCount))(using state)))
+						output.append(printHex(currentFormatString, variable))
 						charsToDrop = 1
 					} else if (remainder.startsWith("p")) {
-						output.append(printHex("16X", TypeHelper.toRValue(varArgs(paramCount))(using state)))
+						output.append(printHex("16X", variable))
 						charsToDrop = 1
 					} else {
 						currentChar = remainder.headOption.getOrElse('_')
