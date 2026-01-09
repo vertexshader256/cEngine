@@ -220,6 +220,26 @@ object Printf {
 
 					def variable = TypeHelper.toRValue(varArgs(paramCount))(using state)
 
+					case class OutputFormat(identifier: String, toText: (String, RValue) => String)
+
+//					val formats: Seq[OutputFormat] = Seq(
+//						OutputFormat("f", (format, rValue) => printFloat(currentFormatString, rValue.value.asInstanceOf[Object])),
+//						OutputFormat("hd", (format, rValue) => printDeciminal(currentFormatString, rValue, true)),
+//						OutputFormat("d", (format, rValue) => printDeciminal(currentFormatString, rValue, true)),
+//						OutputFormat("u", (format, rValue) => printUnsigned(currentFormatString, rValue)),
+//						OutputFormat("llu", (format, rValue) => printLongLongUnsigned(currentFormatString, rValue)),
+//						OutputFormat("ld", (format, rValue) => printDeciminal(currentFormatString, rValue, true)),
+//						OutputFormat("lld", (format, rValue) => printDeciminal("", rValue, false)),
+//						OutputFormat("s", (format, rValue) => printDeciminal("", rValue, false)),
+//					)
+//
+//					formats.find{ format =>
+//						remainder.startsWith(format.identifier)
+//					}.foreach{ format =>
+//						charsToDrop = format.identifier.length
+//						charsToOutput = format.toText(currentFormatString, variable)
+//					}
+
 					if (remainder.startsWith("f")) {
 						val theType = variable.value.asInstanceOf[Object]
 						val floatOutput = printFloat(currentFormatString, theType)
@@ -244,7 +264,7 @@ object Printf {
 						charsToOutput = printDeciminal("", variable, false)
 						charsToDrop = 3
 					} else if (remainder.startsWith("s")) {
-						charsToOutput = printString(currentFormatString, varArgs(paramCount))(using state)
+						charsToOutput = printString(currentFormatString, variable)(using state)
 						charsToDrop = 1
 					} else if (remainder.startsWith("c")) {
 						charsToOutput = printChar(variable)
