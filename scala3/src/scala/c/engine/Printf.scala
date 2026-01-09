@@ -6,7 +6,7 @@ import scala.collection.mutable.ListBuffer
 // function which I use to simulate C's standard printf()
 object Printf {
 
-	def convertBoolean(num: RValue): Object = {
+	def convertBoolean2(num: RValue): Object = {
 		val x = num.value
 		val convertedBool = x match
 			case bool: Boolean => if bool then 1 else 0
@@ -51,7 +51,7 @@ object Printf {
 		buffer2.toString
 	}
 
-	private def printDeciminal(stringFormat: String, value: RValue) = {
+	private def printDeciminal(stringFormat: String, value: RValue, convertToInt: Boolean) = {
 		var currentFormatString = stringFormat
 		val buffer2 = new StringBuffer()
 		val formatter2 = new Formatter(buffer2, Locale.US)
@@ -61,8 +61,8 @@ object Printf {
 		currentFormatString += 'd'
 
 		num match
-			case long: Long => resolved += Int.box(long.toInt)
-			case _ => resolved += convertBoolean(value)
+			case long: Long if convertToInt => resolved += Int.box(long.toInt)
+			case _ => resolved += convertBoolean2(value)
 
 		formatter2.format("%" + currentFormatString, resolved.toSeq *)
 		buffer2.toString
@@ -167,7 +167,7 @@ object Printf {
 						remainder = remainder.drop(2)
 						wasFormatStringFound = true
 					} else if (remainder.startsWith("d")) {
-						output.append(printDeciminal(currentFormatString, TypeHelper.toRValue(varArgs(paramCount))(using state)))
+						output.append(printDeciminal(currentFormatString, TypeHelper.toRValue(varArgs(paramCount))(using state), true))
 
 						paramCount += 1
 						remainder = remainder.drop(1)
@@ -194,21 +194,12 @@ object Printf {
 						remainder = remainder.drop(3)
 						wasFormatStringFound = true
 					} else if (remainder.startsWith("ld")) {
-						output.append(printDeciminal(currentFormatString, TypeHelper.toRValue(varArgs(paramCount))(using state)))
+						output.append(printDeciminal(currentFormatString, TypeHelper.toRValue(varArgs(paramCount))(using state), true))
 						remainder = remainder.drop(2)
 						paramCount += 1
 						wasFormatStringFound = true
 					} else if (remainder.startsWith("lld")) {
-						val buffer2 = new StringBuffer()
-						val formatter2 = new Formatter(buffer2, Locale.US)
-						val num = TypeHelper.toRValue(varArgs(paramCount))(using state).value
-						val resolved = new ListBuffer[Object]()
-
-						resolved += convertBoolean()
-
-						formatter2.format("%d", resolved.toSeq *)
-						output.append(buffer2)
-
+						output.append(printDeciminal("", TypeHelper.toRValue(varArgs(paramCount))(using state), false))
 						remainder = remainder.drop(3)
 						paramCount += 1
 						wasFormatStringFound = true
