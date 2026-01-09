@@ -6,6 +6,45 @@ import scala.collection.mutable.ListBuffer
 // function which I use to simulate C's standard printf()
 object Printf {
 
+	def printFloat(formatString: String, base: Object): String = {
+		var currentFormatString = formatString
+		var buffer2 = new StringBuffer()
+		var formatter2 = new Formatter(buffer2, Locale.US)
+		val resolved = new ListBuffer[Object]()
+		val output = new StringBuffer()
+		val convert = base match
+			case boolean: java.lang.Boolean =>
+				if boolean then 1.0 else 0.0
+			case int: java.lang.Integer =>
+				int.toFloat
+			case _ =>
+				base
+		currentFormatString += 'f'
+
+		formatter2.format("%" + currentFormatString, List(convert) *)
+
+		var format: String = ""
+		if (buffer2.toString.contains("Infinity") || buffer2.toString.contains("NaN")) {
+			currentFormatString = "s"
+			resolved += buffer2.toString.replace("Infinity", "inf").replace("NaN", "-nan(ind)")
+		} else {
+			base match
+				case boolean: java.lang.Boolean =>
+					val converted = if boolean then 1.0f else 0.0f
+					resolved += Float.box(converted)
+				case int: java.lang.Integer =>
+					resolved += Float.box(int.toFloat)
+				case _ =>
+					resolved += base
+		}
+		buffer2 = new StringBuffer()
+		formatter2 = new Formatter(buffer2, Locale.US)
+		formatter2.format("%" + currentFormatString, resolved.toSeq *)
+		output.append(buffer2.toString)
+
+		output.toString
+	}
+
 	def printf(formattedOutputParams: Array[RValue], state: State): String = {
 		val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(using state)
 
@@ -44,42 +83,9 @@ object Printf {
 
 				while (!wasFormatStringFound) {
 					if (remainder.startsWith("f")) {
-						currentFormatString += 'f'
-						var buffer2 = new StringBuffer()
-						var formatter2 = new Formatter(buffer2, Locale.US)
-						val resolved = new ListBuffer[Object]()
-						val base = TypeHelper.toRValue(varArgs(paramCount))(using state).value.asInstanceOf[Object]
-
-						val convert = base match
-							case boolean: java.lang.Boolean =>
-								if boolean then 1.0 else 0.0
-							case int: java.lang.Integer =>
-								int.toFloat
-							case _ =>
-								base
-
-						formatter2.format("%" + currentFormatString, List(convert) *)
-
-						var format: String = ""
-						if (buffer2.toString.contains("Infinity") || buffer2.toString.contains("NaN")) {
-							currentFormatString = "s"
-							resolved += buffer2.toString.replace("Infinity", "inf").replace("NaN", "-nan(ind)")
-						} else {
-
-							base match
-								case boolean: java.lang.Boolean =>
-									val converted = if boolean then 1.0f else 0.0f
-									resolved += Float.box(converted)
-								case int: java.lang.Integer =>
-									resolved += Float.box(int.toFloat)
-								case _ =>
-									resolved += base
-						}
-						buffer2 = new StringBuffer()
-						formatter2 = new Formatter(buffer2, Locale.US)
-						formatter2.format("%" + currentFormatString, resolved.toSeq *)
-						output.append(buffer2.toString)
-
+						val theType = TypeHelper.toRValue(varArgs(paramCount))(using state).value.asInstanceOf[Object]
+						val floatOutput = printFloat(currentFormatString, theType)
+						output.append(floatOutput)
 						paramCount += 1
 						remainder = remainder.drop(1)
 						wasFormatStringFound = true
