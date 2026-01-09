@@ -15,7 +15,25 @@ object Printf {
 		convertedBool.asInstanceOf[Object]
 	}
 
-	def printDeciminal(stringFormat: String, value: RValue) = {
+	private def printUnsigned(stringFormat: String, value: RValue) = {
+
+		val buffer2 = new StringBuffer()
+		val formatter2 = new Formatter(buffer2, Locale.US)
+		val resolved = new ListBuffer[Object]()
+
+		val x = value.value
+
+		val converted = x match
+			case long: Long => long & 0xFFFFFFFFL
+			case _ => TypeHelper.castToUnsigned(false, x)
+
+		resolved += converted.asInstanceOf[Object]
+
+		formatter2.format("%d", resolved.toSeq *)
+		buffer2.toString
+	}
+
+	private def printDeciminal(stringFormat: String, value: RValue) = {
 		var currentFormatString = stringFormat
 		val buffer2 = new StringBuffer()
 		val formatter2 = new Formatter(buffer2, Locale.US)
@@ -32,7 +50,7 @@ object Printf {
 		buffer2.toString
 	}
 
-	def printFloat(formatString: String, base: Object): String = {
+	private def printFloat(formatString: String, base: Object): String = {
 		var currentFormatString = formatString
 		var buffer2 = new StringBuffer()
 		var formatter2 = new Formatter(buffer2, Locale.US)
@@ -76,8 +94,6 @@ object Printf {
 
 		var percentFound = false
 		var paramCount = 0
-
-
 
 		val varArgs = formattedOutputParams.reverse.tail.toList
 
@@ -133,28 +149,13 @@ object Printf {
 						remainder = remainder.drop(2)
 						wasFormatStringFound = true
 					} else if (remainder.startsWith("d")) {
-
 						output.append(printDeciminal(currentFormatString, TypeHelper.toRValue(varArgs(paramCount))(using state)))
 
 						paramCount += 1
 						remainder = remainder.drop(1)
 						wasFormatStringFound = true
 					} else if (remainder.startsWith("u")) { // unsigned
-						val buffer2 = new StringBuffer()
-						val formatter2 = new Formatter(buffer2, Locale.US)
-						val resolved = new ListBuffer[Object]()
-
-						val x = TypeHelper.toRValue(varArgs(paramCount))(using state).value
-
-						val value = x match
-							case long: Long => long & 0xFFFFFFFFL
-							case _ => TypeHelper.castToUnsigned(false, x)
-
-						resolved += value.asInstanceOf[Object]
-
-						formatter2.format("%d", resolved.toSeq *)
-						output.append(buffer2.toString)
-
+						output.append(printUnsigned(currentFormatString, TypeHelper.toRValue(varArgs(paramCount))(using state)))
 						paramCount += 1
 						remainder = remainder.drop(1)
 						wasFormatStringFound = true
