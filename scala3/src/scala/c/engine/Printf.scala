@@ -15,6 +15,24 @@ object Printf {
 		convertedBool.asInstanceOf[Object]
 	}
 
+	private def printString(stringFormat: String, theValue: RValue)(using State) = {
+		val formatString = stringFormat
+		val buffer2 = new StringBuffer()
+		val formatter2 = new Formatter(buffer2, Locale.US)
+
+		val theVal = theValue.value
+		val stringAddr = theVal.asInstanceOf[Int]
+
+		val value = if stringAddr != 0 then
+			val str = Utils.readString(stringAddr)
+			str.split(System.lineSeparator()).mkString.asInstanceOf[Object]
+		else
+			"(null)".asInstanceOf[Object]
+
+		formatter2.format("%" + formatString + "s", List(value) *)
+		buffer2
+	}
+
 	private def printUnsigned(stringFormat: String, value: RValue) = {
 
 		val buffer2 = new StringBuffer()
@@ -203,21 +221,7 @@ object Printf {
 						paramCount += 1
 						wasFormatStringFound = true
 					} else if (remainder.startsWith("s")) {
-						val buffer2 = new StringBuffer()
-						val formatter2 = new Formatter(buffer2, Locale.US)
-
-						val theVal = varArgs(paramCount).value
-						val stringAddr = theVal.asInstanceOf[Int]
-
-						val value = if stringAddr != 0 then
-							val str = Utils.readString(stringAddr)(using state)
-							str.split(System.lineSeparator()).mkString.asInstanceOf[Object]
-						else
-							"(null)".asInstanceOf[Object]
-
-						formatter2.format("%" + currentFormatString + "s", List(value) *)
-						output.append(buffer2)
-
+						output.append(printString(currentFormatString, varArgs(paramCount))(using state))
 						remainder = remainder.drop(1)
 						paramCount += 1
 						wasFormatStringFound = true
