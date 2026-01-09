@@ -200,6 +200,20 @@ object Functions {
 		}
 	}
 
+	scalaFunctions += new Function("puts", false) {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			val string = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(using state)
+			val tabsReplaced = string.replace("\\t", "\t")
+
+			tabsReplaced.foreach: char =>
+				state.stdout += char
+
+			state.stdout += '\n'
+
+			None
+		}
+	}
+
 	scalaFunctions += new Function("fopen", false) {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val path = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(using state)
@@ -258,14 +272,6 @@ object Functions {
 			state.writeDataBlock(result.toArray, resultBuffer)(using state)
 
 			None
-		}
-	}
-
-	scalaFunctions += new Function("log10f", false) {
-		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-			val value = formattedOutputParams(0).asInstanceOf[Float]
-			val result = Math.log10(value)
-			Some(RValue(result))
 		}
 	}
 
@@ -422,6 +428,12 @@ object Functions {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			Some(RValue(Math.atan2(formattedOutputParams.last.value.asInstanceOf[Double],
 				formattedOutputParams.head.value.asInstanceOf[Double])))
+		}
+	}
+
+	scalaFunctions += new Function("log10f", false) {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			Some(RValue(Math.log10(formattedOutputParams.last.value.asInstanceOf[Double])))
 		}
 	}
 
