@@ -220,66 +220,30 @@ object Printf {
 
 					def variable = TypeHelper.toRValue(varArgs(paramCount))(using state)
 
-					case class OutputFormat(identifier: String, toText: (String, RValue) => String)
+					case class OutputFormat(identifier: String, toText: (String, RValue, State) => String)
 
-//					val formats: Seq[OutputFormat] = Seq(
-//						OutputFormat("f", (format, rValue) => printFloat(currentFormatString, rValue.value.asInstanceOf[Object])),
-//						OutputFormat("hd", (format, rValue) => printDeciminal(currentFormatString, rValue, true)),
-//						OutputFormat("d", (format, rValue) => printDeciminal(currentFormatString, rValue, true)),
-//						OutputFormat("u", (format, rValue) => printUnsigned(currentFormatString, rValue)),
-//						OutputFormat("llu", (format, rValue) => printLongLongUnsigned(currentFormatString, rValue)),
-//						OutputFormat("ld", (format, rValue) => printDeciminal(currentFormatString, rValue, true)),
-//						OutputFormat("lld", (format, rValue) => printDeciminal("", rValue, false)),
-//						OutputFormat("s", (format, rValue) => printDeciminal("", rValue, false)),
-//					)
-//
-//					formats.find{ format =>
-//						remainder.startsWith(format.identifier)
-//					}.foreach{ format =>
-//						charsToDrop = format.identifier.length
-//						charsToOutput = format.toText(currentFormatString, variable)
-//					}
+					val formats: Seq[OutputFormat] = Seq(
+						OutputFormat("f", (format, rValue, _) => printFloat(currentFormatString, rValue.value.asInstanceOf[Object])),
+						OutputFormat("hd", (format, rValue, _) => printDeciminal(currentFormatString, rValue, true)),
+						OutputFormat("d", (format, rValue, _) => printDeciminal(currentFormatString, rValue, true)),
+						OutputFormat("u", (format, rValue, _) => printUnsigned(currentFormatString, rValue)),
+						OutputFormat("llu", (format, rValue, _) => printLongLongUnsigned(currentFormatString, rValue)),
+						OutputFormat("ld", (format, rValue, _) => printDeciminal(currentFormatString, rValue, true)),
+						OutputFormat("lld", (format, rValue, _) => printDeciminal("", rValue, false)),
+						OutputFormat("s", (format, rValue, state) => printString(currentFormatString, rValue)(using state)),
+						OutputFormat("c", (format, rValue, state) => printChar(rValue)),
+						OutputFormat("#x", (format, rValue, state) => printHex(remainder.take(2).mkString, rValue)),
+						OutputFormat("#X", (format, rValue, state) => printHex(remainder.take(2).mkString, rValue)),
+						OutputFormat("x", (format, rValue, state) => printHex(format, rValue)),
+						OutputFormat("p", (format, rValue, state) => printHex("16X", rValue)),
+					)
 
-					if (remainder.startsWith("f")) {
-						val theType = variable.value.asInstanceOf[Object]
-						val floatOutput = printFloat(currentFormatString, theType)
-						charsToOutput = floatOutput
-						charsToDrop = 1
-					} else if (remainder.startsWith("hd")) {
-						charsToOutput = printDeciminal(currentFormatString, variable, true)
-						charsToDrop = 2
-					} else if (remainder.startsWith("d")) {
-						charsToOutput = printDeciminal(currentFormatString, variable, true)
-						charsToDrop = 1
-					} else if (remainder.startsWith("u")) { // unsigned
-						charsToOutput = printUnsigned(currentFormatString, variable)
-						charsToDrop = 1
-					} else if (remainder.startsWith("llu")) { // long long unsigned
-						charsToOutput = printLongLongUnsigned(currentFormatString, variable)
-						charsToDrop = 3
-					} else if (remainder.startsWith("ld")) {
-						charsToOutput = printDeciminal(currentFormatString, variable, true)
-						charsToDrop = 2
-					} else if (remainder.startsWith("lld")) {
-						charsToOutput = printDeciminal("", variable, false)
-						charsToDrop = 3
-					} else if (remainder.startsWith("s")) {
-						charsToOutput = printString(currentFormatString, variable)(using state)
-						charsToDrop = 1
-					} else if (remainder.startsWith("c")) {
-						charsToOutput = printChar(variable)
-						charsToDrop = 1
-					} else if (remainder.startsWith("#x") || remainder.startsWith("#X")) {
-						charsToOutput = printHex(remainder.take(2).mkString, variable)
-						charsToDrop = 2
-					} else if (remainder.startsWith("x") || remainder.startsWith("X")) {
-						currentFormatString += currentChar + remainder.head.toString
-						charsToOutput = printHex(currentFormatString, variable)
-						charsToDrop = 1
-					} else if (remainder.startsWith("p")) {
-						charsToOutput = printHex("16X", variable)
-						charsToDrop = 1
-					} else {
+					formats.find{ format =>
+						remainder.startsWith(format.identifier)
+					}.map{ format =>
+						charsToDrop = format.identifier.length
+						charsToOutput = format.toText(currentFormatString, variable, state)
+					}.getOrElse {
 						currentChar = remainder.headOption.getOrElse('_')
 						remainder = remainder.drop(1)
 						currentFormatString += currentChar
