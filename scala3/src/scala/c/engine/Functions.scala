@@ -261,6 +261,28 @@ object Functions {
 		}
 	}
 
+	scalaFunctions += new Function("log10f", false) {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			val value = formattedOutputParams(0).asInstanceOf[Float]
+			val result = Math.log10(value)
+			Some(RValue(result))
+		}
+	}
+
+	scalaFunctions += new Function("getc", false) {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			val fp = formattedOutputParams(0).asInstanceOf[FileRValue]
+
+			try {
+				val character: cEngVal = java.lang.Byte.toUnsignedInt(fp.read(1).head).toByte
+
+				Some(RValue(character, TypeHelper.charType))
+			} catch {
+				case e => Some(RValue(-1))
+			}
+		}
+	}
+
 	// returns 0 on success
 	scalaFunctions += new Function("fclose", false) {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
