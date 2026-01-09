@@ -40,7 +40,7 @@ object Printf {
 			"(null)".asInstanceOf[Object]
 
 		formatter2.format("%" + formatString + "s", List(value) *)
-		buffer2
+		buffer2.toString
 	}
 
 	private def printHex(stringFormat: String, value: RValue) = {
@@ -214,6 +214,7 @@ object Printf {
 				var currentFormatString = ""
 				var wasFormatStringFound = false
 				var charsToDrop: Int = 0
+				var charsToOutput = ""
 
 				while (!wasFormatStringFound) {
 
@@ -222,41 +223,41 @@ object Printf {
 					if (remainder.startsWith("f")) {
 						val theType = variable.value.asInstanceOf[Object]
 						val floatOutput = printFloat(currentFormatString, theType)
-						output.append(floatOutput)
+						charsToOutput = floatOutput
 						charsToDrop = 1
 					} else if (remainder.startsWith("hd")) {
-						output.append(printDeciminal(currentFormatString, variable, true))
+						charsToOutput = printDeciminal(currentFormatString, variable, true)
 						charsToDrop = 2
 					} else if (remainder.startsWith("d")) {
-						output.append(printDeciminal(currentFormatString, variable, true))
+						charsToOutput = printDeciminal(currentFormatString, variable, true)
 						charsToDrop = 1
 					} else if (remainder.startsWith("u")) { // unsigned
-						output.append(printUnsigned(currentFormatString, variable))
+						charsToOutput = printUnsigned(currentFormatString, variable)
 						charsToDrop = 1
 					} else if (remainder.startsWith("llu")) { // long long unsigned
-						output.append(printLongLongUnsigned(currentFormatString, variable))
+						charsToOutput = printLongLongUnsigned(currentFormatString, variable)
 						charsToDrop = 3
 					} else if (remainder.startsWith("ld")) {
-						output.append(printDeciminal(currentFormatString, variable, true))
+						charsToOutput = printDeciminal(currentFormatString, variable, true)
 						charsToDrop = 2
 					} else if (remainder.startsWith("lld")) {
-						output.append(printDeciminal("", variable, false))
+						charsToOutput = printDeciminal("", variable, false)
 						charsToDrop = 3
 					} else if (remainder.startsWith("s")) {
-						output.append(printString(currentFormatString, varArgs(paramCount))(using state))
+						charsToOutput = printString(currentFormatString, varArgs(paramCount))(using state)
 						charsToDrop = 1
 					} else if (remainder.startsWith("c")) {
-						output.append(printChar(variable))
+						charsToOutput = printChar(variable)
 						charsToDrop = 1
 					} else if (remainder.startsWith("#x") || remainder.startsWith("#X")) {
-						output.append(printHex(remainder.take(2).mkString, variable))
+						charsToOutput = printHex(remainder.take(2).mkString, variable)
 						charsToDrop = 2
 					} else if (remainder.startsWith("x") || remainder.startsWith("X")) {
 						currentFormatString += currentChar + remainder.head.toString
-						output.append(printHex(currentFormatString, variable))
+						charsToOutput = printHex(currentFormatString, variable)
 						charsToDrop = 1
 					} else if (remainder.startsWith("p")) {
-						output.append(printHex("16X", variable))
+						charsToOutput = printHex("16X", variable)
 						charsToDrop = 1
 					} else {
 						currentChar = remainder.headOption.getOrElse('_')
@@ -268,6 +269,7 @@ object Printf {
 						paramCount += 1
 						remainder = remainder.drop(charsToDrop)
 						wasFormatStringFound = true
+						output.append(charsToOutput)
 				} // while
 			} else {
 
