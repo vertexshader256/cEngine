@@ -15,6 +15,14 @@ object Printf {
 		convertedBool.asInstanceOf[Object]
 	}
 
+	private def printChar(theValue: RValue) = {
+		val buffer2 = new StringBuffer()
+		val formatter2 = new Formatter(buffer2, Locale.US)
+		val value = theValue.value.asInstanceOf[Object]
+		formatter2.format("%c", List(value) *)
+		buffer2.toString
+	}
+
 	private def printString(stringFormat: String, theValue: RValue)(using State) = {
 		val formatString = stringFormat
 		val buffer2 = new StringBuffer()
@@ -164,25 +172,12 @@ object Printf {
 						remainder = remainder.drop(1)
 						wasFormatStringFound = true
 					} else if (remainder.startsWith("hd")) {
-						val buffer2 = new StringBuffer()
-						val formatter2 = new Formatter(buffer2, Locale.US)
-						val resolved = new ListBuffer[Object]()
-
-						val num = TypeHelper.toRValue(varArgs(paramCount))(using state).value
-
-						num match
-							case long: Long => resolved += Int.box(long.toInt)
-							case _ => resolved += convertBoolean()
-
-						formatter2.format("%d", resolved.toSeq *)
-						output.append(buffer2.toString)
-
+						output.append(printDeciminal(currentFormatString, TypeHelper.toRValue(varArgs(paramCount))(using state), true))
 						paramCount += 1
 						remainder = remainder.drop(2)
 						wasFormatStringFound = true
 					} else if (remainder.startsWith("d")) {
 						output.append(printDeciminal(currentFormatString, TypeHelper.toRValue(varArgs(paramCount))(using state), true))
-
 						paramCount += 1
 						remainder = remainder.drop(1)
 						wasFormatStringFound = true
@@ -212,14 +207,7 @@ object Printf {
 						paramCount += 1
 						wasFormatStringFound = true
 					} else if (remainder.startsWith("c")) {
-						val buffer2 = new StringBuffer()
-						val formatter2 = new Formatter(buffer2, Locale.US)
-
-						val value = TypeHelper.toRValue(varArgs(paramCount))(using state).value.asInstanceOf[Object]
-
-						formatter2.format("%c", List(value) *)
-						output.append(buffer2.toString)
-
+						output.append(printChar(TypeHelper.toRValue(varArgs(paramCount))(using state)))
 						remainder = remainder.drop(1)
 						paramCount += 1
 						wasFormatStringFound = true
