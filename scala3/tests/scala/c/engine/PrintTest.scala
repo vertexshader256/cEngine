@@ -41,6 +41,17 @@ class RobustPrint extends StandardTest {
 
 		checkResults(code)
 	}
+
+	"printing a unsigned long long with hex format" should "print the correct results" in {
+		val code =
+			"""
+						void main() {
+							unsigned long long x = 0xFFFFFFFFFFFFFFFFULL;
+							printf("%x %X %#x %#X\n", x, x, x, x);
+						}"""
+
+		checkResults(code)
+	}
 	
 	"printing long as float" should "print the correct results" in {
 		val code =

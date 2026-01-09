@@ -41,6 +41,37 @@ object Printf {
 		buffer2
 	}
 
+	private def printHex(stringFormat: String, value: RValue) = {
+
+		val buffer2 = new StringBuffer()
+		val formatter2 = new Formatter(buffer2, Locale.US)
+		val resolved = new ListBuffer[Object]()
+
+		val x = value.value
+
+		val converted = x match
+			case long: Long => long & 0xFFFFFFFFL
+			case _ => TypeHelper.castToUnsigned(false, x)
+
+		resolved += converted.asInstanceOf[Object]
+
+		if stringFormat.contains("x") then
+			formatter2.format("%x", resolved.toSeq *)
+		else
+			formatter2.format("%X", resolved.toSeq *)
+
+		println(stringFormat)
+
+		val result = if stringFormat == "#x" then
+			"0x" + buffer2.toString
+		else if stringFormat == "#X" then
+			"0X" + buffer2.toString
+		else
+			buffer2.toString
+
+		result
+	}
+
 	private def printUnsigned(stringFormat: String, value: RValue) = {
 
 		val buffer2 = new StringBuffer()
@@ -208,6 +239,17 @@ object Printf {
 						wasFormatStringFound = true
 					} else if (remainder.startsWith("c")) {
 						output.append(printChar(TypeHelper.toRValue(varArgs(paramCount))(using state)))
+						remainder = remainder.drop(1)
+						paramCount += 1
+						wasFormatStringFound = true
+					} else if (remainder.startsWith("#x") || remainder.startsWith("#X")) {
+						output.append(printHex(remainder.take(2).mkString, TypeHelper.toRValue(varArgs(paramCount))(using state)))
+						remainder = remainder.drop(2)
+						paramCount += 1
+						wasFormatStringFound = true
+					} else if (remainder.startsWith("x") || remainder.startsWith("X")) {
+						currentFormatString += currentChar + remainder.head.toString
+						output.append(printHex(currentFormatString, TypeHelper.toRValue(varArgs(paramCount))(using state)))
 						remainder = remainder.drop(1)
 						paramCount += 1
 						wasFormatStringFound = true
