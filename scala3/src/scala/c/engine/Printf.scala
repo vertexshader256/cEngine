@@ -60,14 +60,32 @@ object Printf {
 		else
 			formatter2.format("%X", resolved.toSeq *)
 
-		println(stringFormat)
-
-		val result = if stringFormat == "#x" then
+		var result = if stringFormat == "#x" then
 			"0x" + buffer2.toString
 		else if stringFormat == "#X" then
 			"0X" + buffer2.toString
 		else
 			buffer2.toString
+
+		var wasPaddingNumFound = false
+		stringFormat.take(2).mkString.toIntOption.foreach: intVal =>
+			wasPaddingNumFound = true
+			if intVal <= result.length then
+				result
+			else
+				val diff = intVal - result.length
+				(0 until diff).foreach{ _ => result = "0" + result}
+
+		if !wasPaddingNumFound then {
+			// if it wasn't found with 2 numbers, try one
+			stringFormat.take(1).mkString.toIntOption.foreach: intVal =>
+				wasPaddingNumFound = true
+				if intVal <= result.length then
+					result
+				else
+					val diff = intVal - result.length
+					(0 until diff).foreach{ _ => result = "0" + result}
+		}
 
 		result
 	}
@@ -250,6 +268,11 @@ object Printf {
 					} else if (remainder.startsWith("x") || remainder.startsWith("X")) {
 						currentFormatString += currentChar + remainder.head.toString
 						output.append(printHex(currentFormatString, TypeHelper.toRValue(varArgs(paramCount))(using state)))
+						remainder = remainder.drop(1)
+						paramCount += 1
+						wasFormatStringFound = true
+					} else if (remainder.startsWith("p")) {
+						output.append(printHex("16X", TypeHelper.toRValue(varArgs(paramCount))(using state)))
 						remainder = remainder.drop(1)
 						paramCount += 1
 						wasFormatStringFound = true

@@ -52,6 +52,20 @@ class RobustPrint extends StandardTest {
 
 		checkResults(code)
 	}
+
+	"printing a pointer address" should "print the correct results" in {
+		val code =
+			"""
+							void main() {
+								int x = 123;
+								int y = 234;
+								int* xp = &x;
+			          int* yp = &y;
+								printf("%p %p\n", x, y);
+							}"""
+
+		checkResults(code)
+	}
 	
 	"printing long as float" should "print the correct results" in {
 		val code =
