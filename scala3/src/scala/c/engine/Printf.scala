@@ -6,6 +6,32 @@ import scala.collection.mutable.ListBuffer
 // function which I use to simulate C's standard printf()
 object Printf {
 
+	def convertBoolean(num: RValue): Object = {
+		val x = num.value
+		val convertedBool = x match
+			case bool: Boolean => if bool then 1 else 0
+			case _ => x
+
+		convertedBool.asInstanceOf[Object]
+	}
+
+	def printDeciminal(stringFormat: String, value: RValue) = {
+		var currentFormatString = stringFormat
+		val buffer2 = new StringBuffer()
+		val formatter2 = new Formatter(buffer2, Locale.US)
+		val resolved = new ListBuffer[Object]()
+
+		val num = value.value
+		currentFormatString += 'd'
+
+		num match
+			case long: Long => resolved += Int.box(long.toInt)
+			case _ => resolved += convertBoolean(value)
+
+		formatter2.format("%" + currentFormatString, resolved.toSeq *)
+		buffer2.toString
+	}
+
 	def printFloat(formatString: String, base: Object): String = {
 		var currentFormatString = formatString
 		var buffer2 = new StringBuffer()
@@ -107,19 +133,8 @@ object Printf {
 						remainder = remainder.drop(2)
 						wasFormatStringFound = true
 					} else if (remainder.startsWith("d")) {
-						val buffer2 = new StringBuffer()
-						val formatter2 = new Formatter(buffer2, Locale.US)
-						val resolved = new ListBuffer[Object]()
 
-						val num = TypeHelper.toRValue(varArgs(paramCount))(using state).value
-						currentFormatString += 'd'
-
-						num match
-							case long: Long => resolved += Int.box(long.toInt)
-							case _ => resolved += convertBoolean()
-
-						formatter2.format("%" + currentFormatString, resolved.toSeq *)
-						output.append(buffer2.toString)
+						output.append(printDeciminal(currentFormatString, TypeHelper.toRValue(varArgs(paramCount))(using state)))
 
 						paramCount += 1
 						remainder = remainder.drop(1)
