@@ -51,6 +51,20 @@ object Printf {
 		buffer2.toString
 	}
 
+	private def printLongLongUnsigned(stringFormat: String, value: RValue) = {
+		val buffer2 = new StringBuffer()
+		val formatter2 = new Formatter(buffer2, Locale.US)
+		val resolved = new ListBuffer[Object]()
+
+		val bigInt = value.value
+		val longVal = Long.box(bigInt.asInstanceOf[Long])
+
+		resolved += java.lang.Long.toUnsignedString(Long.box(longVal))
+
+		formatter2.format("%s", resolved.toSeq *)
+		buffer2.toString
+	}
+
 	private def printDeciminal(stringFormat: String, value: RValue, convertToInt: Boolean) = {
 		var currentFormatString = stringFormat
 		val buffer2 = new StringBuffer()
@@ -178,18 +192,7 @@ object Printf {
 						remainder = remainder.drop(1)
 						wasFormatStringFound = true
 					} else if (remainder.startsWith("llu")) { // long long unsigned
-						val buffer2 = new StringBuffer()
-						val formatter2 = new Formatter(buffer2, Locale.US)
-						val resolved = new ListBuffer[Object]()
-
-						val bigInt = TypeHelper.toRValue(varArgs(paramCount))(using state).value
-						val longVal = Long.box(bigInt.asInstanceOf[Long])
-
-						resolved += java.lang.Long.toUnsignedString(Long.box(longVal))
-
-						formatter2.format("%s", resolved.toSeq *)
-						output.append(buffer2.toString)
-
+						output.append(printLongLongUnsigned(currentFormatString, TypeHelper.toRValue(varArgs(paramCount))(using state)))
 						paramCount += 1
 						remainder = remainder.drop(3)
 						wasFormatStringFound = true
