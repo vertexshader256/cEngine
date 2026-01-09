@@ -29,8 +29,13 @@ object Printf {
 		var remainder = str.toCharArray
 		val output = new StringBuffer()
 
+		var currentChar = remainder.headOption
+
+		if remainder.isEmpty then
+			isDone = true
+
 		while (!isDone) {
-			var currentChar = remainder.headOption.getOrElse('_')
+			var currentChar = remainder.headOption.get
 			remainder = remainder.drop(1)
 
 			if (currentChar == '%') {
@@ -85,12 +90,13 @@ object Printf {
 						val resolved = new ListBuffer[Object]()
 
 						val num = TypeHelper.toRValue(varArgs(paramCount))(using state).value
+						currentFormatString += 'd'
 
 						num match
 							case long: Long => resolved += Int.box(long.toInt)
 							case _ => resolved += convertBoolean()
 
-						formatter2.format("%d", resolved.toSeq *)
+						formatter2.format("%" + currentFormatString, resolved.toSeq *)
 						println("HERE")
 						output.append(buffer2.toString)
 
