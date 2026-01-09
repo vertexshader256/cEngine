@@ -45,10 +45,10 @@ class RobustPrint extends StandardTest {
 	"printing a unsigned long long with hex format" should "print the correct results" in {
 		val code =
 			"""
-						void main() {
-							unsigned long long x = 0xFFFFFFFFFFFFFFFFULL;
-							printf("%x %X %#x %#X\n", x, x, x, x);
-						}"""
+				void main() {
+					unsigned long long x = 0xFFFFFFFFFFFFFFFFULL;
+					printf("%x %X %#x %#X\n", x, x, x, x);
+				}"""
 
 		checkResults(code)
 	}
@@ -56,13 +56,13 @@ class RobustPrint extends StandardTest {
 	"printing a pointer address" should "print the correct results" in {
 		val code =
 			"""
-							void main() {
-								int x = 123;
-								int y = 234;
-								int* xp = &x;
-			          int* yp = &y;
-								printf("%p %p\n", x, y);
-							}"""
+				void main() {
+					int x = 123;
+					int y = 234;
+					int* xp = &x;
+					int* yp = &y;
+					printf("%p %p\n", x, y);
+				}"""
 
 		checkResults(code)
 	}
