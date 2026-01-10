@@ -64,13 +64,6 @@ object TypeHelper {
 		RValue(value, theType)
 	}
 
-	def isStructure(theType: IType): Boolean = theType match {
-		case struct: CStructure => true
-		case basicType: IBasicType => false
-		case typedef: ITypedef => isStructure(typedef.getType)
-		case arrayType: IArrayType => isStructure(arrayType.getType)
-	}
-
 	def isPointer(theType: IType): Boolean = theType match {
 		case struct: CStructure => false
 		case basicType: IBasicType => false

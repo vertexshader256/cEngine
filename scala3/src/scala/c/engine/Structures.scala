@@ -8,6 +8,14 @@ import IBasicType.Kind.*
 import IBasicType.*
 
 object Structures {
+
+	def isStructure(theType: IType): Boolean = theType match {
+		case struct: CStructure => true
+		case basicType: IBasicType => false
+		case typedef: ITypedef => isStructure(typedef.getType)
+		case arrayType: IArrayType => isStructure(arrayType.getType)
+	}
+	
 	def offsetof(struct: CStructure, memberName: String, state: State): Int = {
 		val largestField = struct.getFields.filter { f => f.getType.isInstanceOf[CBasicType] }.map { x => sizeInBits(x)(using state) / 8 }.sorted.maxOption.getOrElse(0)
 		val fields = struct.getFields.takeWhile { field => field.getName != memberName }.map { x => sizeInBits(x)(using state) / 8 }

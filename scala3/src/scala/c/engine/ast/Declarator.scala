@@ -177,7 +177,7 @@ object Declarator {
 		} else {
 			val flattened = flattenInitList(list).map(TypeHelper.toRValue)
 
-			if !TypeHelper.isPointer(theType) && !TypeHelper.isStructure(theType) then
+			if !TypeHelper.isPointer(theType) && !Structures.isStructure(theType) then
 				val baseType = TypeHelper.resolveBasic(theType)
 				flattened.map { x => TypeHelper.cast(x.value, baseType) }
 			else
