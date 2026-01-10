@@ -366,16 +366,23 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 					val args: List[ValueType] = call.getArguments.map { x => Expressions.evaluate(x).head }.toList
 
 					args.foreach { argument =>
-						val resolved = TypeHelper.toRValue(argument)
 
-						// printf assumes all floating point numbers are doubles
-						val promoted = resolved.theType match
-							case basic: IBasicType if basic.getKind == IBasicType.Kind.eFloat => RValue(resolved.value, TypeHelper.doubleType)
-							case _ => resolved
+						if (argument.theType.isInstanceOf[CStructure]) {
+							println("PUSHING STRUCTURE")
+							val resolved = TypeHelper.toRValue(argument)
+							newScope.pushOntoStack(resolved)
+						} else {
+							val resolved = TypeHelper.toRValue(argument)
 
-						newScope.pushOntoStack(promoted)
+							// printf assumes all floating point numbers are doubles
+							val promoted = resolved.theType match
+								case basic: IBasicType if basic.getKind == IBasicType.Kind.eFloat => RValue(resolved.value, TypeHelper.doubleType)
+								case _ => resolved
+
+							newScope.pushOntoStack(promoted)
+						}
 					}
-						
+
 					newScope.pushOntoStack(RValue(args.size, TypeHelper.unsignedIntType))
 
 					functionContexts = newScope +: functionContexts
