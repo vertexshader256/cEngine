@@ -48,7 +48,7 @@ object Expressions {
 			typeExpr(typeIdInit)
 	}
 
-	private def castExpression(cast: IASTCastExpression)(implicit state: State) = {
+	private def castExpression(cast: IASTCastExpression)(implicit state: State): ValueType = {
 		val theType = TypeHelper.getType(cast.getTypeId).theType
 		val operand = evaluate(cast.getOperand).get
 
@@ -57,15 +57,14 @@ object Expressions {
 			case LValue(addr, aType) =>
 				val newAddr = state.allocateSpace(TypeHelper.sizeof(theType))
 
-				theType match {
+				val value = theType match
 					case ptr: IPointerType if aType.isInstanceOf[IArrayType] =>
-						state.Stack.writeToMemory(addr, newAddr, theType)
+						addr
 					case _ =>
 						val currentVal = state.Stack.readFromMemory(addr, aType) // read current variable value
-						val casted = TypeHelper.cast(currentVal.value, theType).value
-						state.Stack.writeToMemory(casted, newAddr, theType) // write the casted data out
-				}
+						TypeHelper.cast(currentVal.value, theType).value
 
+				state.Stack.writeToMemory(value, newAddr, theType) // write the casted data out
 				LValue(state, newAddr, theType)
 			case RValue(value, _) =>
 				val newAddr = state.allocateSpace(TypeHelper.sizeof(theType))
@@ -74,7 +73,7 @@ object Expressions {
 		}
 	}
 
-	private def arraySubscriptExpression(subscript: IASTArraySubscriptExpression)(implicit state: State) = {
+	private def arraySubscriptExpression(subscript: IASTArraySubscriptExpression)(implicit state: State): Option[LValue] = {
 		var left = evaluate(subscript.getArrayExpression).get
 		var right = evaluate(subscript.getArgument).get
 
@@ -115,7 +114,7 @@ object Expressions {
 		Some(field)
 	}
 
-	private def functionCallExpr(call: IASTFunctionCallExpression)(implicit state: State) = {
+	private def functionCallExpr(call: IASTFunctionCallExpression)(implicit state: State): Option[ValueType] = {
 		val pop = evaluate(call.getFunctionNameExpression).head
 
 		val name = if (state.hasFunction(call.getFunctionNameExpression.getRawSignature)) {
@@ -131,7 +130,7 @@ object Expressions {
 		state.callTheFunction(name, call, None)
 	}
 
-	private def binaryExpression(bin: IASTBinaryExpression)(implicit state: State) = {
+	private def binaryExpression(bin: IASTBinaryExpression)(implicit state: State): Option[ValueType] = {
 		(bin.getOperator, evaluate(bin.getOperand1).head) match {
 			case (IASTBinaryExpression.op_logicalOr, op1 @ RValue(x: Boolean, _)) if x => Some(op1)
 			case (IASTBinaryExpression.op_logicalAnd, op1 @ RValue(x: Boolean, _)) if !x => Some(op1)
@@ -148,7 +147,7 @@ object Expressions {
 		}
 	}
 
-	private def typeExpr(typeIdInit: IASTTypeIdInitializerExpression)(implicit state: State) = {
+	private def typeExpr(typeIdInit: IASTTypeIdInitializerExpression)(implicit state: State): Option[LValue] = {
 		val theType = TypeHelper.getType(typeIdInit.getTypeId).theType
 		val newAddr = state.allocateSpace(TypeHelper.sizeof(theType))
 
@@ -166,7 +165,7 @@ object Expressions {
 		Some(LValue(state, newAddr, theType))
 	}
 
-	private def isAssignment(op: Int) = {
+	private def isAssignment(op: Int): Boolean = {
 		op == op_assign ||
 			op == op_plusAssign ||
 			op == op_minusAssign ||
