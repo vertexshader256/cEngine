@@ -95,17 +95,17 @@ object Expressions {
 		Some(LValue(state, offset, indexType))
 	}
 
-	private def fieldReference(fieldRef: IASTFieldReference)(implicit state: State) = {
+	private def fieldReference(fieldRef: IASTFieldReference)(implicit state: State): Option[Field] = {
 		val struct = evaluate(fieldRef.getFieldOwner).get.asInstanceOf[LValue]
 
-		val structType = TypeHelper.resolveStruct(struct.theType)
+		val structType = Structures.resolveStruct(struct.theType)
 
 		val baseAddr = if fieldRef.isPointerDereference then
 			state.readPtrVal(struct.address)
 		else
 			struct.address
 
-		val field = TypeHelper.offsetof(structType, baseAddr, fieldRef.getFieldName.toString, state: State)
+		val field = Structures.offsetof(structType, baseAddr, fieldRef.getFieldName.toString, state: State)
 		Some(field)
 	}
 

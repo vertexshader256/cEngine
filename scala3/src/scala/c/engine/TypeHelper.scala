@@ -209,41 +209,6 @@ object TypeHelper {
 		case info@LValue(_, _) => resolveBoolean(info.rValue)
 	}
 
-	def offsetof(struct: CStructure, memberName: String, state: State): Int = {
-		val largestField = struct.getFields.filter { f => f.getType.isInstanceOf[CBasicType] }.map { x => TypeHelper.sizeInBits(x)(using state) / 8 }.sorted.maxOption.getOrElse(0)
-		val fields = struct.getFields.takeWhile { field => field.getName != memberName }.map { x => TypeHelper.sizeInBits(x)(using state) / 8 }
-		val paddedFields = fields.map: f =>
-			if f < largestField then largestField else f // gcc adds padding
-		paddedFields.sum
-	}
-
-	def offsetof(structType: CStructure, baseAddress: Int, fieldName: String, state: State) = {
-		var resultAddress: Field = null
-		var offsetInBits: Int = 0
-
-		structType.getKey match {
-			case ICompositeType.k_struct =>
-				structType.getFields.foreach: field =>
-					if field.getName == fieldName then
-						// can assume names are unique
-						resultAddress = Field(state, baseAddress + offsetInBits / 8, offsetInBits % 8, field.getType, TypeHelper.sizeInBits(field)(using state))
-					else
-						offsetInBits += TypeHelper.sizeInBits(field)(using state)
-			case ICompositeType.k_union =>
-				// TODO: Unions and bit fields dont work
-				structType.getFields.find { field => field.getName == fieldName }.foreach: field =>
-					resultAddress = Field(state, baseAddress, 0, field.getType, TypeHelper.sizeInBits(field)(using state))
-		}
-		resultAddress
-	}
-
-	def resolveStruct(theType: IType): CStructure = theType match {
-		case qual: CQualifierType => resolveStruct(qual.getType)
-		case typedef: CTypedef => resolveStruct(typedef.getType)
-		case struct: CStructure => struct
-		case ptr: IPointerType => resolveStruct(ptr.getType)
-	}
-
 	def getPointerSize(theType: IType)(implicit state: State): Int = theType match {
 		case ptr: IPointerType => state.addressSize
 		case array: IArrayType if array.hasSize => TypeHelper.sizeof(array.getType) * array.getSize.numericalValue().toInt
@@ -255,7 +220,7 @@ object TypeHelper {
 		case _: IFunctionType => state.addressSize
 		case _: IPointerType => state.addressSize
 		case struct: CStructure =>
-			val fieldSizes = struct.getFields.map(sizeInBits)
+			val fieldSizes = struct.getFields.map(Structures.sizeInBits)
 			val numBits = struct.getKey match
 				case ICompositeType.k_struct => fieldSizes.sum
 				case ICompositeType.k_union => fieldSizes.max
@@ -377,16 +342,5 @@ object TypeHelper {
 					newVal
 			}
 		case _ => theVal
-	}
-
-	private def sizeInBits(field: IField)(implicit state: State): Int = {
-		val parent = field.asInstanceOf[CField].getDefinition.getParent
-		parent match
-			case field: CASTFieldDeclarator => Expressions.evaluate(field.getBitFieldSize).get.asInstanceOf[RValue].value.asInstanceOf[Int]
-			case _ => field.getType match
-				case array: IArrayType =>
-					sizeof(array.getType) * array.getSize.numericalValue().toInt * 8
-				case x =>
-					sizeof(x) * 8
 	}
 }

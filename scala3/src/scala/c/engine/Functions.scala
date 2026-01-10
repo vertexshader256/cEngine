@@ -588,7 +588,7 @@ object Functions {
 
 			val struct = state.structs.find { x => ("struct " + x.getName) == stuctName }.get
 
-			Some(RValue(TypeHelper.offsetof(struct, memberName, state)))
+			Some(RValue(Structures.offsetof(struct, memberName, state)))
 		}
 	}
 
