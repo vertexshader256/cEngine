@@ -180,6 +180,25 @@ object Printf {
 		output.toString
 	}
 
+	case class OutputFormat(identifier: String, toText: (String, RValue, State) => String)
+
+	private val formats: Seq[OutputFormat] = Seq(
+		OutputFormat("f", (format, rValue, _) => printFloat(format, rValue.value.asInstanceOf[Object])),
+		OutputFormat("hd", (format, rValue, _) => printDeciminal(format, rValue, true)),
+		OutputFormat("d", (format, rValue, _) => printDeciminal(format, rValue, true)),
+		OutputFormat("u", (format, rValue, _) => printUnsigned(format, rValue)),
+		OutputFormat("llu", (format, rValue, _) => printLongLongUnsigned(format, rValue)),
+		OutputFormat("ld", (format, rValue, _) => printDeciminal(format, rValue, true)),
+		OutputFormat("lld", (format, rValue, _) => printDeciminal("", rValue, false)),
+		OutputFormat("s", (format, rValue, state) => printString(format, rValue)(using state)),
+		OutputFormat("c", (format, rValue, state) => printChar(rValue)),
+		OutputFormat("#x", (format, rValue, state) => printHex("#x", rValue)),
+		OutputFormat("#X", (format, rValue, state) => printHex("#X", rValue)),
+		OutputFormat("x", (format, rValue, state) => printHex("x", rValue)),
+		OutputFormat("X", (format, rValue, state) => printHex("X", rValue)),
+		OutputFormat("p", (format, rValue, state) => printHex("16X", rValue)),
+	)
+
 	def printf(formattedOutputParams: Array[RValue], state: State): String = {
 		val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(using state)
 
@@ -219,24 +238,6 @@ object Printf {
 				while (!wasFormatStringFound) {
 
 					def variable = TypeHelper.toRValue(varArgs(paramCount))(using state)
-
-					case class OutputFormat(identifier: String, toText: (String, RValue, State) => String)
-
-					val formats: Seq[OutputFormat] = Seq(
-						OutputFormat("f", (format, rValue, _) => printFloat(currentFormatString, rValue.value.asInstanceOf[Object])),
-						OutputFormat("hd", (format, rValue, _) => printDeciminal(currentFormatString, rValue, true)),
-						OutputFormat("d", (format, rValue, _) => printDeciminal(currentFormatString, rValue, true)),
-						OutputFormat("u", (format, rValue, _) => printUnsigned(currentFormatString, rValue)),
-						OutputFormat("llu", (format, rValue, _) => printLongLongUnsigned(currentFormatString, rValue)),
-						OutputFormat("ld", (format, rValue, _) => printDeciminal(currentFormatString, rValue, true)),
-						OutputFormat("lld", (format, rValue, _) => printDeciminal("", rValue, false)),
-						OutputFormat("s", (format, rValue, state) => printString(currentFormatString, rValue)(using state)),
-						OutputFormat("c", (format, rValue, state) => printChar(rValue)),
-						OutputFormat("#x", (format, rValue, state) => printHex(remainder.take(2).mkString, rValue)),
-						OutputFormat("#X", (format, rValue, state) => printHex(remainder.take(2).mkString, rValue)),
-						OutputFormat("x", (format, rValue, state) => printHex(format, rValue)),
-						OutputFormat("p", (format, rValue, state) => printHex("16X", rValue)),
-					)
 
 					formats.find{ format =>
 						remainder.startsWith(format.identifier)
