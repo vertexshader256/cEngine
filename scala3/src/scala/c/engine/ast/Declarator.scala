@@ -170,19 +170,13 @@ object Declarator {
 //	}
 
 	private def processList(theType: IType, list: CASTInitializerList)(implicit state: State): List[RValue] = {
-		val childrenLists = list.getChildren.collect{ case list: CASTInitializerList => list }.toList
+		val flattened = flattenInitList(list).map(TypeHelper.toRValue)
 
-		if (childrenLists.nonEmpty) {
-			childrenLists.flatMap(l => processList(theType, l))
-		} else {
-			val flattened = flattenInitList(list).map(TypeHelper.toRValue)
-
-			if !TypeHelper.isPointer(theType) && !Structures.isStructure(theType) then
-				val baseType = TypeHelper.resolveBasic(theType)
-				flattened.map { x => TypeHelper.cast(x.value, baseType) }
-			else
-				flattened
-		}
+		if !TypeHelper.isPointer(theType) && !Structures.isStructure(theType) then
+			val baseType = TypeHelper.resolveBasic(theType)
+			flattened.map { x => TypeHelper.cast(x.value, baseType) }
+		else
+			flattened
 	}
 
 	private def initializeArrayFromList(name: IASTName, init: IASTInitializerClause)(implicit state: State): Variable = {
