@@ -1,6 +1,6 @@
 package scala.c.engine
 
-import scala.c.engine.NumBits.ThirtyTwoBits
+import scala.c.engine.models.NumBits.ThirtyTwoBits
 
 class LowLevel extends StandardTest {
 	"ensure the stack gets popped after functions" should "print the correct results" in {

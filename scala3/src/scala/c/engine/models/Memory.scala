@@ -1,9 +1,9 @@
-package scala.c.engine
+package scala.c.engine.models
 
 import org.eclipse.cdt.core.dom.ast.{IArrayType, IBasicType, IFunctionType, IPointerType, IType}
 import org.eclipse.cdt.internal.core.dom.parser.c.{CEnumeration, CStructure, CTypedef}
 
-import scala.c.engine.models.*
+import scala.c.engine.*
 
 class Memory(size: Int) {
 

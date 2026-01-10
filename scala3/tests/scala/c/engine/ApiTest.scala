@@ -3,7 +3,7 @@ package c
 package engine
 
 import scala.c.engine.Interpreter.*
-import scala.c.engine.NumBits.ThirtyTwoBits
+import scala.c.engine.models.NumBits.ThirtyTwoBits
 
 class JavaApiTest extends StandardTest {
 	"java api test one" should "print the correct results" in {

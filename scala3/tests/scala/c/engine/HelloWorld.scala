@@ -1,6 +1,6 @@
 package scala.c.engine
 
-import scala.c.engine.NumBits.ThirtyTwoBits
+import scala.c.engine.models.NumBits.ThirtyTwoBits
 
 class HelloWorld extends StandardTest {
 	"hello world" should "print the correct results" in {
