@@ -853,6 +853,38 @@ class StructTest extends StandardTest {
 		checkResults(code)
 	}
 
+	"passing a structure into a function" should "print the correct results" in {
+		val code =
+			"""
+						#include<stdio.h>
+	
+						typedef struct{
+							float b;
+						}layer2;
+	
+						typedef struct{
+							layer2 l2;
+							int d,e;
+						}layer3;
+	
+						void showCake(layer3 cake){
+							printf("\ncake.d = %d",cake.d);
+						}
+	
+						int main()
+						{
+							layer3 cake1;
+							cake1.d = 1;
+							showCake(cake1);
+	
+							return 0;
+						}
+	
+				"""
+
+		checkResults(code)
+	}
+  
 	"advanced struct from function test" should "print the correct results" in {
 		val code =
 			"""
