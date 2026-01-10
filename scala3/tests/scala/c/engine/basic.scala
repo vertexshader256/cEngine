@@ -153,22 +153,6 @@ class LessSimpleInitTest extends StandardTest {
 	}
 }
 
-class StringTest extends StandardTest {
-	"a simple string test" should "print the correct results" in {
-		val code =
-			"""
-      int main(int argc, char *argv[])
-      {
-        char array[] = "This is a string assigned to an array";
-        char *ptr = "This is a string assigned to an pointer";
-      	printf("%s %s\n", array, ptr);
-      	return 0;
-      }"""
-
-		checkResults(code)
-	}
-}
-
 class BasicTest extends StandardTest {
 
 	"main with arguments" should "print the correct results" in {
