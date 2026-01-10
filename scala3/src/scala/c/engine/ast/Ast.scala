@@ -44,50 +44,54 @@ object Ast {
 		case label: Label =>
 	}
 
-	def step(current: Any)(implicit state: State): Unit = current match {
+	private def stepSimpleDeclaration(simple: IASTSimpleDeclaration)(implicit state: State): Unit = {
+		val declSpec = simple.getDeclSpecifier
+		val isWithinFunction = Utils.getAncestors(simple).exists(_.isInstanceOf[IASTFunctionDefinition])
 
+		simple.getDeclarators.foreach {
+			case fcn: IASTFunctionDeclarator =>
+				if !isWithinFunction || fcn.getInitializer != null then
+					step(fcn)
+				else
+					step(fcn.getNestedDeclarator)
+			case x => step(x)
+		}
+
+		if declSpec.isInstanceOf[IASTEnumerationSpecifier] then
+			step(simple.getDeclSpecifier)
+	}
+
+	private def stepEnumeration(enumeration: IASTEnumerationSpecifier)(implicit state: State): Unit = {
+		var current = 0
+		enumeration.getEnumerators.foreach {
+			case enumerator: CASTEnumerator =>
+				if (enumerator.getValue != null) {
+					val value = Expressions.evaluate(enumerator.getValue).get.asInstanceOf[RValue]
+					val newVar = state.context.addVariable(enumerator.getName.toString, TypeHelper.intType)
+					current = value.value.asInstanceOf[Int] + 1
+					state.Stack.writeToMemory(value.value, newVar.address, TypeHelper.intType)
+				} else {
+					val newVar = state.context.addVariable(enumerator.getName.toString, TypeHelper.intType)
+					state.Stack.writeToMemory(current, newVar.address, TypeHelper.intType)
+					current += 1
+				}
+		}
+	}
+
+	def step(current: Any)(implicit state: State): Unit = current match {
 		case statement: IASTStatement =>
-			Statement.parse(statement)
+			Statement.step(statement)
 		case expression: IASTExpression =>
 			Expressions.evaluate(expression).foreach: value =>
 				state.context.pushOntoStack(value)
-
-			Seq()
 		case decl: IASTDeclarator =>
 			Declarator.execute(decl)
 		case array: IASTArrayModifier =>
-			List(Option(array.getConstantExpression)).flatten.foreach(step)
+			Option(array.getConstantExpression).foreach(step)
 		case simple: IASTSimpleDeclaration =>
-			val declSpec = simple.getDeclSpecifier
-			val isWithinFunction = Utils.getAncestors(simple).exists(_.isInstanceOf[IASTFunctionDefinition])
-
-			simple.getDeclarators.foreach {
-				case fcn: IASTFunctionDeclarator =>
-					if !isWithinFunction || fcn.getInitializer != null then
-						step(fcn)
-					else
-						step(fcn.getNestedDeclarator)
-				case x => step(x)
-			}
-
-			if declSpec.isInstanceOf[IASTEnumerationSpecifier] then
-				step(simple.getDeclSpecifier)
-		case enumer: IASTEnumerationSpecifier =>
-			var current = 0
-			enumer.getEnumerators.foreach {
-				case enumerator: CASTEnumerator =>
-					if (enumerator.getValue != null) {
-						val value = Expressions.evaluate(enumerator.getValue).get.asInstanceOf[RValue]
-
-						val newVar = state.context.addVariable(enumerator.getName.toString, TypeHelper.intType)
-						current = value.value.asInstanceOf[Int] + 1
-						state.Stack.writeToMemory(value.value, newVar.address, TypeHelper.intType)
-					} else {
-						val newVar = state.context.addVariable(enumerator.getName.toString, TypeHelper.intType)
-						state.Stack.writeToMemory(current, newVar.address, TypeHelper.intType)
-						current += 1
-					}
-			}
+			stepSimpleDeclaration(simple)
+		case enumeration: IASTEnumerationSpecifier =>
+			stepEnumeration(enumeration)
 		case fcnDef: IASTFunctionDefinition =>
 		case initList: IASTInitializerList =>
 			initList.getClauses.foreach(step)
