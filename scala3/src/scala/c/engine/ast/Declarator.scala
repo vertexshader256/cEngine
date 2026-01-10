@@ -270,11 +270,13 @@ object Declarator {
 		}
 	}
 
-	def getValuesFromList(list: IASTInitializerList, struct: CStructure)(implicit state: State): List[ValueType] = {
+	def getValuesFromList(list: IASTInitializerList, theType: IType)(implicit state: State): List[ValueType] = {
 		val descendants = Utils.getDescendants(list)
 		val hasNamedDesignator = descendants.exists { node => node.isInstanceOf[CASTDesignatedInitializer] } // {.y = 343, .x = 543, .next = 8578}
+		val isStructure = theType.isInstanceOf[CStructure]
 
-		if (hasNamedDesignator) {
+		if (isStructure && hasNamedDesignator) {
+			val struct = theType.asInstanceOf[CStructure]
 			val initializers = descendants.collect { case des: CASTDesignatedInitializer => des }
 			val initValues = initializers.map: init =>
 				val fieldName = init.getDesignators.toList.head.asInstanceOf[CASTFieldDesignator].getName.toString
@@ -284,7 +286,8 @@ object Declarator {
 			struct.getFields.map { field =>
 				initValues.getOrElse(field.getName, TypeHelper.zero)
 			}.toList
-		} else if (isNullInitializer(list)) {
+		} else if (isStructure && isNullInitializer(list)) {
+			val struct = theType.asInstanceOf[CStructure]
 			struct.getFields.toList.map(x => TypeHelper.zero)
 		} else {
 			list.getClauses.map { x =>
@@ -296,10 +299,10 @@ object Declarator {
 		}
 	}
 
-	private def getValuesFromList(initClause: IASTNode, struct: CStructure)(implicit state: State): List[ValueType] = {
+	private def getValuesFromList(initClause: IASTNode, theType: IType)(implicit state: State): List[ValueType] = {
 		initClause match
 			case list: IASTInitializerList =>
-				getValuesFromList(list, struct)
+				getValuesFromList(list, theType)
 			case idExpr: IASTIdExpression =>
 				List(state.context.resolveId(idExpr.getName).get)
 			case fcnCall: IASTFunctionCallExpression =>
