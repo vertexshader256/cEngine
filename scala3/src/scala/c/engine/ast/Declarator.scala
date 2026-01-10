@@ -219,7 +219,7 @@ object Declarator {
 	private def processCastDecl(decl: CASTDeclarator)(implicit state: State): Unit = {
 		val nameBinding = decl.getName.resolveBinding()
 		val name = decl.getName
-		
+
 		nameBinding match {
 			case variable: IVariable =>
 				val theType = TypeHelper.stripSyntheticTypeInfo(variable.getType)
@@ -228,14 +228,15 @@ object Declarator {
 					state.context.addExternVariable(name.toString, theType)
 				else
 					state.context.addVariable(name.toString, theType)
-	
+
 				if (!addedVariable.isInitialized) {
-					if (decl.getInitializer.isInstanceOf[IASTEqualsInitializer]) {
-						val initClause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
-						val initVals = getRValues(initClause, theType)
-						assign(addedVariable, initVals, initClause, op_assign)
-					}
-	
+					decl.getInitializer match
+						case equals: IASTEqualsInitializer =>
+							val initClause = equals.getInitializerClause
+							val initVals = getRValues(initClause, theType)
+							assign(addedVariable, initVals, initClause, op_assign)
+						case _ =>
+							
 					addedVariable.isInitialized = true
 				}
 			case _ =>
