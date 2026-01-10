@@ -24,6 +24,8 @@ object RValue {
 abstract class RValue extends ValueType {
 	val value: cEngVal
 	val theType: IType
+	
+	def sizeof(implicit state: State): Int = TypeHelper.sizeof(theType)
 
 	override def toString = {
 		"RValue(" + value + ", " + theType + ")"

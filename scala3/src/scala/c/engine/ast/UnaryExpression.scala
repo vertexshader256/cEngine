@@ -52,12 +52,7 @@ object UnaryExpression {
 	private def processSizeof(value: ValueType)(implicit state: State) = {
 		val size = value match
 			case info: LValue => info.sizeof
-			case Address(_, _) =>
-				state.pointerSize match {
-					case NumBits.SixtyFourBits => 8
-					case NumBits.ThirtyTwoBits => 4
-				}
-			case RValue(_, theType) => TypeHelper.sizeof(theType)
+			case rValue: RValue => rValue.sizeof
 
 		RValue(size, TypeHelper.intType)
 	}
