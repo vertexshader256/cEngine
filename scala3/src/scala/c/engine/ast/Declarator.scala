@@ -288,17 +288,15 @@ object Declarator {
 					struct.getFields.map { field =>
 						initValues.getOrElse(field.getName, TypeHelper.zero)
 					}.toList
+				} else if (isNullInitializer(list)) {
+					struct.getFields.toList.map(x => TypeHelper.zero)
 				} else {
-					if (isNullInitializer(list)) {
-						struct.getFields.toList.map(x => TypeHelper.zero)
-					} else {
-						list.getClauses.map { x =>
-							Ast.step(x)
-							state.context.popStack match
-								case vari: Variable => vari.rValue
-								case x => x
-						}.toList
-					}
+					list.getClauses.map { x =>
+						Ast.step(x)
+						state.context.popStack match
+							case vari: Variable => vari.rValue
+							case x => x
+					}.toList
 				}
 			case idExpr: IASTIdExpression =>
 				List(state.context.resolveId(idExpr.getName).get)
