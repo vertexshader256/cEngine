@@ -219,26 +219,27 @@ object Declarator {
 	private def processCastDecl(decl: CASTDeclarator)(implicit state: State): Unit = {
 		val nameBinding = decl.getName.resolveBinding()
 		val name = decl.getName
+		
+		nameBinding match {
+			case variable: IVariable =>
+				val theType = TypeHelper.stripSyntheticTypeInfo(variable.getType)
 
-		if (nameBinding.isInstanceOf[IVariable]) {
-			val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
-
-			val addedVariable = if nameBinding.asInstanceOf[IVariable].isExtern then
-				state.context.addExternVariable(name.toString, theType)
-			else
-				state.context.addVariable(name.toString, theType)
-
-			if (!addedVariable.isInitialized) {
-				if (decl.getInitializer.isInstanceOf[IASTEqualsInitializer]) {
-					val initClause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
-					val initVals = getRValues(initClause, theType)
-					assign(addedVariable, initVals, initClause, op_assign)
+				val addedVariable = if variable.isExtern then
+					state.context.addExternVariable(name.toString, theType)
+				else
+					state.context.addVariable(name.toString, theType)
+	
+				if (!addedVariable.isInitialized) {
+					if (decl.getInitializer.isInstanceOf[IASTEqualsInitializer]) {
+						val initClause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
+						val initVals = getRValues(initClause, theType)
+						assign(addedVariable, initVals, initClause, op_assign)
+					}
+	
+					addedVariable.isInitialized = true
 				}
-
-				addedVariable.isInitialized = true
-			}
+			case _ =>
 		}
-		Seq()
 	}
 
 	// should return 'true' if this list is equivilant to {0}
