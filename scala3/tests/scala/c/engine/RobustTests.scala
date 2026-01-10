@@ -301,9 +301,15 @@ class RobustTest extends StandardTest {
 				{
 					size_t tz;
 					unsigned char *ts;
-					tz = a->alloc; a->alloc = b->alloc; b->alloc = tz;
-					tz = a->len; a->len = b->len; b->len = tz;
-					ts = a->s; a->s = b->s; b->s = ts;
+					tz = a->alloc;
+					a->alloc = b->alloc;
+					b->alloc = tz;
+					tz = a->len;
+					a->len = b->len;
+					b->len = tz;
+					ts = a->s;
+					a->s = b->s;
+					b->s = ts;
 				}
 
 				bstr str_subst(bstr tgt, bstr pat, bstr repl)
