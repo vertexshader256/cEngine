@@ -196,7 +196,6 @@ object Declarator {
 					rValues.map(TypeHelper.toRValue)
 				}.toList
 			case _ =>
-				val theType = TypeHelper.getBindingType(name.resolveBinding())
 				processList(theType, init.asInstanceOf[CASTInitializerList])
 
 		state.context.addArrayVariable(name.toString, theType, values)
