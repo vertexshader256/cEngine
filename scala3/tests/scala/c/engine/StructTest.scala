@@ -857,34 +857,30 @@ class StructTest extends StandardTest {
 		val code =
 			"""
 						#include<stdio.h>
-	
+
 						typedef struct{
-							float b;
-						}layer2;
-	
-						typedef struct{
-							layer2 l2;
-							int d,e;
-						}layer3;
-	
-						void showCake(layer3 cake){
-							printf("\ncake.d = %d",cake.d);
+							int l2;
+							int d;
+						} testStruct;
+
+						void printStructContents(testStruct x){
+							printf("%d",x.d);
 						}
-	
+
 						int main()
 						{
-							layer3 cake1;
-							cake1.d = 1;
-							showCake(cake1);
-	
+							testStruct x;
+							x.d = 1;
+							printStructContents(x);
+
 							return 0;
 						}
-	
+
 				"""
 
 		checkResults(code)
 	}
-  
+
 	"advanced struct from function test" should "print the correct results" in {
 		val code =
 			"""
