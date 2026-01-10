@@ -14,7 +14,7 @@ object Declarator {
 		case fcnDec: IASTFunctionDeclarator =>
 			processFcnDeclarator(fcnDec)
 		case arrayDecl: IASTArrayDeclarator =>
-			processArrayDecl(decl, arrayDecl)
+			processArrayDecl(arrayDecl)
 		case decl: CASTDeclarator =>
 			processCastDecl(decl)
 	}
@@ -100,7 +100,7 @@ object Declarator {
 		others
 	}
 
-	private def processFcnDeclarator(fcnDec: IASTFunctionDeclarator)(implicit state: State) = {
+	private def processFcnDeclarator(fcnDec: IASTFunctionDeclarator)(implicit state: State): Unit = {
 		if (Utils.getDescendants(fcnDec).exists { x => x.isInstanceOf[IASTEqualsInitializer] }) {
 			setFunctionPointer(fcnDec)
 		} else {
@@ -166,7 +166,7 @@ object Declarator {
 			flattened
 	}
 
-	private def initializeArrayFromList(name: IASTName, init: IASTInitializerClause)(implicit state: State): Variable = {
+	private def initializeArrayVariable(name: IASTName, init: IASTInitializerClause)(implicit state: State): Variable = {
 		val theType = TypeHelper.getBindingType(name.resolveBinding())
 		val pointerType = TypeHelper.getPointerType(theType)
 
@@ -181,31 +181,31 @@ object Declarator {
 		state.context.addArrayVariable(name.toString, theType, values)
 	}
 
-	private def processArrayDecl(decl: IASTDeclarator, arrayDecl: IASTArrayDeclarator)(implicit state: State): Variable = {
+	private def processArrayDecl(arrayDecl: IASTArrayDeclarator)(implicit state: State): Unit = {
 		
 		val name = if arrayDecl.getNestedDeclarator != null then
 			arrayDecl.getNestedDeclarator.getName
 		else
 			arrayDecl.getName
 
-		if (decl.getInitializer != null) {
-			val equals = decl.getInitializer.asInstanceOf[IASTEqualsInitializer]
+		if (arrayDecl.getInitializer != null) {
+			val equals = arrayDecl.getInitializer.asInstanceOf[IASTEqualsInitializer]
 			val hasList = equals.getInitializerClause.isInstanceOf[IASTInitializerList]
 
 			if (hasList) {
 				val init = equals.getInitializerClause
-				initializeArrayFromList(name, init)
+				initializeArrayVariable(name, init)
 			} else {
 				val theType = TypeHelper.getBindingType(name.resolveBinding())
 
 				val stringType = TypeHelper.resolveBasic(theType)
 				if (stringType.getKind == IBasicType.Kind.eChar) {
 					// e.g. char str[] = "Hello!\n";
-					List(Option(decl.getInitializer)).flatten.foreach(Ast.step)
+					List(Option(arrayDecl.getInitializer)).flatten.foreach(Ast.step)
 					val initString = state.context.popStack.asInstanceOf[StringLiteral].value
 					state.createStringArrayVariable(name.toString, initString, stringType)
 				} else { // initializing array to address, e.g int (*ptr)[5] = &x[1];
-					Ast.step(decl.getInitializer)
+					Ast.step(arrayDecl.getInitializer)
 					val initVal = TypeHelper.toRValue(state.context.popStack)
 					val newArray = List(initVal)
 					state.context.addArrayVariable(name.toString, theType, newArray)
@@ -216,26 +216,26 @@ object Declarator {
 		}
 	}
 
-	private def processCastDecl(decl: CASTDeclarator)(implicit state: State) = {
+	private def processCastDecl(decl: CASTDeclarator)(implicit state: State): Unit = {
 		val nameBinding = decl.getName.resolveBinding()
 		val name = decl.getName
 
 		if (nameBinding.isInstanceOf[IVariable]) {
 			val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
 
-			val variable = if nameBinding.asInstanceOf[IVariable].isExtern then
+			val addedVariable = if nameBinding.asInstanceOf[IVariable].isExtern then
 				state.context.addExternVariable(name.toString, theType)
 			else
 				state.context.addVariable(name.toString, theType)
 
-			if (!variable.isInitialized) {
+			if (!addedVariable.isInitialized) {
 				if (decl.getInitializer.isInstanceOf[IASTEqualsInitializer]) {
 					val initClause = decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause
 					val initVals = getRValues(initClause, theType)
-					assign(variable, initVals, initClause, op_assign)
+					assign(addedVariable, initVals, initClause, op_assign)
 				}
 
-				variable.isInitialized = true
+				addedVariable.isInitialized = true
 			}
 		}
 		Seq()
