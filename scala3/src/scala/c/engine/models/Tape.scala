@@ -1,8 +1,9 @@
-package scala.c.engine
+package scala.c.engine.models
 
 import java.math.BigInteger
 import java.nio.{ByteBuffer, ByteOrder}
 import java.util
+import scala.c.engine.*
 
 class Tape(size: Int) {
 	val tape = ByteBuffer.allocateDirect(size)

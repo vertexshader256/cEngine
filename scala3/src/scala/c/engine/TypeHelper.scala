@@ -70,7 +70,7 @@ object TypeHelper {
 		RValue(castedValue, theType)
 	}
 
-	def getType(idExpr: IASTTypeId) = idExpr.getDeclSpecifier match {
+	def getType(idExpr: IASTTypeId): TypeInfo = idExpr.getDeclSpecifier match {
 		case simple: IASTSimpleDeclSpecifier =>
 
 			var config = 0
