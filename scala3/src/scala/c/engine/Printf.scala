@@ -180,23 +180,55 @@ object Printf {
 		output.toString
 	}
 
-	case class OutputFormat(identifier: String, toText: (String, RValue, State) => String)
+	case class SingleParamOutputFormat(identifier: String, toText: (String, RValue, State) => String)
+	case class DualParamOutputFormat(identifier: String, toText: (String, RValue, RValue, State) => String)
 
-	private val formats: Seq[OutputFormat] = Seq(
-		OutputFormat("f", (format, rValue, _) => printFloat(format, rValue.value.asInstanceOf[Object])),
-		OutputFormat("hd", (format, rValue, _) => printDeciminal(format, rValue, true)),
-		OutputFormat("d", (format, rValue, _) => printDeciminal(format, rValue, true)),
-		OutputFormat("u", (format, rValue, _) => printUnsigned(format, rValue)),
-		OutputFormat("llu", (format, rValue, _) => printLongLongUnsigned(format, rValue)),
-		OutputFormat("ld", (format, rValue, _) => printDeciminal(format, rValue, true)),
-		OutputFormat("lld", (format, rValue, _) => printDeciminal("", rValue, false)),
-		OutputFormat("s", (format, rValue, state) => printString(format, rValue)(using state)),
-		OutputFormat("c", (format, rValue, state) => printChar(rValue)),
-		OutputFormat("#x", (format, rValue, state) => printHex("#x", rValue)),
-		OutputFormat("#X", (format, rValue, state) => printHex("#X", rValue)),
-		OutputFormat("x", (format, rValue, state) => printHex("x", rValue)),
-		OutputFormat("X", (format, rValue, state) => printHex("X", rValue)),
-		OutputFormat("p", (format, rValue, state) => printHex("16X", rValue)),
+	private val singleParamFormats: Seq[SingleParamOutputFormat] = Seq(
+		SingleParamOutputFormat("f", (format, rValue, _) => printFloat(format, rValue.value.asInstanceOf[Object])),
+		SingleParamOutputFormat("hd", (format, rValue, _) => printDeciminal(format, rValue, true)),
+		SingleParamOutputFormat("d", (format, rValue, _) => printDeciminal(format, rValue, true)),
+		SingleParamOutputFormat("u", (format, rValue, _) => printUnsigned(format, rValue)),
+		SingleParamOutputFormat("llu", (format, rValue, _) => printLongLongUnsigned(format, rValue)),
+		SingleParamOutputFormat("ld", (format, rValue, _) => printDeciminal(format, rValue, true)),
+		SingleParamOutputFormat("lld", (format, rValue, _) => printDeciminal("", rValue, false)),
+		SingleParamOutputFormat("s", (format, rValue, state) => printString(format, rValue)(using state)),
+		SingleParamOutputFormat("c", (format, rValue, state) => printChar(rValue)),
+		SingleParamOutputFormat("#x", (format, rValue, state) => printHex("#x", rValue)),
+		SingleParamOutputFormat("#X", (format, rValue, state) => printHex("#X", rValue)),
+		SingleParamOutputFormat("x", (format, rValue, state) => printHex("x", rValue)),
+		SingleParamOutputFormat("X", (format, rValue, state) => printHex("X", rValue)),
+		SingleParamOutputFormat("p", (format, rValue, state) => printHex("16X", rValue)),
+	)
+
+	private def printDynamicWidthString(stringFormat: String, param1: RValue, param2: RValue)(using State) = {
+		val formatString = stringFormat
+		val buffer2 = new StringBuffer()
+		val formatter2 = new Formatter(buffer2, Locale.US)
+
+		val theVal = param2.value
+		val stringAddr = theVal match
+			case int: Int => int
+			case long: Long => long.toInt
+
+		val stringLength = param1.value match
+			case int: Int => int
+			case long: Long => long.toInt
+
+		var string = if stringAddr != 0 then
+			val str = Utils.readString(stringAddr)
+			str.split(System.lineSeparator()).mkString
+		else
+			"(null)"
+
+		val paddingLength = stringLength - string.length
+		(0 until paddingLength).foreach{ x => string = " " + string} // pad it
+
+		formatter2.format("%" + formatString + "s", List(string.asInstanceOf[Object]) *)
+		buffer2.toString
+	}
+
+	private val dualParamFormats: Seq[DualParamOutputFormat] = Seq(
+		DualParamOutputFormat("*s", (format, param1, param2, state) => printDynamicWidthString("", param1, param2)(using state))
 	)
 
 	def printf(formattedOutputParams: Array[RValue], state: State): String = {
@@ -237,14 +269,30 @@ object Printf {
 
 				while (!wasFormatStringFound) {
 
-					def variable = TypeHelper.toRValue(varArgs(paramCount))(using state)
+					//def variable = TypeHelper.toRValue(varArgs(paramCount))(using state)
 
-					formats.find{ format =>
+					var wasFormatFound = false
+
+					singleParamFormats.find{ format =>
 						remainder.startsWith(format.identifier)
-					}.map{ format =>
+					}.foreach { format =>
 						charsToDrop = format.identifier.length
+						val variable = TypeHelper.toRValue(varArgs(paramCount))(using state)
 						charsToOutput = format.toText(currentFormatString, variable, state)
-					}.getOrElse {
+						wasFormatFound = true
+					}
+
+					dualParamFormats.find { format =>
+						remainder.startsWith(format.identifier)
+					}.foreach { format =>
+						charsToDrop = format.identifier.length
+						val length = TypeHelper.toRValue(varArgs(paramCount))(using state)
+						val variable = TypeHelper.toRValue(varArgs(paramCount + 1))(using state)
+						charsToOutput = format.toText(currentFormatString, length, variable, state)
+						wasFormatFound = true
+					}
+
+					if (!wasFormatFound) {
 						currentChar = remainder.headOption.getOrElse('_')
 						remainder = remainder.drop(1)
 						currentFormatString += currentChar
