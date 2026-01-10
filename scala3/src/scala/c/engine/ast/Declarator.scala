@@ -22,7 +22,7 @@ object Declarator {
 	def getRValues(decl: IASTInitializerClause, theType: IType)(implicit state: State): List[ValueType] = {
 		theType match
 			case struct: CStructure =>
-				getStructRValues(decl, struct)
+				getRValuesFromList(decl, struct)
 			case _ =>
 				List(Expressions.evaluate(decl).get)
 	}
@@ -192,8 +192,7 @@ object Declarator {
 		val values = pointerType match
 			case struct: CStructure => // array of structs
 				init.getChildren.flatMap { list =>
-					val rValues = getStructRValues(list, struct)
-					rValues.map(TypeHelper.toRValue)
+					getRValuesFromList(list, struct).map(TypeHelper.toRValue)
 				}.toList
 			case _ =>
 				processList(theType, init.asInstanceOf[CASTInitializerList])
@@ -270,33 +269,37 @@ object Declarator {
 			false
 		}
 	}
-	
-	private def getStructRValues(initClause: IASTNode, struct: CStructure)(implicit state: State): List[ValueType] = {
+
+	def getRValuesFromList(list: IASTInitializerList, struct: CStructure)(implicit state: State): List[ValueType] = {
+		val descendants = Utils.getDescendants(list)
+		val hasNamedDesignator = descendants.exists { node => node.isInstanceOf[CASTDesignatedInitializer] } // {.y = 343, .x = 543, .next = 8578}
+
+		if (hasNamedDesignator) {
+			val initializers = descendants.collect { case des: CASTDesignatedInitializer => des }
+			val initValues = initializers.map: init =>
+				val fieldName = init.getDesignators.toList.head.asInstanceOf[CASTFieldDesignator].getName.toString
+				(fieldName, Expressions.evaluate(init.getOperand).get)
+			.toMap
+
+			struct.getFields.map { field =>
+				initValues.getOrElse(field.getName, TypeHelper.zero)
+			}.toList
+		} else if (isNullInitializer(list)) {
+			struct.getFields.toList.map(x => TypeHelper.zero)
+		} else {
+			list.getClauses.map { x =>
+				Ast.step(x)
+				state.context.popStack match
+					case vari: Variable => vari.rValue
+					case x => x
+			}.toList
+		}
+	}
+
+	private def getRValuesFromList(initClause: IASTNode, struct: CStructure)(implicit state: State): List[ValueType] = {
 		initClause match
 			case list: IASTInitializerList =>
-				val descendants = Utils.getDescendants(initClause)
-				val hasNamedDesignator = descendants.exists { node => node.isInstanceOf[CASTDesignatedInitializer] } // {.y = 343, .x = 543, .next = 8578}
-
-				if (hasNamedDesignator) {
-					val initializers = descendants.collect { case des: CASTDesignatedInitializer => des }
-					val initValues = initializers.map: init =>
-						val fieldName = init.getDesignators.toList.head.asInstanceOf[CASTFieldDesignator].getName.toString
-						(fieldName, Expressions.evaluate(init.getOperand).get)
-					.toMap
-
-					struct.getFields.map { field =>
-						initValues.getOrElse(field.getName, TypeHelper.zero)
-					}.toList
-				} else if (isNullInitializer(list)) {
-					struct.getFields.toList.map(x => TypeHelper.zero)
-				} else {
-					list.getClauses.map { x =>
-						Ast.step(x)
-						state.context.popStack match
-							case vari: Variable => vari.rValue
-							case x => x
-					}.toList
-				}
+				getRValuesFromList(list, struct)
 			case idExpr: IASTIdExpression =>
 				List(state.context.resolveId(idExpr.getName).get)
 			case fcnCall: IASTFunctionCallExpression =>
