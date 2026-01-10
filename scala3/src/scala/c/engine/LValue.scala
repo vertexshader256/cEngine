@@ -58,23 +58,3 @@ object LValue {
 			val sizeInBits = sizeof * 8
 		}
 }
-
-case class Address(value: Int, theType: IType) extends RValue {
-	override def toString = {
-		"Address(" + value + ", " + theType + ")"
-	}
-
-	override def sizeof(implicit state: State) = {
-		state.pointerSize match {
-			case NumBits.SixtyFourBits => 8
-			case NumBits.ThirtyTwoBits => 4
-		}
-	}
-
-	val rawType = theType
-}
-
-case class Field(state: State, address: Int, bitOffset: Int, theType: IType, sizeInBits: Int) extends LValue {
-	val sizeof = sizeInBits / 8
-	val rawType = theType
-}
