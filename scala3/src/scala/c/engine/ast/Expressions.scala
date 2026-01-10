@@ -27,9 +27,9 @@ object Expressions {
 		case cast: IASTCastExpression =>
 			Some(castExpression(cast))
 		case fieldRef: IASTFieldReference =>
-			fieldReference(fieldRef)
+			Some(fieldReference(fieldRef))
 		case subscript: IASTArraySubscriptExpression =>
-			arraySubscriptExpression(subscript)
+			Some(arraySubscriptExpression(subscript))
 		case unary: IASTUnaryExpression =>
 			Some(UnaryExpression.execute(unary))
 		case lit: IASTLiteralExpression =>
@@ -43,9 +43,9 @@ object Expressions {
 		case call: IASTFunctionCallExpression =>
 			functionCallExpr(call)
 		case bin: IASTBinaryExpression =>
-			binaryExpression(bin)
+			Some(binaryExpression(bin))
 		case typeIdInit: IASTTypeIdInitializerExpression =>
-			typeExpr(typeIdInit)
+			Some(typeExpr(typeIdInit))
 	}
 
 	private def castExpression(cast: IASTCastExpression)(implicit state: State): ValueType = {
@@ -73,7 +73,7 @@ object Expressions {
 		}
 	}
 
-	private def arraySubscriptExpression(subscript: IASTArraySubscriptExpression)(implicit state: State): Option[LValue] = {
+	private def arraySubscriptExpression(subscript: IASTArraySubscriptExpression)(implicit state: State): LValue = {
 		var left = evaluate(subscript.getArrayExpression).get
 		var right = evaluate(subscript.getArgument).get
 
@@ -97,12 +97,11 @@ object Expressions {
 		val index = rightValue.toString.toInt
 		val offset = base + index * TypeHelper.sizeof(indexType)
 
-		Some(LValue(state, offset, indexType))
+		LValue(state, offset, indexType)
 	}
 
-	private def fieldReference(fieldRef: IASTFieldReference)(implicit state: State): Option[Field] = {
+	private def fieldReference(fieldRef: IASTFieldReference)(implicit state: State): Field = {
 		val struct = evaluate(fieldRef.getFieldOwner).get.asInstanceOf[LValue]
-
 		val structType = Structures.resolveStruct(struct.theType)
 
 		val baseAddr = if fieldRef.isPointerDereference then
@@ -110,8 +109,7 @@ object Expressions {
 		else
 			struct.address
 
-		val field = Structures.offsetof(structType, baseAddr, fieldRef.getFieldName.toString, state: State)
-		Some(field)
+		Structures.offsetof(structType, baseAddr, fieldRef.getFieldName.toString, state: State)
 	}
 
 	private def functionCallExpr(call: IASTFunctionCallExpression)(implicit state: State): Option[ValueType] = {
@@ -130,10 +128,10 @@ object Expressions {
 		state.callTheFunction(name, call, None)
 	}
 
-	private def binaryExpression(bin: IASTBinaryExpression)(implicit state: State): Option[ValueType] = {
+	private def binaryExpression(bin: IASTBinaryExpression)(implicit state: State): ValueType = {
 		(bin.getOperator, evaluate(bin.getOperand1).head) match {
-			case (IASTBinaryExpression.op_logicalOr, op1 @ RValue(x: Boolean, _)) if x => Some(op1)
-			case (IASTBinaryExpression.op_logicalAnd, op1 @ RValue(x: Boolean, _)) if !x => Some(op1)
+			case (IASTBinaryExpression.op_logicalOr, op1 @ RValue(x: Boolean, _)) if x => op1
+			case (IASTBinaryExpression.op_logicalAnd, op1 @ RValue(x: Boolean, _)) if !x => op1
 			case (_, op1) =>
 				val op2 = evaluate(bin.getOperand2).head
 
@@ -143,11 +141,11 @@ object Expressions {
 				} else
 					BinaryExpr.evaluate(op1, op2, bin.getOperator)
 
-				Some(result)
+				result
 		}
 	}
 
-	private def typeExpr(typeIdInit: IASTTypeIdInitializerExpression)(implicit state: State): Option[LValue] = {
+	private def typeExpr(typeIdInit: IASTTypeIdInitializerExpression)(implicit state: State): LValue = {
 		val theType = TypeHelper.getType(typeIdInit.getTypeId).theType
 		val newAddr = state.allocateSpace(TypeHelper.sizeof(theType))
 
@@ -162,7 +160,7 @@ object Expressions {
 				state.writeDataBlock(rVals, newAddr)
 		}
 
-		Some(LValue(state, newAddr, theType))
+		LValue(state, newAddr, theType)
 	}
 
 	private def isAssignment(op: Int): Boolean = {
