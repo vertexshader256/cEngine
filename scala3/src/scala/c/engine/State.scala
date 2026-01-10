@@ -446,13 +446,13 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		RValue(strAddr, pointerType)
 	}
 
-	def createStringArrayVariable(varName: String, str: String): Variable = {
+	def createStringArrayVariable(varName: String, str: String, theType: IType): Variable = {
 		val theStr = stripQuotes(str)
 		val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
 		val withNull = (translateLineFeed.toCharArray :+ 0.toChar)
 			.map { char => RValue(char.toByte, TypeHelper.charType) }.toList // terminating null char
 
-		val inferredArrayType = CArrayType(TypeHelper.charType)
+		val inferredArrayType = CArrayType(theType)
 		inferredArrayType.setModifier(CASTArrayModifier(CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, str.length.toString.toCharArray)))
 
 		val theArrayPtr = context.addArrayVariable(varName, inferredArrayType, withNull)
