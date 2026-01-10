@@ -15,12 +15,12 @@ class StringTest extends StandardTest {
 		checkResults(code)
 	}
 
-	"editing a character of a pointer-based string" should "print the correct results" in {
+	"editing a string that is unsigned chars" should "print the correct results" in {
 		val code =
 			"""
 					void main() {
-						char *x= "test";
-						x[2] = 'i';
+						unsigned char x[] = "test";
+						x[2] = 140;
 						printf("%d %d %d\n", x[0], x[1], x[2]);
 					}"""
 
