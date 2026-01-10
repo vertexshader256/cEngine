@@ -24,7 +24,7 @@ object Structures {
 		paddedFields.sum
 	}
 
-	def offsetof(structType: CStructure, baseAddress: Int, fieldName: String, state: State) = {
+	def offsetof(structType: CStructure, baseAddress: Int, fieldName: String, state: State): Field = {
 		var resultAddress: Field = null
 		var offsetInBits: Int = 0
 
@@ -41,6 +41,7 @@ object Structures {
 				structType.getFields.find { field => field.getName == fieldName }.foreach: field =>
 					resultAddress = Field(state, baseAddress, 0, field.getType, sizeInBits(field)(using state))
 		}
+		
 		resultAddress
 	}
 
