@@ -23,6 +23,40 @@ object Printf {
 		buffer2.toString
 	}
 
+	private def printDynamicWidthString(stringFormat: String, param1: RValue, param2: RValue)(using State) = {
+		val formatString = stringFormat
+		val buffer2 = new StringBuffer()
+		val formatter2 = new Formatter(buffer2, Locale.US)
+
+		println("PARAM1: " + param1)
+		println("PARAM2: " + param2)
+
+		val theVal = param2.value
+		val stringAddr = theVal match
+			case int: Int => int
+			case long: Long => long.toInt
+
+		val stringLength = param1.value match
+			case int: Int => int
+			case long: Long => long.toInt
+
+		println("LENGTH: " + stringLength)
+
+		var string = if stringAddr != 0 then
+			val str = Utils.readString(stringAddr)
+			str.split(System.lineSeparator()).mkString
+		else
+			"(null)"
+
+		println("STRING: " + string)
+
+		val paddingLength = stringLength - string.length
+		(0 until paddingLength).foreach { x => string = " " + string } // pad it
+
+		formatter2.format("%" + formatString + "s", List(string.asInstanceOf[Object]) *)
+		buffer2.toString
+	}
+
 	private def printString(stringFormat: String, theValue: RValue)(using State) = {
 		val formatString = stringFormat
 		val buffer2 = new StringBuffer()
@@ -200,35 +234,9 @@ object Printf {
 		SingleParamOutputFormat("p", (format, rValue, state) => printHex("16X", rValue)),
 	)
 
-	private def printDynamicWidthString(stringFormat: String, param1: RValue, param2: RValue)(using State) = {
-		val formatString = stringFormat
-		val buffer2 = new StringBuffer()
-		val formatter2 = new Formatter(buffer2, Locale.US)
-
-		val theVal = param2.value
-		val stringAddr = theVal match
-			case int: Int => int
-			case long: Long => long.toInt
-
-		val stringLength = param1.value match
-			case int: Int => int
-			case long: Long => long.toInt
-
-		var string = if stringAddr != 0 then
-			val str = Utils.readString(stringAddr)
-			str.split(System.lineSeparator()).mkString
-		else
-			"(null)"
-
-		val paddingLength = stringLength - string.length
-		(0 until paddingLength).foreach{ x => string = " " + string} // pad it
-
-		formatter2.format("%" + formatString + "s", List(string.asInstanceOf[Object]) *)
-		buffer2.toString
-	}
-
 	private val dualParamFormats: Seq[DualParamOutputFormat] = Seq(
-		DualParamOutputFormat("*s", (format, param1, param2, state) => printDynamicWidthString("", param1, param2)(using state))
+		DualParamOutputFormat("*s", (format, param1, param2, state) => printDynamicWidthString("", param1, param2)(using state)),
+		DualParamOutputFormat(".*s", (format, param1, param2, state) => printDynamicWidthString("", param1, param2)(using state))
 	)
 
 	def printf(formattedOutputParams: Array[RValue], state: State): String = {
@@ -285,6 +293,7 @@ object Printf {
 					dualParamFormats.find { format =>
 						remainder.startsWith(format.identifier)
 					}.foreach { format =>
+						println("FORMAT FOUND: " + format.identifier)
 						charsToDrop = format.identifier.length
 						val length = TypeHelper.toRValue(varArgs(paramCount))(using state)
 						val variable = TypeHelper.toRValue(varArgs(paramCount + 1))(using state)
