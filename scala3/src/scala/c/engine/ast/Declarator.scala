@@ -22,7 +22,7 @@ object Declarator {
 	def getRValues(decl: IASTInitializerClause, theType: IType)(implicit state: State): List[ValueType] = {
 		theType match
 			case struct: CStructure =>
-				getValuesFromList(decl, struct)
+				getValuesFromInitializer(decl, struct)
 			case _ =>
 				List(Expressions.evaluate(decl).get)
 	}
@@ -156,19 +156,6 @@ object Declarator {
 		state.context.addVariable(name.toString, aType)
 	}
 
-//	private def isNullInitializer(list: CASTInitializerList)(implicit state: State): Boolean = {
-//		val flattened = flattenInitList(list).map(TypeHelper.toRValue)
-//
-//		if list.getChildren.length == 1 then
-//			val initialArray = flattened.head
-//
-//			initialArray.value match
-//				case int: Int => int == 0
-//				case _ => false
-//		else
-//			false
-//	}
-
 	private def processList(theType: IType, list: CASTInitializerList)(implicit state: State): List[RValue] = {
 		val flattened = flattenInitList(list).map(TypeHelper.toRValue)
 
@@ -186,7 +173,7 @@ object Declarator {
 		val values = pointerType match
 			case struct: CStructure => // array of structs
 				init.getChildren.flatMap { list =>
-					getValuesFromList(list, struct).map(TypeHelper.toRValue)
+					getValuesFromInitializer(list.asInstanceOf[IASTInitializerClause], struct).map(TypeHelper.toRValue)
 				}.toList
 			case _ =>
 				processList(theType, init.asInstanceOf[CASTInitializerList])
@@ -284,16 +271,11 @@ object Declarator {
 			val struct = theType.asInstanceOf[CStructure]
 			struct.getFields.toList.map(x => TypeHelper.zero)
 		} else {
-			list.getClauses.map { x =>
-				Ast.step(x)
-				state.context.popStack match
-					case vari: Variable => vari.rValue
-					case x => x
-			}.toList
+			list.getClauses.map(Expressions.evaluateAndResolveVariable).toList
 		}
 	}
 
-	private def getValuesFromList(initClause: IASTNode, theType: IType)(implicit state: State): List[ValueType] = {
+	private def getValuesFromInitializer(initClause: IASTInitializerClause, theType: IType)(implicit state: State): List[ValueType] = {
 		initClause match
 			case list: IASTInitializerList =>
 				getValuesFromList(list, theType)

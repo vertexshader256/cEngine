@@ -6,6 +6,12 @@ import org.eclipse.cdt.core.dom.ast.*
 
 object Expressions {
 
+	def evaluateAndResolveVariable(expr: IASTInitializerClause)(implicit state: State): ValueType = {
+		evaluate(expr).get match
+			case vari: Variable => vari.rValue
+			case x => x
+	}
+
 	def evaluate(expr: IASTInitializerClause)(implicit state: State): Option[ValueType] = expr match {
 		case exprList: IASTExpressionList =>
 			exprList.getExpressions.map(evaluate).last

@@ -63,26 +63,7 @@ object TypeHelper {
 		val theType = getType(value)
 		RValue(value, theType)
 	}
-
-	def isPointer(theType: IType): Boolean = theType match {
-		case struct: CStructure => false
-		case basicType: IBasicType => false
-		case typedef: ITypedef => isPointer(typedef.getType)
-		case ptrType: IPointerType => true
-		case arrayType: IArrayType => isPointer(arrayType.getType)
-	}
-
-	def stripSyntheticTypeInfo(theType: IType): IType = theType match {
-		case enumer: CEnumeration => enumer
-		case struct: CStructure => struct
-		case basicType: IBasicType => basicType
-		case typedef: ITypedef => stripSyntheticTypeInfo(typedef.getType)
-		case ptrType: IPointerType => ptrType
-		case arrayType: IArrayType => arrayType
-		case qualType: IQualifierType => stripSyntheticTypeInfo(qualType.getType)
-		case fcn: IFunctionType => fcn
-	}
-
+	
 	def cast(value: cEngVal, theType: IType): RValue = {
 		val castedValue = castValue(theType, value)
 		RValue(castedValue, theType)
@@ -176,6 +157,25 @@ object TypeHelper {
 		case char: char => if char == 0 then 1 else 0
 	}
 
+	def isPointer(theType: IType): Boolean = theType match {
+		case struct: CStructure => false
+		case basicType: IBasicType => false
+		case typedef: ITypedef => isPointer(typedef.getType)
+		case ptrType: IPointerType => true
+		case arrayType: IArrayType => isPointer(arrayType.getType)
+	}
+
+	def stripSyntheticTypeInfo(theType: IType): IType = theType match {
+		case enumer: CEnumeration => enumer
+		case struct: CStructure => struct
+		case basicType: IBasicType => basicType
+		case typedef: ITypedef => stripSyntheticTypeInfo(typedef.getType)
+		case ptrType: IPointerType => ptrType
+		case arrayType: IArrayType => arrayType
+		case qualType: IQualifierType => stripSyntheticTypeInfo(qualType.getType)
+		case fcn: IFunctionType => fcn
+	}
+	
 	def resolveBasic(theType: IType)(implicit state: State): IBasicType = theType match {
 		case basicType: IBasicType => basicType
 		case typedef: ITypedef => resolveBasic(typedef.getType)
