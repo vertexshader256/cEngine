@@ -294,10 +294,9 @@ object Declarator {
 					} else {
 						list.getClauses.map { x =>
 							Ast.step(x)
-							val result = state.context.popStack
-							result match
+							state.context.popStack match
 								case vari: Variable => vari.rValue
-								case _ => result
+								case x => x
 						}.toList
 					}
 				}
