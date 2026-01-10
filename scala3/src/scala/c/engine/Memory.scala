@@ -11,6 +11,37 @@ class Memory(size: Int) {
 	// turing tape
 	val tape = new Tape(size)
 
+	private def writeInteger(newVal: cEngVal, address: Int, bitOffset: Int = 0, sizeInBits: Int = 0) = {
+		newVal match {
+			case int: Int =>
+				val x = if (bitOffset != 0) {
+					val currentVal = tape.getInt(address)
+					val right = currentVal << (32 - bitOffset) >>> (32 - bitOffset)
+					val left = currentVal >> (sizeInBits + bitOffset) << (sizeInBits + bitOffset)
+
+					val newVal = int << bitOffset
+					left + newVal + right
+				} else {
+					int
+				}
+
+				tape.putInt(address, x)
+			case long: Long => tape.putInt(address, long.toInt)
+		}
+	}
+
+	private def writeLongLong(newVal: cEngVal, address: Int, isUnsigned: Boolean, bitOffset: Int = 0, sizeInBits: Int = 0) = {
+		newVal match
+			case long: Long => tape.putLong(address, long)
+			case int: Int => tape.putInt(address, int)
+			case bigInt: BigInt =>
+				if isUnsigned then
+					val unsigned = java.lang.Long.parseUnsignedLong(bigInt.toString)
+					tape.putLong(address, unsigned)
+				else
+					tape.putLong(address, bigInt.toLong)
+	}
+
 	// use Address type to prevent messing up argument order
 	def writeToMemory(newVal: cEngVal, address: Int, theType: IType, bitOffset: Int = 0, sizeInBits: Int = 0): Unit = {
 
@@ -20,15 +51,7 @@ class Memory(size: Int) {
 					case int: Int => tape.putShort(address, int.asInstanceOf[Short])
 					case short: Short => tape.putShort(address, short)
 			case basic: IBasicType if basic.isLongLong =>
-				newVal match
-					case long: Long => tape.putLong(address, long)
-					case int: Int => tape.putInt(address, int)
-					case bigInt: BigInt =>
-						if basic.isUnsigned then
-							val unsigned = java.lang.Long.parseUnsignedLong(bigInt.toString)
-							tape.putLong(address, unsigned)
-						else
-							tape.putLong(address, bigInt.toLong)
+				writeLongLong(newVal, address, basic.isUnsigned, bitOffset, sizeInBits)
 			case basic: IBasicType if basic.isLong =>
 				newVal match
 					case long: Long => tape.putInt(address, long.toInt)
@@ -36,22 +59,7 @@ class Memory(size: Int) {
 				newVal match
 					case int: Int => tape.putInt(address, int)
 			case basic: IBasicType if basic.getKind == eInt =>
-				newVal match {
-					case int: Int =>
-						val x = if (bitOffset != 0) {
-							val currentVal = tape.getInt(address)
-							val right = currentVal << (32 - bitOffset) >>> (32 - bitOffset)
-							val left = currentVal >> (sizeInBits + bitOffset) << (sizeInBits + bitOffset)
-
-							val newVal = int << bitOffset
-							left + newVal + right
-						} else {
-							int
-						}
-
-						tape.putInt(address, x)
-					case long: Long => tape.putInt(address, long.toInt)
-				}
+				writeInteger(newVal, address, bitOffset, sizeInBits)
 			case basic: IBasicType if basic.getKind == eDouble || basic.getKind == eFloat =>
 				newVal match
 					case double: Double => tape.putDouble(address, double)
