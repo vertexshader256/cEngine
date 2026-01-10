@@ -22,7 +22,7 @@ object Declarator {
 	def getRValues(decl: IASTInitializerClause, theType: IType)(implicit state: State): List[ValueType] = {
 		theType match
 			case struct: CStructure =>
-				getRValuesFromList(decl, struct)
+				getValuesFromList(decl, struct)
 			case _ =>
 				List(Expressions.evaluate(decl).get)
 	}
@@ -185,14 +185,14 @@ object Declarator {
 		}
 	}
 
-	private def initializeArrayFromList(name: IASTName, init: IASTInitializerClause)(implicit state: State) = {
+	private def initializeArrayFromList(name: IASTName, init: IASTInitializerClause)(implicit state: State): Variable = {
 		val theType = TypeHelper.getBindingType(name.resolveBinding())
 		val pointerType = TypeHelper.getPointerType(theType)
 
 		val values = pointerType match
 			case struct: CStructure => // array of structs
 				init.getChildren.flatMap { list =>
-					getRValuesFromList(list, struct).map(TypeHelper.toRValue)
+					getValuesFromList(list, struct).map(TypeHelper.toRValue)
 				}.toList
 			case _ =>
 				processList(theType, init.asInstanceOf[CASTInitializerList])
@@ -200,7 +200,7 @@ object Declarator {
 		state.context.addArrayVariable(name.toString, theType, values)
 	}
 
-	private def processArrayDecl(decl: IASTDeclarator, arrayDecl: IASTArrayDeclarator)(implicit state: State) = {
+	private def processArrayDecl(decl: IASTDeclarator, arrayDecl: IASTArrayDeclarator)(implicit state: State): Variable = {
 		
 		val name = if arrayDecl.getNestedDeclarator != null then
 			arrayDecl.getNestedDeclarator.getName
@@ -270,7 +270,7 @@ object Declarator {
 		}
 	}
 
-	def getRValuesFromList(list: IASTInitializerList, struct: CStructure)(implicit state: State): List[ValueType] = {
+	def getValuesFromList(list: IASTInitializerList, struct: CStructure)(implicit state: State): List[ValueType] = {
 		val descendants = Utils.getDescendants(list)
 		val hasNamedDesignator = descendants.exists { node => node.isInstanceOf[CASTDesignatedInitializer] } // {.y = 343, .x = 543, .next = 8578}
 
@@ -296,10 +296,10 @@ object Declarator {
 		}
 	}
 
-	private def getRValuesFromList(initClause: IASTNode, struct: CStructure)(implicit state: State): List[ValueType] = {
+	private def getValuesFromList(initClause: IASTNode, struct: CStructure)(implicit state: State): List[ValueType] = {
 		initClause match
 			case list: IASTInitializerList =>
-				getRValuesFromList(list, struct)
+				getValuesFromList(list, struct)
 			case idExpr: IASTIdExpression =>
 				List(state.context.resolveId(idExpr.getName).get)
 			case fcnCall: IASTFunctionCallExpression =>
