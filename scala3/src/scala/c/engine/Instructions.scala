@@ -1,6 +1,7 @@
 package scala.c.engine
 
 import org.eclipse.cdt.core.dom.ast.{IASTCaseStatement, IASTDefaultStatement, IASTExpression}
+import scala.c.engine.models.*
 
 object Instructions {
 	case class ReturnFromFunction() extends Exception("returning")

@@ -1,6 +1,9 @@
-package scala.c.engine
+package scala.c.engine.models
 
 import org.eclipse.cdt.core.dom.ast.IType
+
+import scala.c.engine.ValueType
+import scala.c.engine.*
 
 object RValue {
 	def unapply(rvalue: RValue): Option[(cEngVal, IType)] = Some((rvalue.value, rvalue.theType))

@@ -1,10 +1,15 @@
-package scala.c.engine
+package scala
+package c
+package engine
+package models
 
-import org.eclipse.cdt.core.dom.ast._
-import org.eclipse.cdt.internal.core.dom.parser.c._
+import org.eclipse.cdt.core.dom.ast.*
+import org.eclipse.cdt.internal.core.dom.parser.c.*
 
 import java.io.File
 import java.nio.file.{Files, Paths}
+import scala.c.engine.TypeHelper
+import scala.c.engine.ValueType
 
 // LValue is an memory location which identifies an object and has a type and various other attributes
 trait LValue extends ValueType {

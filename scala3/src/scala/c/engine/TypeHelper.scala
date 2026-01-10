@@ -6,6 +6,7 @@ import org.eclipse.cdt.core.dom.ast.IASTSimpleDeclSpecifier._
 import scala.c.engine.ast.Expressions
 import IBasicType.Kind.*
 import IBasicType.*
+import scala.c.engine.models.*
 
 object TypeHelper {
 
@@ -63,7 +64,7 @@ object TypeHelper {
 		val theType = getType(value)
 		RValue(value, theType)
 	}
-	
+
 	def cast(value: cEngVal, theType: IType): RValue = {
 		val castedValue = castValue(theType, value)
 		RValue(castedValue, theType)
@@ -175,7 +176,7 @@ object TypeHelper {
 		case qualType: IQualifierType => stripSyntheticTypeInfo(qualType.getType)
 		case fcn: IFunctionType => fcn
 	}
-	
+
 	def resolveBasic(theType: IType)(implicit state: State): IBasicType = theType match {
 		case basicType: IBasicType => basicType
 		case typedef: ITypedef => resolveBasic(typedef.getType)

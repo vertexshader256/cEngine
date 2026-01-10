@@ -5,6 +5,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c.*
 
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
+import scala.c.engine.models.*
 
 object CEngine {
 	private def callMain(state: State, arguments: List[String]) = {

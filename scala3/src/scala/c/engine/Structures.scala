@@ -6,6 +6,7 @@ import org.eclipse.cdt.core.dom.ast.IASTSimpleDeclSpecifier._
 import scala.c.engine.ast.Expressions
 import IBasicType.Kind.*
 import IBasicType.*
+import scala.c.engine.models.*
 
 object Structures {
 
@@ -15,7 +16,7 @@ object Structures {
 		case typedef: ITypedef => isStructure(typedef.getType)
 		case arrayType: IArrayType => isStructure(arrayType.getType)
 	}
-	
+
 	def offsetof(struct: CStructure, memberName: String, state: State): Int = {
 		val largestField = struct.getFields.filter { f => f.getType.isInstanceOf[CBasicType] }.map { x => sizeInBits(x)(using state) / 8 }.sorted.maxOption.getOrElse(0)
 		val fields = struct.getFields.takeWhile { field => field.getName != memberName }.map { x => sizeInBits(x)(using state) / 8 }
@@ -41,7 +42,7 @@ object Structures {
 				structType.getFields.find { field => field.getName == fieldName }.foreach: field =>
 					resultAddress = Field(state, baseAddress, 0, field.getType, sizeInBits(field)(using state))
 		}
-		
+
 		resultAddress
 	}
 

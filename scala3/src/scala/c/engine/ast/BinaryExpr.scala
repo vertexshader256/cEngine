@@ -3,6 +3,7 @@ package ast
 
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression._
 import org.eclipse.cdt.internal.core.dom.parser.c.CPointerType
+import scala.c.engine.models.*
 
 object BinaryExpr {
 

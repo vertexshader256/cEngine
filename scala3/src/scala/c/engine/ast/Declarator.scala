@@ -4,7 +4,7 @@ package ast
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.op_assign
 import org.eclipse.cdt.core.dom.ast.*
 import org.eclipse.cdt.internal.core.dom.parser.c.*
-
+import scala.c.engine.models.*
 import scala.c.engine.ast.BinaryExpr.evaluate
 import scala.util.Try
 
@@ -236,7 +236,7 @@ object Declarator {
 							val initVals = getRValues(initClause, theType)
 							assign(addedVariable, initVals, initClause, op_assign)
 						case _ =>
-							
+
 					addedVariable.isInitialized = true
 				}
 			case _ =>

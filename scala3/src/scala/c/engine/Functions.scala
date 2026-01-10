@@ -2,7 +2,7 @@ package scala.c.engine
 
 import org.eclipse.cdt.core.dom.ast.*
 import org.eclipse.cdt.internal.core.dom.parser.c.*
-
+import scala.c.engine.models.*
 import java.io.File
 import java.util.{Formatter, Locale}
 import scala.collection.mutable.ListBuffer

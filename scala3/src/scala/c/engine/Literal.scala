@@ -1,6 +1,7 @@
 package scala.c.engine
 
 import java.math.BigInteger
+import scala.c.engine.models.*
 import scala.util.Try
 
 // raw string - may contains quotes, prefixes and postfixes

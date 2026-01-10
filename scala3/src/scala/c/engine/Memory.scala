@@ -3,6 +3,8 @@ package scala.c.engine
 import org.eclipse.cdt.core.dom.ast.{IArrayType, IBasicType, IFunctionType, IPointerType, IType}
 import org.eclipse.cdt.internal.core.dom.parser.c.{CEnumeration, CStructure, CTypedef}
 
+import scala.c.engine.models.*
+
 class Memory(size: Int) {
 
 	import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._

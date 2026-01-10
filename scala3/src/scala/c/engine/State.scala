@@ -7,6 +7,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c.*
 import scala.annotation.tailrec
 import scala.c.engine.Instructions.*
 import scala.c.engine.ast.{Declarator, Expressions}
+import scala.c.engine.models.*
 import scala.collection.mutable.ListBuffer
 
 object State {

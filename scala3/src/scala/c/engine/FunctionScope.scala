@@ -1,8 +1,11 @@
-package scala.c.engine
+package scala
+package c
+package engine
 
-import org.eclipse.cdt.core.dom.ast._
-
-import scala.c.engine.Instructions._
+import org.eclipse.cdt.core.dom.ast.*
+import scala.c.engine.models.*
+import scala.c.engine.Instructions.*
+import scala.c.engine.models.Variable
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 

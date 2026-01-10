@@ -1,6 +1,7 @@
-package scala.c.engine
+package scala.c.engine.models
 
 import org.eclipse.cdt.core.dom.ast.{IArrayType, IType}
+import scala.c.engine.*
 
 object Variable {
 	def apply(name: String, state: State, aType: IType, initVals: List[RValue]): Variable = {
