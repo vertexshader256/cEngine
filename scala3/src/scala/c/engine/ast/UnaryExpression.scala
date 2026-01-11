@@ -1,12 +1,13 @@
 package scala.c.engine
 package ast
 
-import org.eclipse.cdt.core.dom.ast.IASTUnaryExpression._
-import org.eclipse.cdt.core.dom.ast._
+import org.eclipse.cdt.core.dom.ast.*
+import org.eclipse.cdt.core.dom.ast.IASTUnaryExpression.*
 import org.eclipse.cdt.internal.core.dom.parser.c.CFunctionType
-import scala.c.engine.models.*
+
 import scala.c.engine.ast.BinaryExpr.evaluatePointerArithmetic
 import scala.c.engine.ast.Expressions.evaluate
+import scala.c.engine.models.*
 
 object UnaryExpression {
 		

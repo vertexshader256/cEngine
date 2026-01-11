@@ -1,13 +1,13 @@
 package scala.c.engine.models
 
-import org.eclipse.cdt.core.dom.ast.{IArrayType, IBasicType, IFunctionType, IPointerType, IType}
+import org.eclipse.cdt.core.dom.ast.*
 import org.eclipse.cdt.internal.core.dom.parser.c.{CEnumeration, CStructure, CTypedef}
 
 import scala.c.engine.*
 
 class Memory(size: Int) {
 
-	import org.eclipse.cdt.core.dom.ast.IBasicType.Kind._
+	import org.eclipse.cdt.core.dom.ast.IBasicType.Kind.*
 
 	var insertIndex = 0
 	// turing tape

@@ -1,9 +1,10 @@
 package scala.c.engine.models
 
 import org.eclipse.cdt.core.dom.ast.IType
-import scala.c.engine.*
+
 import java.io.File
 import java.nio.file.{Files, Paths}
+import scala.c.engine.*
 
 case class FileRValue(path: String) extends RValue {
 
@@ -46,7 +47,7 @@ case class FileRValue(path: String) extends RValue {
 	}
 
 	def printf(str: String) = {
-		import java.io._
+		import java.io.*
 		val pw = new PrintWriter(file)
 		pw.write(str)
 		pw.close

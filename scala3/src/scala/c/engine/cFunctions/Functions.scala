@@ -3,11 +3,11 @@ package scala.c.engine.cFunctions
 import org.eclipse.cdt.core.dom.ast.*
 import org.eclipse.cdt.internal.core.dom.parser.c.*
 
-import scala.c.engine.models.*
 import java.io.File
-import scala.c.engine.*
 import java.util.{Formatter, Locale}
+import scala.c.engine.*
 import scala.c.engine.cFunctions.Stdio
+import scala.c.engine.models.*
 import scala.collection.mutable.ListBuffer
 import scala.util.Try
 

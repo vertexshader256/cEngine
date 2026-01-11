@@ -1,8 +1,9 @@
 package scala.c.engine
 package ast
 
-import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.*
 import org.eclipse.cdt.core.dom.ast.*
+import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.*
+
 import scala.c.engine.models.*
 
 object Expressions {

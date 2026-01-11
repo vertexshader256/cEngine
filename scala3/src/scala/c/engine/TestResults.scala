@@ -1,12 +1,12 @@
 package scala.c.engine
 
-import java.nio.charset.StandardCharsets
-import java.security.MessageDigest
-import scala.collection.mutable
 import upickle.default.*
 
 import java.io.{BufferedWriter, File, FileWriter, PrintWriter}
+import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}
+import java.security.MessageDigest
+import scala.collection.mutable
 
 object TestResults {
 	var areResultsLoaded = false

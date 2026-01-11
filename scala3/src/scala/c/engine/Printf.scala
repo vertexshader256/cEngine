@@ -1,8 +1,8 @@
 package scala.c.engine
 
 import java.util.{Formatter, Locale}
-import scala.collection.mutable.ListBuffer
 import scala.c.engine.models.*
+import scala.collection.mutable.ListBuffer
 
 // function which I use to simulate C's standard printf()
 object Printf {

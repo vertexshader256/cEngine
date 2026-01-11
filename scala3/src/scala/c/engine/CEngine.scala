@@ -3,9 +3,9 @@ package scala.c.engine
 import org.eclipse.cdt.core.dom.ast.{IASTLiteralExpression, IASTNode, IBasicType}
 import org.eclipse.cdt.internal.core.dom.parser.c.*
 
+import scala.c.engine.models.*
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
-import scala.c.engine.models.*
 
 object CEngine {
 	private def callMain(state: State, arguments: List[String]) = {

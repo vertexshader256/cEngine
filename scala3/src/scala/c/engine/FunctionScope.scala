@@ -4,9 +4,8 @@ package engine
 
 import org.eclipse.cdt.core.dom.ast.*
 
-import scala.c.engine.models.*
 import scala.c.engine.Instructions.*
-import scala.c.engine.models.Variable
+import scala.c.engine.models.*
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 

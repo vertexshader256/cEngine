@@ -1,11 +1,12 @@
 package scala.c.engine
 package ast
 
-import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.op_assign
 import org.eclipse.cdt.core.dom.ast.*
+import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.op_assign
 import org.eclipse.cdt.internal.core.dom.parser.c.*
-import scala.c.engine.models.*
+
 import scala.c.engine.ast.BinaryExpr.evaluate
+import scala.c.engine.models.*
 import scala.util.Try
 
 object Declarator {

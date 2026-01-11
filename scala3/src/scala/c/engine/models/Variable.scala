@@ -1,6 +1,7 @@
 package scala.c.engine.models
 
 import org.eclipse.cdt.core.dom.ast.{IArrayType, IType}
+
 import scala.c.engine.*
 
 object Variable {

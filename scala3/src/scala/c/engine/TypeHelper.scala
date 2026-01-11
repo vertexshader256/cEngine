@@ -1,11 +1,12 @@
 package scala.c.engine
 
-import org.eclipse.cdt.core.dom.ast._
-import org.eclipse.cdt.internal.core.dom.parser.c._
-import org.eclipse.cdt.core.dom.ast.IASTSimpleDeclSpecifier._
+import org.eclipse.cdt.core.dom.ast.*
+import org.eclipse.cdt.core.dom.ast.IASTSimpleDeclSpecifier.*
+import org.eclipse.cdt.core.dom.ast.IBasicType.*
+import org.eclipse.cdt.core.dom.ast.IBasicType.Kind.*
+import org.eclipse.cdt.internal.core.dom.parser.c.*
+
 import scala.c.engine.ast.Expressions
-import IBasicType.Kind.*
-import IBasicType.*
 import scala.c.engine.models.*
 
 object TypeHelper {
