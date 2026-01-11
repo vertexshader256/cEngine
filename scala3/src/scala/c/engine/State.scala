@@ -354,7 +354,35 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 			}
 		}
 	}
-	
+
+	def prepareFunctionStackFrame(scope: Option[FunctionScope], function: Function, call: IASTFunctionCallExpression): FunctionScope = {
+		val newScope = scope.getOrElse:
+			val expressionType = call.getExpressionType
+			FunctionScope(function.staticVars, functionContexts.headOption.orNull, expressionType)
+
+		newScope.init(List(function.node), this, scope.isEmpty)
+
+		val args: List[ValueType] = call.getArguments.map { x => Expressions.evaluate(x)(this).head }.toList
+
+		args.foreach { argument =>
+			if (argument.theType.isInstanceOf[CStructure]) {
+				newScope.pushOntoStack(argument)
+			} else {
+				val resolved = TypeHelper.toRValue(argument)(this)
+
+				// printf assumes all floating point numbers are doubles
+				val promoted = resolved.theType match
+					case basic: IBasicType if basic.getKind == IBasicType.Kind.eFloat => RValue(resolved.value, TypeHelper.doubleType)
+					case _ => resolved
+
+				newScope.pushOntoStack(promoted)
+			}
+		}
+
+		newScope.pushOntoStack(RValue(args.size, TypeHelper.unsignedIntType))
+		newScope
+	}
+
 	def callTheFunction(name: String, call: IASTFunctionCallExpression, scope: Option[FunctionScope], isApi: Boolean = false)(implicit state: State): Option[ValueType] = {
 		functionList.find(_.name == name).flatMap { function =>
 
@@ -380,30 +408,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 					None
 				} else {
 
-					val newScope = scope.getOrElse:
-						val expressionType = call.getExpressionType
-						FunctionScope(function.staticVars, functionContexts.headOption.orNull, expressionType)
-
-					newScope.init(List(function.node), this, scope.isEmpty)
-
-					val args: List[ValueType] = call.getArguments.map { x => Expressions.evaluate(x).head }.toList
-
-					args.foreach { argument =>
-						if (argument.theType.isInstanceOf[CStructure]) {
-							newScope.pushOntoStack(argument)
-						} else {
-							val resolved = TypeHelper.toRValue(argument)
-
-							// printf assumes all floating point numbers are doubles
-							val promoted = resolved.theType match
-								case basic: IBasicType if basic.getKind == IBasicType.Kind.eFloat => RValue(resolved.value, TypeHelper.doubleType)
-								case _ => resolved
-
-							newScope.pushOntoStack(promoted)
-						}
-					}
-
-					newScope.pushOntoStack(RValue(args.size, TypeHelper.unsignedIntType))
+					val newScope = prepareFunctionStackFrame(scope, function, call)
 
 					functionContexts = newScope +: functionContexts
 
