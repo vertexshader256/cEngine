@@ -269,7 +269,7 @@ object Functions {
 				}
 			}
 
-			state.writeDataBlock(result.toArray, resultBuffer)(using state)
+			state.writeDataBlock(result.toArray, resultBuffer)
 
 			None
 		}
@@ -313,7 +313,7 @@ object Functions {
 			val strAddr = formattedOutputParams.last.value.asInstanceOf[Int]
 
 			val formattedStr = Printf.printf(formattedOutputParams.drop(1), state)
-			state.writeDataBlock(formattedStr.getBytes, strAddr)(using state)
+			state.writeDataBlock(formattedStr.getBytes, strAddr)
 			None
 		}
 	}
@@ -337,7 +337,7 @@ object Functions {
 			val numMembers = TypeHelper.cast(formattedOutputParams(1).value, TypeHelper.intType).value.asInstanceOf[Int]
 			val fp = formattedOutputParams(0).asInstanceOf[FileRValue]
 
-			state.writeDataBlock(fp.read(numMembers * size), resultBuffer)(using state)
+			state.writeDataBlock(fp.read(numMembers * size), resultBuffer)
 			Some(RValue(numMembers))
 		}
 	}
@@ -349,7 +349,7 @@ object Functions {
 			val numMembers = formattedOutputParams(1).value.asInstanceOf[Int]
 			val fp = formattedOutputParams(0).asInstanceOf[FileRValue]
 
-			val bytes = state.readDataBlock(buffer, size * numMembers)(using state)
+			val bytes = state.readDataBlock(buffer, size * numMembers)
 
 			fp.write(bytes, size * numMembers)
 
@@ -491,7 +491,7 @@ object Functions {
 
 			val result = Printf.printf(formattedOutputParams, state)
 
-			state.writeDataBlock(result.getBytes, resultBuffer)(using state)
+			state.writeDataBlock(result.getBytes, resultBuffer)
 
 			Some(RValue(varArgs.size))
 		}
@@ -706,7 +706,7 @@ object Functions {
 			// to-do: find a way to do this without allocating?
 			val result = state.allocateHeapSpace(20)
 
-			state.writeDataBlock(array, result)(using state)
+			state.writeDataBlock(array, result)
 			Some(RValue(result))
 		}
 	}

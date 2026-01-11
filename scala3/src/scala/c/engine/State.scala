@@ -273,7 +273,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		functionPointers += fcn.name -> newVar
 	}
 
-	private def addStaticFunctionVars(node: IASTNode)(implicit state: State): List[Variable] = {
+	private def addStaticFunctionVars(node: IASTNode): List[Variable] = {
 		node match {
 			case decl: IASTDeclarator =>
 				val nameBinding = decl.getName.resolveBinding()
@@ -282,11 +282,11 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 					case vari: IVariable =>
 						if (vari.isStatic) {
 							val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
-							val variable = Variable(decl.getName.toString, state, vari.getType)
+							val variable = Variable(decl.getName.toString, this, vari.getType)
 							
 							if decl.getInitializer != null then
-								val initVals = Declarator.getRValues(decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause, theType)
-								Declarator.assign(variable, initVals, null, op_assign)
+								val initVals = Declarator.getRValues(decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause, theType)(using this)
+								Declarator.assign(variable, initVals, null, op_assign)(using this)
 
 							variable.isInitialized = true
 
@@ -309,7 +309,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		functionList += new Function(name.toString, true) {
 			index = count
 			node = fcnDef
-			override val staticVars = addStaticFunctionVars(fcnDef)(using State.this)
+			override val staticVars = addStaticFunctionVars(fcnDef)
 
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				None
@@ -426,7 +426,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 						valuesToPush.foreach: byteArray =>
 							val newAddr = allocateSpace(byteArray.length)
-							writeDataBlock(byteArray, newAddr)(using this)
+							writeDataBlock(byteArray, newAddr)
 
 						retVal
 					}.orElse {
@@ -458,11 +458,11 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		Stack.tape.set(dst, value, numBytes: Int)
 	}
 
-	def writeDataBlock(array: Array[Byte], startingAddress: Int)(implicit state: State): Unit = {
+	def writeDataBlock(array: Array[Byte], startingAddress: Int): Unit = {
 		Stack.tape.writeDataBlock(array, startingAddress)
 	}
 
-	def readDataBlock(startingAddress: Int, length: Int)(implicit state: State): Array[Byte] = {
+	def readDataBlock(startingAddress: Int, length: Int): Array[Byte] = {
 		Stack.tape.readDataBlock(startingAddress, length)
 	}
 
@@ -480,7 +480,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		val withNull = (theStr.toCharArray :+ 0.toChar).map(_.toByte) // terminating null char
 		val strAddr = allocateSpace(withNull.length)
 
-		writeDataBlock(withNull, strAddr)(using this)
+		writeDataBlock(withNull, strAddr)
 		RValue(strAddr, pointerType)
 	}
 
@@ -497,12 +497,12 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		theArrayPtr
 	}
 
-	def writeDataBlock(array: List[RValue], startingAddress: Int)(implicit state: State): Unit = {
+	def writeDataBlock(array: List[RValue], startingAddress: Int): Unit = {
 		var address = startingAddress
 
 		array.foreach:
 			case RValue(newVal, theType) =>
 				Stack.writeToMemory(newVal, address, theType)
-				address += TypeHelper.sizeof(theType)(using state)
+				address += TypeHelper.sizeof(theType)(using this)
 	}
 }

@@ -30,7 +30,7 @@ object CEngine {
 			val theType = new CPointerType(stringType, 0)
 			val newVar = program.addVariable("mainInfo", theType)
 			val start = state.allocateSpace(stringAddresses.size * 4)
-			state.writeDataBlock(stringAddresses, start)(state)
+			state.writeDataBlock(stringAddresses, start)
 			newVar.setValue(RValue(start, TypeHelper.intType))
 
 			val varExpr = factory.newIdExpression(factory.newName("mainInfo"))
