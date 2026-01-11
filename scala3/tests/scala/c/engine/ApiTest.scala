@@ -4,6 +4,7 @@ package engine
 
 import scala.c.engine.Interpreter.*
 import scala.c.engine.models.NumBits.ThirtyTwoBits
+import java_api.c.engine.JavaAPI
 
 class JavaApiTest extends StandardTest {
 	"java api test one" should "print the correct results" in {
