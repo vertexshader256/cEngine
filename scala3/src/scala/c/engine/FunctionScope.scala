@@ -151,8 +151,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 	}
 
 	def tick(state: State): Boolean = {
-		val current = if (pathIndex >= pathStack.size) null else pathStack(pathIndex)
-		if (current != null) {
+		if (pathIndex < pathStack.size) {
 
 			//      if (current.isInstanceOf[IASTNode]) {
 			//        println(current.getClass.getSimpleName + ":" + current.asInstanceOf[IASTNode].getRawSignature)
@@ -161,8 +160,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 			//        println(current.getClass.getSimpleName)
 			//      }
 
-			ast.Ast.step(current)(using state)
-
+			ast.Ast.step(pathStack(pathIndex))(using state)
 			pathIndex += 1
 
 			true
