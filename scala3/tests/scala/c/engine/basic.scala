@@ -167,6 +167,22 @@ class BasicTest extends StandardTest {
 		checkResults(code)
 	}
 
+	"variable shadowing" should "print the correct results" in {
+		val code =
+			"""
+				void main(int argc, char** argv) {
+			    int x = 5;
+					printf("%d\n", x);
+			    {
+						int x = 10;
+			      printf("%d\n", x);
+					}
+					printf("%d\n", x);
+				}"""
+
+		checkResults(code, args = List("Hello", "Okay"))
+	}
+	
 	"A simple integer uninitialized global reference" should "print the correct results" in {
 		val code =
 			"""
