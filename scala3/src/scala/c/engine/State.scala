@@ -16,9 +16,7 @@ object State {
 
 
 
-	def flattenNode(tUnit: IASTNode)(implicit state: State): List[IASTNode | CEngineInstruction] = {
-		tUnit.getChildren.flatMap(Compiler.compile).toList
-	}
+
 
 
 

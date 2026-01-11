@@ -1,31 +1,29 @@
 package scala.c.engine
 
 import org.eclipse.cdt.core.dom.ast.*
-import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.op_assign
 import org.eclipse.cdt.internal.core.dom.parser.c.*
 
 import scala.annotation.tailrec
 import scala.c.engine.Instructions.*
-import scala.c.engine.ast.{Declarator, Expressions}
-import scala.c.engine.cFunctions.*
-import scala.c.engine.models.*
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 
 object Compiler {
 
-	def compile(node: IASTNode)(implicit state: State): List[IASTNode | CEngineInstruction] = {
+	def compile(tUnit: IASTNode)(implicit state: State): List[IASTNode | CEngineInstruction] = {
+		tUnit.getChildren.flatMap(compileNode).toList
+	}
+
+	private def compileNode(node: IASTNode)(implicit state: State): List[IASTNode | CEngineInstruction] = {
 		node match
 			case ifStatement: IASTIfStatement =>
-				Compiler.compileIfStatement(ifStatement)
+				compileIfStatement(ifStatement)
 			case forStatement: IASTForStatement =>
-				Compiler.compileForStatement(forStatement)
+				compileForStatement(forStatement)
 			case whileStatement: IASTWhileStatement =>
-				Compiler.compileWhileStatement(whileStatement)
+				compileWhileStatement(whileStatement)
 			case doWhile: IASTDoStatement =>
-				Compiler.compileDoWhileStatement(doWhile)
+				compileDoWhileStatement(doWhile)
 			case switch: IASTSwitchStatement =>
-				Compiler.compileSwitchStatement(switch)
+				compileSwitchStatement(switch)
 			case x: IASTCaseStatement =>
 				List(CaseLabel(x))
 			case x: IASTDefaultStatement =>
@@ -41,9 +39,9 @@ object Compiler {
 			case fcn: IASTFunctionDefinition =>
 				List(fcn)
 			case compound: IASTCompoundStatement =>
-				Compiler.compileCompoundStatement(compound)
+				compileCompoundStatement(compound)
 			case decl: IASTDeclarationStatement =>
-				decl.getChildren.toList.flatMap(compile)
+				decl.getChildren.toList.flatMap(compileNode)
 			case decl: CASTSimpleDeclaration =>
 				List(decl)
 			case _: IASTSimpleDeclSpecifier =>
@@ -53,7 +51,7 @@ object Compiler {
 			case decl: IASTDeclarator =>
 				List(decl)
 			case label: IASTLabelStatement =>
-				GotoLabel(label.getName.toString) +: compile(label.getNestedStatement)
+				GotoLabel(label.getName.toString) +: compileNode(label.getNestedStatement)
 			case exprState: CASTExpressionStatement =>
 				List(exprState.getExpression)
 			case _ =>
@@ -61,8 +59,8 @@ object Compiler {
 	}
 
 	def compileIfStatement(ifStatement: IASTIfStatement)(implicit state: State) = {
-		val contents = compile(ifStatement.getThenClause)
-		val elseContents = List(Option(ifStatement.getElseClause)).flatten.flatMap(compile)
+		val contents = compileNode(ifStatement.getThenClause)
+		val elseContents = List(Option(ifStatement.getElseClause)).flatten.flatMap(compileNode)
 
 		val jmp = if ifStatement.getElseClause != null then
 			List(Jmp(elseContents.size))
@@ -81,7 +79,7 @@ object Compiler {
 		state.continueLabelStack = continueLabel +: state.continueLabelStack
 
 		val init = List(forStatement.getInitializerStatement)
-		val contents = compile(forStatement.getBody)
+		val contents = compileNode(forStatement.getBody)
 		val iter = forStatement.getIterationExpression
 		val beginLabel = GotoLabel("")
 
@@ -108,7 +106,7 @@ object Compiler {
 		val continueLabel = ContinueLabel()
 		state.continueLabelStack = continueLabel +: state.continueLabelStack
 
-		val contents = compile(whileStatement.getBody)
+		val contents = compileNode(whileStatement.getBody)
 		val begin = GotoLabel("")
 		val end = GotoLabel("")
 
@@ -126,7 +124,7 @@ object Compiler {
 		val continueLabel = ContinueLabel()
 		state.continueLabelStack = continueLabel +: state.continueLabelStack
 
-		val contents = compile(doWhileStatement.getBody)
+		val contents = compileNode(doWhileStatement.getBody)
 		val begin = new Label {}
 
 		state.breakLabelStack = state.breakLabelStack.tail
@@ -141,7 +139,7 @@ object Compiler {
 		val breakLabel = BreakLabel()
 		state.breakLabelStack = breakLabel +: state.breakLabelStack
 
-		val descendants = compile(switch.getBody)
+		val descendants = compileNode(switch.getBody)
 
 		@tailrec
 		def getParentSwitchBody(node: IASTNode): IASTStatement = node.getParent match {
@@ -173,8 +171,8 @@ object Compiler {
 			case _ => false
 
 		if isTypicalCompound then
-			compound.getStatements.flatMap(compile).toList
+			compound.getStatements.flatMap(compileNode).toList
 		else
-			PushVariableStack() +: compound.getStatements.flatMap(compile).toList :+ PopVariableStack()
+			PushVariableStack() +: compound.getStatements.flatMap(compileNode).toList :+ PopVariableStack()
 	}
 }
