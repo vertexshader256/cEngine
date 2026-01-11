@@ -366,11 +366,8 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 					val args: List[ValueType] = call.getArguments.map { x => Expressions.evaluate(x).head }.toList
 
 					args.foreach { argument =>
-
 						if (argument.theType.isInstanceOf[CStructure]) {
-							println("PUSHING STRUCTURE")
-							val resolved = TypeHelper.toRValue(argument)
-							newScope.pushOntoStack(resolved)
+							newScope.pushOntoStack(argument)
 						} else {
 							val resolved = TypeHelper.toRValue(argument)
 
