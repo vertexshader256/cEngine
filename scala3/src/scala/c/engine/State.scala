@@ -4,7 +4,6 @@ import org.eclipse.cdt.core.dom.ast.*
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.op_assign
 import org.eclipse.cdt.internal.core.dom.parser.c.*
 
-import scala.annotation.tailrec
 import scala.c.engine.Instructions.*
 import scala.c.engine.ast.{Declarator, Expressions}
 import scala.c.engine.cFunctions.*

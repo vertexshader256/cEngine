@@ -12,15 +12,31 @@ import scala.collection.mutable.ListBuffer
 object Utils {
 
 	val rootDir = raw"C:\msys64\\ucrt64"
-
 	val mainPath = raw"."
+
 	val minGWIncludes = s"$rootDir\\include"
-
-	//val includeDir = new File(s"$rootDir\\lib\\gcc\\x86_64-w64-mingw32\\15.2.0").listFiles().head.getAbsolutePath
-
 	val minGWAdditionalIncludes: String = new File(s"$rootDir\\lib\\gcc\\x86_64-w64-mingw32\\15.2.0\\include").getAbsolutePath
-
 	val minGWMoreIncludes = s"$rootDir\\include\\GL"
+
+	def getTranslationUnits(codes: Seq[String], includePaths: List[String]): List[IASTTranslationUnit] = {
+		codes.map { code => getTranslationUnit(code, includePaths) }.toList
+	}
+
+	private def getTranslationUnit(code: String, includePaths: List[String]): IASTTranslationUnit = {
+		val preprocessed = Preprocessor.preprocess(code, includePaths)
+
+		val symbolMap = new util.HashMap[String, String];
+		val systemIncludes = Array[String]()
+
+		val info = new ScannerInfo(symbolMap, systemIncludes)
+		val log = new DefaultLogService()
+		val opts = 8
+		val includes = IncludeFileContentProvider.getEmptyFilesProvider
+
+		val fileContent = FileContent.create("test", preprocessed.toCharArray)
+
+		GCCLanguage.getDefault.getASTTranslationUnit(fileContent, info, includes, null, opts, log)
+	}
 
 	def getAncestors(node: IASTNode): Seq[IASTNode] = {
 		var current = node.getParent
@@ -31,10 +47,6 @@ object Utils {
 		}
 
 		parents.result
-	}
-
-	def getTranslationUnits(codes: Seq[String], includePaths: List[String]): List[IASTTranslationUnit] = {
-		codes.map { code => Utils.getTranslationUnit(code, includePaths) }.toList
 	}
 
 	def getDescendants(node: IASTNode): Seq[IASTNode] = {
@@ -61,21 +73,5 @@ object Utils {
 			current = readChar(address + offset)
 
 		String(stringBuilder.map(_.toByte).toArray, "UTF-8")
-	}
-
-	def getTranslationUnit(code: String, includePaths: List[String]): IASTTranslationUnit = {
-		val preprocessed = Preprocessor.preprocess(code, includePaths)
-
-		val symbolMap = new util.HashMap[String, String];
-		val systemIncludes = Array[String]()
-
-		val info = new ScannerInfo(symbolMap, systemIncludes)
-		val log = new DefaultLogService()
-		val opts = 8
-		val includes = IncludeFileContentProvider.getEmptyFilesProvider
-
-		val fileContent = FileContent.create("test", preprocessed.toCharArray)
-
-		GCCLanguage.getDefault.getASTTranslationUnit(fileContent, info, includes, null, opts, log)
 	}
 }
