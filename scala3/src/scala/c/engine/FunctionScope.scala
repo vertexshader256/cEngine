@@ -16,7 +16,7 @@ class VariableScope() {
 class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, val returnType: IType) {
 	val variableScopes = mutable.Stack[VariableScope](VariableScope())
 
-	private var stack = List[ValueType]()
+	private val stack = mutable.Stack[ValueType]()
 	var startingStackAddr = 0
 
 	private val pathStack = ListBuffer[Any]()
@@ -95,17 +95,15 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 	}
 
 	def pushOntoStack(values: List[ValueType]) = {
-		stack = values.reverse ++ stack
+		stack.pushAll(values.reverse)
 	}
 
 	def pushOntoStack(value: ValueType) = {
-		stack = value +: stack
+		stack.push(value)
 	}
 
 	def popStack: ValueType = {
-		val retVal = stack.head
-		stack = stack.tail
-		retVal
+		stack.pop()
 	}
 
 	def getReturnValue: Option[ValueType] = {
@@ -129,7 +127,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 			variableScopes.head.varMap.clear()
 		}
 
-		stack = List()
+		stack.clear()
 		startingStackAddr = theState.Stack.insertIndex
 
 		nodes.foreach { node =>
