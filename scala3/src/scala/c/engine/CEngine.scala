@@ -98,7 +98,7 @@ object CEngine {
 				state.addMain(ast)
 				state
 			} else {
-				val eePrint = Source.fromFile("./src/scala/c/engine/ee_printf.c", "utf-8").mkString
+				val eePrint = Source.fromFile("./src/scala/c/engine/cFunctions/ee_printf.c", "utf-8").mkString
 				val code = Seq("#define HAS_FLOAT\n" + eePrint) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }
 				val ast = State.parseCode(code, includePaths)
 				val state = new State(ast, pointerSize)
