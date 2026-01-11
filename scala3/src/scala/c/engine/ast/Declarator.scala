@@ -80,24 +80,15 @@ object Declarator {
 			val zipped = args.zip(paramDecls)
 
 			zipped.foreach { (arg, param) =>
-				if (!isInFunctionPrototype) {
-					if arg.isInstanceOf[Variable] && arg.asInstanceOf[Variable].aType.isInstanceOf[CStructure] then
-						// copying a structure by value
-						val copy = Structures.copyStructure(arg.asInstanceOf[Variable], state)
-						state.context.addVariable(copy)
-					else
-						val resolvedArg = TypeHelper.toRValue(arg)
-						val newVar = state.context.addVariable(param.getName, param.getType)
-						val casted = TypeHelper.cast(resolvedArg.value, newVar.theType).value
-						state.Stack.writeToMemory(casted, newVar.address, newVar.theType)
-				} else {
-					// 12-26-25: This code isn't being hit
+				if arg.isInstanceOf[Variable] && arg.asInstanceOf[Variable].aType.isInstanceOf[CStructure] then
+					// copying a structure by value
+					val copy = Structures.copyStructure(arg.asInstanceOf[Variable], state)
+					state.context.addVariable(copy)
+				else
 					val resolvedArg = TypeHelper.toRValue(arg)
-					val theType = TypeHelper.getType(resolvedArg.value)
-					val sizeof = TypeHelper.sizeof(theType)
-					val space = state.allocateSpace(Math.max(sizeof, 4))
-					state.Stack.writeToMemory(resolvedArg.value, space, theType)
-				}
+					val newVar = state.context.addVariable(param.getName, param.getType)
+					val casted = TypeHelper.cast(resolvedArg.value, newVar.theType).value
+					state.Stack.writeToMemory(casted, newVar.address, newVar.theType)
 			}
 		}
 
