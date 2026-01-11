@@ -607,17 +607,15 @@ object Functions {
 
 	scalaFunctions += new Function("strcat", false) {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-			val dstAddr = formattedOutputParams(0).value.asInstanceOf[Int]
-			val srcAddr = formattedOutputParams(1).value.asInstanceOf[Int]
+			val dstAddr = formattedOutputParams(1).value.asInstanceOf[Int]
+			val stringToAppendAddr = formattedOutputParams(0).value.asInstanceOf[Int]
 
 			val str1 = Utils.readString(dstAddr)(using state)
-			val str2 = Utils.readString(srcAddr)(using state)
-			
-			println("STRING 1: " + str1)
-			println("STRING 2: " + str2)
+			val str2 = Utils.readString(stringToAppendAddr)(using state)
 
 			val concat = str1 + str2 + "\u0000"
-			state.Stack.tape.writeDataBlock(concat.getBytes, dstAddr)
+			val bytes = concat.getBytes
+			state.Stack.tape.writeDataBlock(bytes, dstAddr)
 			Some(formattedOutputParams(0)) // returns a pointer to the destination string
 		}
 	}
