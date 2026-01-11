@@ -413,6 +413,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 					functionContexts = newScope +: functionContexts
 
 					newScope.run(this)
+					
 					newScope.getReturnValue.map { retVal =>
 						val valuesToPush: Option[Array[Byte]] = retVal match
 							case structure @ LValue(_, _: CStructure) =>
