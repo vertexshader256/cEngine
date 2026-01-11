@@ -23,7 +23,7 @@ object State {
 			case doWhile: IASTDoStatement =>
 				compileDoWhileStatement(doWhile)
 			case switch: IASTSwitchStatement =>
-				compileSwitcheStatement(switch)
+				compileSwitchStatement(switch)
 			case x: IASTCaseStatement =>
 				List(CaseLabel(x))
 			case x: IASTDefaultStatement =>
@@ -139,7 +139,7 @@ object State {
 		PushVariableStack() +: body :+ PopVariableStack()
 	}
 
-	private def compileSwitcheStatement(switch: IASTSwitchStatement)(implicit state: State) = {
+	private def compileSwitchStatement(switch: IASTSwitchStatement)(implicit state: State) = {
 		val breakLabel = BreakLabel()
 		state.breakLabelStack = breakLabel +: state.breakLabelStack
 
