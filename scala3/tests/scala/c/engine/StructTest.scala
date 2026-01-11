@@ -871,8 +871,12 @@ class StructTest extends StandardTest {
 				int main()
 				{
 					testStruct x;
+			    int clobbertest = 4534;
 					x.d = 34534;
-					printf("%d\n",x.d);
+			    clobbertest = 4833;
+					printf("%d %d\n",x.d, clobbertest);
+					x.d = 1111;
+			    printf("%d %d\n",x.d, clobbertest);
 					fcn(x);
 					printf("%d\n",x.d);
 
