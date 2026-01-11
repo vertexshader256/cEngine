@@ -35,6 +35,7 @@ class Tape(size: Int) {
 		tape.reset()
 	}
 
+	// fills a destination with a value, numBytes worth
 	def set(dst: Int, value: Byte, numBytes: Int) = {
 		val array = new Array[Byte](numBytes)
 		util.Arrays.fill(array, value)

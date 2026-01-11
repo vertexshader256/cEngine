@@ -451,11 +451,11 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	}
 
 	def copy(dst: Int, src: Int, numBytes: Int) = {
-		Stack.tape.copy(dst, src, numBytes: Int)
+		Stack.tape.copy(dst, src, numBytes)
 	}
 
 	def set(dst: Int, value: Byte, numBytes: Int) = {
-		Stack.tape.set(dst, value, numBytes: Int)
+		Stack.tape.set(dst, value, numBytes)
 	}
 
 	def writeDataBlock(array: Array[Byte], startingAddress: Int): Unit = {
