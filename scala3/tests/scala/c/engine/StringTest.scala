@@ -26,4 +26,24 @@ class StringTest extends StandardTest {
 
 		checkResults(code)
 	}
+
+	"testing strcat" should "print the correct results" in {
+		val code =
+			"""
+			#include <string.h>
+			void main() {
+				char x[20];
+			  x[0] = 't';
+			  x[1] = 'e';
+			  x[2] = 's';
+			  x[3] = 't';
+			  x[4] = '\0';
+				char *y = "test";
+			  char *dst = 0;
+				dst = strcat(x,y);
+				printf("%s\n", dst);
+			}"""
+
+		checkResults(code)
+	}
 }

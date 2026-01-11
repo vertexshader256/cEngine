@@ -605,6 +605,23 @@ object Functions {
 		}
 	}
 
+	scalaFunctions += new Function("strcat", false) {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			val dstAddr = formattedOutputParams(0).value.asInstanceOf[Int]
+			val srcAddr = formattedOutputParams(1).value.asInstanceOf[Int]
+
+			val str1 = Utils.readString(dstAddr)(using state)
+			val str2 = Utils.readString(srcAddr)(using state)
+			
+			println("STRING 1: " + str1)
+			println("STRING 2: " + str2)
+
+			val concat = str1 + str2 + "\u0000"
+			state.Stack.tape.writeDataBlock(concat.getBytes, dstAddr)
+			Some(formattedOutputParams(0)) // returns a pointer to the destination string
+		}
+	}
+
 	scalaFunctions += new Function("memcmp", false) {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val numBytes = formattedOutputParams(0).value match {
