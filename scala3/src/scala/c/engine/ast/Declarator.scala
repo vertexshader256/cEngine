@@ -80,21 +80,19 @@ object Declarator {
 			val zipped = args.zip(paramDecls)
 
 			zipped.foreach { (arg, param) =>
-				val (value, addr, theType) = if (!isInFunctionPrototype) {
+				if (!isInFunctionPrototype) {
 					val resolvedArg = TypeHelper.toRValue(arg)
 					val newVar = state.context.addVariable(param.getName, param.getType)
 					val casted = TypeHelper.cast(resolvedArg.value, newVar.theType).value
-					(casted, newVar.address, newVar.theType)
+					state.Stack.writeToMemory(casted, newVar.address, newVar.theType)
 				} else {
 					// 12-26-25: This code isn't being hit
 					val resolvedArg = TypeHelper.toRValue(arg)
 					val theType = TypeHelper.getType(resolvedArg.value)
 					val sizeof = TypeHelper.sizeof(theType)
 					val space = state.allocateSpace(Math.max(sizeof, 4))
-					(resolvedArg.value, space, theType)
+					state.Stack.writeToMemory(resolvedArg.value, space, theType)
 				}
-
-				state.Stack.writeToMemory(value, addr, theType)
 			}
 		}
 
