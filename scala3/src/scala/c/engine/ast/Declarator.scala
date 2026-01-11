@@ -65,34 +65,12 @@ object Declarator {
 				variable.setValue(TypeHelper.toRValue(state.context.popStack))
 	}
 
-	private def writeFcnArguments(fcnDec: IASTFunctionDeclarator)(implicit state: State): Array[IASTNode] = {
-		val others = fcnDec.getChildren.filter { x => !x.isInstanceOf[IASTParameterDeclaration] && !x.isInstanceOf[IASTName] }
-
+	private def writeFcnArguments(fcnDec: IASTFunctionDeclarator)(implicit state: State): Unit = {
 		val isInFunctionPrototype = !Utils.getAncestors(fcnDec).exists(_.isInstanceOf[IASTFunctionDefinition])
 
 		if (!isInFunctionPrototype) {
-			val numArgs = state.context.popStack.asInstanceOf[RValue].value.asInstanceOf[Integer]
-			val args = (0 until numArgs).map { _ => state.context.popStack }.reverse
-			
-			val binding = fcnDec.getName.resolveBinding()
-			val fcn = binding.asInstanceOf[CFunction]
-			val paramDecls = fcn.getParameters.toList
-			val zipped = args.zip(paramDecls)
-
-			zipped.foreach { (arg, param) =>
-				if arg.isInstanceOf[Variable] && arg.asInstanceOf[Variable].aType.isInstanceOf[CStructure] then
-					// copying a structure by value
-					val copy = Structures.copyStructure(arg.asInstanceOf[Variable], state)
-					state.context.addVariable(copy)
-				else
-					val resolvedArg = TypeHelper.toRValue(arg)
-					val newVar = state.context.addVariable(param.getName, param.getType)
-					val casted = TypeHelper.cast(resolvedArg.value, newVar.theType).value
-					state.Stack.writeToMemory(casted, newVar.address, newVar.theType)
-			}
+			state.writeFunctionStackFrame(fcnDec)
 		}
-
-		others
 	}
 
 	private def processFcnDeclarator(fcnDec: IASTFunctionDeclarator)(implicit state: State): Unit = {

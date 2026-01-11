@@ -332,6 +332,29 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		Seq()
 	}
 
+	def writeFunctionStackFrame(fcnDec: IASTFunctionDeclarator): Unit = {
+		val numArgs = context.popStack.asInstanceOf[RValue].value.asInstanceOf[Integer]
+		val args = (0 until numArgs).map { _ => context.popStack }.reverse
+
+		val binding = fcnDec.getName.resolveBinding()
+		val fcn = binding.asInstanceOf[CFunction]
+		val paramDecls = fcn.getParameters.toList
+		val zipped = args.zip(paramDecls)
+
+		zipped.foreach { (arg, param) =>
+			arg match {
+				case variable: Variable if variable.aType.isInstanceOf[CStructure] =>
+					val copy = Structures.copyStructure(arg.asInstanceOf[Variable], this)
+					context.addVariable(copy)
+				case _ =>
+					val resolvedArg = TypeHelper.toRValue(arg)(this)
+					val newVar = context.addVariable(param.getName, param.getType)
+					val casted = TypeHelper.cast(resolvedArg.value, newVar.theType).value
+					Stack.writeToMemory(casted, newVar.address, newVar.theType)
+			}
+		}
+	}
+	
 	def callTheFunction(name: String, call: IASTFunctionCallExpression, scope: Option[FunctionScope], isApi: Boolean = false)(implicit state: State): Option[ValueType] = {
 		functionList.find(_.name == name).flatMap { function =>
 
