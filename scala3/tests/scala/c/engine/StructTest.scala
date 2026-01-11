@@ -919,6 +919,42 @@ class StructTest extends StandardTest {
 		checkResults(code)
 	}
 
+	"verifying a structure with an array is copied before being passed to a function" should "print the correct results" in {
+		val code =
+			"""
+					#include<stdio.h>
+	
+					typedef struct{
+						int d;
+						int array[10];
+					} testStruct;
+	
+					void fcn(testStruct x){
+						printf("%d %d\n",x.d, x.array[9]);
+						x.d = 123;
+						x.array[9] = 678;
+						printf("%d %d\n",x.d, x.array[9]);
+					}
+	
+					int main()
+					{
+						testStruct x;
+						x.d = 34534;
+						x.array[9] = 6542;
+						printf("%d %d\n",x.d, x.array[9]);
+						x.d = 837;
+						printf("%d %d\n",x.d, x.array[9]);
+						fcn(x);
+						printf("%d %d\n",x.d, x.array[9]);
+	
+						return 0;
+					}
+	
+						"""
+
+		checkResults(code)
+	}
+	
 	"verifying a complex structure is copied before being passed to a function" should "print the correct results" in {
 		val code =
 			"""
