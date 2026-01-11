@@ -8,6 +8,7 @@ import scala.annotation.tailrec
 import scala.c.engine.Instructions.*
 import scala.c.engine.ast.{Declarator, Expressions}
 import scala.c.engine.models.*
+import scala.c.engine.cFunctions.*
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
