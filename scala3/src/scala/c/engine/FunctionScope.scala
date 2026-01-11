@@ -44,6 +44,10 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 		}
 	}
 
+	def addVariable(variable: Variable): Unit = {
+		variableScopes.head.varMap += variable.name -> variable
+	}
+
 	def addVariable(name: String, theType: IType): Variable = {
 		staticVars.find {
 			_.name == name
