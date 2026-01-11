@@ -38,10 +38,12 @@ class StringTest extends StandardTest {
 			  x[2] = 's';
 			  x[3] = 't';
 			  x[4] = '\0';
-				char *y = "test";
+				char *y = "append";
 			  char *dst = 0;
-				dst = strcat(x,y);
-				printf("%s\n", dst);
+			  printf("%s\n", x);
+			  printf("%s\n", y);
+				strcat(x,y);
+				printf("%s\n", x);
 			}"""
 
 		checkResults(code)
