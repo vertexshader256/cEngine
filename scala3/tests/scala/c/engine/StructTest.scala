@@ -853,35 +853,104 @@ class StructTest extends StandardTest {
 		checkResults(code)
 	}
 
-	"passing a structure into a function" should "print the correct results" in {
+	"verifying a structure is copied before being passed to a function" should "print the correct results" in {
 		val code =
 			"""
-						#include<stdio.h>
+				#include<stdio.h>
 
-						typedef struct{
-							int l2;
-							int d;
-						} testStruct;
+				typedef struct{
+					int d;
+				} testStruct;
 
-						void printStructContents(testStruct x){
-							printf("%d",x.d);
-						}
+				void fcn(testStruct x){
+					printf("%d\n",x.d);
+					x.d = 123;
+					printf("%d\n",x.d);
+				}
 
-						int main()
-						{
-							testStruct x;
-							x.d = 1;
-							printStructContents(x);
+				int main()
+				{
+					testStruct x;
+					x.d = 34534;
+					printf("%d\n",x.d);
+					fcn(x);
+					printf("%d\n",x.d);
 
-							return 0;
-						}
+					return 0;
+				}
 
-				"""
+					"""
 
 		checkResults(code)
 	}
 
-	"advanced struct from function test" should "print the correct results" in {
+	"verifying a pointer to a structure is not copied before being passed to a function" should "print the correct results" in {
+		val code =
+			"""
+				#include<stdio.h>
+
+				typedef struct{
+					int d;
+				} testStruct;
+
+				void fcn(testStruct *x){
+					printf("%d\n",x->d);
+					x->d = 123;
+					printf("%d\n",x->d);
+				}
+
+				int main()
+				{
+					testStruct x;
+					x.d = 34534;
+					printf("%d\n",x.d);
+					fcn(&x);
+					printf("%d\n",x.d);
+
+					return 0;
+				}
+	
+						"""
+
+		checkResults(code)
+	}
+
+	"verifying a complex structure is copied before being passed to a function" should "print the correct results" in {
+		val code =
+			"""
+				#include<stdio.h>
+
+				typedef struct{
+					int d;
+					int x;
+				} testStruct;
+
+				void fcn(testStruct x){
+					printf("%d %d\n",x.d, x.x);
+					x.d = 123;
+					x.x = 983;
+					printf("%d %d\n",x.d, x.x);
+				}
+
+				int main()
+				{
+					testStruct x;
+					x.d = 34534;
+					printf("%d\n",x.d);
+					x.x = 837;
+					printf("%d %d\n",x.d, x.x);
+					fcn(x);
+					printf("%d %d\n",x.d, x.x);
+
+					return 0;
+				}
+
+					"""
+
+		checkResults(code)
+	}
+
+	"verify structures can be returned from a function" should "print the correct results" in {
 		val code =
 			"""
 
