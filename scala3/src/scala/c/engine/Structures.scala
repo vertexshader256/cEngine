@@ -22,16 +22,16 @@ object Structures {
 		val newAddress = state.Stack.insertIndex
 		val resultCopy = Variable(src.name, state, src.theType) // space is allocated now
 
-		println("Copy size: " + resultCopy.sizeof)
-		println("Source structure address: " + src.address)
-		println("New structure address: " + resultCopy.address)
+		//println("Copy size: " + resultCopy.sizeof)
+		//println("Source structure address: " + src.address)
+		//println("New structure address: " + resultCopy.address)
 		structType.getFields.foreach: field =>
 			val srcField = offsetof(structType, src.address, field.getName, state)
-			val srcFieldValue = srcField.rValue
 			val dstField = offsetof(structType, newAddress, field.getName, state)
-			println(s"copying from address (${srcField.address}) to address (${dstField.address})")
-			println(s"copying value (${srcFieldValue.value})")
-			state.Stack.writeToMemory(srcFieldValue.value, dstField.address, srcField.theType)
+			state.copy(dstField.address, srcField.address, srcField.sizeof)
+			//println(s"copying from address (${srcField.address}) to address (${dstField.address})")
+			//println(s"copying value (${srcFieldValue.value})")
+			//state.Stack.writeToMemory(srcFieldValue.value, dstField.address, srcField.theType)
 
 		resultCopy
 	}

@@ -925,8 +925,8 @@ class StructTest extends StandardTest {
 					#include<stdio.h>
 	
 					typedef struct{
+						int array[10];			
 						int d;
-						int array[10];
 					} testStruct;
 	
 					void fcn(testStruct x){
