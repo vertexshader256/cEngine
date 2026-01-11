@@ -18,7 +18,7 @@ object Utils {
 
 	//val includeDir = new File(s"$rootDir\\lib\\gcc\\x86_64-w64-mingw32\\15.2.0").listFiles().head.getAbsolutePath
 
-	val minGWAdditionalIncludes = new File(s"$rootDir\\lib\\gcc\\x86_64-w64-mingw32\\15.2.0\\include").getAbsolutePath
+	val minGWAdditionalIncludes: String = new File(s"$rootDir\\lib\\gcc\\x86_64-w64-mingw32\\15.2.0\\include").getAbsolutePath
 
 	val minGWMoreIncludes = s"$rootDir\\include\\GL"
 

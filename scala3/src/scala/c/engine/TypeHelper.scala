@@ -6,6 +6,7 @@ import org.eclipse.cdt.core.dom.ast.IBasicType.*
 import org.eclipse.cdt.core.dom.ast.IBasicType.Kind.*
 import org.eclipse.cdt.internal.core.dom.parser.c.*
 
+import scala.annotation.tailrec
 import scala.c.engine.ast.Expressions
 import scala.c.engine.models.*
 
@@ -113,10 +114,10 @@ object TypeHelper {
 	def getType(value: cEngVal): IBasicType = {
 		var config = 0
 
-		if value.isInstanceOf[Long] then
-			config |= IS_LONG
-		else if value.isInstanceOf[Short] then
-			config |= IS_SHORT
+		value match
+			case _: Long => config |= IS_LONG
+			case _: Short => config |= IS_SHORT
+			case _ =>
 
 		val theType = value match
 			case big: BigInt => eInt
@@ -125,7 +126,6 @@ object TypeHelper {
 			case long: Long => eInt
 			case float: Float => eFloat
 			case doub: Double => eDouble
-			case char: Char => eChar
 			case short: Short => eInt
 			case char: char => eChar
 
@@ -145,11 +145,12 @@ object TypeHelper {
 	def isPointerOrArray(theType: IType): Boolean =
 		theType.isInstanceOf[IPointerType] || theType.isInstanceOf[IArrayType]
 
-	def getBindingType(binding: IBinding) = binding match {
+	def getBindingType(binding: IBinding): IType = binding match {
 		case typedef: CTypedef => stripSyntheticTypeInfo(typedef)
 		case vari: IVariable => stripSyntheticTypeInfo(vari.getType)
 	}
 
+	@tailrec
 	def not(theVal: Any): cEngVal = theVal match {
 		case info@LValue(_, _) => not(info.rValue)
 		case RValue(theVal, _) => not(theVal)
@@ -159,6 +160,7 @@ object TypeHelper {
 		case char: char => if char == 0 then 1 else 0
 	}
 
+	@tailrec
 	def isPointer(theType: IType): Boolean = theType match {
 		case struct: CStructure => false
 		case basicType: IBasicType => false
@@ -167,6 +169,7 @@ object TypeHelper {
 		case arrayType: IArrayType => isPointer(arrayType.getType)
 	}
 
+	@tailrec
 	def stripSyntheticTypeInfo(theType: IType): IType = theType match {
 		case enumer: CEnumeration => enumer
 		case struct: CStructure => struct
@@ -178,6 +181,7 @@ object TypeHelper {
 		case fcn: IFunctionType => fcn
 	}
 
+	@tailrec
 	def resolveBasic(theType: IType)(implicit state: State): IBasicType = theType match {
 		case basicType: IBasicType => basicType
 		case typedef: ITypedef => resolveBasic(typedef.getType)
@@ -192,6 +196,7 @@ object TypeHelper {
 		case arrayType: IArrayType => stripSyntheticTypeInfo(arrayType.getType)
 	}
 
+	@tailrec
 	def resolveBoolean(theVal: Any): Boolean = theVal match {
 		case x: Boolean => x
 		case int: int => int != 0
