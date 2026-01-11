@@ -923,19 +923,19 @@ class StructTest extends StandardTest {
 		val code =
 			"""
 					#include<stdio.h>
-	
+
 					typedef struct{
-						int array[10];			
+						int array[10];
 						int d;
 					} testStruct;
-	
+
 					void fcn(testStruct x){
 						printf("%d %d\n",x.d, x.array[9]);
 						x.d = 123;
 						x.array[9] = 678;
 						printf("%d %d\n",x.d, x.array[9]);
 					}
-	
+
 					int main()
 					{
 						testStruct x;
@@ -946,15 +946,61 @@ class StructTest extends StandardTest {
 						printf("%d %d\n",x.d, x.array[9]);
 						fcn(x);
 						printf("%d %d\n",x.d, x.array[9]);
-	
+
 						return 0;
 					}
-	
+
 						"""
 
 		checkResults(code)
 	}
-	
+
+	"verifying a structure with a structure is copied before being passed to a function" should "print the correct results" in {
+		val code =
+			"""
+						#include<stdio.h>
+
+						typedef struct{
+							float e;
+			        char c;
+							int d;
+						} nestedStruct;
+
+						typedef struct{
+							nestedStruct array[10];
+							int d;
+						} testStruct;
+
+						testStruct fcn(testStruct x){
+							printf("%d %c\n",x.d, x.array[9].c);
+							x.d = 123;
+							x.array[9].c = 'a';
+							printf("%d %c\n",x.d, x.array[9].c);
+							x.array[5].c = 'f';
+							return x;
+						}
+
+						int main()
+						{
+							testStruct x;
+							x.d = 34534;
+							x.array[9].c = 'd';
+							printf("%d %c\n",x.d, x.array[9].c);
+							x.d = 837;
+			        x.array[9].c = 'z';
+							printf("%d %c\n",x.d, x.array[9].c);
+							testStruct result = fcn(x);
+							printf("%d %c\n",x.d, x.array[9].c);
+			        printf("%d %c %c\n",result.d, result.array[9].c, result.array[5].c);
+
+							return 0;
+						}
+
+							"""
+
+		checkResults(code)
+	}
+
 	"verifying a complex structure is copied before being passed to a function" should "print the correct results" in {
 		val code =
 			"""
