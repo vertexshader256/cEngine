@@ -94,7 +94,7 @@ object CEngine {
 		try {
 
 			val state = if (shouldBootstrap) {
-				val ast = State.parseCode(codeInFiles, includePaths)
+				val ast = Utils.getTranslationUnits(codeInFiles, includePaths)
 				val state = new State(ast, pointerSize)
 				state.addMain(ast)
 				state
@@ -103,7 +103,7 @@ object CEngine {
 					source.mkString
 				}.get
 				val code = Seq("#define HAS_FLOAT\n" + eePrint) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }
-				val ast = State.parseCode(code, includePaths)
+				val ast = Utils.getTranslationUnits(code, includePaths)
 				val state = new State(ast, pointerSize)
 				state.addMain(ast)
 				state

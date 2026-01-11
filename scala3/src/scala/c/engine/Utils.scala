@@ -33,6 +33,10 @@ object Utils {
 		parents.result
 	}
 
+	def getTranslationUnits(codes: Seq[String], includePaths: List[String]): List[IASTTranslationUnit] = {
+		codes.map { code => Utils.getTranslationUnit(code, includePaths) }.toList
+	}
+
 	def getDescendants(node: IASTNode): Seq[IASTNode] = {
 		node +: node.getChildren.toList.flatMap(getDescendants)
 	}

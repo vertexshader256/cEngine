@@ -12,19 +12,6 @@ import scala.c.engine.models.*
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-object State {
-
-
-
-
-
-
-
-	def parseCode(codes: Seq[String], includePaths: List[String]): List[IASTTranslationUnit] = {
-		codes.map { code => Utils.getTranslationUnit(code, includePaths) }.toList
-	}
-}
-
 class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 	val Stack = Memory(40000)

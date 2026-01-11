@@ -21,7 +21,7 @@ object Gcc {
         }
       """
 
-		val ast = State.parseCode(Seq(exeCode), includePaths.toList)
+		val ast = Utils.getTranslationUnits(Seq(exeCode), includePaths.toList)
 		state.addMain(ast)
 		state.callTheFunction("main", null, Some(program), true)
 
@@ -31,7 +31,7 @@ object Gcc {
 
 	def runGlobalCode(code: String, state: State, includePaths: List[String]) = {
 		val exeCode = s"$code"
-		val ast = State.parseCode(Seq(exeCode), includePaths)
+		val ast = Utils.getTranslationUnits(Seq(exeCode), includePaths)
 		state.addMain(ast)
 	}
 
