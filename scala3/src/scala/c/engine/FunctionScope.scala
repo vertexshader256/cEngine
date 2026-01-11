@@ -14,7 +14,7 @@ class VariableScope() {
 }
 
 class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, val returnType: IType) {
-	var variableScopes = List[VariableScope](VariableScope())
+	val variableScopes = mutable.Stack[VariableScope](VariableScope())
 
 	private var stack = List[ValueType]()
 	var startingStackAddr = 0
@@ -25,11 +25,11 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 	var state: State = null
 
 	def pushVariableScope() = {
-		variableScopes = VariableScope() +: variableScopes
+		variableScopes.push(VariableScope())
 	}
 
 	def popVariableScope() = {
-		variableScopes = variableScopes.tail
+		variableScopes.pop()
 	}
 
 	def resolveId(name: IASTName): Option[Variable] = {
