@@ -17,6 +17,25 @@ object Structures {
 		case arrayType: IArrayType => isStructure(arrayType.getType)
 	}
 
+	def copyStructure(src: Variable, state: State): Variable = {
+		val structType = src.theType.asInstanceOf[CStructure]
+		val newAddress = state.Stack.insertIndex
+		val resultCopy = Variable(src.name, state, src.theType) // space is allocated now
+
+		println("Copy size: " + resultCopy.sizeof)
+		println("Source structure address: " + src.address)
+		println("New structure address: " + resultCopy.address)
+		structType.getFields.foreach: field =>
+			val srcField = offsetof(structType, src.address, field.getName, state)
+			val srcFieldValue = srcField.rValue
+			val dstField = offsetof(structType, newAddress, field.getName, state)
+			println(s"copying from address (${srcField.address}) to address (${dstField.address})")
+			println(s"copying value (${srcFieldValue.value})")
+			state.Stack.writeToMemory(srcFieldValue.value, dstField.address, srcField.theType)
+
+		resultCopy
+	}
+
 	def offsetof(struct: CStructure, memberName: String, state: State): Int = {
 		val largestField = struct.getFields.filter { f => f.getType.isInstanceOf[CBasicType] }.map { x => sizeInBits(x)(using state) / 8 }.sorted.maxOption.getOrElse(0)
 		val fields = struct.getFields.takeWhile { field => field.getName != memberName }.map { x => sizeInBits(x)(using state) / 8 }
