@@ -9,12 +9,12 @@ import scala.c.engine.models.*
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-class VariableScope() {
+class VariableScope {
 	var varMap = mutable.LinkedHashMap[String, Variable]() // linked to keep deterministic
 }
 
 class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, val returnType: IType) {
-	val variableScopes = mutable.Stack[VariableScope](VariableScope())
+	private val variableScopes = mutable.Stack[VariableScope](VariableScope())
 
 	private val stack = mutable.Stack[ValueType]()
 	var startingStackAddr = 0
@@ -22,13 +22,13 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 	private val pathStack = ListBuffer[IASTNode | CEngineInstruction]()
 	private var pathIndex = 0
 
-	var state: State = null
+	var state: State = _
 
-	def pushVariableScope() = {
+	def pushVariableScope(): Unit = {
 		variableScopes.push(VariableScope())
 	}
 
-	def popVariableScope() = {
+	def popVariableScope(): Unit = {
 		variableScopes.pop()
 	}
 
@@ -65,7 +65,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 		if (parent == null) { // this extern is not in a function
 			result = addVariable(name, theType)
 		} else {
-			parent.variableScopes.map { scope =>
+			parent.variableScopes.foreach { scope =>
 				if (scope.varMap.contains(name) && result == null) {
 					variableScopes.head.varMap += name -> scope.varMap(name)
 					result = scope.varMap(name)
@@ -86,19 +86,19 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 		}
 	}
 
-	def jmpRelative(incrementBy: Int) = {
+	def jmpRelative(incrementBy: Int): Unit = {
 		pathIndex += incrementBy
 	}
 
-	def setAddress(addr: Int) = {
+	def setAddress(addr: Int): Unit = {
 		pathIndex = addr
 	}
 
-	def pushOntoStack(values: List[ValueType]) = {
+	def pushOntoStack(values: List[ValueType]): Unit = {
 		stack.pushAll(values.reverse)
 	}
 
-	def pushOntoStack(value: ValueType) = {
+	def pushOntoStack(value: ValueType): Unit = {
 		stack.push(value)
 	}
 
@@ -110,7 +110,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 		stack.headOption
 	}
 
-	def run(theState: State) = {
+	def run(theState: State): Unit = {
 		state = theState
 		var keepRunning = true
 		try {
@@ -122,7 +122,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 		}
 	}
 
-	def init(nodes: List[IASTNode], theState: State, shouldReset: Boolean) = {
+	def init(nodes: List[IASTNode], theState: State, shouldReset: Boolean): Unit = {
 		if (shouldReset) {
 			variableScopes.head.varMap.clear()
 		}
@@ -135,9 +135,9 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 		}
 
 		pathStack.zipWithIndex.foreach { case (node, index) =>
-			if (node.isInstanceOf[Label]) {
-				node.asInstanceOf[Label].address = index
-			}
+			node match
+				case label: Label => label.address = index
+				case _ =>
 		}
 
 		pathStack.collect { case jmpName: JmpName => jmpName }.foreach { node =>
@@ -150,7 +150,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 		}
 	}
 
-	def tick(state: State): Boolean = {
+	private def tick(state: State): Boolean = {
 		if (pathIndex < pathStack.size) {
 
 			//      if (current.isInstanceOf[IASTNode]) {

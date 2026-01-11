@@ -53,7 +53,7 @@ object CEngine {
 	}
 
 	def getResults(stdout: List[Char]): List[String] = {
-		if (!stdout.isEmpty) {
+		if (stdout.nonEmpty) {
 			val results = new ListBuffer[String]()
 
 			var currentString = new ListBuffer[Char]()
