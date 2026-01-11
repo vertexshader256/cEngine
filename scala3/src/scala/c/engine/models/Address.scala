@@ -5,11 +5,11 @@ import org.eclipse.cdt.core.dom.ast.IType
 import scala.c.engine.*
 
 case class Address(value: Int, theType: IType) extends RValue {
-	override def toString = {
+	override def toString: String = {
 		"Address(" + value + ", " + theType + ")"
 	}
 
-	override def sizeof(implicit state: State) = {
+	override def sizeof(implicit state: State): Int = {
 		state.pointerSize match {
 			case NumBits.SixtyFourBits => 8
 			case NumBits.ThirtyTwoBits => 4

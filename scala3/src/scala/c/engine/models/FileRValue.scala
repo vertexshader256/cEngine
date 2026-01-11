@@ -14,14 +14,14 @@ case class FileRValue(path: String) extends RValue {
 	val file: File = new File(path)
 
 	val value: cEngVal = if file.exists then 1 else 0
-	var isOpen = true
+	private var isOpen = true
 
-	var byteArray = if file.exists then
+	private var byteArray = if file.exists then
 		Files.readAllBytes(Paths.get(path))
 	else
 		Array[Byte]()
 
-	var currentPosition = 0
+	private var currentPosition = 0
 
 	def close(): Boolean = {
 		isOpen = false
@@ -30,14 +30,14 @@ case class FileRValue(path: String) extends RValue {
 
 	def read(numBytes: Int): Array[Byte] = {
 		if isOpen then
-			val result = byteArray.drop(currentPosition).take(numBytes)
+			val result = byteArray.slice(currentPosition, currentPosition + numBytes)
 			currentPosition += numBytes
 			result
 		else
 			Array()
 	}
 
-	def write(bytes: Array[Byte], numBytes: Int) = {
+	def write(bytes: Array[Byte], numBytes: Int): Unit = {
 		val head = byteArray.take(currentPosition)
 		val tail = byteArray.drop(currentPosition)
 
@@ -46,11 +46,11 @@ case class FileRValue(path: String) extends RValue {
 		currentPosition += numBytes
 	}
 
-	def printf(str: String) = {
+	def printf(str: String): Unit = {
 		import java.io.*
 		val pw = new PrintWriter(file)
 		pw.write(str)
-		pw.close
+		pw.close()
 
 		byteArray ++= str.getBytes
 	}
