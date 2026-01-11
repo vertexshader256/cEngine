@@ -8,6 +8,7 @@ import scala.annotation.tailrec
 import scala.c.engine.Instructions.*
 import scala.c.engine.ast.{Declarator, Expressions}
 import scala.c.engine.models.*
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 object State {
@@ -191,7 +192,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 	private var heapInsertIndex = 20000
 
-	var functionContexts = List[FunctionScope]()
+	val functionContexts = mutable.Stack[FunctionScope]()
 
 	def context: FunctionScope = functionContexts.head
 
@@ -223,7 +224,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	pushScope(new FunctionScope(List(), null, null) {})
 	
 	def pushScope(scope: FunctionScope): Unit = {
-		functionContexts = scope +: functionContexts
+		functionContexts.push(scope)
 	}
 
 	def getFunctionScope = {
@@ -242,7 +243,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 	def popFunctionContext = {
 		Stack.insertIndex = functionContexts.head.startingStackAddr
-		functionContexts = functionContexts.tail
+		functionContexts.pop()
 	}
 
 	def hasFunction(name: String): Boolean = functionList.exists { fcn => fcn.name == name }
@@ -403,17 +404,18 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 			} else {
 				if (function.name == "main" && isApi) {
 					scope.get.init(List(function.node), this, scope.isEmpty)
-					functionContexts = List(scope.get)
+					functionContexts.clear()
+					functionContexts.push(scope.get)
 					context.run(this)
 					None
 				} else {
 
 					val newScope = prepareFunctionStackFrame(scope, function, call)
 
-					functionContexts = newScope +: functionContexts
+					functionContexts.push(newScope)
 
 					newScope.run(this)
-					
+
 					newScope.getReturnValue.map { retVal =>
 						val valuesToPush: Option[Array[Byte]] = retVal match
 							case structure @ LValue(_, _: CStructure) =>
