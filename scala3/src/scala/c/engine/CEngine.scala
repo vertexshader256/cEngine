@@ -40,7 +40,7 @@ object CEngine {
 			null
 		}
 
-		state.callTheFunction("main", functionCall, Some(program))(state)
+		state.callTheFunction("main", functionCall, Some(program))
 	}
 
 	private def getErrors(node: IASTNode, errors: List[String]): List[String] = {

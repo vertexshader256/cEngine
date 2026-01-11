@@ -23,7 +23,7 @@ object Gcc {
 
 		val ast = State.parseCode(Seq(exeCode), includePaths.toList)
 		state.addMain(ast)
-		state.callTheFunction("main", null, Some(program), true)(using state)
+		state.callTheFunction("main", null, Some(program), true)
 
 		val main = state.functionList.find(_.name == "main").get
 		state.functionList -= main

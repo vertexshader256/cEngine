@@ -383,16 +383,16 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		newScope
 	}
 
-	def callTheFunction(name: String, call: IASTFunctionCallExpression, scope: Option[FunctionScope], isApi: Boolean = false)(implicit state: State): Option[ValueType] = {
+	def callTheFunction(name: String, call: IASTFunctionCallExpression, scope: Option[FunctionScope], isApi: Boolean = false): Option[ValueType] = {
 		functionList.find(_.name == name).flatMap { function =>
 
 			if (!function.isNative) {
 				// this is a function simulated in scala
 
 				val stackPos = Stack.insertIndex
-				val args = call.getArguments.map { x => Expressions.evaluate(x) }
+				val args = call.getArguments.map { x => Expressions.evaluate(x)(using this) }
 
-				val resolvedArgs: Array[RValue] = args.flatten.map(TypeHelper.toRValue)
+				val resolvedArgs: Array[RValue] = args.flatten.map(TypeHelper.toRValue(_)(using this))
 
 				val returnVal = function.run(resolvedArgs.reverse, this)
 				Stack.insertIndex = stackPos // pop the stack
@@ -422,8 +422,8 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 						popFunctionContext
 
 						valuesToPush.foreach: byteArray =>
-							val newAddr = state.allocateSpace(byteArray.length)
-							state.writeDataBlock(byteArray, newAddr)
+							val newAddr = allocateSpace(byteArray.length)
+							writeDataBlock(byteArray, newAddr)(using this)
 
 						retVal
 					}.orElse {
