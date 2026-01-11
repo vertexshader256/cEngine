@@ -6,6 +6,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c.*
 import scala.c.engine.models.*
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
+import scala.util.Using
 
 object CEngine {
 	private def callMain(state: State, arguments: List[String]) = {
@@ -98,7 +99,9 @@ object CEngine {
 				state.addMain(ast)
 				state
 			} else {
-				val eePrint = Source.fromFile("./src/scala/c/engine/cFunctions/ee_printf.c", "utf-8").mkString
+				val eePrint = Using(Source.fromFile("./src/scala/c/engine/cFunctions/ee_printf.c", "utf-8")) { source =>
+					source.mkString
+				}.get
 				val code = Seq("#define HAS_FLOAT\n" + eePrint) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }
 				val ast = State.parseCode(code, includePaths)
 				val state = new State(ast, pointerSize)
@@ -115,7 +118,7 @@ object CEngine {
 			else
 				errors
 		} catch {
-			case e => e.printStackTrace(); List()
+			case e: Throwable => e.printStackTrace(); List()
 		}
 	}
 }

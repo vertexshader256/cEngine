@@ -193,7 +193,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 	private var heapInsertIndex = 20000
 
-	val functionContexts = mutable.Stack[FunctionScope]()
+	private val functionContexts = mutable.Stack[FunctionScope]()
 
 	def context: FunctionScope = functionContexts.head
 
@@ -204,17 +204,17 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	private var breakLabelStack = List[Label]()
 	private var continueLabelStack = List[Label]()
 
-	val structs = sources.flatMap { src =>
+	val structs: Seq[CStructure] = sources.flatMap { src =>
 		src.getDeclarations.collect { case simp: CASTSimpleDeclaration => simp.getDeclSpecifier }
 			.collect { case comp: CASTCompositeTypeSpecifier => comp }
 			.map { x => x.getName.resolveBinding().asInstanceOf[CStructure] }
 	}
 
-	val pointerType = pointerSize match
+	val pointerType: CBasicType = pointerSize match
 		case NumBits.ThirtyTwoBits => TypeHelper.intType
 		case NumBits.SixtyFourBits => CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
 
-	val addressSize = TypeHelper.sizeof(pointerType)(using this)
+	val addressSize: Int = TypeHelper.sizeof(pointerType)(using this)
 
 	// ************************************************* //
 	//                  Constructor                      //
@@ -224,15 +224,15 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 	pushScope(new FunctionScope(List(), null, null) {})
 	
-	def pushScope(scope: FunctionScope): Unit = {
+	private def pushScope(scope: FunctionScope): Unit = {
 		functionContexts.push(scope)
 	}
 
-	def getFunctionScope = {
+	def getFunctionScope: FunctionScope = {
 		functionContexts.collect { case fcnScope: FunctionScope => fcnScope }.head
 	}
 
-	def parseGlobals(tUnits: List[IASTNode]) = {
+	def parseGlobals(tUnits: List[IASTNode]): Unit = {
 		val program = new FunctionScope(List(), null, null) {}
 		pushScope(program)
 		program.init(tUnits, this, false)
@@ -242,7 +242,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		context.setAddress(0)
 	}
 
-	def popFunctionContext = {
+	private def popFunctionContext = {
 		Stack.insertIndex = functionContexts.head.startingStackAddr
 		functionContexts.pop()
 	}
@@ -251,7 +251,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 	def getFunctionByIndex(index: Int): Function = functionList.find { fcn => fcn.index == index }.get
 
-	def addMain(sources: List[IASTTranslationUnit]) = {
+	def addMain(sources: List[IASTTranslationUnit]): Unit = {
 		sources.foreach { tUnit =>
 			tUnit.getChildren.collect { case x: IASTFunctionDefinition => x }
 				.filter(fcn => fcn.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
@@ -310,7 +310,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		functionList += new Function(name.toString, true) {
 			index = count
 			node = fcnDef
-			override val staticVars = addStaticFunctionVars(fcnDef)
+			override val staticVars: List[Variable] = addStaticFunctionVars(fcnDef)
 
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				None
@@ -349,7 +349,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 					val copy = Structures.copyStructure(arg.asInstanceOf[Variable], this)
 					context.addVariable(copy)
 				case _ =>
-					val resolvedArg = TypeHelper.toRValue(arg)(this)
+					val resolvedArg = TypeHelper.toRValue(arg)(using this)
 					val newVar = context.addVariable(param.getName, param.getType)
 					val casted = TypeHelper.cast(resolvedArg.value, newVar.theType).value
 					Stack.writeToMemory(casted, newVar.address, newVar.theType)
@@ -357,20 +357,20 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		}
 	}
 
-	def prepareFunctionStackFrame(scope: Option[FunctionScope], function: Function, call: IASTFunctionCallExpression): FunctionScope = {
+	private def prepareFunctionStackFrame(scope: Option[FunctionScope], function: Function, call: IASTFunctionCallExpression): FunctionScope = {
 		val newScope = scope.getOrElse:
 			val expressionType = call.getExpressionType
 			FunctionScope(function.staticVars, functionContexts.headOption.orNull, expressionType)
 
 		newScope.init(List(function.node), this, scope.isEmpty)
 
-		val args: List[ValueType] = call.getArguments.map { x => Expressions.evaluate(x)(this).head }.toList
+		val args: List[ValueType] = call.getArguments.map { x => Expressions.evaluate(x)(using this).head }.toList
 
 		args.foreach { argument =>
 			if (argument.theType.isInstanceOf[CStructure]) {
 				newScope.pushOntoStack(argument)
 			} else {
-				val resolved = TypeHelper.toRValue(argument)(this)
+				val resolved = TypeHelper.toRValue(argument)(using this)
 
 				// printf assumes all floating point numbers are doubles
 				val promoted = resolved.theType match
@@ -451,11 +451,11 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		result
 	}
 
-	def copy(dst: Int, src: Int, numBytes: Int) = {
+	def copy(dst: Int, src: Int, numBytes: Int): Unit = {
 		Stack.tape.copy(dst, src, numBytes)
 	}
 
-	def set(dst: Int, value: Byte, numBytes: Int) = {
+	def set(dst: Int, value: Byte, numBytes: Int): Unit = {
 		Stack.tape.set(dst, value, numBytes)
 	}
 

@@ -7,7 +7,7 @@ import scala.collection.mutable.ListBuffer
 // function which I use to simulate C's standard printf()
 object Printf {
 
-	def convertBoolean2(num: RValue): Object = {
+	private def convertBoolean2(num: RValue): Object = {
 		val x = num.value
 		val convertedBool = x match
 			case bool: Boolean => if bool then 1 else 0
@@ -215,8 +215,8 @@ object Printf {
 		output.toString
 	}
 
-	case class SingleParamOutputFormat(identifier: String, toText: (String, RValue, State) => String)
-	case class DualParamOutputFormat(identifier: String, toText: (String, RValue, RValue, State) => String)
+	private case class SingleParamOutputFormat(identifier: String, toText: (String, RValue, State) => String)
+	private case class DualParamOutputFormat(identifier: String, toText: (String, RValue, RValue, State) => String)
 
 	private val singleParamFormats: Seq[SingleParamOutputFormat] = Seq(
 		SingleParamOutputFormat("f", (format, rValue, _) => printFloat(format, rValue.value.asInstanceOf[Object])),

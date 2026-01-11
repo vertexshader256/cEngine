@@ -10,7 +10,7 @@ object Instructions {
 	case class ReturnFromFunction() extends Exception("returning")
 
 	case class CachedRValue(expr2: IASTExpression) extends CEngineInstruction {
-		var cachedValue: RValue = null
+		var cachedValue: RValue = _
 	}
 
 	case class JmpIfNotEqual(expr: IASTExpression, relativeJump: Int) extends CEngineInstruction
