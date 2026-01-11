@@ -1,4 +1,4 @@
-package scala.c.engine
+package scala.c.engine.gcc
 
 import java.io.{File, InputStream, OutputStream, PrintWriter}
 import scala.c.engine.models.NumBits.*
@@ -6,6 +6,7 @@ import scala.collection.mutable.ListBuffer
 import scala.sys.process.ProcessIO
 import scala.sys.process.Process
 import scala.c.engine.models.*
+import scala.c.engine.*
 
 case class GccOutput(output: Seq[String], wasSuccess: Boolean)
 
@@ -30,11 +31,7 @@ object Gcc {
 	}
 
 	def runGlobalCode(code: String, state: State, includePaths: List[String]) = {
-		val exeCode =
-			s"""
-       $code
-    """
-
+		val exeCode = s"$code"
 		val ast = State.parseCode(Seq(exeCode), includePaths)
 		state.addMain(ast)
 	}

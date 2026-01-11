@@ -6,6 +6,7 @@ import org.scalatest.flatspec.AsyncFlatSpec
 import java.util.concurrent.atomic.AtomicInteger
 import scala.c.engine.models.NumBits
 import scala.c.engine.models.NumBits.*
+import scala.c.engine.gcc.Gcc
 import scala.concurrent.*
 
 object StandardTest {

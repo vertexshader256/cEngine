@@ -1,5 +1,7 @@
 package scala.c.engine
 
+import scala.c.engine.gcc.*
+
 object Interpreter {
 	implicit class CounterSC(val sc: StringContext) extends AnyVal {
 
