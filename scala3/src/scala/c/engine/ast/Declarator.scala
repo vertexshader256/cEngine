@@ -73,24 +73,25 @@ object Declarator {
 		if (!isInFunctionPrototype) {
 			val numArgs = state.context.popStack.asInstanceOf[RValue].value.asInstanceOf[Integer]
 			val args = (0 until numArgs).map { _ => state.context.popStack }.reverse
-
-			val resolvedArgs = args.map(TypeHelper.toRValue)
+			
 			val binding = fcnDec.getName.resolveBinding()
 			val fcn = binding.asInstanceOf[CFunction]
 			val paramDecls = fcn.getParameters.toList
-			val zipped = resolvedArgs.zip(paramDecls)
+			val zipped = args.zip(paramDecls)
 
 			zipped.foreach { (arg, param) =>
 				val (value, addr, theType) = if (!isInFunctionPrototype) {
+					val resolvedArg = TypeHelper.toRValue(arg)
 					val newVar = state.context.addVariable(param.getName, param.getType)
-					val casted = TypeHelper.cast(arg.value, newVar.theType).value
+					val casted = TypeHelper.cast(resolvedArg.value, newVar.theType).value
 					(casted, newVar.address, newVar.theType)
 				} else {
 					// 12-26-25: This code isn't being hit
-					val theType = TypeHelper.getType(arg.value)
+					val resolvedArg = TypeHelper.toRValue(arg)
+					val theType = TypeHelper.getType(resolvedArg.value)
 					val sizeof = TypeHelper.sizeof(theType)
 					val space = state.allocateSpace(Math.max(sizeof, 4))
-					(arg.value, space, theType)
+					(resolvedArg.value, space, theType)
 				}
 
 				state.Stack.writeToMemory(value, addr, theType)
