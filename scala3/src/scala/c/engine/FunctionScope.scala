@@ -3,6 +3,7 @@ package c
 package engine
 
 import org.eclipse.cdt.core.dom.ast.*
+
 import scala.c.engine.models.*
 import scala.c.engine.Instructions.*
 import scala.c.engine.models.Variable
@@ -19,7 +20,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 	private val stack = mutable.Stack[ValueType]()
 	var startingStackAddr = 0
 
-	private val pathStack = ListBuffer[Any]()
+	private val pathStack = ListBuffer[IASTNode | CEngineInstruction]()
 	private var pathIndex = 0
 
 	var state: State = null

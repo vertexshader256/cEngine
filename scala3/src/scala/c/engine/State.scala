@@ -13,7 +13,7 @@ import scala.collection.mutable.ListBuffer
 
 object State {
 
-	private def compile(node: IASTNode)(implicit state: State): List[Any] = {
+	private def compile(node: IASTNode)(implicit state: State): List[IASTNode | CEngineInstruction] = {
 		node match
 			case ifStatement: IASTIfStatement =>
 				compileIfStatement(ifStatement)
@@ -59,7 +59,7 @@ object State {
 				node +: node.getChildren.toList
 	}
 
-	def flattenNode(tUnit: IASTNode)(implicit state: State): List[Any] = {
+	def flattenNode(tUnit: IASTNode)(implicit state: State): List[IASTNode | CEngineInstruction] = {
 		tUnit.getChildren.flatMap(compile).toList
 	}
 

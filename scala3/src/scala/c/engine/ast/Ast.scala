@@ -78,7 +78,7 @@ object Ast {
 		}
 	}
 
-	def step(current: Any)(implicit state: State): Unit = current match {
+	def step(current: IASTNode | CEngineInstruction)(implicit state: State): Unit = current match {
 		case statement: IASTStatement =>
 			Statement.step(statement)
 		case expression: IASTExpression =>
