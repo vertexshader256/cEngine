@@ -227,7 +227,7 @@ object Declarator {
 		}
 	}
 
-	def getValuesFromList(list: IASTInitializerList, theType: IType)(implicit state: State): List[ValueType] = {
+	private def getValuesFromList(list: IASTInitializerList, theType: IType)(implicit state: State): List[ValueType] = {
 		val descendants = Utils.getDescendants(list)
 		val hasNamedDesignator = descendants.exists { node => node.isInstanceOf[CASTDesignatedInitializer] } // {.y = 343, .x = 543, .next = 8578}
 		val isStructure = theType.isInstanceOf[CStructure]

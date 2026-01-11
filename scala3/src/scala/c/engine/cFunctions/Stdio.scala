@@ -150,7 +150,7 @@ object Stdio {
 
 					Some(RValue(character, TypeHelper.charType))
 				} catch {
-					case e => Some(RValue(-1))
+					case e: Throwable => Some(RValue(-1))
 				}
 			}
 		}

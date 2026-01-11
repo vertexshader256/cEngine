@@ -8,14 +8,14 @@ import scala.c.engine.models.*
 object RValue {
 	def unapply(rvalue: RValue): Option[(cEngVal, IType)] = Some((rvalue.value, rvalue.theType))
 
-	def apply(theValue: cEngVal, aType: IType) =
+	def apply(theValue: cEngVal, aType: IType): RValue =
 		new RValue {
 			val theType = TypeHelper.stripSyntheticTypeInfo(aType);
 			val rawType = aType
 			val value = theValue
 		}
 
-	def apply(theValue: cEngVal) =
+	def apply(theValue: cEngVal): RValue =
 		new RValue {
 			val theType: IType = null
 			val rawType: IType = null

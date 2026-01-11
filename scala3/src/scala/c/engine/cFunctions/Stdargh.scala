@@ -24,14 +24,14 @@ object Stdargh {
 
 				val str = Utils.readString(argTypeStr)(using state)
 
-				val (offset, theType) = (str match {
+				val (offset, theType) = str match {
 					case "unsigned int" => (4, TypeHelper.unsignedIntType)
 					case "int" => (4, TypeHelper.intType)
 					case "double" => (8, TypeHelper.doubleType)
 					case "char" => (1, TypeHelper.charType)
 					case "char *" => (4, CPointerType(TypeHelper.charType, 0))
 					case "unsigned long" => (8, CPointerType(CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG), 0))
-				})
+				}
 
 				val current = varArgStartingAddr.head
 				varArgStartingAddr = varArgStartingAddr.tail

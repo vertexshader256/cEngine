@@ -6,7 +6,7 @@ import java.util
 import scala.c.engine.*
 
 class Tape(size: Int) {
-	val tape = ByteBuffer.allocateDirect(size)
+	val tape: ByteBuffer = ByteBuffer.allocateDirect(size)
 	tape.order(ByteOrder.LITTLE_ENDIAN)
 
 	def writeDataBlock(array: Array[Byte], startingAddress: Int): Unit = {
@@ -25,7 +25,7 @@ class Tape(size: Int) {
 		result
 	}
 
-	def copy(dst: Int, src: Int, numBytes: Int) = {
+	def copy(dst: Int, src: Int, numBytes: Int): Unit = {
 		tape.mark()
 		tape.position(src)
 		val array = new Array[Byte](numBytes)
@@ -36,7 +36,7 @@ class Tape(size: Int) {
 	}
 
 	// fills a destination with a value, numBytes worth
-	def set(dst: Int, value: Byte, numBytes: Int) = {
+	def set(dst: Int, value: Byte, numBytes: Int): Unit = {
 		val array = new Array[Byte](numBytes)
 		util.Arrays.fill(array, value)
 		tape.mark()
@@ -49,7 +49,7 @@ class Tape(size: Int) {
 		tape.getInt(address)
 	}
 
-	def clearMemory(startingAddress: Int, numBytes: Int) = {
+	def clearMemory(startingAddress: Int, numBytes: Int): Unit = {
 		var address = startingAddress
 		for (i <- 0 until numBytes) {
 			tape.put(address, 0.toByte)
@@ -57,7 +57,7 @@ class Tape(size: Int) {
 		}
 	}
 
-	def putShort(address: Int, short: Short) = {
+	def putShort(address: Int, short: Short): Unit = {
 		tape.putShort(address, short)
 	}
 
@@ -65,7 +65,7 @@ class Tape(size: Int) {
 		tape.getShort(address)
 	}
 
-	def putLong(address: Int, long: Long) = {
+	def putLong(address: Int, long: Long): Unit = {
 		tape.putLong(address, long)
 	}
 
@@ -79,11 +79,11 @@ class Tape(size: Int) {
 		new BigInteger(bytes)
 	}
 
-	def putInt(address: Int, int: Int) = {
+	def putInt(address: Int, int: Int): Unit = {
 		tape.putInt(address, int)
 	}
 
-	def putByte(address: Int, byte: Byte) = {
+	def putByte(address: Int, byte: Byte): Unit = {
 		tape.put(address, byte)
 	}
 
@@ -95,7 +95,7 @@ class Tape(size: Int) {
 		tape.getInt(address)
 	}
 
-	def putDouble(address: Int, double: Double) = {
+	def putDouble(address: Int, double: Double): Unit = {
 		tape.putDouble(address, double)
 	}
 
@@ -103,7 +103,7 @@ class Tape(size: Int) {
 		tape.getDouble(address)
 	}
 
-	def putFloat(address: Int, float: Float) = {
+	def putFloat(address: Int, float: Float): Unit = {
 		tape.putFloat(address, float)
 	}
 
@@ -111,7 +111,7 @@ class Tape(size: Int) {
 		tape.getFloat(address)
 	}
 
-	def writePointerToMemory(newVal: cEngVal, address: Int) = {
+	def writePointerToMemory(newVal: cEngVal, address: Int): Unit = {
 		newVal match {
 			case int: Int => putInt(address, int)
 			case long: Long => putInt(address, long.toInt)
