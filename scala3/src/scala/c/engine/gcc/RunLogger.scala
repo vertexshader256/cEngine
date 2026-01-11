@@ -1,11 +1,8 @@
 package scala.c.engine.gcc
 
-import java.io.{File, InputStream, OutputStream, PrintWriter}
-import scala.c.engine.*
-import scala.c.engine.models.*
-import scala.c.engine.models.NumBits.*
+import java.io.{InputStream, OutputStream}
 import scala.collection.mutable.ListBuffer
-import scala.sys.process.{Process, ProcessIO}
+import scala.sys.process.ProcessIO
 
 class RunLogger {
 	def process = ProcessIO(in, out, err)
