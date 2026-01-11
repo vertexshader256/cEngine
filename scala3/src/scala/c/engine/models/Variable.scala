@@ -45,6 +45,6 @@ case class Variable(name: String, state: State, aType: IType, sizeof: Int) exten
 	var isInitialized = false
 
 	override def toString = {
-		"Variable(" + name + ", " + address + ", " + theType + ")"
+		"Variable(" + name + ", " + address + ", " + theType.getClass.getSimpleName + ")"
 	}
 }
