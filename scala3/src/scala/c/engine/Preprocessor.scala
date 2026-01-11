@@ -42,9 +42,8 @@ object Preprocessor {
 			pp.getQuoteIncludePath.add(include)
 		}
 
-		val stream = new ByteArrayInputStream(totalCode.getBytes(StandardCharsets.UTF_8))
-
-		pp.addInput(new InputLexerSource(stream))
+		val stream = new ByteArrayInputStream(totalCode.getBytes)
+		pp.addInput(new InputLexerSource(stream, StandardCharsets.UTF_8))
 
 		var shouldBreak = false
 		var skipline = false
