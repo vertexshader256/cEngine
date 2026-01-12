@@ -18,7 +18,7 @@ object TestResults {
 		val hashBytes = digest.digest(key.getBytes(StandardCharsets.UTF_8))
 
 		// Convert the byte array into a hexadecimal string
-		val hexString = new StringBuilder()
+		val hexString = StringBuilder()
 
 		hashBytes.foreach { b =>
 			val hex = Integer.toHexString(0xff & b)
@@ -55,7 +55,7 @@ object TestResults {
 	def writeResultsFile() = {
 		val jsonString: String = write(resultCache)
 
-		val bw = new BufferedWriter(new FileWriter(new File(resultsFileName)))
+		val bw = BufferedWriter(FileWriter(File(resultsFileName)))
 		bw.write(jsonString)
 		bw.close()
 	}

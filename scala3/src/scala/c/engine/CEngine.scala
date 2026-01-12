@@ -17,18 +17,18 @@ object CEngine {
 		val args = List(".") ++ arguments
 
 		val functionCall = if (args.nonEmpty) {
-			val fcnName = new CASTIdExpression(new CASTName("main".toCharArray))
+			val fcnName = CASTIdExpression(CASTName("main".toCharArray))
 			val factory = state.sources.head.getTranslationUnit.getASTNodeFactory
 			val sizeExpr = factory.newLiteralExpression(IASTLiteralExpression.lk_integer_constant, args.size.toString)
 
-			val stringType = new CPointerType(new CBasicType(IBasicType.Kind.eChar, IBasicType.IS_UNSIGNED), 0)
+			val stringType = CPointerType(CBasicType(IBasicType.Kind.eChar, IBasicType.IS_UNSIGNED), 0)
 
 			val stringAddresses = args.map { arg =>
 				val addr = state.getString("\"" + arg + "\"").value
 				RValue(addr, stringType)
 			}
 
-			val theType = new CPointerType(stringType, 0)
+			val theType = CPointerType(stringType, 0)
 			val newVar = program.addVariable("mainInfo", theType)
 			val start = state.allocateSpace(stringAddresses.size * 4)
 			state.writeDataBlock(stringAddresses, start)
@@ -36,7 +36,7 @@ object CEngine {
 
 			val varExpr = factory.newIdExpression(factory.newName("mainInfo"))
 
-			new CASTFunctionCallExpression(fcnName, List(sizeExpr, varExpr).toArray)
+			CASTFunctionCallExpression(fcnName, List(sizeExpr, varExpr).toArray)
 		} else {
 			null
 		}
@@ -55,9 +55,9 @@ object CEngine {
 
 	def getResults(stdout: List[Char]): List[String] = {
 		if (stdout.nonEmpty) {
-			val results = new ListBuffer[String]()
+			val results = ListBuffer[String]()
 
-			var currentString = new ListBuffer[Char]()
+			var currentString = ListBuffer[Char]()
 			var writeLast = false
 
 			var index = 0
@@ -65,12 +65,12 @@ object CEngine {
 
 				if (stdout(index) == '\r') {
 					results += currentString.mkString
-					currentString = new ListBuffer[Char]()
+					currentString = ListBuffer[Char]()
 					writeLast = false
 					index += 1
 				} else if (stdout(index) == '\n') {
 					results += currentString.mkString
-					currentString = new ListBuffer[Char]()
+					currentString = ListBuffer[Char]()
 					writeLast = false
 					index += 1
 				} else {
@@ -95,7 +95,7 @@ object CEngine {
 
 			val state = if (shouldBootstrap) {
 				val ast = Utils.getTranslationUnits(codeInFiles, includePaths)
-				val state = new State(ast, pointerSize)
+				val state = State(ast, pointerSize)
 				state.addMain(ast)
 				state
 			} else {
@@ -104,7 +104,7 @@ object CEngine {
 				}.get
 				val code = Seq("#define HAS_FLOAT\n" + eePrint) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }
 				val ast = Utils.getTranslationUnits(code, includePaths)
-				val state = new State(ast, pointerSize)
+				val state = State(ast, pointerSize)
 				state.addMain(ast)
 				state
 			}

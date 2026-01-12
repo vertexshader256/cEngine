@@ -4,7 +4,7 @@ import java.io.{InputStream, OutputStream}
 import scala.collection.mutable.ListBuffer
 
 class SyntaxLogger extends Logger {
-	val errors = new ListBuffer[String]()
+	val errors = ListBuffer[String]()
 
 	def addErrors(newErrors: Seq[String]) = {
 		errors ++= newErrors

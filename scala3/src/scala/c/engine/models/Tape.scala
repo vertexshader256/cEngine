@@ -74,9 +74,9 @@ class Tape(size: Int) {
 	}
 
 	def getLongLong(address: Int): BigInt = {
-		val bytes = new Array[Byte](8)
+		val bytes = Array[Byte](8)
 		tape.get(address, bytes)
-		new BigInteger(bytes)
+		BigInteger(bytes)
 	}
 
 	def putInt(address: Int, int: Int): Unit = {

@@ -28,8 +28,8 @@ object Stdio {
 
 				state.Stack.writeToMemory(1, decpt, TypeHelper.intType)
 
-				val buffer = new StringBuffer();
-				val formatter = new Formatter(buffer, Locale.US);
+				val buffer = StringBuffer()
+				val formatter = Formatter(buffer, Locale.US)
 
 				val formatString = "%." + ndigits + "f"
 
@@ -85,9 +85,9 @@ object Stdio {
 				val path = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(using state)
 				val mode = Utils.readString(formattedOutputParams.head.value.asInstanceOf[Int])(using state)
 
-				if (!new File(path).exists()) {
+				if (!File(path).exists()) {
 					if (mode == "w") {
-						new File(path).createNewFile()
+						File(path).createNewFile()
 						Some(FileRValue(path))
 					} else {
 						Some(FileRValue(path))

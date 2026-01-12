@@ -15,7 +15,7 @@ object Utils {
 	val mainPath = raw"."
 
 	val minGWIncludes = s"$rootDir\\include"
-	val minGWAdditionalIncludes: String = new File(s"$rootDir\\lib\\gcc\\x86_64-w64-mingw32\\15.2.0\\include").getAbsolutePath
+	val minGWAdditionalIncludes: String = File(s"$rootDir\\lib\\gcc\\x86_64-w64-mingw32\\15.2.0\\include").getAbsolutePath
 	val minGWMoreIncludes = s"$rootDir\\include\\GL"
 
 	def getTranslationUnits(codes: Seq[String], includePaths: List[String]): List[IASTTranslationUnit] = {
@@ -25,11 +25,11 @@ object Utils {
 	private def getTranslationUnit(code: String, includePaths: List[String]): IASTTranslationUnit = {
 		val preprocessed = Preprocessor.preprocess(code, includePaths)
 
-		val symbolMap = new util.HashMap[String, String];
+		val symbolMap = util.HashMap[String, String];
 		val systemIncludes = Array[String]()
 
-		val info = new ScannerInfo(symbolMap, systemIncludes)
-		val log = new DefaultLogService()
+		val info = ScannerInfo(symbolMap, systemIncludes)
+		val log = DefaultLogService()
 		val opts = 8
 		val includes = IncludeFileContentProvider.getEmptyFilesProvider
 
@@ -40,7 +40,7 @@ object Utils {
 
 	def getAncestors(node: IASTNode): Seq[IASTNode] = {
 		var current = node.getParent
-		val parents = new ListBuffer[IASTNode]()
+		val parents = ListBuffer[IASTNode]()
 		while (current != null) {
 			parents += current
 			current = current.getParent
@@ -60,7 +60,7 @@ object Utils {
 
 	def readString(address: Int)(implicit state: State): String = {
 		var current: Char = 0
-		val stringBuilder = new ListBuffer[Char]()
+		val stringBuilder = ListBuffer[Char]()
 		var offset = 0
 
 		current = readChar(address + offset)

@@ -90,7 +90,7 @@ object Literal {
 	}
 
 	private def encodeSpecialChars(str: String): String = {
-		val result = new StringBuilder()
+		val result = StringBuilder()
 
 		var index = 0
 		while (index < str.length - 1) {

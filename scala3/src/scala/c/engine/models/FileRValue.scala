@@ -11,7 +11,7 @@ case class FileRValue(path: String) extends RValue {
 	val theType: IType = null
 	val rawType: IType = theType
 
-	val file: File = new File(path)
+	val file: File = File(path)
 
 	val value: cEngVal = if file.exists then 1 else 0
 	private var isOpen = true
@@ -48,7 +48,7 @@ case class FileRValue(path: String) extends RValue {
 
 	def printf(str: String): Unit = {
 		import java.io.*
-		val pw = new PrintWriter(file)
+		val pw = PrintWriter(file)
 		pw.write(str)
 		pw.close()
 

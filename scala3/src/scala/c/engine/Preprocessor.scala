@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets
 object Preprocessor {
 	
 	private val rootDir = raw"C:\msys64\\ucrt64"
-	private val minGWAdditionalIncludes = new File(s"$rootDir\\lib\\gcc\\x86_64-w64-mingw32\\15.2.0\\include").getAbsolutePath
+	private val minGWAdditionalIncludes = File(s"$rootDir\\lib\\gcc\\x86_64-w64-mingw32\\15.2.0\\include").getAbsolutePath
 	private val minGWIncludes = s"$rootDir\\include"
 
 	def preprocess(code: String, includePaths: List[String]): String = {
@@ -31,7 +31,7 @@ object Preprocessor {
 
 		val totalCode = lines.reduce(_ + "\n" + _)
 
-		val pp = new Preprocessor();
+		val pp = new Preprocessor()
 
 		pp.getSystemIncludePath.add(minGWIncludes)
 		pp.getSystemIncludePath.add(minGWAdditionalIncludes)
@@ -42,8 +42,8 @@ object Preprocessor {
 			pp.getQuoteIncludePath.add(include)
 		}
 
-		val stream = new ByteArrayInputStream(totalCode.getBytes)
-		pp.addInput(new InputLexerSource(stream, StandardCharsets.UTF_8))
+		val stream = ByteArrayInputStream(totalCode.getBytes)
+		pp.addInput(InputLexerSource(stream, StandardCharsets.UTF_8))
 
 		var shouldBreak = false
 		var skipline = false

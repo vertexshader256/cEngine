@@ -17,8 +17,8 @@ object Printf {
 	}
 
 	private def printChar(theValue: RValue) = {
-		val buffer2 = new StringBuffer()
-		val formatter2 = new Formatter(buffer2, Locale.US)
+		val buffer2 = StringBuffer()
+		val formatter2 = Formatter(buffer2, Locale.US)
 		val value = theValue.value.asInstanceOf[Object]
 		formatter2.format("%c", List(value) *)
 		buffer2.toString
@@ -26,8 +26,8 @@ object Printf {
 
 	private def printDynamicWidthString(stringFormat: String, param1: RValue, param2: RValue)(using State) = {
 		val formatString = stringFormat
-		val buffer2 = new StringBuffer()
-		val formatter2 = new Formatter(buffer2, Locale.US)
+		val buffer2 = StringBuffer()
+		val formatter2 = Formatter(buffer2, Locale.US)
 
 		println("PARAM1: " + param1)
 		println("PARAM2: " + param2)
@@ -60,8 +60,8 @@ object Printf {
 
 	private def printString(stringFormat: String, theValue: RValue)(using State) = {
 		val formatString = stringFormat
-		val buffer2 = new StringBuffer()
-		val formatter2 = new Formatter(buffer2, Locale.US)
+		val buffer2 = StringBuffer()
+		val formatter2 = Formatter(buffer2, Locale.US)
 
 		val theVal = theValue.value
 		val stringAddr = theVal match
@@ -80,9 +80,9 @@ object Printf {
 
 	private def printHex(stringFormat: String, value: RValue) = {
 
-		val buffer2 = new StringBuffer()
-		val formatter2 = new Formatter(buffer2, Locale.US)
-		val resolved = new ListBuffer[Object]()
+		val buffer2 = StringBuffer()
+		val formatter2 = Formatter(buffer2, Locale.US)
+		val resolved = ListBuffer[Object]()
 
 		val x = value.value
 
@@ -129,9 +129,9 @@ object Printf {
 
 	private def printUnsigned(stringFormat: String, value: RValue) = {
 
-		val buffer2 = new StringBuffer()
-		val formatter2 = new Formatter(buffer2, Locale.US)
-		val resolved = new ListBuffer[Object]()
+		val buffer2 = StringBuffer()
+		val formatter2 = Formatter(buffer2, Locale.US)
+		val resolved = ListBuffer[Object]()
 
 		val x = value.value
 
@@ -146,9 +146,9 @@ object Printf {
 	}
 
 	private def printLongLongUnsigned(stringFormat: String, value: RValue) = {
-		val buffer2 = new StringBuffer()
-		val formatter2 = new Formatter(buffer2, Locale.US)
-		val resolved = new ListBuffer[Object]()
+		val buffer2 = StringBuffer()
+		val formatter2 = Formatter(buffer2, Locale.US)
+		val resolved = ListBuffer[Object]()
 
 		val bigInt = value.value
 		val longVal = Long.box(bigInt.asInstanceOf[Long])
@@ -161,9 +161,9 @@ object Printf {
 
 	private def printDeciminal(stringFormat: String, value: RValue, convertToInt: Boolean) = {
 		var currentFormatString = stringFormat
-		val buffer2 = new StringBuffer()
-		val formatter2 = new Formatter(buffer2, Locale.US)
-		val resolved = new ListBuffer[Object]()
+		val buffer2 = StringBuffer()
+		val formatter2 = Formatter(buffer2, Locale.US)
+		val resolved = ListBuffer[Object]()
 
 		val num = value.value
 		currentFormatString += 'd'

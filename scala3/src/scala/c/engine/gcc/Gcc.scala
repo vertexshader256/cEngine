@@ -40,11 +40,11 @@ object Gcc {
 														args: List[String] = List(), includePaths: List[String] = List()): GccOutput = {
 
 		val logger = new SyntaxLogger
-		val exeFile = new java.io.File("a" + testId + ".exe")
+		val exeFile = java.io.File("a" + testId + ".exe")
 
 		val files = cSourceCode.map { code =>
-			val file = new java.io.File(s"$testId.c")
-			val pw = new PrintWriter(file)
+			val file = java.io.File(s"$testId.c")
+			val pw = PrintWriter(file)
 			pw.write("#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n" + code)
 			pw.close()
 			file
@@ -65,7 +65,7 @@ object Gcc {
 		val processTokens =
 			size ++ sourceFileTokens ++ includeTokens ++ Seq("-o", exeFile.getAbsolutePath) ++ Seq("-D", "ALLOC_TESTING")
 
-		val builder = Process(processTokens, new java.io.File("."))
+		val builder = Process(processTokens, java.io.File("."))
 		val compile = builder.run(logger.process)
 
 		compile.exitValue()

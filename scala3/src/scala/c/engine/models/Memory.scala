@@ -11,7 +11,7 @@ class Memory(size: Int) {
 
 	var insertIndex = 0
 	// turing tape
-	val tape = new Tape(size)
+	val tape = Tape(size)
 
 	private def writeInteger(newVal: cEngVal, address: Int, bitOffset: Int = 0, sizeInBits: Int = 0) = {
 		newVal match {

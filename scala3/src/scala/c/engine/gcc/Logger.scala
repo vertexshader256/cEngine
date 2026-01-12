@@ -11,7 +11,7 @@ abstract class Logger {
 
 	def err(stream: InputStream): Unit
 
-	def process = new ProcessIO(in, out, err)
+	def process = ProcessIO(in, out, err)
 
 	val availableErrors = ListBuffer[String]()
 	var errorIsInHeaderFile = false
