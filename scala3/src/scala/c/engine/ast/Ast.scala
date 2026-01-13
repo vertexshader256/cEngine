@@ -40,8 +40,8 @@ object Ast {
 				state.context.setAddress(label.address)
 		case Jmp(lines) =>
 			state.context.jmpRelative(lines)
-		case jmp: JmpName =>
-			state.context.setAddress(jmp.destAddress)
+		case goto: Goto =>
+			state.context.setAddress(goto.destAddress)
 		case label: Label =>
 	}
 

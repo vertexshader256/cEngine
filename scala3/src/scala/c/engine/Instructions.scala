@@ -25,7 +25,7 @@ object Instructions {
 
 	case class JmpLabel(label: Label) extends CEngineInstruction
 
-	case class JmpName(label: String) extends CEngineInstruction {
+	case class Goto(label: String) extends CEngineInstruction {
 		var destAddress = 0
 	}
 

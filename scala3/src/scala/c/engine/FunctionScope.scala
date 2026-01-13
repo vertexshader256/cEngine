@@ -140,7 +140,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 				case _ =>
 		}
 
-		pathStack.collect { case jmpName: JmpName => jmpName }.foreach { node =>
+		pathStack.collect { case goto: Goto => goto }.foreach { node =>
 			pathStack.find { label =>
 				label.isInstanceOf[GotoLabel] &&
 					label.asInstanceOf[GotoLabel].name == node.label

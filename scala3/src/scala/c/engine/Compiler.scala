@@ -35,7 +35,7 @@ object Compiler {
 			case _: IASTElaboratedTypeSpecifier =>
 				List()
 			case goto: IASTGotoStatement =>
-				List(JmpName(goto.getName.toString))
+				List(Goto(goto.getName.toString))
 			case fcn: IASTFunctionDefinition =>
 				List(fcn)
 			case compound: IASTCompoundStatement =>
