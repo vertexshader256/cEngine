@@ -18,4 +18,46 @@ class VariableTest extends StandardTest {
 
 		checkResults(code)
 	}
+
+	"multiple levels of shadows" should "print the correct results" in {
+		val code =
+			"""
+				int main(int argc, char **argv){
+					int i = 10;
+					printf("%d\n", i);
+					{
+						printf("%d\n", i);
+						int i = 20;
+						printf("%d\n", i);
+						i = 30;
+						printf("%d\n", i);
+						{
+							printf("%d\n", i);
+							int i = 40;
+							printf("%d\n", i);
+							i = 50;
+			        if (i > 0) {
+								printf("%d\n", i);
+								int i = 100;
+								printf("%d\n", i);
+							} else {
+								printf("%d\n", i);
+								int i = 110;
+								printf("%d\n", i);
+							}
+							printf("%d\n", i);
+						}
+						printf("%d\n", i);
+						i = 60;
+						printf("%d\n", i);
+					}
+					printf("%d\n", i);
+					i = 70;
+					printf("%d\n", i);
+				}
+
+				"""
+
+		checkResults(code)
+	}
 }

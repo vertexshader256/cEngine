@@ -8,6 +8,7 @@ import scala.c.engine.Instructions.*
 import scala.c.engine.models.*
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+import scala.compiletime.uninitialized
 
 class VariableScope(val parent: VariableScope) {
 	private val varMap = mutable.LinkedHashMap[String, Variable]() // linked to keep deterministic
@@ -43,7 +44,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 	private val pathStack = ListBuffer[IASTNode | CEngineInstruction]()
 	private var pathIndex = 0
 
-	var state: State = _
+	var state: State = uninitialized
 
 	def pushVariableScope(): Unit = {
 		val newScope = VariableScope(currentVariableScope)
