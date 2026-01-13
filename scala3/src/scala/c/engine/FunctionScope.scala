@@ -80,18 +80,10 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 	}
 
 	def addExternVariable(name: String, theType: IType): Variable = {
-
-		var result: Variable = null
-
-		if (parent == null) { // this extern is not in a function
-			result = addVariable(name, theType)
-		} else {
-			parent.currentVariableScope.getVariable(name).foreach: parentVar =>
-				currentVariableScope.addVariable(parentVar)
-				result = parentVar
-		}
-
-		result
+		if parent == null then // this extern is not in a function
+			addVariable(name, theType)
+		else
+			null
 	}
 
 	def addArrayVariable(name: String, theType: IType, initVals: List[RValue]): Variable = {
