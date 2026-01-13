@@ -60,6 +60,9 @@ class Memory(size: Int) {
 			case _: CEnumeration =>
 				newVal match
 					case int: Int => tape.putInt(address, int)
+					case long: Long => tape.putInt(address, long.toInt)
+					case short: Short => tape.putInt(address, short.toInt)
+					case byte: Byte => tape.putInt(address, byte.toInt)
 			case basic: IBasicType if basic.getKind == eInt =>
 				writeInteger(newVal, address, bitOffset, sizeInBits)
 			case basic: IBasicType if basic.getKind == eDouble || basic.getKind == eFloat =>
