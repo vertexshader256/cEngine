@@ -210,29 +210,128 @@ class RobustTest extends StandardTest {
 	"Department numbers" should "print the correct results" in {
 		val code =
 			"""
-					#include<stdio.h>
+				#include<stdio.h>
 
-					int main()
-					{
-						int police,sanitation,fire;
+				int main()
+				{
+					int police,sanitation,fire;
 
-						printf("Police     Sanitation         Fire\n");
-						printf("----------------------------------");
+					printf("Police     Sanitation         Fire\n");
+					printf("----------------------------------");
 
-						for(police=2;police<=6;police+=2){
-							for(sanitation=1;sanitation<=7;sanitation++){
-								for(fire=1;fire<=7;fire++){
-									if(police!=sanitation && sanitation!=fire && fire!=police && police+fire+sanitation==12){
-										printf("\n%d\t\t%d\t\t%d",police,sanitation,fire);
-									}
+					for(police=2;police<=6;police+=2){
+						for(sanitation=1;sanitation<=7;sanitation++){
+							for(fire=1;fire<=7;fire++){
+								if(police!=sanitation && sanitation!=fire && fire!=police && police+fire+sanitation==12){
+									printf("\n%d\t\t%d\t\t%d",police,sanitation,fire);
 								}
 							}
 						}
-
-						return 0;
 					}
 
+					return 0;
+				}
+
 				"""
+
+		checkResults(code)
+	}
+
+	"tau function" should "print the correct results" in {
+		val code =
+			"""
+				#include <stdio.h>
+
+				// See https://en.wikipedia.org/wiki/Divisor_function
+				unsigned int divisor_count(unsigned int n) {
+						unsigned int total = 1;
+						// Deal with powers of 2 first
+						for (; (n & 1) == 0; n >>= 1) {
+								++total;
+						}
+						// Odd prime factors up to the square root
+						for (unsigned int p = 3; p * p <= n; p += 2) {
+								unsigned int count = 1;
+								for (; n % p == 0; n /= p) {
+										++count;
+								}
+								total *= count;
+						}
+						// If n > 1 then it's prime
+						if (n > 1) {
+								total *= 2;
+						}
+						return total;
+				}
+
+				int main() {
+						const unsigned int limit = 100;
+						unsigned int n;
+
+						printf("Count of divisors for the first %d positive integers:\n", limit);
+						for (n = 1; n <= limit; ++n) {
+								printf("%3d", divisor_count(n));
+								if (n % 20 == 0) {
+										printf("\n");
+								}
+						}
+
+						return 0;
+				}
+			"""
+
+		checkResults(code)
+	}
+
+	"topswaps" should "print the correct results" in {
+		val code =
+			"""
+				#include <stdio.h>
+				#include <string.h>
+
+				typedef struct { char v[16]; } deck;
+				typedef unsigned int uint;
+
+				uint n, d, best[16];
+
+				void tryswaps(deck *a, uint f, uint s) {
+				#	define A a->v
+				#	define B b.v
+					if (d > best[n]) best[n] = d;
+					while (1) {
+						if ((A[s] == s || (A[s] == -1 && !(f & 1U << s)))
+							&& (d + best[s] >= best[n] || A[s] == -1))
+							break;
+
+						if (d + best[s] <= best[n]) return;
+						if (!--s) return;
+					}
+
+					d++;
+					deck b = *a;
+					for (uint i = 1, k = 2; i <= s; k <<= 1, i++) {
+						if (A[i] != i && (A[i] != -1 || (f & k)))
+							continue;
+
+						for (uint j = B[0] = i; j--;) B[i - j] = A[j];
+						tryswaps(&b, f | k, s);
+					}
+					d--;
+				}
+
+				int main(void) {
+					deck x;
+					memset(&x, -1, sizeof(x));
+					x.v[0] = 0;
+
+					for (n = 1; n < 13; n++) {
+						tryswaps(&x, 1, n - 1);
+						printf("%2d: %d\n", n, best[n]);
+					}
+
+					return 0;
+				}
+						"""
 
 		checkResults(code)
 	}
