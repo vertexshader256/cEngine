@@ -87,15 +87,15 @@ object Compiler {
 		state.continueLabelStack = state.continueLabelStack.tail
 
 		val iterExpr = if iter != null then List(iter) else List()
-		val execution = (contents :+ continueLabel) ++ iterExpr
 
 		val jmpnz = if forStatement.getConditionExpression != null then
 			List(JmpToLabelIfNotZero(forStatement.getConditionExpression, breakLabel))
 		else
 			List()
 
-		val start = PushVariableStack() +: init :+ beginLabel
-		val end = List(JmpLabel(beginLabel), breakLabel, PopVariableStack())
+		val execution = List(PushVariableStack()) ++ contents ++ List(PopVariableStack(), continueLabel) ++ iterExpr
+		val start = init :+ beginLabel
+		val end = List(JmpLabel(beginLabel), breakLabel)
 
 		start ++ jmpnz ++ execution ++ end
 	}
