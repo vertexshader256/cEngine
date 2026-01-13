@@ -30,7 +30,11 @@ object Mathh {
 
 		scalaFunctions += new EmulatedFunction("sqrt") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val num = formattedOutputParams(0).value.asInstanceOf[Double]
+				val num = formattedOutputParams(0).value match {
+					case float: Float => float
+					case double: Double => double.toFloat
+				}
+
 				Some(RValue(Math.sqrt(num)))
 			}
 		}
