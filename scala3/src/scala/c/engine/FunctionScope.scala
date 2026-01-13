@@ -9,12 +9,21 @@ import scala.c.engine.models.*
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-class VariableScope {
+class VariableScope(val parent: VariableScope) {
 	var varMap = mutable.LinkedHashMap[String, Variable]() // linked to keep deterministic
+
+	def resolveId(name: IASTName): Option[Variable] = {
+		varMap.get(name.toString).orElse {
+			if parent != null then
+				parent.resolveId(name)
+			else
+				None
+		}
+	}
 }
 
 class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, val returnType: IType) {
-	private val variableScopes = mutable.Stack[VariableScope](VariableScope())
+	private var currentVariableScope = VariableScope(null)
 
 	private val stack = mutable.Stack[ValueType]()
 	var startingStackAddr = 0
@@ -25,27 +34,27 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 	var state: State = _
 
 	def pushVariableScope(): Unit = {
-		variableScopes.push(VariableScope())
+		val newScope = VariableScope(currentVariableScope)
+		currentVariableScope = newScope
 	}
 
 	def popVariableScope(): Unit = {
-		variableScopes.pop()
+		if currentVariableScope.parent != null then
+			currentVariableScope = currentVariableScope.parent
 	}
 
 	def resolveId(name: IASTName): Option[Variable] = {
 		staticVars.find {
 			_.name == name.toString
 		}.orElse {
-			variableScopes.flatMap { scope =>
-					scope.varMap.get(name.toString)
-				}.headOption
+			currentVariableScope.resolveId(name)
 				.orElse(if (parent != null) parent.resolveId(name) else None)
 				.orElse(Some(state.functionPointers(name.toString)))
 		}
 	}
 
 	def addVariable(variable: Variable): Unit = {
-		variableScopes.head.varMap += variable.name -> variable
+		currentVariableScope.varMap += variable.name -> variable
 	}
 
 	def addVariable(name: String, theType: IType): Variable = {
@@ -53,7 +62,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 			_.name == name
 		}.getOrElse {
 			val newVar = Variable(name, state, theType)
-			variableScopes.head.varMap += newVar.name -> newVar
+			currentVariableScope.varMap += newVar.name -> newVar
 			newVar
 		}
 	}
@@ -65,11 +74,9 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 		if (parent == null) { // this extern is not in a function
 			result = addVariable(name, theType)
 		} else {
-			parent.variableScopes.foreach { scope =>
-				if (scope.varMap.contains(name) && result == null) {
-					variableScopes.head.varMap += name -> scope.varMap(name)
-					result = scope.varMap(name)
-				}
+			if (parent.currentVariableScope.varMap.contains(name) && result == null) {
+				currentVariableScope.varMap += name -> parent.currentVariableScope.varMap(name)
+				result = parent.currentVariableScope.varMap(name)
 			}
 		}
 
@@ -81,7 +88,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 			_.name == name
 		}.getOrElse {
 			val newVar = Variable(name, state, theType, initVals)
-			variableScopes.head.varMap += newVar.name -> newVar
+			currentVariableScope.varMap += newVar.name -> newVar
 			newVar
 		}
 	}
@@ -124,7 +131,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 
 	def init(nodes: List[IASTNode], theState: State, shouldReset: Boolean): Unit = {
 		if (shouldReset) {
-			variableScopes.head.varMap.clear()
+			currentVariableScope.varMap.clear()
 		}
 
 		stack.clear()
