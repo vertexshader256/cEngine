@@ -1,6 +1,17 @@
 package scala.c.engine
 
 class VariableTest extends StandardTest {
+	"initializing a static variable with a list" should "print the correct results" in {
+		val code =
+			"""
+				void main() {
+					static char *dig[3] = { "00", "01", "10" };
+					printf("%s\n", dig[0]);
+				}
+				"""
+		checkResults(code)
+	}
+
 	"make sure variables can shadow" should "print the correct results" in {
 		val code =
 			"""

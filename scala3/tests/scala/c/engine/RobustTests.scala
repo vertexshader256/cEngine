@@ -324,6 +324,11 @@ class RobustTest extends StandardTest {
 						}
 				}
 
+				void increment(struct Zeckendorf *self) {
+						self->dVal++;
+						a(self, 0);
+				}
+
 				void b(struct Zeckendorf *self, int pos) {
 						void increment(struct Zeckendorf *); // forward declare
 
@@ -370,10 +375,7 @@ class RobustTest extends StandardTest {
 						return z;
 				}
 
-				void increment(struct Zeckendorf *self) {
-						self->dVal++;
-						a(self, 0);
-				}
+
 
 				void addAssign(struct Zeckendorf *self, struct Zeckendorf rhs) {
 						int gn;
