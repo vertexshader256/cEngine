@@ -17,14 +17,14 @@ object Stringh {
 		//                  <string.h> functions                       //
 		/////////////////////////////////////////////////////////////////
 
-		scalaFunctions += new Function("isalpha", false) {
+		scalaFunctions += new EmulatedFunction("isalpha") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val theChar = formattedOutputParams.head.value.asInstanceOf[char].toChar
 				Some(RValue(if (theChar.isLetter) 1 else 0))
 			}
 		}
 
-		scalaFunctions += new Function("isdigit", false) {
+		scalaFunctions += new EmulatedFunction("isdigit") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val theChar = formattedOutputParams.head.value match {
 					case c: char => c.toChar
@@ -34,7 +34,7 @@ object Stringh {
 			}
 		}
 
-		scalaFunctions += new Function("isxdigit", false) {
+		scalaFunctions += new EmulatedFunction("isxdigit") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val theChar = formattedOutputParams.head.value match {
 					case c: char => c.toChar
@@ -44,7 +44,7 @@ object Stringh {
 			}
 		}
 
-		scalaFunctions += new Function("tolower", false) {
+		scalaFunctions += new EmulatedFunction("tolower") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val theChar = formattedOutputParams.head.value match {
 					case c: char => c.toChar
@@ -54,14 +54,14 @@ object Stringh {
 			}
 		}
 
-		scalaFunctions += new Function("toupper", false) {
+		scalaFunctions += new EmulatedFunction("toupper") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val theChar = formattedOutputParams.head.value.asInstanceOf[char].toChar
 				Some(RValue(theChar.toUpper.toByte))
 			}
 		}
 
-		scalaFunctions += new Function("isupper", false) {
+		scalaFunctions += new EmulatedFunction("isupper") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val theChar = formattedOutputParams.head.value match {
 					case int: int => int.toChar
@@ -71,7 +71,7 @@ object Stringh {
 			}
 		}
 
-		scalaFunctions += new Function("isspace", false) {
+		scalaFunctions += new EmulatedFunction("isspace") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val theChar = formattedOutputParams.head.value match {
 					case c: char => c.toChar
@@ -81,7 +81,7 @@ object Stringh {
 			}
 		}
 
-		scalaFunctions += new Function("memmove", false) {
+		scalaFunctions += new EmulatedFunction("memmove") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val dst = formattedOutputParams(0).value.asInstanceOf[Int]
 				val src = formattedOutputParams(1).value.asInstanceOf[Int]
@@ -92,7 +92,7 @@ object Stringh {
 			}
 		}
 
-		scalaFunctions += new Function("memcpy", false) {
+		scalaFunctions += new EmulatedFunction("memcpy") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val numBytes = formattedOutputParams(0).value match {
 					case int: Int => int
@@ -106,7 +106,7 @@ object Stringh {
 			}
 		}
 
-		scalaFunctions += new Function("memset", false) {
+		scalaFunctions += new EmulatedFunction("memset") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val numBytes = formattedOutputParams(0).value match {
 					case int: Int => int
@@ -120,7 +120,7 @@ object Stringh {
 			}
 		}
 
-		scalaFunctions += new Function("strlen", false) {
+		scalaFunctions += new EmulatedFunction("strlen") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val straddy = formattedOutputParams.head.value match {
 					//case AddressInfo(addr, _) => addr.value
@@ -143,7 +143,7 @@ object Stringh {
 			}
 		}
 
-		scalaFunctions += new Function("strchr", false) {
+		scalaFunctions += new EmulatedFunction("strchr") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val char = formattedOutputParams(0).value match {
 					case int: Int => int
@@ -163,7 +163,7 @@ object Stringh {
 			}
 		}
 
-		scalaFunctions += new Function("strncpy", false) {
+		scalaFunctions += new EmulatedFunction("strncpy") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val num = formattedOutputParams(0).value.asInstanceOf[Int]
 				val src = formattedOutputParams(1).value.asInstanceOf[Int]
@@ -176,7 +176,7 @@ object Stringh {
 			}
 		}
 
-		scalaFunctions += new Function("strcpy", false) {
+		scalaFunctions += new EmulatedFunction("strcpy") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val src = formattedOutputParams(0).value.asInstanceOf[Int]
 				val dst = formattedOutputParams(1).value.asInstanceOf[Int]
@@ -188,7 +188,7 @@ object Stringh {
 			}
 		}
 
-		scalaFunctions += new Function("strcmp", false) {
+		scalaFunctions += new EmulatedFunction("strcmp") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val straddy = formattedOutputParams(0).value.asInstanceOf[Int]
 				val straddy2 = formattedOutputParams(1).value.asInstanceOf[Int]
@@ -201,7 +201,7 @@ object Stringh {
 			}
 		}
 
-		scalaFunctions += new Function("strcat", false) {
+		scalaFunctions += new EmulatedFunction("strcat") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val dstAddr = formattedOutputParams(1).value.asInstanceOf[Int]
 				val stringToAppendAddr = formattedOutputParams(0).value.asInstanceOf[Int]
@@ -216,7 +216,7 @@ object Stringh {
 			}
 		}
 
-		scalaFunctions += new Function("offsetof", false) {
+		scalaFunctions += new EmulatedFunction("offsetof") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val straddy = formattedOutputParams(0).value.asInstanceOf[Int]
 				val straddy2 = formattedOutputParams(1).value.asInstanceOf[Int]
@@ -230,7 +230,7 @@ object Stringh {
 			}
 		}
 
-		scalaFunctions += new Function("memcmp", false) {
+		scalaFunctions += new EmulatedFunction("memcmp") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val numBytes = formattedOutputParams(0).value match {
 					case long: Long => long.toInt

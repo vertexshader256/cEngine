@@ -17,19 +17,19 @@ object Stdlibh {
 		//                  <stdlib.h> functions                       //
 		/////////////////////////////////////////////////////////////////
 
-		scalaFunctions += new Function("free", false) {
+		scalaFunctions += new EmulatedFunction("free") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				None
 			}
 		}
 
-		scalaFunctions += new Function("rand", false) {
+		scalaFunctions += new EmulatedFunction("rand") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				Some(RValue(Math.abs(scala.util.Random.nextInt())))
 			}
 		}
 
-		scalaFunctions += new Function("calloc", false) {
+		scalaFunctions += new EmulatedFunction("calloc") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val numBlocks = formattedOutputParams(0).value.asInstanceOf[Int]
 				val blockSize = formattedOutputParams(1).value.asInstanceOf[Int]
@@ -42,7 +42,7 @@ object Stdlibh {
 			}
 		}
 
-		scalaFunctions += new Function("malloc", false) {
+		scalaFunctions += new EmulatedFunction("malloc") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val returnVal = formattedOutputParams.head.value match {
 					case long: Long => state.allocateHeapSpace(long.toInt)
@@ -52,13 +52,13 @@ object Stdlibh {
 			}
 		}
 
-		scalaFunctions += new Function("realloc", false) {
+		scalaFunctions += new EmulatedFunction("realloc") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				Some(RValue(state.allocateHeapSpace(formattedOutputParams.head.value.asInstanceOf[Long].toInt)))
 			}
 		}
 
-		scalaFunctions += new Function("atoi", false) {
+		scalaFunctions += new EmulatedFunction("atoi") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(using state)
 				Some(RValue(str.toInt))

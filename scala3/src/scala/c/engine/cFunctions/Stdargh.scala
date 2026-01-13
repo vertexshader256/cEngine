@@ -18,7 +18,7 @@ object Stdargh {
 		//                  <stdarg.h> functions                       //
 		/////////////////////////////////////////////////////////////////
 
-		scalaFunctions += new Function("va_arg", false) {
+		scalaFunctions += new EmulatedFunction("va_arg") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val argTypeStr = formattedOutputParams(0).value.asInstanceOf[Int]
 
@@ -42,7 +42,7 @@ object Stdargh {
 			}
 		}
 
-		scalaFunctions += new Function("va_start", false) {
+		scalaFunctions += new EmulatedFunction("va_start") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val lastNamedArgAddr = formattedOutputParams(0).value.asInstanceOf[Int]
 				varArgStartingAddr = (lastNamedArgAddr + 4) +: varArgStartingAddr
@@ -50,7 +50,7 @@ object Stdargh {
 			}
 		}
 
-		scalaFunctions += new Function("va_end", false) {
+		scalaFunctions += new EmulatedFunction("va_end") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				varArgStartingAddr = varArgStartingAddr.tail
 				None

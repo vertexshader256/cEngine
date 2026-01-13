@@ -17,7 +17,7 @@ object Functions {
 
 	val scalaFunctions = ListBuffer[Function]()
 
-	scalaFunctions += new Function("_assert", false) {
+	scalaFunctions += new EmulatedFunction("_assert") {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val addy = formattedOutputParams(0).value.asInstanceOf[Int]
 			println(Utils.readString(addy)(using state) + " FAILED")
@@ -31,6 +31,9 @@ object Functions {
 	Stringh.addFunctions(scalaFunctions)
 	Stdargh.addFunctions(scalaFunctions)
 }
+
+abstract class RealFunction(name: String) extends Function(name, true)
+abstract class EmulatedFunction(name: String) extends Function(name, false)
 
 // 'isNative' implies the function is in C, not Scala
 abstract class Function(val name: String, val isNative: Boolean) {

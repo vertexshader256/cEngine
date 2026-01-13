@@ -17,7 +17,7 @@ object Mathh {
 		//                   <math.h> functions                        //
 		/////////////////////////////////////////////////////////////////
 
-		scalaFunctions += new Function("modf", false) {
+		scalaFunctions += new EmulatedFunction("modf") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val fraction = formattedOutputParams(0).value.asInstanceOf[Double]
 				val intPart = formattedOutputParams(1).value.asInstanceOf[Int]
@@ -28,124 +28,124 @@ object Mathh {
 			}
 		}
 
-		scalaFunctions += new Function("sqrt", false) {
+		scalaFunctions += new EmulatedFunction("sqrt") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val num = formattedOutputParams(0).value.asInstanceOf[Double]
 				Some(RValue(Math.sqrt(num)))
 			}
 		}
 
-		scalaFunctions += new Function("fabs", false) {
+		scalaFunctions += new EmulatedFunction("fabs") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				Some(RValue(Math.abs(formattedOutputParams.last.value.asInstanceOf[Double])))
 			}
 		}
 
-		scalaFunctions += new Function("sin", false) {
+		scalaFunctions += new EmulatedFunction("sin") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				Some(RValue(Math.sin(formattedOutputParams.last.value.asInstanceOf[Double])))
 			}
 		}
 
-		scalaFunctions += new Function("cos", false) {
+		scalaFunctions += new EmulatedFunction("cos") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				Some(RValue(Math.cos(formattedOutputParams.last.value.asInstanceOf[Double])))
 			}
 		}
 
-		scalaFunctions += new Function("tan", false) {
+		scalaFunctions += new EmulatedFunction("tan") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				Some(RValue(Math.tan(formattedOutputParams.last.value.asInstanceOf[Double])))
 			}
 		}
 
-		scalaFunctions += new Function("acos", false) {
+		scalaFunctions += new EmulatedFunction("acos") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				Some(RValue(Math.acos(formattedOutputParams.last.value.asInstanceOf[Double])))
 			}
 		}
 
-		scalaFunctions += new Function("cosh", false) {
+		scalaFunctions += new EmulatedFunction("cosh") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				Some(RValue(Math.cosh(formattedOutputParams.last.value.asInstanceOf[Double])))
 			}
 		}
 
-		scalaFunctions += new Function("asin", false) {
+		scalaFunctions += new EmulatedFunction("asin") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				Some(RValue(Math.asin(formattedOutputParams.last.value.asInstanceOf[Double])))
 			}
 		}
 
-		scalaFunctions += new Function("sinh", false) {
+		scalaFunctions += new EmulatedFunction("sinh") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				Some(RValue(Math.sinh(formattedOutputParams.last.value.asInstanceOf[Double])))
 			}
 		}
 
-		scalaFunctions += new Function("atan", false) {
+		scalaFunctions += new EmulatedFunction("atan") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				Some(RValue(Math.atan(formattedOutputParams.last.value.asInstanceOf[Double])))
 			}
 		}
 
-		scalaFunctions += new Function("tanh", false) {
+		scalaFunctions += new EmulatedFunction("tanh") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				Some(RValue(Math.tanh(formattedOutputParams.last.value.asInstanceOf[Double])))
 			}
 		}
 
-		scalaFunctions += new Function("atan2", false) {
+		scalaFunctions += new EmulatedFunction("atan2") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				Some(RValue(Math.atan2(formattedOutputParams.last.value.asInstanceOf[Double],
 					formattedOutputParams.head.value.asInstanceOf[Double])))
 			}
 		}
 
-		scalaFunctions += new Function("log10f", false) {
+		scalaFunctions += new EmulatedFunction("log10f") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				Some(RValue(Math.log10(formattedOutputParams.last.value.asInstanceOf[Double])))
 			}
 		}
 
-		scalaFunctions += new Function("exp", false) {
+		scalaFunctions += new EmulatedFunction("exp") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				Some(RValue(Math.exp(formattedOutputParams.last.value.asInstanceOf[Double])))
 			}
 		}
 
-		scalaFunctions += new Function("ceil", false) {
+		scalaFunctions += new EmulatedFunction("ceil") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				Some(RValue(Math.ceil(formattedOutputParams.last.value.asInstanceOf[Double])))
 			}
 		}
 
-		scalaFunctions += new Function("floor", false) {
+		scalaFunctions += new EmulatedFunction("floor") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				Some(RValue(Math.floor(formattedOutputParams.last.value.asInstanceOf[Double])))
 			}
 		}
 
-		scalaFunctions += new Function("log", false) {
+		scalaFunctions += new EmulatedFunction("log") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				Some(RValue(Math.log(formattedOutputParams.last.value.asInstanceOf[Double])))
 			}
 		}
 
-		scalaFunctions += new Function("log10", false) {
+		scalaFunctions += new EmulatedFunction("log10") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				Some(RValue(Math.log10(formattedOutputParams.last.value.asInstanceOf[Double])))
 			}
 		}
 
-		scalaFunctions += new Function("pow", false) {
+		scalaFunctions += new EmulatedFunction("pow") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				Some(RValue(Math.pow(formattedOutputParams.last.value.asInstanceOf[Double],
 					formattedOutputParams.head.value.asInstanceOf[Double])))
 			}
 		}
 
-		scalaFunctions += new Function("fmod", false) {
+		scalaFunctions += new EmulatedFunction("fmod") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val first = TypeHelper.cast(formattedOutputParams.last.value, TypeHelper.doubleType).value.asInstanceOf[Double]
 				val second = TypeHelper.cast(formattedOutputParams.head.value, TypeHelper.doubleType).value.asInstanceOf[Double]
@@ -154,7 +154,7 @@ object Mathh {
 			}
 		}
 
-		scalaFunctions += new Function("sscanf", false) {
+		scalaFunctions += new EmulatedFunction("sscanf") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val resultBuffer = formattedOutputParams.last.value.asInstanceOf[Int]
 
@@ -168,7 +168,7 @@ object Mathh {
 			}
 		}
 
-		scalaFunctions += new Function("printf", false) {
+		scalaFunctions += new EmulatedFunction("printf") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 
 				val result = Printf.printf(formattedOutputParams, state)

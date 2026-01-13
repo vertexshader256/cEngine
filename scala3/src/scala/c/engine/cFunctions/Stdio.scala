@@ -18,7 +18,7 @@ object Stdio {
 		/////////////////////////////////////////////////////////////////
 
 		//fcvtbuf(double arg, int ndigits, int *decpt, int *sign, char *buf)
-		scalaFunctions += new Function("fcvtbuf", false) {
+		scalaFunctions += new EmulatedFunction("fcvtbuf") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				//val buf = formattedOutputParams(0).value.asInstanceOf[Int]
 				//val sign = formattedOutputParams(1).value.asInstanceOf[Int]
@@ -53,7 +53,7 @@ object Stdio {
 			}
 		}
 
-		scalaFunctions += new Function("putchar", false) {
+		scalaFunctions += new EmulatedFunction("putchar") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val char = formattedOutputParams(0).value match {
 					case int: Int => int.toChar
@@ -66,7 +66,7 @@ object Stdio {
 			}
 		}
 
-		scalaFunctions += new Function("puts", false) {
+		scalaFunctions += new EmulatedFunction("puts") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val string = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(using state)
 				val tabsReplaced = string.replace("\\t", "\t")
@@ -80,7 +80,7 @@ object Stdio {
 			}
 		}
 
-		scalaFunctions += new Function("fopen", false) {
+		scalaFunctions += new EmulatedFunction("fopen") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val path = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(using state)
 				val mode = Utils.readString(formattedOutputParams.head.value.asInstanceOf[Int])(using state)
@@ -99,7 +99,7 @@ object Stdio {
 		}
 
 		// a return value of 0 indicates the file was successfully deleted
-		scalaFunctions += new Function("remove", false) {
+		scalaFunctions += new EmulatedFunction("remove") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val path = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(using state)
 				val file = File(path)
@@ -113,7 +113,7 @@ object Stdio {
 			}
 		}
 
-		scalaFunctions += new Function("fgets", false) {
+		scalaFunctions += new EmulatedFunction("fgets") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val resultBuffer = formattedOutputParams(2).value.asInstanceOf[Int]
 				val size = formattedOutputParams(1).value.asInstanceOf[Int]
@@ -141,7 +141,7 @@ object Stdio {
 			}
 		}
 
-		scalaFunctions += new Function("getc", false) {
+		scalaFunctions += new EmulatedFunction("getc") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val fp = formattedOutputParams(0).asInstanceOf[FileRValue]
 
@@ -156,7 +156,7 @@ object Stdio {
 		}
 
 		// returns 0 on success
-		scalaFunctions += new Function("fclose", false) {
+		scalaFunctions += new EmulatedFunction("fclose") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val fp = formattedOutputParams.last.asInstanceOf[FileRValue]
 				fp.close()
@@ -164,7 +164,7 @@ object Stdio {
 			}
 		}
 
-		scalaFunctions += new Function("fprintf", false) {
+		scalaFunctions += new EmulatedFunction("fprintf") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val fp = formattedOutputParams.last.asInstanceOf[FileRValue]
 
@@ -174,7 +174,7 @@ object Stdio {
 			}
 		}
 
-		scalaFunctions += new Function("sprintf", false) {
+		scalaFunctions += new EmulatedFunction("sprintf") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val strAddr = formattedOutputParams.last.value.asInstanceOf[Int]
 
@@ -185,7 +185,7 @@ object Stdio {
 		}
 
 		// TODO: Complete this
-		scalaFunctions += new Function("fscanf", false) {
+		scalaFunctions += new EmulatedFunction("fscanf") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				//val fp = formattedOutputParams(3).asInstanceOf[FileRValue]
 				//val dst = formattedOutputParams(1).value.asInstanceOf[Int]
@@ -196,7 +196,7 @@ object Stdio {
 			}
 		}
 
-		scalaFunctions += new Function("fread", false) {
+		scalaFunctions += new EmulatedFunction("fread") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val resultBuffer = formattedOutputParams(3).value.asInstanceOf[Int]
 				val size = formattedOutputParams(2).value.asInstanceOf[Int]
@@ -208,7 +208,7 @@ object Stdio {
 			}
 		}
 
-		scalaFunctions += new Function("fwrite", false) {
+		scalaFunctions += new EmulatedFunction("fwrite") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val buffer = formattedOutputParams(3).value.asInstanceOf[Int] // write this to fp
 				val size = formattedOutputParams(2).value.asInstanceOf[Int]
