@@ -167,6 +167,7 @@ object TypeHelper {
 		case typedef: ITypedef => isPointer(typedef.getType)
 		case ptrType: IPointerType => true
 		case arrayType: IArrayType => isPointer(arrayType.getType)
+		case enumeration: CEnumeration => false
 	}
 
 	@tailrec
@@ -189,6 +190,7 @@ object TypeHelper {
 		case arrayType: IArrayType => resolveBasic(arrayType.getType)
 		case qualType: IQualifierType => resolveBasic(qualType.getType)
 		case fcn: IFunctionType => state.pointerType
+		case enumeration: CEnumeration => TypeHelper.intType
 	}
 
 	def getPointerType(theType: IType): IType = theType match {

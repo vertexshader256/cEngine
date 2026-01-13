@@ -16,6 +16,7 @@ object Structures {
 		case basicType: IBasicType => false
 		case typedef: ITypedef => isStructure(typedef.getType)
 		case arrayType: IArrayType => isStructure(arrayType.getType)
+		case enumeration: CEnumeration => false
 	}
 
 	def copyStructure(src: Variable, state: State): Variable = {
