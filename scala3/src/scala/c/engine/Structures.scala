@@ -19,10 +19,10 @@ object Structures {
 		case enumeration: CEnumeration => false
 	}
 
-	def copyStructure(src: Variable, state: State): Variable = {
+	def copyStructure(src: Variable, newName: String, state: State): Variable = {
 		val structType = src.theType.asInstanceOf[CStructure]
 		val newAddress = state.Stack.insertIndex
-		val resultCopy = Variable(src.name, state, src.theType) // space is allocated now
+		val resultCopy = Variable(newName, state, src.theType) // space is allocated now
 
 		//println("Copy size: " + resultCopy.sizeof)
 		//println("Source structure address: " + src.address)

@@ -902,6 +902,7 @@ class StructTest extends StandardTest {
 				void main()
 				{
 					struct testStruct x;
+			    x.d = 23453;
 					fcn(x);
 					printf("done\n");
 				}
