@@ -17,6 +17,6 @@ case class Structure(state: State, aType: IType, sizeof: Int) extends LValue {
 	var isInitialized = false
 
 	override def toString = {
-		"Structure(" + name + ", " + address + ", " + theType.getClass.getSimpleName + ")"
+		"Structure(size: " + sizeof + ", address: " + address + ", " + theType.getClass.getSimpleName + ")"
 	}
 }
