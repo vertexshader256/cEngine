@@ -911,6 +911,46 @@ class StructTest extends StandardTest {
 		checkResults(code)
 	}
 
+	"passing a struct as the result of a function into function" should "print the correct results" in {
+		val code =
+			"""
+					struct Zeckendorf {
+						int dVal, dLen;
+					};
+
+ 					struct Zeckendorf makeZeckendorf(char *x) {
+						struct Zeckendorf z = { 0, 0 };
+						int i = strlen(x) - 1;
+			      printf("i: %d\n", i);
+						int q = 1;
+
+						z.dLen = i / 2;
+			      printf("z.dLen: %d\n", z.dLen);
+						while (i >= 0) {
+								z.dVal += (x[i] - '0') * q;
+			          printf("z.dLen: %d\n", z.dLen);
+								q *= 2;
+								i--;
+						}
+
+            printf("final z.dLen: %d\n", z.dLen);
+						return z;
+				}
+
+					void fcn(struct Zeckendorf varName){
+						printf("%d\n", varName.dVal);
+					}
+
+					void main()
+					{
+						fcn(makeZeckendorf("10"));
+						printf("done\n");
+					}
+					"""
+
+		checkResults(code)
+	}
+
 	"verifying a pointer to a structure is not copied before being passed to a function" should "print the correct results" in {
 		val code =
 			"""
