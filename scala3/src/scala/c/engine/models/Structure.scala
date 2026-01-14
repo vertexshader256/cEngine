@@ -9,6 +9,6 @@ case class Structure(bytes: Array[Byte], aType: IType) {
 	val sizeof = bytes.length
 
 	override def toString = {
-		"Structure(size: " + sizeof + ", address: " + address + ", " + theType.getClass.getSimpleName + ")"
+		"Structure(size: " + sizeof + ", " + theType.getClass.getSimpleName + ")"
 	}
 }
