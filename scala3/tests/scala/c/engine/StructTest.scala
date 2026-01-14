@@ -853,7 +853,7 @@ class StructTest extends StandardTest {
 		checkResults(code)
 	}
 
-	"verifying a structure is copied before being passed to a function" should "print the correct results" in {
+	"verifying a typedef structure is copied before being passed to a function" should "print the correct results" in {
 		val code =
 			"""
 				#include<stdio.h>
@@ -884,6 +884,28 @@ class StructTest extends StandardTest {
 				}
 
 					"""
+
+		checkResults(code)
+	}
+
+	"simple passing a struct by value into function" should "print the correct results" in {
+		val code =
+			"""
+				struct testStruct{
+					int d;
+				};
+
+				void fcn(struct testStruct varName){
+					printf("%d\n", varName.d);
+				}
+
+				void main()
+				{
+					struct testStruct x;
+					fcn(x);
+					printf("done\n");
+				}
+				"""
 
 		checkResults(code)
 	}
