@@ -911,6 +911,36 @@ class StructTest extends StandardTest {
 		checkResults(code)
 	}
 
+	"creating a structure from a function" should "print the correct results" in {
+		val code =
+			"""
+					struct testStruct{
+						int d, e, f;
+					};
+
+					struct testStruct returnStruct(){
+						struct testStruct ee;
+			      ee.d = 10;
+			      ee.f = 20;
+			      ee.e = 30;
+						return ee;
+					}
+
+					void printStruct(struct testStruct ff) {
+						printf("%d %d %d\n", ff.d, ff.e, ff.f);
+					}
+
+					void main()
+					{
+						struct testStruct x;
+						x = returnStruct();
+						printStruct(x);
+					}
+					"""
+
+		checkResults(code)
+	}
+
 	"passing a struct as the result of a function into function" should "print the correct results" in {
 		val code =
 			"""
