@@ -55,8 +55,9 @@ object Ast {
 					step(fcn)
 				else if fcn.getNestedDeclarator != null then
 					step(fcn.getNestedDeclarator)
-				else
+				else {
 					// this is a function forward declaration.  do nothing
+				}
 			case x => step(x)
 		}
 
