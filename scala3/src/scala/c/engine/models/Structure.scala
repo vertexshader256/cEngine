@@ -4,7 +4,7 @@ import org.eclipse.cdt.core.dom.ast.{IArrayType, IType}
 
 import scala.c.engine.*
 
-case class Structure(name: String, state: State, aType: IType, sizeof: Int) extends LValue {
+case class Structure(state: State, aType: IType, sizeof: Int) extends LValue {
 
 	val theType = TypeHelper.stripSyntheticTypeInfo(aType)
 	val rawType = aType
