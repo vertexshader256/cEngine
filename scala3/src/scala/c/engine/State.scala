@@ -170,7 +170,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		zipped.foreach { (arg, param) =>
 			arg match {
 				case variable: Variable if variable.aType.isInstanceOf[CStructure] =>
-					val copy = Structures.copyStructure(arg.asInstanceOf[Variable], param.getName, this)
+					val copy = Structures.copyStructure(variable.aType.asInstanceOf[CStructure], variable.address, param.getName, this)
 					context.addVariable(copy)
 				case _ =>
 					val resolvedArg = TypeHelper.toRValue(arg)(using this)
