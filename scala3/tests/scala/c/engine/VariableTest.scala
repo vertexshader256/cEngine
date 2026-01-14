@@ -6,7 +6,7 @@ class VariableTest extends StandardTest {
 			"""
 				void main() {
 					static char *dig[3] = { "00", "01", "10" };
-					printf("%s\n", dig[0]);
+					printf("%s %s %s\n", dig[0], dig[1], dig[2]);
 				}
 				"""
 		checkResults(code)
