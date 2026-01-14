@@ -53,8 +53,10 @@ object Ast {
 			case fcn: IASTFunctionDeclarator =>
 				if !isWithinFunction || fcn.getInitializer != null then
 					step(fcn)
-				else
+				else if fcn.getNestedDeclarator != null then
 					step(fcn.getNestedDeclarator)
+				else
+					// this is a function forward declaration.  do nothing
 			case x => step(x)
 		}
 
