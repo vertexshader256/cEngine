@@ -941,14 +941,14 @@ class StructTest extends StandardTest {
 		checkResults(code)
 	}
 
-	"passing a struct as the result of a function into function" should "print the correct results" in {
+	"returning a struct from a function which has a parameter" should "print the correct results" in {
 		val code =
 			"""
 					struct TestStruct {
 						int dVal, dLen;
 					};
 
- 					struct TestStruct makeTestStruct(char *x) {
+ 					struct TestStruct makeTestStruct(char x) {
 						struct TestStruct z = { 15, 25 };
             printf("%d %d\n", z.dVal, z.dLen);
 						return z;
@@ -960,7 +960,7 @@ class StructTest extends StandardTest {
 
 					void main()
 					{
-						fcn(makeTestStruct("10"));
+						fcn(makeTestStruct('a'));
 						printf("done\n");
 					}
 					"""
