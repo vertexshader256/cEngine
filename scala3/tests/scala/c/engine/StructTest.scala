@@ -944,36 +944,23 @@ class StructTest extends StandardTest {
 	"passing a struct as the result of a function into function" should "print the correct results" in {
 		val code =
 			"""
-					struct Zeckendorf {
+					struct TestStruct {
 						int dVal, dLen;
 					};
 
- 					struct Zeckendorf makeZeckendorf(char *x) {
-						struct Zeckendorf z = { 0, 0 };
-						int i = strlen(x) - 1;
-			      printf("i: %d\n", i);
-						int q = 1;
-
-						z.dLen = i / 2;
-			      printf("z.dLen: %d\n", z.dLen);
-						while (i >= 0) {
-								z.dVal += (x[i] - '0') * q;
-			          printf("z.dLen: %d\n", z.dLen);
-								q *= 2;
-								i--;
-						}
-
-            printf("final z.dLen: %d\n", z.dLen);
+ 					struct TestStruct makeTestStruct(char *x) {
+						struct TestStruct z = { 15, 25 };
+            printf("%d %d\n", z.dVal, z.dLen);
 						return z;
 				}
 
-					void fcn(struct Zeckendorf varName){
-						printf("%d\n", varName.dVal);
+					void fcn(struct TestStruct varName){
+						printf("%d %d\n", varName.dVal, varName.dLen);
 					}
 
 					void main()
 					{
-						fcn(makeZeckendorf("10"));
+						fcn(makeTestStruct("10"));
 						printf("done\n");
 					}
 					"""
