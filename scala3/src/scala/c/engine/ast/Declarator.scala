@@ -75,7 +75,7 @@ object Declarator {
 		nameBinding match
 			case vari: IVariable =>
 				val theType = TypeHelper.stripSyntheticTypeInfo(vari.getType)
-				val variable = state.context.addVariable(name.toString, theType)
+				val variable = state.context.addVariable(name, theType)
 				Ast.step(fcnDec.getInitializer)
 				variable.setValue(TypeHelper.toRValue(state.context.popStack))
 	}
@@ -141,7 +141,7 @@ object Declarator {
 			case array: CArrayType if dimensions.nonEmpty => createdSizedArrayType(array, dimensions.reverse)
 			case _ => theType
 
-		state.context.addVariable(name.toString, aType)
+		state.context.addVariable(name, aType)
 	}
 
 	private def processList(theType: IType, list: CASTInitializerList)(implicit state: State): List[RValue] = {
@@ -166,7 +166,7 @@ object Declarator {
 			case _ =>
 				processList(theType, init.asInstanceOf[CASTInitializerList])
 
-		state.context.addVariable(name.toString, theType, values)
+		state.context.addVariable(name, theType, values)
 	}
 
 	private def processArrayDecl(arrayDecl: IASTArrayDeclarator)(implicit state: State): Unit = {
@@ -191,12 +191,12 @@ object Declarator {
 					// e.g. char str[] = "Hello!\n";
 					List(Option(arrayDecl.getInitializer)).flatten.foreach(Ast.step)
 					val initString = state.context.popStack.asInstanceOf[StringLiteral].value
-					state.createStringArrayVariable(name.toString, initString, stringType)
+					state.createStringArrayVariable(name, initString, stringType)
 				} else { // initializing array to address, e.g int (*ptr)[5] = &x[1];
 					Ast.step(arrayDecl.getInitializer)
 					val initVal = TypeHelper.toRValue(state.context.popStack)
 					val newArray = List(initVal)
-					state.context.addVariable(name.toString, theType, newArray)
+					state.context.addVariable(name, theType, newArray)
 				}
 			}
 		} else {
@@ -213,9 +213,9 @@ object Declarator {
 				val theType = TypeHelper.stripSyntheticTypeInfo(variable.getType)
 
 				val addedVariable = if variable.isExtern then
-					state.context.addExternVariable(name.toString, theType)
+					state.context.addExternVariable(name, theType)
 				else
-					state.context.addVariable(name.toString, theType)
+					state.context.addVariable(name, theType)
 
 				if (!addedVariable.isInitialized) {
 					decl.getInitializer match

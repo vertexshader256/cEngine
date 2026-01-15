@@ -71,11 +71,11 @@ object Ast {
 			case enumerator: CASTEnumerator =>
 				if (enumerator.getValue != null) {
 					val value = Expressions.evaluate(enumerator.getValue).get.asInstanceOf[RValue]
-					val newVar = state.context.addVariable(enumerator.getName.toString, TypeHelper.intType)
+					val newVar = state.context.addVariable(enumerator.getName, TypeHelper.intType)
 					current = value.value.asInstanceOf[Int] + 1
 					state.Stack.writeToMemory(value.value, newVar.address, TypeHelper.intType)
 				} else {
-					val newVar = state.context.addVariable(enumerator.getName.toString, TypeHelper.intType)
+					val newVar = state.context.addVariable(enumerator.getName, TypeHelper.intType)
 					state.Stack.writeToMemory(current, newVar.address, TypeHelper.intType)
 					current += 1
 				}

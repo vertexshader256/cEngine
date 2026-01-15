@@ -312,7 +312,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		RValue(strAddr, pointerType)
 	}
 
-	def createStringArrayVariable(varName: String, str: String, theType: IType): Variable = {
+	def createStringArrayVariable(varName: IASTName, str: String, theType: IType): Variable = {
 		val theStr = stripQuotes(str)
 		val translateLineFeed = theStr.replace("\\n", 10.asInstanceOf[Char].toString)
 		val withNull = (translateLineFeed.toCharArray :+ 0.toChar)
