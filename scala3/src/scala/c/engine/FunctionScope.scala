@@ -71,16 +71,6 @@ class FunctionScope(val function: Function, val parent: FunctionScope, val retur
 		currentVariableScope.addVariable(variable)
 	}
 
-	def addVariable(name: String, theType: IType): Variable = {
-		function.staticVars.find {
-			_.name == name
-		}.getOrElse {
-			val newVar = Variable(name, state, theType)
-			currentVariableScope.addVariable(newVar)
-			newVar
-		}
-	}
-
 	def addExternVariable(name: String, theType: IType): Variable = {
 		if parent == null then // this extern is not in a function
 			addVariable(name, theType)
@@ -88,7 +78,7 @@ class FunctionScope(val function: Function, val parent: FunctionScope, val retur
 			null
 	}
 
-	def addArrayVariable(name: String, theType: IType, initVals: List[RValue]): Variable = {
+	def addVariable(name: String, theType: IType, initVals: List[RValue] = List()): Variable = {
 		function.staticVars.find {
 			_.name == name
 		}.getOrElse {

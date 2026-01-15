@@ -166,7 +166,7 @@ object Declarator {
 			case _ =>
 				processList(theType, init.asInstanceOf[CASTInitializerList])
 
-		state.context.addArrayVariable(name.toString, theType, values)
+		state.context.addVariable(name.toString, theType, values)
 	}
 
 	private def processArrayDecl(arrayDecl: IASTArrayDeclarator)(implicit state: State): Unit = {
@@ -196,7 +196,7 @@ object Declarator {
 					Ast.step(arrayDecl.getInitializer)
 					val initVal = TypeHelper.toRValue(state.context.popStack)
 					val newArray = List(initVal)
-					state.context.addArrayVariable(name.toString, theType, newArray)
+					state.context.addVariable(name.toString, theType, newArray)
 				}
 			}
 		} else {

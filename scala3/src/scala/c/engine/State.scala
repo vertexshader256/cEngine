@@ -321,7 +321,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		val inferredArrayType = CArrayType(theType)
 		inferredArrayType.setModifier(CASTArrayModifier(CASTLiteralExpression(IASTLiteralExpression.lk_integer_constant, str.length.toString.toCharArray)))
 
-		val theArrayPtr = context.addArrayVariable(varName, inferredArrayType, withNull)
+		val theArrayPtr = context.addVariable(varName, inferredArrayType, withNull)
 		theArrayPtr
 	}
 
