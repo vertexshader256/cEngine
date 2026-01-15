@@ -28,6 +28,14 @@ object Declarator {
 				List(Expressions.evaluate(decl).get)
 	}
 
+	def getValuesForStaticVar(decl: IASTInitializerClause, theType: IType)(implicit state: State): List[ValueType] = {
+		theType match
+			case struct: CStructure =>
+				getValuesFromInitializer(decl, struct)
+			case _ =>
+				List(Expressions.evaluate(decl).get)
+	}
+
 	def assign(dst: LValue, srcs: List[ValueType], equals: IASTInitializerClause, op: Int)(implicit state: State): Unit = {
 		if !dst.theType.isInstanceOf[CStructure] then
 			val result = evaluate(dst, srcs.head, op) match

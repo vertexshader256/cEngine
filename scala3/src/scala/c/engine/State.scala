@@ -111,7 +111,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 							val variable = Variable(decl.getName.toString, this, vari.getType)
 							
 							if decl.getInitializer != null then
-								val initVals = Declarator.getRValues(decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause, theType)(using this)
+								val initVals = Declarator.getValuesForStaticVar(decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause, theType)(using this)
 								Declarator.assign(variable, initVals, null, op_assign)(using this)
 
 							variable.isInitialized = true
