@@ -17,10 +17,7 @@ class VariableTest extends StandardTest {
 			"""
 					void fcn() {
 						static const char *const dig[3] = { "00", "01", "10" };
-						static const char *const dig1[3] = { "", "1", "10" };
-
-						printf("%s\n", dig[1]);
-						printf("%s\n", dig1[1]);
+						printf("%s %s %s\n", dig[0], dig[1], dig[2]);
 				  }
 
 					void main() {
