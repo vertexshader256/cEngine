@@ -29,9 +29,15 @@ object Declarator {
 	}
 
 	def getValuesForStaticVar(decl: IASTInitializerClause, theType: IType)(implicit state: State): List[ValueType] = {
-		theType match
-			case struct: CStructure =>
-				getValuesFromInitializer(decl, struct)
+		decl match
+			case list: IASTInitializerList =>
+				getValuesFromList(list, theType)
+			case idExpr: IASTIdExpression =>
+				List(state.context.resolveId(idExpr.getName).get)
+			case fcnCall: IASTFunctionCallExpression =>
+				Ast.step(decl)
+				state.context.popStack
+				List()
 			case _ =>
 				List(Expressions.evaluate(decl).get)
 	}
