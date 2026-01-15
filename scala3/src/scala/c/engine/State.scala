@@ -66,9 +66,10 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		context.setAddress(0)
 	}
 
-	private def popFunctionContext = {
+	private def popFunctionContext: FunctionScope = {
 		val frame = functionContexts.pop()
 		Stack.insertIndex = frame.startingStackAddr
+		frame
 	}
 
 	def hasFunction(name: String): Boolean = functionList.exists { fcn => fcn.name == name }
@@ -241,13 +242,13 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 					newScope.run(this)
 
-					newScope.getReturnValue.map { retVal =>
+					val completedFrame = popFunctionContext
+
+					completedFrame.getReturnValue.map { retVal =>
 						val valuesToPush: Option[Array[Byte]] = retVal match
 							case structure @ LValue(_, _: CStructure) =>
 								Some(structure.toByteArray)
 							case _ => None
-
-						popFunctionContext
 
 						valuesToPush.foreach: byteArray =>
 							val newAddr = allocateSpace(byteArray.length)
@@ -255,7 +256,6 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 						retVal
 					}.orElse {
-						popFunctionContext
 						None
 					}
 				}
