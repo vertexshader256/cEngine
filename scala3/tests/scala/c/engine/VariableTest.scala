@@ -12,6 +12,24 @@ class VariableTest extends StandardTest {
 		checkResults(code)
 	}
 
+	"static variables in a function" should "print the correct results" in {
+		val code =
+			"""
+					void fcn() {
+						static const char *const dig[3] = { "00", "01", "10" };
+						static const char *const dig1[3] = { "", "1", "10" };
+
+						printf("%s\n", dig[1]);
+						printf("%s\n", dig1[1]);
+				  }
+
+					void main() {
+						fcn();
+					}
+					"""
+		checkResults(code)
+	}
+
 	"make sure variables can shadow" should "print the correct results" in {
 		val code =
 			"""
