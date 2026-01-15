@@ -67,8 +67,8 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	}
 
 	private def popFunctionContext = {
-		Stack.insertIndex = functionContexts.head.startingStackAddr
-		functionContexts.pop()
+		val frame = functionContexts.pop()
+		Stack.insertIndex = frame.startingStackAddr
 	}
 
 	def hasFunction(name: String): Boolean = functionList.exists { fcn => fcn.name == name }
@@ -159,7 +159,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	}
 
 	def writeFunctionStackFrame(fcnDec: IASTFunctionDeclarator): Unit = {
-		val numArgs = context.popStack.asInstanceOf[RValue].value.asInstanceOf[Integer]
+		val numArgs = context.popStack.asInstanceOf[RValue].value.asInstanceOf[Integer] // placed on the stack by prepareFunctionStackFrame()
 		val args = (0 until numArgs).map { _ => context.popStack }.reverse
 
 		val binding = fcnDec.getName.resolveBinding()
