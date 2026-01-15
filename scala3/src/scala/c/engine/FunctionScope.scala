@@ -9,6 +9,7 @@ import scala.c.engine.models.*
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.compiletime.uninitialized
+import scala.c.engine.models.Function
 
 class VariableScope(val parent: VariableScope) {
 	private val varMap = mutable.LinkedHashMap[String, Variable]() // linked to keep deterministic
@@ -35,7 +36,7 @@ class VariableScope(val parent: VariableScope) {
 	}
 }
 
-class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, val returnType: IType) {
+class FunctionScope(val function: Function, val parent: FunctionScope, val returnType: IType) {
 	private var currentVariableScope = VariableScope(null)
 
 	private val stack = mutable.Stack[ValueType]()
@@ -57,7 +58,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 	}
 
 	def resolveId(name: IASTName): Option[Variable] = {
-		staticVars.find {
+		function.staticVars.find {
 			_.name == name.toString
 		}.orElse {
 			currentVariableScope.resolveId(name.toString)
@@ -71,7 +72,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 	}
 
 	def addVariable(name: String, theType: IType): Variable = {
-		staticVars.find {
+		function.staticVars.find {
 			_.name == name
 		}.getOrElse {
 			val newVar = Variable(name, state, theType)
@@ -88,7 +89,7 @@ class FunctionScope(val staticVars: List[Variable], val parent: FunctionScope, v
 	}
 
 	def addArrayVariable(name: String, theType: IType, initVals: List[RValue]): Variable = {
-		staticVars.find {
+		function.staticVars.find {
 			_.name == name
 		}.getOrElse {
 			val newVar = Variable(name, state, theType, initVals)

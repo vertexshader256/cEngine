@@ -9,6 +9,7 @@ import scala.c.engine.*
 import scala.c.engine.models.*
 import scala.collection.mutable.ListBuffer
 import scala.util.Try
+import scala.c.engine.models.Function
 
 object Stdio {
 

@@ -46,7 +46,11 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	
 	Functions.scalaFunctions.foreach(addScalaFunctionDef)
 
-	pushScope(new FunctionScope(List(), null, null) {})
+	val main: Function = new Function("main", true) {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = None
+	}
+
+	pushScope(new FunctionScope(main, null, null) {})
 	
 	private def pushScope(scope: FunctionScope): Unit = {
 		functionContexts.push(scope)
@@ -57,7 +61,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	}
 
 	def parseGlobals(tUnits: List[IASTNode]): Unit = {
-		val program = new FunctionScope(List(), null, null) {}
+		val program = new FunctionScope(main, null, null) {}
 		pushScope(program)
 		program.init(tUnits, this, false)
 
@@ -188,7 +192,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	private def prepareFunctionStackFrame(scope: Option[FunctionScope], function: Function, call: IASTFunctionCallExpression): FunctionScope = {
 		val newScope = scope.getOrElse:
 			val expressionType = call.getExpressionType
-			FunctionScope(function.staticVars, functionContexts.headOption.orNull, expressionType)
+			FunctionScope(function, functionContexts.headOption.orNull, expressionType)
 
 		newScope.init(List(function.node), this, scope.isEmpty)
 

@@ -11,7 +11,11 @@ case class GccOutput(output: Seq[String], wasSuccess: Boolean)
 
 object Gcc {
 
-	val program = new FunctionScope(List(), null, null) {}
+	val main: Function = new Function("main", true) {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = None
+	}
+
+	val program = new FunctionScope(main, null, null) {}
 
 	def runCode(code: String, state: State, includePaths: Iterator[String]) = {
 		val exeCode =
