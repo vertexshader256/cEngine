@@ -173,6 +173,9 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 				case variable: Variable if variable.aType.isInstanceOf[CStructure] =>
 					val copy = Structures.copyStructure(variable.aType.asInstanceOf[CStructure], variable.address, param.getName, this)
 					context.addVariable(copy)
+				case struct: Structure =>
+					val newVar = context.addVariable(param.getName, param.getType)
+					writeDataBlock(struct.bytes, newVar.address)
 				case _ =>
 					val resolvedArg = TypeHelper.toRValue(arg)(using this)
 					val newVar = context.addVariable(param.getName, param.getType)
@@ -244,17 +247,13 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 					val completedFrame = popFunctionContext
 
-					completedFrame.getReturnValue.map { retVal =>
-						val valuesToPush: Option[Array[Byte]] = retVal match
-							case structure @ LValue(_, _: CStructure) =>
-								Some(structure.toByteArray)
-							case _ => None
-
-						valuesToPush.foreach: byteArray =>
-							val newAddr = allocateSpace(byteArray.length)
-							writeDataBlock(byteArray, newAddr)
-
-						retVal
+					completedFrame.getReturnValue.map {
+						case structure @ LValue(_, structType: CStructure) =>
+							val structBytes = structure.toByteArray
+							val newAddr = allocateSpace(structBytes.length)
+							writeDataBlock(structBytes, newAddr)
+							Structure(structBytes, structType)
+						case retVal => retVal
 					}.orElse {
 						None
 					}

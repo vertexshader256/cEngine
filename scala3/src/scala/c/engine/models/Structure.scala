@@ -4,8 +4,8 @@ import org.eclipse.cdt.core.dom.ast.{IArrayType, IType}
 
 import scala.c.engine.*
 
-case class Structure(bytes: Array[Byte], aType: IType) {
-	val theType = TypeHelper.stripSyntheticTypeInfo(aType)
+case class Structure(bytes: Array[Byte], rawType: IType) extends ValueType {
+	val theType = TypeHelper.stripSyntheticTypeInfo(rawType)
 	val sizeof = bytes.length
 
 	override def toString = {
