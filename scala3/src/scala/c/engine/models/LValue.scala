@@ -27,7 +27,7 @@ trait LValue extends ValueType {
 		if rVal.isInstanceOf[FileRValue] then
 			rVal
 		else if TypeHelper.isPointerOrArray(this) then
-			Address(getValue.value.asInstanceOf[Int], TypeHelper.getPointerType(theType))
+			Pointer(getValue.value.asInstanceOf[Int], TypeHelper.getPointerType(theType))
 		else
 			RValue(getValue.value, theType)
 	}

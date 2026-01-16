@@ -28,7 +28,7 @@ object UnaryExpression {
 					case info @ LValue(_, _) => // address-of operator requires an LValue
 						info.theType match
 							case _: CFunctionType => info
-							case theType: IType => Address(info.address, theType)
+							case theType: IType => Pointer(info.address, theType)
 				}
 			case `op_star` => processStar(value)
 	}
