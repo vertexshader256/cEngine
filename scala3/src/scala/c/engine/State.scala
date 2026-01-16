@@ -14,6 +14,7 @@ import scala.collection.mutable.ListBuffer
 class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 	val Stack = Memory(100000)
+	val dataSegment = Memory(2000)
 
 	private var heapInsertIndex = 20000
 
@@ -269,10 +270,12 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		}
 	}
 
+	def allocateDataSegmentSpace(numBytes: Int): Int = {
+		dataSegment.allocate(numBytes)
+	}
+
 	def allocateSpace(numBytes: Int): Int = {
-		val result = Stack.insertIndex
-		Stack.insertIndex += Math.max(0, numBytes)
-		result
+		Stack.allocate(numBytes)
 	}
 
 	def allocateHeapSpace(numBytes: Int): Int = {

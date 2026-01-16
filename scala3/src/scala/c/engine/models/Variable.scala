@@ -42,8 +42,6 @@ case class Variable(theName: IASTName, state: State, aType: IType, sizeof: Int) 
 	val sizeInBits = sizeof * 8
 	val name = theName.toString
 
-	val address = state.allocateSpace(sizeof)
-
 	// need this for function-scoped static vars
 	var isInitialized = false
 
@@ -53,6 +51,13 @@ case class Variable(theName: IASTName, state: State, aType: IType, sizeof: Int) 
 			case vari: IVariable => vari.isStatic
 			case _ => false
 	}
+
+	val segment = if !isStatic then
+		state.Stack
+	else
+		state.dataSegment
+
+	val address = segment.allocate(sizeof)
 
 	override def rValue: RValue = {
 		if rVal.isInstanceOf[FileRValue] then
@@ -66,7 +71,7 @@ case class Variable(theName: IASTName, state: State, aType: IType, sizeof: Int) 
 	private def getValue = if (theType.isInstanceOf[IArrayType]) {
 		RValue(address, theType)
 	} else {
-		state.Stack.readFromMemory(address, theType, bitOffset, sizeInBits)
+		segment.readFromMemory(address, theType, bitOffset, sizeInBits)
 	}
 
 	override def toString = {

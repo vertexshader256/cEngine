@@ -13,6 +13,12 @@ class Memory(size: Int) {
 	// turing tape
 	val tape = Tape(size)
 
+	def allocate(numBytes: Int): Int = {
+		val result = insertIndex
+		insertIndex += Math.max(0, numBytes)
+		result
+	}
+
 	private def writeInteger(newVal: cEngVal, address: Int, bitOffset: Int = 0, sizeInBits: Int = 0) = {
 		newVal match {
 			case int: Int =>
