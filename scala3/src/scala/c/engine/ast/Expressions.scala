@@ -69,11 +69,11 @@ object Expressions {
 						TypeHelper.cast(currentVal.value, theType).value
 
 				state.stack.writeToMemory(value, newAddr.location, theType) // write the casted data out
-				LValue(state, newAddr.location, theType)
+				LValue(state, newAddr, theType)
 			case RValue(value, _) =>
 				val newAddr = state.allocateSpace(TypeHelper.sizeof(theType))
 				state.stack.writeToMemory(TypeHelper.cast(value, theType).value, newAddr.location, theType)
-				LValue(state, newAddr.location, theType)
+				LValue(state, newAddr, theType)
 		}
 	}
 
@@ -101,7 +101,7 @@ object Expressions {
 		val index = rightValue.toString.toInt
 		val offset = base + index * TypeHelper.sizeof(indexType)
 
-		LValue(state, offset, indexType)
+		LValue(state, Address(offset, state.stack), indexType)
 	}
 
 	private def fieldReference(fieldRef: IASTFieldReference)(implicit state: State): Field = {
@@ -109,11 +109,11 @@ object Expressions {
 		val structType = Structures.resolveStruct(struct.theType)
 
 		val baseAddr = if fieldRef.isPointerDereference then
-			state.readPtrVal(Address(struct.address, state.stack))
+			Address(state.readPtrVal(struct.address), state.stack)
 		else
 			struct.address
 
-		Structures.offsetof(structType, baseAddr, fieldRef.getFieldName.toString, state)
+		Structures.offsetof(structType, baseAddr.location, fieldRef.getFieldName.toString, state)
 	}
 
 	private def functionCallExpr(call: IASTFunctionCallExpression)(implicit state: State): Option[ValueType] = {
@@ -164,7 +164,7 @@ object Expressions {
 				state.writeDataBlock(rVals, newAddr)
 		}
 
-		LValue(state, newAddr.location, theType)
+		LValue(state, newAddr, theType)
 	}
 
 	private def isAssignment(op: Int): Boolean = {

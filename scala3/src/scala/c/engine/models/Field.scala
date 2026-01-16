@@ -4,7 +4,7 @@ import org.eclipse.cdt.core.dom.ast.IType
 
 import scala.c.engine.*
 
-case class Field(state: State, address: Int, bitOffset: Int, theType: IType, sizeInBits: Int) extends LValue {
+case class Field(state: State, address: Address, bitOffset: Int, theType: IType, sizeInBits: Int) extends LValue {
 	val sizeof: Int = sizeInBits / 8
 	val rawType: IType = theType
 }

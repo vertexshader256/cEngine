@@ -24,7 +24,7 @@ object Variable {
 		val variable = Variable(name, state, aType, size)
 
 		// now, write the initial values
-		state.writeDataBlock(initVals, Address(variable.address, state.stack))
+		state.writeDataBlock(initVals, variable.address)
 		variable
 	}
 
@@ -57,7 +57,7 @@ case class Variable(theName: IASTName, state: State, aType: IType, sizeof: Int) 
 	else
 		state.dataSegment
 
-	val address = segment.allocate(sizeof)
+	val address = Address(segment.allocate(sizeof), segment)
 
 	override def rValue: RValue = {
 		if rVal.isInstanceOf[FileRValue] then
@@ -69,9 +69,9 @@ case class Variable(theName: IASTName, state: State, aType: IType, sizeof: Int) 
 	}
 
 	private def getValue = if (theType.isInstanceOf[IArrayType]) {
-		RValue(address, theType)
+		RValue(address.location, theType)
 	} else {
-		segment.readFromMemory(address, theType, bitOffset, sizeInBits)
+		segment.readFromMemory(address.location, theType, bitOffset, sizeInBits)
 	}
 
 	override def toString = {

@@ -29,7 +29,7 @@ object Structures {
 		structType.getFields.foreach: field =>
 			val srcField = offsetof(structType, srcAddress, field.getName, state)
 			val dstField = offsetof(structType, newAddress, field.getName, state)
-			state.copy(dstField.address, srcField.address, srcField.sizeof)
+			state.copy(dstField.address.location, srcField.address.location, srcField.sizeof)
 			//println(s"copying from address (${srcField.address}) to address (${dstField.address})")
 			//println(s"copying value (${srcFieldValue.value})")
 			//state.Stack.writeToMemory(srcFieldValue.value, dstField.address, srcField.theType)
@@ -54,13 +54,13 @@ object Structures {
 				structType.getFields.foreach: field =>
 					if field.getName == fieldName then
 						// can assume names are unique
-						resultAddress = Field(state, baseAddress + offsetInBits / 8, offsetInBits % 8, field.getType, sizeInBits(field)(using state))
+						resultAddress = Field(state, Address(baseAddress + offsetInBits / 8, state.stack), offsetInBits % 8, field.getType, sizeInBits(field)(using state))
 					else
 						offsetInBits += sizeInBits(field)(using state)
 			case ICompositeType.k_union =>
 				// TODO: Unions and bit fields dont work
 				structType.getFields.find { field => field.getName == fieldName }.foreach: field =>
-					resultAddress = Field(state, baseAddress, 0, field.getType, sizeInBits(field)(using state))
+					resultAddress = Field(state, Address(baseAddress, state.stack), 0, field.getType, sizeInBits(field)(using state))
 		}
 
 		resultAddress

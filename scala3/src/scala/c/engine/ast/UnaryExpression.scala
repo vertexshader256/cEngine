@@ -28,7 +28,7 @@ object UnaryExpression {
 					case info @ LValue(_, _) => // address-of operator requires an LValue
 						info.theType match
 							case _: CFunctionType => info
-							case theType: IType => Pointer(info.address, theType)
+							case theType: IType => Pointer(info.address.location, theType)
 				}
 			case `op_star` => processStar(value)
 	}
@@ -61,12 +61,12 @@ object UnaryExpression {
 	private def processStar(value: ValueType)(implicit state: State) = {
 		value match
 			case RValue(int: Int, theType) =>
-				LValue(state, int, theType)
+				LValue(state, Address(int, state.stack), theType)
 			case info @ LValue(_, aType) =>
 				val nestedType = TypeHelper.getPointerType(aType)
 
 				if !nestedType.isInstanceOf[IFunctionType] then
-					LValue(state, info.rValue.value.asInstanceOf[Int], nestedType)
+					LValue(state, Address(info.rValue.value.asInstanceOf[Int], state.stack), nestedType)
 				else
 					// function pointers can ignore the star
 					info
@@ -87,7 +87,7 @@ object UnaryExpression {
 
 		val pre = lValue.rValue
 		
-		state.stack.writeToMemory(newVal.value, lValue.address, lValue.theType)
+		state.stack.writeToMemory(newVal.value, lValue.address.location, lValue.theType)
 
 		operator match
 			case `op_postFixIncr` | `op_postFixDecr` => pre // push then set

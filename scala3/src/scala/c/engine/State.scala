@@ -99,7 +99,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 		val fcnType = CFunctionType(CBasicType(IBasicType.Kind.eVoid, 0), null)
 		val newVar = Variable(new CASTName(fcn.name.toCharArray), State.this, fcnType)
-		stack.writeToMemory(count, newVar.address, fcnType)
+		stack.writeToMemory(count, newVar.address.location, fcnType)
 
 		functionPointers += fcn.name -> newVar
 	}
@@ -152,7 +152,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 		if (!isMain) {
 			val newVar = Variable(name, State.this, fcnType)
-			stack.writeToMemory(count, newVar.address, fcnType)
+			stack.writeToMemory(count, newVar.address.location, fcnType)
 
 			functionPointers += name.toString -> newVar
 		}
@@ -179,16 +179,16 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		zipped.foreach { (arg, param) =>
 			arg match {
 				case variable: Variable if variable.aType.isInstanceOf[CStructure] =>
-					val copy = Structures.copyStructure(variable.aType.asInstanceOf[CStructure], variable.address, CASTName(param.getName.toCharArray), this)
+					val copy = Structures.copyStructure(variable.aType.asInstanceOf[CStructure], variable.address.location, CASTName(param.getName.toCharArray), this)
 					context.addVariable(copy)
 				case struct: Structure =>
 					val newVar = context.addVariable(param.getName, param.getType)
-					writeDataBlock(struct.bytes, Address(newVar.address, stack))
+					writeDataBlock(struct.bytes, newVar.address)
 				case _ =>
 					val resolvedArg = TypeHelper.toRValue(arg)(using this)
 					val newVar = context.addVariable(param.getName, param.getType)
 					val casted = TypeHelper.cast(resolvedArg.value, newVar.theType).value
-					stack.writeToMemory(casted, newVar.address, newVar.theType)
+					stack.writeToMemory(casted, newVar.address.location, newVar.theType)
 			}
 		}
 	}

@@ -52,18 +52,18 @@ object Declarator {
 		else
 			equals match
 				case _: IASTFunctionCallExpression =>
-					state.copy(dst.address, state.stack.insertIndex - dst.sizeof, dst.sizeof)
+					state.copy(dst.address.location, state.stack.insertIndex - dst.sizeof, dst.sizeof)
 				case _: IASTTypeIdInitializerExpression =>
 					val otherStruct = Expressions.evaluate(equals).get.asInstanceOf[LValue]
-					state.copy(dst.address, otherStruct.address, dst.sizeof)
+					state.copy(dst.address.location, otherStruct.address.location, dst.sizeof)
 				case _: IASTExpression =>
 					val otherStruct = srcs.head.asInstanceOf[LValue]
-					state.copy(dst.address, otherStruct.address, dst.sizeof)
+					state.copy(dst.address.location, otherStruct.address.location, dst.sizeof)
 				case _ =>
 					val struct = dst.theType.asInstanceOf[CStructure]
 					struct.getFields.zip(srcs).foreach:
 						case (field, newValue) =>
-							val theField = Structures.offsetof(struct, dst.address, field.getName, state)
+							val theField = Structures.offsetof(struct, dst.address.location, field.getName, state)
 							assign(theField, List(newValue), equals, op)
 	}
 

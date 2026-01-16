@@ -13,7 +13,7 @@ import scala.c.engine.models.*
 
 // LValue is an memory location which identifies an object and has a type and various other attributes
 trait LValue extends ValueType {
-	val address: Int
+	val address: Address
 	val theType: IType
 	val bitOffset: Int
 	val state: State
@@ -33,23 +33,23 @@ trait LValue extends ValueType {
 	}
 
 	private def getValue = if (theType.isInstanceOf[IArrayType]) {
-		RValue(address, theType)
+		RValue(address.location, theType)
 	} else {
-		state.stack.readFromMemory(address, theType, bitOffset, sizeInBits)
+		state.stack.readFromMemory(address.location, theType, bitOffset, sizeInBits)
 	}
 
 	def setValue(newVal: RValue): Unit = {
 		rVal = newVal
-		state.stack.writeToMemory(newVal.value, address, theType, bitOffset, sizeInBits)
+		state.stack.writeToMemory(newVal.value, address.location, theType, bitOffset, sizeInBits)
 	}
 
-	def toByteArray: Array[Byte] = state.readDataBlock(Address(address, state.stack), sizeof)
+	def toByteArray: Array[Byte] = state.readDataBlock(Address(address.location, state.stack), sizeof)
 }
 
 object LValue {
-	def unapply(info: LValue): Option[(Int, IType)] = Some((info.address, info.theType))
+	def unapply(info: LValue): Option[(Int, IType)] = Some((info.address.location, info.theType))
 
-	def apply(theState: State, addr: Int, aType: IType) =
+	def apply(theState: State, addr: Address, aType: IType) =
 		new LValue {
 			val address = addr
 			val state = theState
