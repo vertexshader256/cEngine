@@ -99,7 +99,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 		val fcnType = CFunctionType(CBasicType(IBasicType.Kind.eVoid, 0), null)
 		val newVar = Variable(new CASTName(fcn.name.toCharArray), State.this, fcnType)
-		stack.writeToMemory(count, newVar.address.location, fcnType)
+		newVar.address.writeToMemory(count, fcnType)
 
 		functionPointers += fcn.name -> newVar
 	}
@@ -152,7 +152,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 		if (!isMain) {
 			val newVar = Variable(name, State.this, fcnType)
-			stack.writeToMemory(count, newVar.address.location, fcnType)
+			newVar.address.writeToMemory(count, fcnType)
 
 			functionPointers += name.toString -> newVar
 		}
@@ -188,7 +188,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 					val resolvedArg = TypeHelper.toRValue(arg)(using this)
 					val newVar = context.addVariable(param.getName, param.getType)
 					val casted = TypeHelper.cast(resolvedArg.value, newVar.theType).value
-					stack.writeToMemory(casted, newVar.address.location, newVar.theType)
+					newVar.address.writeToMemory(casted, newVar.theType)
 			}
 		}
 	}
