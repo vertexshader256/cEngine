@@ -296,8 +296,8 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		stack.writeDataBlock(array, startingAddress)
 	}
 
-	def readDataBlock(startingAddress: Int, length: Int): Array[Byte] = {
-		stack.readDataBlock(startingAddress, length)
+	def readDataBlock(startingAddress: Address, length: Int): Array[Byte] = {
+		stack.readDataBlock(startingAddress.location, length)
 	}
 
 	def readPtrVal(address: Address): Int = {

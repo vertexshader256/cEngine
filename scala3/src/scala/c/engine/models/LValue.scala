@@ -43,7 +43,7 @@ trait LValue extends ValueType {
 		state.stack.writeToMemory(newVal.value, address, theType, bitOffset, sizeInBits)
 	}
 
-	def toByteArray: Array[Byte] = state.readDataBlock(address, sizeof)
+	def toByteArray: Array[Byte] = state.readDataBlock(Address(address, state.stack), sizeof)
 }
 
 object LValue {

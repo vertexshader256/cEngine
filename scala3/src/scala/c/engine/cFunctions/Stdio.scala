@@ -216,7 +216,7 @@ object Stdio {
 				val numMembers = formattedOutputParams(1).value.asInstanceOf[Int]
 				val fp = formattedOutputParams(0).asInstanceOf[FileRValue]
 
-				val bytes = state.readDataBlock(buffer, size * numMembers)
+				val bytes = state.readDataBlock(Address(buffer, state.stack), size * numMembers)
 
 				fp.write(bytes, size * numMembers)
 
