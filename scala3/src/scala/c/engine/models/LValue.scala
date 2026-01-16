@@ -19,7 +19,7 @@ trait LValue extends ValueType {
 	val state: State
 	val sizeInBits: Int
 
-	protected var rVal: RValue = RValue(0, TypeHelper.intType)
+	final protected var rVal: RValue = RValue(0, TypeHelper.intType)
 
 	def sizeof: Int
 

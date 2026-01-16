@@ -1,6 +1,7 @@
 package scala.c.engine.models
 
 import org.eclipse.cdt.core.dom.ast.{IASTName, IArrayType, IType}
+import org.eclipse.cdt.core.model.IVariable
 
 import scala.c.engine.*
 
@@ -45,6 +46,13 @@ case class Variable(theName: IASTName, state: State, aType: IType, sizeof: Int) 
 
 	// need this for function-scoped static vars
 	var isInitialized = false
+
+	val isStatic = {
+		val binding = theName.resolveBinding()
+		binding match
+			case vari: IVariable => vari.isStatic
+			case _ => false
+	}
 
 	override def rValue: RValue = {
 		if rVal.isInstanceOf[FileRValue] then
