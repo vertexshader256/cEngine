@@ -183,7 +183,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 					context.addVariable(copy)
 				case struct: Structure =>
 					val newVar = context.addVariable(param.getName, param.getType)
-					writeDataBlock(struct.bytes, newVar.address)
+					writeDataBlock(struct.bytes, Address(newVar.address, stack))
 				case _ =>
 					val resolvedArg = TypeHelper.toRValue(arg)(using this)
 					val newVar = context.addVariable(param.getName, param.getType)
@@ -259,7 +259,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 						case structure @ LValue(_, structType: CStructure) =>
 							val structBytes = structure.toByteArray
 							val newAddr = allocateSpace(structBytes.length)
-							writeDataBlock(structBytes, newAddr)
+							writeDataBlock(structBytes, Address(newAddr, stack))
 							Structure(structBytes, structType)
 						case retVal => retVal
 					}.orElse {
@@ -292,8 +292,8 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		stack.set(dst, value, numBytes)
 	}
 
-	def writeDataBlock(array: Array[Byte], startingAddress: Int): Unit = {
-		stack.writeDataBlock(array, startingAddress)
+	def writeDataBlock(array: Array[Byte], startingAddress: Address): Unit = {
+		startingAddress.segment.writeDataBlock(array, startingAddress.location)
 	}
 
 	def readDataBlock(startingAddress: Address, length: Int): Array[Byte] = {
@@ -314,7 +314,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		val withNull = (theStr.toCharArray :+ 0.toChar).map(_.toByte) // terminating null char
 		val strAddr = allocateSpace(withNull.length)
 
-		writeDataBlock(withNull, strAddr)
+		writeDataBlock(withNull, Address(strAddr, stack))
 		RValue(strAddr, pointerType)
 	}
 
