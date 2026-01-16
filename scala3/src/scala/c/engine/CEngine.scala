@@ -19,24 +19,26 @@ object CEngine {
 		val functionCall = if (args.nonEmpty) {
 			val fcnName = CASTIdExpression(CASTName("main".toCharArray))
 			val factory = state.sources.head.getTranslationUnit.getASTNodeFactory
-			val sizeExpr = factory.newLiteralExpression(IASTLiteralExpression.lk_integer_constant, args.size.toString)
+			val numberOfArgsLit = factory.newLiteralExpression(IASTLiteralExpression.lk_integer_constant, args.size.toString)
 
 			val stringType = CPointerType(CBasicType(IBasicType.Kind.eChar, IBasicType.IS_UNSIGNED), 0)
 
-			val stringAddresses = args.map { arg =>
+			// convert main args to strings, write them to memory, get the addresses
+			val stringValues = args.map { arg =>
 				val addr = state.getString("\"" + arg + "\"").value
 				RValue(addr, stringType)
 			}
 
-			val theType = CPointerType(stringType, 0)
-			val newVar = program.addVariable("mainInfo", theType)
-			val start = state.allocateSpace(stringAddresses.size * 4)
-			state.writeDataBlock(stringAddresses, start)
-			newVar.setValue(RValue(start, TypeHelper.intType))
+			// create a pointer to the strings
+			val stringPointer = program.addVariable("argStringPtr", CPointerType(stringType, 0))
 
-			val varExpr = factory.newIdExpression(factory.newName("mainInfo"))
+			val start = state.allocateSpace(stringValues.size * 4) // 4 bytes per pointer
+			state.writeDataBlock(stringValues, start)
+			stringPointer.setValue(RValue(start, TypeHelper.intType))
 
-			CASTFunctionCallExpression(fcnName, List(sizeExpr, varExpr).toArray)
+			val argStringPtrId = factory.newIdExpression(factory.newName("argStringPtr"))
+
+			CASTFunctionCallExpression(fcnName, List(numberOfArgsLit, argStringPtrId).toArray)
 		} else {
 			null
 		}
