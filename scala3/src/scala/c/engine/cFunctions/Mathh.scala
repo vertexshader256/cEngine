@@ -23,7 +23,7 @@ object Mathh {
 				val fraction = formattedOutputParams(0).value.asInstanceOf[Double]
 				val intPart = formattedOutputParams(1).value.asInstanceOf[Int]
 
-				state.Stack.writeToMemory(fraction.toInt, intPart, TypeHelper.intType)
+				state.stack.writeToMemory(fraction.toInt, intPart, TypeHelper.intType)
 
 				Some(RValue(fraction % 1.0))
 			}

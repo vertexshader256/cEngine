@@ -54,7 +54,7 @@ object Utils {
 	}
 
 	private def readChar(address: Int)(implicit state: State): Char = {
-		val value = state.Stack.readFromMemoryRaw(TypeHelper.charType, address)
+		val value = state.stack.readFromMemoryRaw(TypeHelper.charType, address)
 		TypeHelper.castSign(TypeHelper.charType, value).value.asInstanceOf[Byte].toChar
 	}
 

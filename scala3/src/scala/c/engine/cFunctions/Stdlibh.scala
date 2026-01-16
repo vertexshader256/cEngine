@@ -37,7 +37,7 @@ object Stdlibh {
 
 				val addr = state.allocateHeapSpace(numBlocks * blockSize)
 
-				state.Stack.clearMemory(addr, numBlocks * blockSize)
+				state.stack.clearMemory(addr, numBlocks * blockSize)
 
 				Some(RValue(addr))
 			}

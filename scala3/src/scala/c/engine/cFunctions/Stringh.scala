@@ -130,14 +130,14 @@ object Stringh {
 				var current: char = 0
 				var i = 0
 
-				val value = state.Stack.readFromMemoryRaw(TypeHelper.charType, straddy + i)
+				val value = state.stack.readFromMemoryRaw(TypeHelper.charType, straddy + i)
 				current = TypeHelper.castSign(TypeHelper.charType, value).value.asInstanceOf[char]
 
 				while (current != 0) {
 					if (current != 0) {
 						i += 1
 					}
-					val value = state.Stack.readFromMemoryRaw(TypeHelper.charType, straddy + i)
+					val value = state.stack.readFromMemoryRaw(TypeHelper.charType, straddy + i)
 					current = TypeHelper.castSign(TypeHelper.charType, value).value.asInstanceOf[char]
 				}
 				Some(RValue(i))
@@ -212,7 +212,7 @@ object Stringh {
 
 				val concat = str1 + str2 + "\u0000"
 				val bytes = concat.getBytes
-				state.Stack.writeDataBlock(bytes, dstAddr)
+				state.stack.writeDataBlock(bytes, dstAddr)
 				Some(formattedOutputParams(0)) // returns a pointer to the destination string
 			}
 		}
@@ -244,10 +244,10 @@ object Stringh {
 
 				for (i <- (0 until numBytes)) {
 
-					val value = state.Stack.readFromMemoryRaw(TypeHelper.charType, memaddy + i)
+					val value = state.stack.readFromMemoryRaw(TypeHelper.charType, memaddy + i)
 					val value1 = TypeHelper.castSign(TypeHelper.charType, value).value
 
-					val value2 = state.Stack.readFromMemoryRaw(CBasicType(IBasicType.Kind.eChar, 0), memaddy2 + i)
+					val value2 = state.stack.readFromMemoryRaw(CBasicType(IBasicType.Kind.eChar, 0), memaddy2 + i)
 					val value3 = TypeHelper.castSign(TypeHelper.charType, value2).value
 
 					same &= value1 == value3

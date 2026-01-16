@@ -13,7 +13,7 @@ import scala.collection.mutable.ListBuffer
 
 class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
-	val Stack = Memory(100000)
+	val stack = Memory(100000)
 	val dataSegment = Memory(2000)
 
 	private var heapInsertIndex = 20000
@@ -73,7 +73,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 	private def popFunctionContext: FunctionScope = {
 		val frame = functionContexts.pop()
-		Stack.insertIndex = frame.startingStackAddr
+		stack.insertIndex = frame.startingStackAddr
 		frame
 	}
 
@@ -99,7 +99,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 		val fcnType = CFunctionType(CBasicType(IBasicType.Kind.eVoid, 0), null)
 		val newVar = Variable(new CASTName(fcn.name.toCharArray), State.this, fcnType)
-		Stack.writeToMemory(count, newVar.address, fcnType)
+		stack.writeToMemory(count, newVar.address, fcnType)
 
 		functionPointers += fcn.name -> newVar
 	}
@@ -152,7 +152,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 		if (!isMain) {
 			val newVar = Variable(name, State.this, fcnType)
-			Stack.writeToMemory(count, newVar.address, fcnType)
+			stack.writeToMemory(count, newVar.address, fcnType)
 
 			functionPointers += name.toString -> newVar
 		}
@@ -188,7 +188,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 					val resolvedArg = TypeHelper.toRValue(arg)(using this)
 					val newVar = context.addVariable(param.getName, param.getType)
 					val casted = TypeHelper.cast(resolvedArg.value, newVar.theType).value
-					Stack.writeToMemory(casted, newVar.address, newVar.theType)
+					stack.writeToMemory(casted, newVar.address, newVar.theType)
 			}
 		}
 	}
@@ -227,13 +227,13 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 			if (!function.isNative) {
 				// this is a function simulated in scala
 
-				val stackPos = Stack.insertIndex
+				val stackPos = stack.insertIndex
 				val args = call.getArguments.map { x => Expressions.evaluate(x)(using this) }
 
 				val resolvedArgs: Array[RValue] = args.flatten.map(TypeHelper.toRValue(_)(using this))
 
 				val returnVal = function.run(resolvedArgs.reverse, this)
-				Stack.insertIndex = stackPos // pop the stack
+				stack.insertIndex = stackPos // pop the stack
 
 				returnVal.map:
 					case file @ FileRValue(_) => file
@@ -275,7 +275,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	}
 
 	def allocateSpace(numBytes: Int): Int = {
-		Stack.allocate(numBytes)
+		stack.allocate(numBytes)
 	}
 
 	def allocateHeapSpace(numBytes: Int): Int = {
@@ -285,23 +285,23 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	}
 
 	def copy(dst: Int, src: Int, numBytes: Int): Unit = {
-		Stack.copy(dst, src, numBytes)
+		stack.copy(dst, src, numBytes)
 	}
 
 	def set(dst: Int, value: Byte, numBytes: Int): Unit = {
-		Stack.set(dst, value, numBytes)
+		stack.set(dst, value, numBytes)
 	}
 
 	def writeDataBlock(array: Array[Byte], startingAddress: Int): Unit = {
-		Stack.writeDataBlock(array, startingAddress)
+		stack.writeDataBlock(array, startingAddress)
 	}
 
 	def readDataBlock(startingAddress: Int, length: Int): Array[Byte] = {
-		Stack.readDataBlock(startingAddress, length)
+		stack.readDataBlock(startingAddress, length)
 	}
 
 	def readPtrVal(address: Int): Int = {
-		Stack.readPtrVal(address)
+		stack.readPtrVal(address)
 	}
 
 	private def stripQuotes(str: String): String = {
@@ -336,7 +336,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 		array.foreach:
 			case RValue(newVal, theType) =>
-				Stack.writeToMemory(newVal, address, theType)
+				stack.writeToMemory(newVal, address, theType)
 				address += TypeHelper.sizeof(theType)(using this)
 	}
 }

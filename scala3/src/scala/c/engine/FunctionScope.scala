@@ -137,7 +137,7 @@ class FunctionScope(val function: Function, val parent: FunctionScope, val retur
 		}
 
 		stack.clear()
-		startingStackAddr = theState.Stack.insertIndex
+		startingStackAddr = theState.stack.insertIndex
 
 		nodes.foreach { node =>
 			pathStack ++= Compiler.compile(node)(using theState)

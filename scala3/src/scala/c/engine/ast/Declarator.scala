@@ -52,7 +52,7 @@ object Declarator {
 		else
 			equals match
 				case _: IASTFunctionCallExpression =>
-					state.copy(dst.address, state.Stack.insertIndex - dst.sizeof, dst.sizeof)
+					state.copy(dst.address, state.stack.insertIndex - dst.sizeof, dst.sizeof)
 				case _: IASTTypeIdInitializerExpression =>
 					val otherStruct = Expressions.evaluate(equals).get.asInstanceOf[LValue]
 					state.copy(dst.address, otherStruct.address, dst.sizeof)

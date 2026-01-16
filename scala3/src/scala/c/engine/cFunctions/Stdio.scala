@@ -27,7 +27,7 @@ object Stdio {
 				val ndigits = formattedOutputParams(3).value.asInstanceOf[Int]
 				val arg = formattedOutputParams(4).value.asInstanceOf[Double]
 
-				state.Stack.writeToMemory(1, decpt, TypeHelper.intType)
+				state.stack.writeToMemory(1, decpt, TypeHelper.intType)
 
 				val buffer = StringBuffer()
 				val formatter = Formatter(buffer, Locale.US)
@@ -44,7 +44,7 @@ object Stdio {
 
 				val array = resultString.toCharArray.map { char => RValue(char.toByte, TypeHelper.charType) }.toList
 
-				state.Stack.writeToMemory(index, decpt, TypeHelper.intType)
+				state.stack.writeToMemory(index, decpt, TypeHelper.intType)
 
 				// to-do: find a way to do this without allocating?
 				val result = state.allocateHeapSpace(20)

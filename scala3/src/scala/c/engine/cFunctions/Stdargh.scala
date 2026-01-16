@@ -36,7 +36,7 @@ object Stdargh {
 
 				val current = varArgStartingAddr.head
 				varArgStartingAddr = varArgStartingAddr.tail
-				val result = state.Stack.readFromMemory(current, theType).value
+				val result = state.stack.readFromMemory(current, theType).value
 				varArgStartingAddr = (current + offset) +: varArgStartingAddr
 
 				Some(RValue(result))

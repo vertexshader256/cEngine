@@ -8,11 +8,11 @@ class LowLevel extends StandardTest {
 
 		implicit val state = new State(List(), ThirtyTwoBits)
 
-		val start = state.Stack.insertIndex
+		val start = state.stack.insertIndex
 
 		c"""isalpha('5');"""
 
-		assert(state.Stack.insertIndex == start)
+		assert(state.stack.insertIndex == start)
 	}
 }
 
@@ -21,11 +21,11 @@ class LowLevel2 extends StandardTest {
 		import Interpreter._
 		implicit val state = new State(List(), ThirtyTwoBits)
 
-		val start = state.Stack.insertIndex
+		val start = state.stack.insertIndex
 
 		c"""printf("%d\n", 5);"""
 
-		assert(state.Stack.insertIndex == start)
+		assert(state.stack.insertIndex == start)
 	}
 }
 
@@ -40,13 +40,13 @@ class LowLevel3 extends StandardTest {
           printf("%s\n", s);
       }"""
 
-		val start = state.Stack.insertIndex
+		val start = state.stack.insertIndex
 
 		c"""
        printf("%d\n", add());
      """
 
-		assert(state.Stack.insertIndex == start)
+		assert(state.stack.insertIndex == start)
 	}
 }
 
@@ -61,13 +61,13 @@ class LowLevel4 extends StandardTest {
           return 15;
       }"""
 
-		val start = state.Stack.insertIndex
+		val start = state.stack.insertIndex
 
 		c"""
        printf("%d\n", add("testtest"));
      """
 
-		assert(state.Stack.insertIndex == start)
+		assert(state.stack.insertIndex == start)
 	}
 }
 
@@ -77,11 +77,11 @@ class VariableLowLevelTest extends StandardTest {
 
 		implicit val state = new State(List(), ThirtyTwoBits)
 
-		val start = state.Stack.insertIndex
+		val start = state.stack.insertIndex
 
 		c"""int i = 10;"""
 
-		assert(state.Stack.insertIndex == start + 4)
+		assert(state.stack.insertIndex == start + 4)
 	}
 }
 
@@ -90,11 +90,11 @@ class VariableLowLevelTest2 extends StandardTest {
 		import Interpreter._
 		implicit val state = new State(List(), ThirtyTwoBits)
 
-		val start = state.Stack.insertIndex
+		val start = state.stack.insertIndex
 
 		c"""double i = 10.0;"""
 
-		assert(state.Stack.insertIndex == start + 8)
+		assert(state.stack.insertIndex == start + 8)
 	}
 }
 
@@ -103,10 +103,10 @@ class VariableLowLevelTest3 extends StandardTest {
 		import Interpreter._
 		implicit val state = new State(List(), ThirtyTwoBits)
 
-		val start = state.Stack.insertIndex
+		val start = state.stack.insertIndex
 
 		c"""char i = 'a';"""
 
-		assert(state.Stack.insertIndex == start + 1)
+		assert(state.stack.insertIndex == start + 1)
 	}
 }

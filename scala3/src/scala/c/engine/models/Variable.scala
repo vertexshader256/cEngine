@@ -53,7 +53,7 @@ case class Variable(theName: IASTName, state: State, aType: IType, sizeof: Int) 
 	}
 
 	val segment = if !isStatic then
-		state.Stack
+		state.stack
 	else
 		state.dataSegment
 

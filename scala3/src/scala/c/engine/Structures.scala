@@ -20,7 +20,7 @@ object Structures {
 	}
 
 	def copyStructure(structType: CStructure, srcAddress: Int, newName: IASTName, state: State): Variable = {
-		val newAddress = state.Stack.insertIndex
+		val newAddress = state.stack.insertIndex
 		val resultCopy = Variable(newName, state, structType) // space is allocated now
 
 		//println("Copy size: " + resultCopy.sizeof)
