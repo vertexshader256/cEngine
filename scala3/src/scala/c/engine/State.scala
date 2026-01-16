@@ -300,8 +300,8 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		stack.readDataBlock(startingAddress, length)
 	}
 
-	def readPtrVal(address: Int): Int = {
-		stack.readPtrVal(address)
+	def readPtrVal(address: Address): Int = {
+		stack.readPtrVal(address.location)
 	}
 
 	private def stripQuotes(str: String): String = {

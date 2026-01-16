@@ -109,7 +109,7 @@ object Expressions {
 		val structType = Structures.resolveStruct(struct.theType)
 
 		val baseAddr = if fieldRef.isPointerDereference then
-			state.readPtrVal(struct.address)
+			state.readPtrVal(Address(struct.address, state.stack))
 		else
 			struct.address
 
