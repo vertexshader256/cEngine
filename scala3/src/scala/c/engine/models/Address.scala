@@ -10,10 +10,7 @@ case class Address(value: Int, theType: IType) extends RValue {
 	}
 
 	override def sizeof(implicit state: State): Int = {
-		state.pointerSize match {
-			case NumBits.SixtyFourBits => 8
-			case NumBits.ThirtyTwoBits => 4
-		}
+		state.pointerSize.ptrSize
 	}
 
 	val rawType = theType

@@ -32,7 +32,7 @@ object CEngine {
 			// create a pointer to the strings
 			val stringPointer = program.addVariable("argStringPtr", CPointerType(stringType, 0))
 
-			val start = state.allocateSpace(stringValues.size * 4) // 4 bytes per pointer
+			val start = state.allocateSpace(stringValues.size * state.pointerSize.ptrSize) // 4 bytes per pointer
 			state.writeDataBlock(stringValues, start)
 			stringPointer.setValue(RValue(start, TypeHelper.intType))
 
