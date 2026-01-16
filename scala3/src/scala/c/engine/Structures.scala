@@ -29,7 +29,7 @@ object Structures {
 		structType.getFields.foreach: field =>
 			val srcField = offsetof(structType, srcAddress.location, field.getName, state)
 			val dstField = offsetof(structType, newAddress, field.getName, state)
-			state.copy(dstField.address.location, srcField.address.location, srcField.sizeof)
+			state.copy(dstField.address, srcField.address, srcField.sizeof)
 			//println(s"copying from address (${srcField.address}) to address (${dstField.address})")
 			//println(s"copying value (${srcFieldValue.value})")
 			//state.Stack.writeToMemory(srcFieldValue.value, dstField.address, srcField.theType)

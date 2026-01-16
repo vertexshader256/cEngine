@@ -52,13 +52,13 @@ object Declarator {
 		else
 			equals match
 				case _: IASTFunctionCallExpression =>
-					state.copy(dst.address.location, state.stack.insertIndex - dst.sizeof, dst.sizeof)
+					state.copy(dst.address, Address(state.stack.insertIndex - dst.sizeof, state.stack), dst.sizeof)
 				case _: IASTTypeIdInitializerExpression =>
 					val otherStruct = Expressions.evaluate(equals).get.asInstanceOf[LValue]
-					state.copy(dst.address.location, otherStruct.address.location, dst.sizeof)
+					state.copy(dst.address, otherStruct.address, dst.sizeof)
 				case _: IASTExpression =>
 					val otherStruct = srcs.head.asInstanceOf[LValue]
-					state.copy(dst.address.location, otherStruct.address.location, dst.sizeof)
+					state.copy(dst.address, otherStruct.address, dst.sizeof)
 				case _ =>
 					val struct = dst.theType.asInstanceOf[CStructure]
 					struct.getFields.zip(srcs).foreach:

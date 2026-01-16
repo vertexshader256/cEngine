@@ -88,7 +88,7 @@ object Stringh {
 				val src = formattedOutputParams(1).value.asInstanceOf[Int]
 				val numBytes = formattedOutputParams(2).value.asInstanceOf[Int]
 
-				state.copy(dst, src, numBytes)
+				state.copy(Address(dst, state.stack), Address(src, state.stack), numBytes)
 				None
 			}
 		}
@@ -102,7 +102,7 @@ object Stringh {
 				val src = formattedOutputParams(1).value.asInstanceOf[Int]
 				val dst = formattedOutputParams(2).value.asInstanceOf[Int]
 
-				state.copy(dst, src, numBytes)
+				state.copy(Address(dst, state.stack), Address(src, state.stack), numBytes)
 				None
 			}
 		}
@@ -172,7 +172,7 @@ object Stringh {
 
 				val str1 = Utils.readString(src)(using state)
 
-				state.copy(dst, src, Math.min(str1.length + 1, num))
+				state.copy(Address(dst, state.stack), Address(src, state.stack), Math.min(str1.length + 1, num))
 				None
 			}
 		}
@@ -184,7 +184,7 @@ object Stringh {
 
 				val str1 = Utils.readString(src)(using state)
 
-				state.copy(dst, src, str1.length + 1)
+				state.copy(Address(dst, state.stack), Address(src, state.stack), str1.length + 1)
 				None
 			}
 		}
