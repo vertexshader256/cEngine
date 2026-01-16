@@ -136,15 +136,18 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 		val fcnType = fcnDef.getDeclarator.getName.resolveBinding().asInstanceOf[IFunction].getType
 
-		functionList += new Function(name.toString, true) {
+		val newFcn = new Function(name.toString, true) {
 			index = count
 			node = fcnDef
-			override val staticVars: List[Variable] = addStaticFunctionVars(fcnDef)
 
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				None
 			}
 		}
+
+		newFcn.staticVars ++= addStaticFunctionVars(fcnDef)
+
+		functionList += newFcn
 
 		if (!isMain) {
 			val newVar = Variable(name.toString, State.this, fcnType)
