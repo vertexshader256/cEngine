@@ -331,8 +331,8 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		theArrayPtr
 	}
 
-	def writeDataBlock(array: List[RValue], startingAddress: Int): Unit = {
-		var address = startingAddress
+	def writeDataBlock(array: List[RValue], startingAddress: Address): Unit = {
+		var address = startingAddress.location
 
 		array.foreach:
 			case RValue(newVal, theType) =>

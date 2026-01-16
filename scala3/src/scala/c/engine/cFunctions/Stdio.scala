@@ -49,7 +49,7 @@ object Stdio {
 				// to-do: find a way to do this without allocating?
 				val result = state.allocateHeapSpace(20)
 
-				state.writeDataBlock(array, result)
+				state.writeDataBlock(array, Address(result, state.stack))
 				Some(RValue(result))
 			}
 		}

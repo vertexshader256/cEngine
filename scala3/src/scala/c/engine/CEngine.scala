@@ -33,7 +33,7 @@ object CEngine {
 			val stringPointer = program.addVariable("argStringPtr", CPointerType(stringType, 0))
 
 			val start = state.allocateSpace(stringValues.size * state.pointerSize.ptrSize) // 4 bytes per pointer
-			state.writeDataBlock(stringValues, start)
+			state.writeDataBlock(stringValues, Address(start, state.stack))
 			stringPointer.setValue(RValue(start, TypeHelper.intType))
 
 			val argStringPtrId = factory.newIdExpression(factory.newName("argStringPtr"))

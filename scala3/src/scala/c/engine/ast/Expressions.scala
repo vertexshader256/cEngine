@@ -161,7 +161,7 @@ object Expressions {
 						case l: LValue => l.rValue
 				}.toList
 
-				state.writeDataBlock(rVals, newAddr)
+				state.writeDataBlock(rVals, Address(newAddr, state.stack))
 		}
 
 		LValue(state, newAddr, theType)
