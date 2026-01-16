@@ -68,12 +68,12 @@ object Expressions {
 						val currentVal = state.stack.readFromMemory(addr, aType) // read current variable value
 						TypeHelper.cast(currentVal.value, theType).value
 
-				state.stack.writeToMemory(value, newAddr, theType) // write the casted data out
-				LValue(state, newAddr, theType)
+				state.stack.writeToMemory(value, newAddr.location, theType) // write the casted data out
+				LValue(state, newAddr.location, theType)
 			case RValue(value, _) =>
 				val newAddr = state.allocateSpace(TypeHelper.sizeof(theType))
-				state.stack.writeToMemory(TypeHelper.cast(value, theType).value, newAddr, theType)
-				LValue(state, newAddr, theType)
+				state.stack.writeToMemory(TypeHelper.cast(value, theType).value, newAddr.location, theType)
+				LValue(state, newAddr.location, theType)
 		}
 	}
 
@@ -161,10 +161,10 @@ object Expressions {
 						case l: LValue => l.rValue
 				}.toList
 
-				state.writeDataBlock(rVals, Address(newAddr, state.stack))
+				state.writeDataBlock(rVals, newAddr)
 		}
 
-		LValue(state, newAddr, theType)
+		LValue(state, newAddr.location, theType)
 	}
 
 	private def isAssignment(op: Int): Boolean = {
