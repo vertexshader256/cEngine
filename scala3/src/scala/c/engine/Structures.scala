@@ -20,14 +20,14 @@ object Structures {
 	}
 
 	def copyStructure(structType: CStructure, srcAddress: Address, newName: IASTName, state: State): Variable = {
-		val newAddress = state.stack.insertIndex
+		val newAddress = Address(state.stack.insertIndex, state.stack)
 		val resultCopy = Variable(newName, state, structType) // space is allocated now
 
 		//println("Copy size: " + resultCopy.sizeof)
 		//println("Source structure address: " + src.address)
 		//println("New structure address: " + resultCopy.address)
 		structType.getFields.foreach: field =>
-			val srcField = offsetof(structType, srcAddress.location, field.getName, state)
+			val srcField = offsetof(structType, srcAddress, field.getName, state)
 			val dstField = offsetof(structType, newAddress, field.getName, state)
 			state.copy(dstField.address, srcField.address, srcField.sizeof)
 			//println(s"copying from address (${srcField.address}) to address (${dstField.address})")
@@ -45,7 +45,7 @@ object Structures {
 		paddedFields.sum
 	}
 
-	def offsetof(structType: CStructure, baseAddress: Int, fieldName: String, state: State): Field = {
+	def offsetof(structType: CStructure, baseAddress: Address, fieldName: String, state: State): Field = {
 		var resultAddress: Field = null
 		var offsetInBits: Int = 0
 
@@ -54,13 +54,13 @@ object Structures {
 				structType.getFields.foreach: field =>
 					if field.getName == fieldName then
 						// can assume names are unique
-						resultAddress = Field(state, Address(baseAddress + offsetInBits / 8, state.stack), offsetInBits % 8, field.getType, sizeInBits(field)(using state))
+						resultAddress = Field(state, baseAddress + offsetInBits / 8, offsetInBits % 8, field.getType, sizeInBits(field)(using state))
 					else
 						offsetInBits += sizeInBits(field)(using state)
 			case ICompositeType.k_union =>
 				// TODO: Unions and bit fields dont work
 				structType.getFields.find { field => field.getName == fieldName }.foreach: field =>
-					resultAddress = Field(state, Address(baseAddress, state.stack), 0, field.getType, sizeInBits(field)(using state))
+					resultAddress = Field(state, baseAddress, 0, field.getType, sizeInBits(field)(using state))
 		}
 
 		resultAddress

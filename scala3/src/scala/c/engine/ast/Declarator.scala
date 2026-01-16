@@ -63,7 +63,7 @@ object Declarator {
 					val struct = dst.theType.asInstanceOf[CStructure]
 					struct.getFields.zip(srcs).foreach:
 						case (field, newValue) =>
-							val theField = Structures.offsetof(struct, dst.address.location, field.getName, state)
+							val theField = Structures.offsetof(struct, dst.address, field.getName, state)
 							assign(theField, List(newValue), equals, op)
 	}
 

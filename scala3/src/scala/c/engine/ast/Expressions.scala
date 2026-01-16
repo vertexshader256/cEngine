@@ -113,7 +113,7 @@ object Expressions {
 		else
 			struct.address
 
-		Structures.offsetof(structType, baseAddr.location, fieldRef.getFieldName.toString, state)
+		Structures.offsetof(structType, baseAddr, fieldRef.getFieldName.toString, state)
 	}
 
 	private def functionCallExpr(call: IASTFunctionCallExpression)(implicit state: State): Option[ValueType] = {
