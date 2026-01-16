@@ -73,10 +73,10 @@ object Ast {
 					val value = Expressions.evaluate(enumerator.getValue).get.asInstanceOf[RValue]
 					val newVar = state.context.addVariable(enumerator.getName, TypeHelper.intType)
 					current = value.value.asInstanceOf[Int] + 1
-					state.stack.writeToMemory(value.value, newVar.address.location, TypeHelper.intType)
+					newVar.address.writeToMemory(value.value, TypeHelper.intType)
 				} else {
 					val newVar = state.context.addVariable(enumerator.getName, TypeHelper.intType)
-					state.stack.writeToMemory(current, newVar.address.location, TypeHelper.intType)
+					newVar.address.writeToMemory(current, TypeHelper.intType)
 					current += 1
 				}
 		}

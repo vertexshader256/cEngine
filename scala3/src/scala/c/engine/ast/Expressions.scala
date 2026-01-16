@@ -68,11 +68,11 @@ object Expressions {
 						val currentVal = state.stack.readFromMemory(addr, aType) // read current variable value
 						TypeHelper.cast(currentVal.value, theType).value
 
-				state.stack.writeToMemory(value, newAddr.location, theType) // write the casted data out
+				newAddr.writeToMemory(value, theType) // write the casted data out
 				LValue(state, newAddr, theType)
 			case RValue(value, _) =>
 				val newAddr = state.allocateSpace(TypeHelper.sizeof(theType))
-				state.stack.writeToMemory(TypeHelper.cast(value, theType).value, newAddr.location, theType)
+				newAddr.writeToMemory(TypeHelper.cast(value, theType).value, theType)
 				LValue(state, newAddr, theType)
 		}
 	}

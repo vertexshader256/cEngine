@@ -86,8 +86,8 @@ object UnaryExpression {
 			BinaryExpr.evaluate(value, TypeHelper.one, op)
 
 		val pre = lValue.rValue
-		
-		state.stack.writeToMemory(newVal.value, lValue.address.location, lValue.theType)
+
+		lValue.address.writeToMemory(newVal.value, lValue.theType)
 
 		operator match
 			case `op_postFixIncr` | `op_postFixDecr` => pre // push then set
