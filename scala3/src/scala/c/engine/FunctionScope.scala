@@ -3,6 +3,7 @@ package c
 package engine
 
 import org.eclipse.cdt.core.dom.ast.*
+import org.eclipse.cdt.internal.core.dom.parser.c.CASTName
 
 import scala.c.engine.Instructions.*
 import scala.c.engine.models.*
@@ -80,13 +81,8 @@ class FunctionScope(val function: Function, val parent: FunctionScope, val retur
 
 	// special case when we cant get a IASTName
 	def addVariable(name: String, theType: IType): Variable = {
-		function.staticVars.find {
-			_.name == name
-		}.getOrElse {
-			val newVar = Variable(name, state, theType)
-			currentVariableScope.addVariable(newVar)
-			newVar
-		}
+		val iastName = CASTName(name.toCharArray)
+		addVariable(iastName, theType)
 	}
 
 	def addVariable(name: IASTName, theType: IType, initVals: List[RValue] = List()): Variable = {
