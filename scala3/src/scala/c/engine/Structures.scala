@@ -19,7 +19,7 @@ object Structures {
 		case enumeration: CEnumeration => false
 	}
 
-	def copyStructure(structType: CStructure, srcAddress: Int, newName: IASTName, state: State): Variable = {
+	def copyStructure(structType: CStructure, srcAddress: Address, newName: IASTName, state: State): Variable = {
 		val newAddress = state.stack.insertIndex
 		val resultCopy = Variable(newName, state, structType) // space is allocated now
 
@@ -27,7 +27,7 @@ object Structures {
 		//println("Source structure address: " + src.address)
 		//println("New structure address: " + resultCopy.address)
 		structType.getFields.foreach: field =>
-			val srcField = offsetof(structType, srcAddress, field.getName, state)
+			val srcField = offsetof(structType, srcAddress.location, field.getName, state)
 			val dstField = offsetof(structType, newAddress, field.getName, state)
 			state.copy(dstField.address.location, srcField.address.location, srcField.sizeof)
 			//println(s"copying from address (${srcField.address}) to address (${dstField.address})")
