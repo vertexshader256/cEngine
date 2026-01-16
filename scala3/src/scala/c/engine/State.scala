@@ -285,23 +285,23 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	}
 
 	def copy(dst: Int, src: Int, numBytes: Int): Unit = {
-		Stack.tape.copy(dst, src, numBytes)
+		Stack.copy(dst, src, numBytes)
 	}
 
 	def set(dst: Int, value: Byte, numBytes: Int): Unit = {
-		Stack.tape.set(dst, value, numBytes)
+		Stack.set(dst, value, numBytes)
 	}
 
 	def writeDataBlock(array: Array[Byte], startingAddress: Int): Unit = {
-		Stack.tape.writeDataBlock(array, startingAddress)
+		Stack.writeDataBlock(array, startingAddress)
 	}
 
 	def readDataBlock(startingAddress: Int, length: Int): Array[Byte] = {
-		Stack.tape.readDataBlock(startingAddress, length)
+		Stack.readDataBlock(startingAddress, length)
 	}
 
 	def readPtrVal(address: Int): Int = {
-		Stack.tape.readPtrVal(address)
+		Stack.readPtrVal(address)
 	}
 
 	private def stripQuotes(str: String): String = {

@@ -212,7 +212,7 @@ object Stringh {
 
 				val concat = str1 + str2 + "\u0000"
 				val bytes = concat.getBytes
-				state.Stack.tape.writeDataBlock(bytes, dstAddr)
+				state.Stack.writeDataBlock(bytes, dstAddr)
 				Some(formattedOutputParams(0)) // returns a pointer to the destination string
 			}
 		}

@@ -11,12 +11,36 @@ class Memory(size: Int) {
 
 	var insertIndex = 0
 	// turing tape
-	val tape = Tape(size)
+	private val tape = Tape(size)
 
 	def allocate(numBytes: Int): Int = {
 		val result = insertIndex
 		insertIndex += Math.max(0, numBytes)
 		result
+	}
+
+	def copy(dst: Int, src: Int, numBytes: Int): Unit = {
+		tape.copy(dst, src, numBytes)
+	}
+
+	def set(dst: Int, value: Byte, numBytes: Int): Unit = {
+		tape.set(dst, value, numBytes)
+	}
+
+	def writeDataBlock(array: Array[Byte], startingAddress: Int): Unit = {
+		tape.writeDataBlock(array, startingAddress)
+	}
+
+	def readDataBlock(startingAddress: Int, length: Int): Array[Byte] = {
+		tape.readDataBlock(startingAddress, length)
+	}
+
+	def readPtrVal(address: Int): Int = {
+		tape.readPtrVal(address)
+	}
+
+	def clearMemory(startingAddress: Int, numBytes: Int): Unit = {
+		tape.clearMemory(startingAddress, numBytes)
 	}
 
 	private def writeInteger(newVal: cEngVal, address: Int, bitOffset: Int = 0, sizeInBits: Int = 0) = {
