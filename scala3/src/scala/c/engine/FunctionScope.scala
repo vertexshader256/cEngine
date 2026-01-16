@@ -89,7 +89,7 @@ class FunctionScope(val function: Function, val parent: FunctionScope, val retur
 		function.staticVars.find {
 			_.name == name.toString
 		}.getOrElse {
-			val newVar = Variable(name.toString, state, theType, initVals)
+			val newVar = Variable(name, state, theType, initVals)
 			currentVariableScope.addVariable(newVar)
 			newVar
 		}

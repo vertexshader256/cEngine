@@ -97,7 +97,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		functionList += fcn
 
 		val fcnType = CFunctionType(CBasicType(IBasicType.Kind.eVoid, 0), null)
-		val newVar = Variable(fcn.name, State.this, fcnType)
+		val newVar = Variable(new CASTName(fcn.name.toCharArray), State.this, fcnType)
 		Stack.writeToMemory(count, newVar.address, fcnType)
 
 		functionPointers += fcn.name -> newVar
@@ -112,7 +112,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 					case vari: IVariable =>
 						if (vari.isStatic) {
 							val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
-							val variable = Variable(decl.getName.toString, this, vari.getType)
+							val variable = Variable(decl.getName, this, vari.getType)
 							
 							if decl.getInitializer != null then
 								val initVals = Declarator.getValuesForStaticVar(decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause, theType)(using this)
@@ -150,7 +150,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		functionList += newFcn
 
 		if (!isMain) {
-			val newVar = Variable(name.toString, State.this, fcnType)
+			val newVar = Variable(name, State.this, fcnType)
 			Stack.writeToMemory(count, newVar.address, fcnType)
 
 			functionPointers += name.toString -> newVar
@@ -178,7 +178,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		zipped.foreach { (arg, param) =>
 			arg match {
 				case variable: Variable if variable.aType.isInstanceOf[CStructure] =>
-					val copy = Structures.copyStructure(variable.aType.asInstanceOf[CStructure], variable.address, param.getName, this)
+					val copy = Structures.copyStructure(variable.aType.asInstanceOf[CStructure], variable.address, CASTName(param.getName.toCharArray), this)
 					context.addVariable(copy)
 				case struct: Structure =>
 					val newVar = context.addVariable(param.getName, param.getType)

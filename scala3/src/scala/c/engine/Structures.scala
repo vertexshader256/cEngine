@@ -19,7 +19,7 @@ object Structures {
 		case enumeration: CEnumeration => false
 	}
 
-	def copyStructure(structType: CStructure, srcAddress: Int, newName: String, state: State): Variable = {
+	def copyStructure(structType: CStructure, srcAddress: Int, newName: IASTName, state: State): Variable = {
 		val newAddress = state.Stack.insertIndex
 		val resultCopy = Variable(newName, state, structType) // space is allocated now
 

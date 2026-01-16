@@ -1,11 +1,11 @@
 package scala.c.engine.models
 
-import org.eclipse.cdt.core.dom.ast.{IArrayType, IType}
+import org.eclipse.cdt.core.dom.ast.{IASTName, IArrayType, IType}
 
 import scala.c.engine.*
 
 object Variable {
-	def apply(name: String, state: State, aType: IType, initVals: List[RValue]): Variable = {
+	def apply(name: IASTName, state: State, aType: IType, initVals: List[RValue]): Variable = {
 
 		val size = if (aType.isInstanceOf[IArrayType] && initVals.nonEmpty) {
 			if (aType.asInstanceOf[IArrayType].hasSize) {
@@ -27,23 +27,39 @@ object Variable {
 		variable
 	}
 
-	def apply(name: String, state: State, aType: IType): Variable = {
+	def apply(name: IASTName, state: State, aType: IType): Variable = {
 		val size = TypeHelper.sizeof(aType)(using state)
-		Variable(name: String, state: State, aType: IType, size)
+		Variable(name, state, aType, size)
 	}
 }
 
-case class Variable(name: String, state: State, aType: IType, sizeof: Int) extends LValue {
+case class Variable(theName: IASTName, state: State, aType: IType, sizeof: Int) extends LValue {
 
 	val theType = TypeHelper.stripSyntheticTypeInfo(aType)
 	val rawType = aType
 	val bitOffset = 0
 	val sizeInBits = sizeof * 8
+	val name = theName.toString
 
 	val address = state.allocateSpace(sizeof)
 
 	// need this for function-scoped static vars
 	var isInitialized = false
+
+	override def rValue: RValue = {
+		if rVal.isInstanceOf[FileRValue] then
+			rVal
+		else if TypeHelper.isPointerOrArray(this) then
+			Address(getValue.value.asInstanceOf[Int], TypeHelper.getPointerType(theType))
+		else
+			RValue(getValue.value, theType)
+	}
+
+	private def getValue = if (theType.isInstanceOf[IArrayType]) {
+		RValue(address, theType)
+	} else {
+		state.Stack.readFromMemory(address, theType, bitOffset, sizeInBits)
+	}
 
 	override def toString = {
 		"Variable(" + name + ", " + address + ", " + theType.getClass.getSimpleName + ")"
