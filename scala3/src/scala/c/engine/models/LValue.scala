@@ -48,7 +48,7 @@ trait LValue extends ValueType {
 }
 
 object LValue {
-	def unapply(info: LValue): Option[(Int, IType)] = Some((info.address.location, info.theType))
+	def unapply(info: LValue): Option[(Address, IType)] = Some((info.address, info.theType))
 
 	def apply(theState: State, addr: Address, aType: IType) =
 		new LValue {
