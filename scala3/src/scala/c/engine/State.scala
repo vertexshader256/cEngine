@@ -13,8 +13,8 @@ import scala.collection.mutable.ListBuffer
 
 class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
-	val stack = Memory(100000)
-	val dataSegment = Memory(2000)
+	val stack = Memory(100000, "Stack")
+	val dataSegment = Memory(2000, "Data Segment")
 
 	private var heapInsertIndex = 20000
 

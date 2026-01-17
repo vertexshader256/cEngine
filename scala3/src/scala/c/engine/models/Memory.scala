@@ -5,13 +5,15 @@ import org.eclipse.cdt.internal.core.dom.parser.c.{CEnumeration, CStructure, CTy
 
 import scala.c.engine.*
 
-class Memory(size: Int) {
+class Memory(size: Int, name: String) {
 
 	import org.eclipse.cdt.core.dom.ast.IBasicType.Kind.*
 
 	var insertIndex = 0
 	// turing tape
 	private val tape = Tape(size)
+
+	override def toString: String = name
 
 	def allocate(numBytes: Int): Address = {
 		val result = insertIndex
