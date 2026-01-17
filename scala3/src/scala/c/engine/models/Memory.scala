@@ -13,9 +13,15 @@ class Memory(size: Int, name: String) {
 
 	import org.eclipse.cdt.core.dom.ast.IBasicType.Kind.*
 
-	var insertIndex = 0
+	private var insertIndex = 0
 
 	override def toString: String = name
+
+	def setInsertIndex(pos: Int) = {
+		insertIndex = pos
+	}
+
+	def getInsertIndex: Int = insertIndex
 
 	private val tape: ByteBuffer = ByteBuffer.allocateDirect(size)
 	tape.order(ByteOrder.LITTLE_ENDIAN)

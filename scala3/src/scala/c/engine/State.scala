@@ -73,7 +73,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 	private def popFunctionContext: FunctionScope = {
 		val frame = functionContexts.pop()
-		stack.insertIndex = frame.startingStackAddr
+		stack.setInsertIndex(frame.startingStackAddr)
 		frame
 	}
 
@@ -228,13 +228,13 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 			if (!function.isNative) {
 				// this is a function simulated in scala
 
-				val stackPos = stack.insertIndex
+				val stackPos = stack.getInsertIndex
 				val args = call.getArguments.map { x => Expressions.evaluate(x)(using this) }
 
 				val resolvedArgs: Array[RValue] = args.flatten.map(TypeHelper.toRValue(_)(using this))
 
 				val returnVal = function.run(resolvedArgs.reverse, this)
-				stack.insertIndex = stackPos // pop the stack
+				stack.setInsertIndex(stackPos) // pop the stack
 
 				returnVal.map:
 					case file @ FileRValue(_) => file
