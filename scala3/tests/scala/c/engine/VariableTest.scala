@@ -24,21 +24,46 @@ class VariableTest extends StandardTest {
 		checkResults(code)
 	}
 
-	"static variables in a function" should "print the correct results" in {
+	"static array of string variable in a function" should "print the correct results" in {
 		val code =
 			"""
-					void fcn() {
-						static char *dig[3] = { "00", "01", "10" };
-						printf("%s %s %s\n", dig[0], dig[1], dig[2]);
-						dig[0] = dig[1];
-				  }
+				void fcn() {
+					static char *dig[3] = { "00", "01", "10" };
+					printf("%s %s %s\n", dig[0], dig[1], dig[2]);
+					dig[0] = dig[1];
+				}
 
-					void main() {
-						fcn();
-						fcn();
-						fcn();
-					}
-					"""
+				void main() {
+					fcn();
+					fcn();
+					fcn();
+				}
+				"""
+		checkResults(code)
+	}
+
+	"static structure variable in a function" should "print the correct results" in {
+		val code =
+			"""
+				struct test {
+					short y;
+					int x;
+			    char *str;
+				};
+
+				void fcn() {
+					static struct test dig = { 10, 234232, "test" };
+					printf("%d %d %s\n", dig.y, dig.x, dig.str);
+					dig.x++;
+					dig.y++;
+				}
+
+				void main() {
+					fcn();
+					fcn();
+					fcn();
+				}
+				"""
 		checkResults(code)
 	}
 
