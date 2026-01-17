@@ -24,7 +24,7 @@ object Printf {
 		buffer2.toString
 	}
 
-	private def printDynamicWidthString(stringFormat: String, param1: RValue, param2: RValue)(using State) = {
+	private def printDynamicWidthString(stringFormat: String, param1: RValue, param2: RValue)(implicit state: State) = {
 		val formatString = stringFormat
 		val buffer2 = StringBuffer()
 		val formatter2 = Formatter(buffer2, Locale.US)
@@ -44,7 +44,7 @@ object Printf {
 		println("LENGTH: " + stringLength)
 
 		var string = if stringAddr != 0 then
-			val str = Utils.readString(stringAddr)
+			val str = Utils.readString(Address(stringAddr, state.stack))
 			str.split(System.lineSeparator()).mkString
 		else
 			"(null)"
@@ -58,7 +58,7 @@ object Printf {
 		buffer2.toString
 	}
 
-	private def printString(stringFormat: String, theValue: RValue)(using State) = {
+	private def printString(stringFormat: String, theValue: RValue)(implicit state: State) = {
 		val formatString = stringFormat
 		val buffer2 = StringBuffer()
 		val formatter2 = Formatter(buffer2, Locale.US)
@@ -69,7 +69,7 @@ object Printf {
 			case long: Long => long.toInt
 
 		val value = if stringAddr != 0 then
-			val str = Utils.readString(stringAddr)
+			val str = Utils.readString(Address(stringAddr, state.stack))
 			str.split(System.lineSeparator()).mkString.asInstanceOf[Object]
 		else
 			"(null)".asInstanceOf[Object]
@@ -241,7 +241,7 @@ object Printf {
 	)
 
 	def printf(formattedOutputParams: Array[RValue], state: State): String = {
-		val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(using state)
+		val str = Utils.readString(Address(formattedOutputParams.last.value.asInstanceOf[Int], state.stack))(using state)
 
 		var percentFound = false
 		var paramCount = 0

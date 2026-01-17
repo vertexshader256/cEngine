@@ -146,14 +146,14 @@ object Stringh {
 					case int: Int => int
 					case byte: Byte => byte.toInt
 				}
-				val straddy = formattedOutputParams(1).value.asInstanceOf[Int]
+				val straddy = Address(formattedOutputParams(1).value.asInstanceOf[Int], state.stack)
 
 				val str = Utils.readString(straddy)(using state)
 
 				val offset = str.indexOf(char.toChar)
 
 				if (offset != -1) {
-					Some(RValue(straddy + offset))
+					Some(RValue((straddy + offset).location))
 				} else {
 					Some(RValue(0))
 				}
@@ -166,7 +166,7 @@ object Stringh {
 				val src = formattedOutputParams(1).value.asInstanceOf[Int]
 				val dst = formattedOutputParams(2).value.asInstanceOf[Int]
 
-				val str1 = Utils.readString(src)(using state)
+				val str1 = Utils.readString(Address(src, state.stack))(using state)
 
 				state.copy(Address(dst, state.stack), Address(src, state.stack), Math.min(str1.length + 1, num))
 				None
@@ -178,7 +178,7 @@ object Stringh {
 				val src = formattedOutputParams(0).value.asInstanceOf[Int]
 				val dst = formattedOutputParams(1).value.asInstanceOf[Int]
 
-				val str1 = Utils.readString(src)(using state)
+				val str1 = Utils.readString(Address(src, state.stack))(using state)
 
 				state.copy(Address(dst, state.stack), Address(src, state.stack), str1.length + 1)
 				None
@@ -190,8 +190,8 @@ object Stringh {
 				val straddy = formattedOutputParams(0).value.asInstanceOf[Int]
 				val straddy2 = formattedOutputParams(1).value.asInstanceOf[Int]
 
-				val str1 = Utils.readString(straddy)(using state)
-				val str2 = Utils.readString(straddy2)(using state)
+				val str1 = Utils.readString(Address(straddy, state.stack))(using state)
+				val str2 = Utils.readString(Address(straddy2, state.stack))(using state)
 
 				val same = str1 == str2
 				Some(RValue((if (same) 0 else 1)))
@@ -203,8 +203,8 @@ object Stringh {
 				val dstAddr = formattedOutputParams(1).value.asInstanceOf[Int]
 				val stringToAppendAddr = formattedOutputParams(0).value.asInstanceOf[Int]
 
-				val str1 = Utils.readString(dstAddr)(using state)
-				val str2 = Utils.readString(stringToAppendAddr)(using state)
+				val str1 = Utils.readString(Address(dstAddr, state.stack))(using state)
+				val str2 = Utils.readString(Address(stringToAppendAddr, state.stack))(using state)
 
 				val concat = str1 + str2 + "\u0000"
 				val bytes = concat.getBytes
@@ -218,8 +218,8 @@ object Stringh {
 				val straddy = formattedOutputParams(0).value.asInstanceOf[Int]
 				val straddy2 = formattedOutputParams(1).value.asInstanceOf[Int]
 
-				val memberName = Utils.readString(straddy)(using state)
-				val stuctName = Utils.readString(straddy2)(using state)
+				val memberName = Utils.readString(Address(straddy, state.stack))(using state)
+				val stuctName = Utils.readString(Address(straddy2, state.stack))(using state)
 
 				val struct = state.structs.find { x => ("struct " + x.getName) == stuctName }.get
 

@@ -36,7 +36,7 @@ trait LValue extends ValueType {
 	private def getValue = if (theType.isInstanceOf[IArrayType]) {
 		RValue(address.location, theType)
 	} else {
-		state.stack.readFromMemory(address.location, theType, bitOffset, sizeInBits)
+		address.readFromMemory(theType, bitOffset, sizeInBits)
 	}
 
 	def setValue(newVal: RValue): Unit = {

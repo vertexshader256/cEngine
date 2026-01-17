@@ -65,7 +65,7 @@ object Expressions {
 					case ptr: IPointerType if aType.isInstanceOf[IArrayType] =>
 						addr.location
 					case _ =>
-						val currentVal = addr.segment.readFromMemory(addr.location, aType) // read current variable value
+						val currentVal = addr.readFromMemory(aType) // read current variable value
 						TypeHelper.cast(currentVal.value, theType).value
 
 				newAddr.writeToMemory(value, theType) // write the casted data out

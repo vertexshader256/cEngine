@@ -22,7 +22,7 @@ object Stdargh {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val argTypeStr = formattedOutputParams(0).value.asInstanceOf[Int]
 
-				val str = Utils.readString(argTypeStr)(using state)
+				val str = Utils.readString(Address(argTypeStr, state.stack))(using state)
 
 				val (offset, theType) = str match {
 					case "unsigned int" => (4, TypeHelper.unsignedIntType)

@@ -7,6 +7,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c.CBasicType
 
 import java.io.File
 import java.util
+import scala.c.engine.models.Address
 import scala.collection.mutable.ListBuffer
 
 object Utils {
@@ -53,12 +54,12 @@ object Utils {
 		node +: node.getChildren.toList.flatMap(getDescendants)
 	}
 
-	private def readChar(address: Int)(implicit state: State): Char = {
-		val value = state.stack.readFromMemoryRaw(TypeHelper.charType, address)
+	private def readChar(address: Address)(implicit state: State): Char = {
+		val value = address.segment.readFromMemoryRaw(TypeHelper.charType, address.location)
 		TypeHelper.castSign(TypeHelper.charType, value).value.asInstanceOf[Byte].toChar
 	}
 
-	def readString(address: Int)(implicit state: State): String = {
+	def readString(address: Address)(implicit state: State): String = {
 		var current: Char = 0
 		val stringBuilder = ListBuffer[Char]()
 		var offset = 0

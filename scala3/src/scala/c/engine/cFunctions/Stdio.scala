@@ -68,7 +68,7 @@ object Stdio {
 
 		scalaFunctions += new EmulatedFunction("puts") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val string = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(using state)
+				val string = Utils.readString(Address(formattedOutputParams.last.value.asInstanceOf[Int], state.stack))(using state)
 				val tabsReplaced = string.replace("\\t", "\t")
 
 				tabsReplaced.foreach: char =>
@@ -82,8 +82,8 @@ object Stdio {
 
 		scalaFunctions += new EmulatedFunction("fopen") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val path = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(using state)
-				val mode = Utils.readString(formattedOutputParams.head.value.asInstanceOf[Int])(using state)
+				val path = Utils.readString(Address(formattedOutputParams.last.value.asInstanceOf[Int], state.stack))(using state)
+				val mode = Utils.readString(Address(formattedOutputParams.head.value.asInstanceOf[Int], state.stack))(using state)
 
 				if (!File(path).exists()) {
 					if (mode == "w") {
@@ -101,7 +101,7 @@ object Stdio {
 		// a return value of 0 indicates the file was successfully deleted
 		scalaFunctions += new EmulatedFunction("remove") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val path = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(using state)
+				val path = Utils.readString(Address(formattedOutputParams.last.value.asInstanceOf[Int], state.stack))(using state)
 				val file = File(path)
 
 				Try(file.delete()).toOption.map { wasDeleted =>

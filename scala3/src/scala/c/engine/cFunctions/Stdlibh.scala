@@ -59,7 +59,7 @@ object Stdlibh {
 
 		scalaFunctions += new EmulatedFunction("atoi") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val str = Utils.readString(formattedOutputParams.last.value.asInstanceOf[Int])(using state)
+				val str = Utils.readString(Address(formattedOutputParams.last.value.asInstanceOf[Int], state.stack))(using state)
 				Some(RValue(str.toInt))
 			}
 		}
