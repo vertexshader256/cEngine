@@ -4,7 +4,7 @@ import org.eclipse.cdt.core.dom.ast.IType
 
 import scala.c.engine.cEngVal
 
-case class Address(location: Int, segment: Memory) {
-	def +(offset: Int) = Address(location + offset, segment)
-	def -(offset: Int) = Address(location - offset, segment)
+case class Address(location: Int) {
+	def +(offset: Int) = Address(location + offset)
+	def -(offset: Int) = Address(location - offset)
 }

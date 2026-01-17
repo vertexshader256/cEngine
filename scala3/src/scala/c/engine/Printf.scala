@@ -29,9 +29,6 @@ object Printf {
 		val buffer2 = StringBuffer()
 		val formatter2 = Formatter(buffer2, Locale.US)
 
-		println("PARAM1: " + param1)
-		println("PARAM2: " + param2)
-
 		val theVal = param2.value
 		val stringAddr = theVal match
 			case int: Int => int
@@ -41,14 +38,8 @@ object Printf {
 			case int: Int => int
 			case long: Long => long.toInt
 
-		println("LENGTH: " + stringLength)
-
-		val segment = param1 match
-			case Pointer(address, _) => address.segment
-			case _ => state.stack
-
 		var string = if stringAddr != 0 then
-			val str = Utils.readString(Address(stringAddr, segment))
+			val str = Utils.readString(Address(stringAddr))
 			str.split(System.lineSeparator()).mkString
 		else
 			"(null)"
@@ -72,12 +63,8 @@ object Printf {
 			case int: Int => int
 			case long: Long => long.toInt
 
-		val segment = theValue match
-			case Pointer(address, _) => address.segment
-			case _ => state.stack
-
 		val value = if stringAddr != 0 then
-			val str = Utils.readString(Address(stringAddr, segment))
+			val str = Utils.readString(Address(stringAddr))
 			str.split(System.lineSeparator()).mkString.asInstanceOf[Object]
 		else
 			"(null)".asInstanceOf[Object]
@@ -249,7 +236,7 @@ object Printf {
 	)
 
 	def printf(formattedOutputParams: Array[RValue], state: State): String = {
-		val str = Utils.readString(Address(formattedOutputParams.last.value.asInstanceOf[Int], state.stack))(using state)
+		val str = Utils.readString(Address(formattedOutputParams.last.value.asInstanceOf[Int]))(using state)
 
 		var percentFound = false
 		var paramCount = 0

@@ -89,10 +89,6 @@ object Expressions {
 			left = right
 			right = temp
 
-		val segment = left match
-			case lValue: LValue => lValue.address.segment
-			case _ => state.stack
-
 		val base = TypeHelper.toRValue(left).value.asInstanceOf[Int]
 
 		val indexType = left match
@@ -105,7 +101,7 @@ object Expressions {
 		val index = rightValue.toString.toInt
 		val offset = base + index * TypeHelper.sizeof(indexType)
 
-		LValue(state, Address(offset, segment), indexType)
+		LValue(state, Address(offset), indexType)
 	}
 
 	private def fieldReference(fieldRef: IASTFieldReference)(implicit state: State): Field = {
@@ -113,7 +109,7 @@ object Expressions {
 		val structType = Structures.resolveStruct(struct.theType)
 
 		val baseAddr = if fieldRef.isPointerDereference then
-			Address(state.readPtrVal(struct.address), struct.address.segment)
+			Address(state.readPtrVal(struct.address))
 		else
 			struct.address
 

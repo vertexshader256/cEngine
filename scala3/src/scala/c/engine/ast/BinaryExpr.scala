@@ -17,16 +17,12 @@ object BinaryExpr {
 		else
 			ptr.theType
 
-		val segment = ptr match
-			case lValue: LValue => lValue.address.segment
-			case _ => state.stack
-
 		val value = TypeHelper.sizeof(theType) * offset
 		val bias = if (operator == `op_minus`) -1 else 1
 
 		val computedOffset = value * bias
 
-		val address = Address(rValue.value.asInstanceOf[Int] + computedOffset, segment)
+		val address = Address(rValue.value.asInstanceOf[Int] + computedOffset)
 		Pointer(address, rValue.theType)
 	}
 	
@@ -37,17 +33,13 @@ object BinaryExpr {
 		val isLeftPointer = TypeHelper.isPointerOrArray(x)
 		val isRightPointer = TypeHelper.isPointerOrArray(y)
 
-		val segment = x match
-			case lValue: LValue => lValue.address.segment
-			case _ => state.stack
-
 		if (isLeftPointer && (operator == op_minus || operator == op_plus)) {
 			val rightValue = TypeHelper.cast(right.value, TypeHelper.intType).value.asInstanceOf[Int]
 			
 			if isRightPointer then
 				val leftSize = TypeHelper.sizeof(right.theType)
 				val result = (left.value.asInstanceOf[Int] - rightValue) / leftSize
-				val address = Address(result, segment)
+				val address = Address(result)
 				Pointer(address, left.theType)
 			else
 				evaluatePointerArithmetic(left, rightValue, operator)
@@ -55,7 +47,7 @@ object BinaryExpr {
 			val leftValue = TypeHelper.cast(left.value, TypeHelper.intType).value.asInstanceOf[Int]
 			val rightPtrSize = TypeHelper.sizeof(right.theType)
 			val result = leftValue * rightPtrSize + right.value.asInstanceOf[Int]
-			val address = Address(result, segment)
+			val address = Address(result)
 			Pointer(address, right.theType)
 		} else {
 			if right.isInstanceOf[FileRValue] then

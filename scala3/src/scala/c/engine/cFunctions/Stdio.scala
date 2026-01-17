@@ -48,7 +48,7 @@ object Stdio {
 				// to-do: find a way to do this without allocating?
 				val result = state.allocateHeapSpace(20)
 
-				state.writeValues(Address(result, state.stack), array)
+				state.writeValues(Address(result), array)
 				Some(RValue(result))
 			}
 		}
@@ -68,7 +68,7 @@ object Stdio {
 
 		scalaFunctions += new EmulatedFunction("puts") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val string = Utils.readString(Address(formattedOutputParams.last.value.asInstanceOf[Int], state.stack))(using state)
+				val string = Utils.readString(Address(formattedOutputParams.last.value.asInstanceOf[Int]))(using state)
 				val tabsReplaced = string.replace("\\t", "\t")
 
 				tabsReplaced.foreach: char =>
@@ -82,8 +82,8 @@ object Stdio {
 
 		scalaFunctions += new EmulatedFunction("fopen") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val path = Utils.readString(Address(formattedOutputParams.last.value.asInstanceOf[Int], state.stack))(using state)
-				val mode = Utils.readString(Address(formattedOutputParams.head.value.asInstanceOf[Int], state.stack))(using state)
+				val path = Utils.readString(Address(formattedOutputParams.last.value.asInstanceOf[Int]))(using state)
+				val mode = Utils.readString(Address(formattedOutputParams.head.value.asInstanceOf[Int]))(using state)
 
 				if (!File(path).exists()) {
 					if (mode == "w") {
@@ -101,7 +101,7 @@ object Stdio {
 		// a return value of 0 indicates the file was successfully deleted
 		scalaFunctions += new EmulatedFunction("remove") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val path = Utils.readString(Address(formattedOutputParams.last.value.asInstanceOf[Int], state.stack))(using state)
+				val path = Utils.readString(Address(formattedOutputParams.last.value.asInstanceOf[Int]))(using state)
 				val file = File(path)
 
 				Try(file.delete()).toOption.map { wasDeleted =>
@@ -135,7 +135,7 @@ object Stdio {
 					}
 				}
 
-				state.writeDataBlock(Address(resultBuffer, state.stack), result.toArray)
+				state.writeDataBlock(Address(resultBuffer), result.toArray)
 
 				None
 			}
@@ -179,7 +179,7 @@ object Stdio {
 				val strAddr = formattedOutputParams.last.value.asInstanceOf[Int]
 
 				val formattedStr = Printf.printf(formattedOutputParams.drop(1), state)
-				state.writeDataBlock(Address(strAddr, state.stack), formattedStr.getBytes)
+				state.writeDataBlock(Address(strAddr), formattedStr.getBytes)
 				None
 			}
 		}
@@ -203,7 +203,7 @@ object Stdio {
 				val numMembers = TypeHelper.cast(formattedOutputParams(1).value, TypeHelper.intType).value.asInstanceOf[Int]
 				val fp = formattedOutputParams(0).asInstanceOf[FileRValue]
 
-				state.writeDataBlock(Address(resultBuffer, state.stack), fp.read(numMembers * size))
+				state.writeDataBlock(Address(resultBuffer), fp.read(numMembers * size))
 				Some(RValue(numMembers))
 			}
 		}
@@ -215,7 +215,7 @@ object Stdio {
 				val numMembers = formattedOutputParams(1).value.asInstanceOf[Int]
 				val fp = formattedOutputParams(0).asInstanceOf[FileRValue]
 
-				val bytes = state.readDataBlock(Address(buffer, state.stack), size * numMembers)
+				val bytes = state.readDataBlock(Address(buffer), size * numMembers)
 
 				fp.write(bytes, size * numMembers)
 

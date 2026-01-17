@@ -20,7 +20,7 @@ object Functions {
 	scalaFunctions += new EmulatedFunction("_assert") {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 			val addy = formattedOutputParams(0).value.asInstanceOf[Int]
-			println(Utils.readString(Address(addy, state.stack))(using state) + " FAILED")
+			println(Utils.readString(Address(addy))(using state) + " FAILED")
 			None
 		}
 	}

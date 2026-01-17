@@ -138,7 +138,7 @@ class Memory(size: Int, name: String) {
 	def allocate(numBytes: Int): Address = {
 		val result = insertIndex
 		insertIndex += Math.max(0, numBytes)
-		Address(result, this)
+		Address(result)
 	}
 
 	private def writeInteger(newVal: cEngVal, address: Int, bitOffset: Int = 0, sizeInBits: Int = 0) = {

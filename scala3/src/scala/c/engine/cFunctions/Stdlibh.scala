@@ -31,7 +31,7 @@ object Stdlibh {
 				val addr = state.allocateHeapSpace(numBlocks * blockSize)
 
 				state.stack.clearMemory(addr, numBlocks * blockSize)
-				val ptr = Pointer(Address(addr, state.stack), TypeHelper.void)
+				val ptr = Pointer(Address(addr), TypeHelper.void)
 
 				Some(ptr)
 			}
@@ -44,7 +44,7 @@ object Stdlibh {
 					case int: Int => state.allocateHeapSpace(int)
 				}
 
-				val ptr = Pointer(Address(returnVal, state.stack), TypeHelper.void)
+				val ptr = Pointer(Address(returnVal), TypeHelper.void)
 				Some(ptr)
 			}
 		}
@@ -52,14 +52,14 @@ object Stdlibh {
 		scalaFunctions += new EmulatedFunction("realloc") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val addr = state.allocateHeapSpace(formattedOutputParams.head.value.asInstanceOf[Long].toInt)
-				val ptr = Pointer(Address(addr, state.stack), TypeHelper.void)
+				val ptr = Pointer(Address(addr), TypeHelper.void)
 				Some(ptr)
 			}
 		}
 
 		scalaFunctions += new EmulatedFunction("atoi") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val str = Utils.readString(Address(formattedOutputParams.last.value.asInstanceOf[Int], state.stack))(using state)
+				val str = Utils.readString(Address(formattedOutputParams.last.value.asInstanceOf[Int]))(using state)
 				Some(RValue(str.toInt))
 			}
 		}

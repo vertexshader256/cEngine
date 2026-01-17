@@ -286,24 +286,24 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	}
 
 	def copy(dst: Address, src: Address, numBytes: Int): Unit = {
-		val data = src.segment.readDataBlock(src.location, numBytes)
-		dst.segment.writeDataBlock(data, dst.location)
+		val data = stack.readDataBlock(src.location, numBytes)
+		stack.writeDataBlock(data, dst.location)
 	}
 
 	def set(address: Address, value: Byte, numBytes: Int): Unit = {
-		address.segment.set(address.location, value, numBytes)
+		stack.set(address.location, value, numBytes)
 	}
 
 	def writeDataBlock(address: Address, array: Array[Byte]): Unit = {
-		address.segment.writeDataBlock(array, address.location)
+		stack.writeDataBlock(array, address.location)
 	}
 
 	def readDataBlock(address: Address, length: Int): Array[Byte] = {
-		address.segment.readDataBlock(address.location, length)
+		stack.readDataBlock(address.location, length)
 	}
 
 	def readPtrVal(address: Address): Int = {
-		address.segment.readPtrVal(address.location)
+		stack.readPtrVal(address.location)
 	}
 
 	private def stripQuotes(str: String): String = {
@@ -338,7 +338,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 		values.foreach:
 			case RValue(newVal, theType) =>
-				address.segment.writeToMemory(newVal, location, theType)
+				stack.writeToMemory(newVal, location, theType)
 				location += TypeHelper.sizeof(theType)(using this)
 	}
 }

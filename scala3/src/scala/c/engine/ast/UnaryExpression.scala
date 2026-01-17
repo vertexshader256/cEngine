@@ -61,12 +61,12 @@ object UnaryExpression {
 	private def processStar(value: ValueType)(implicit state: State) = {
 		value match
 			case RValue(int: Int, theType) =>
-				LValue(state, Address(int, state.stack), theType)
+				LValue(state, Address(int), theType)
 			case info @ LValue(_, aType) =>
 				val nestedType = TypeHelper.getPointerType(aType)
 
 				if !nestedType.isInstanceOf[IFunctionType] then
-					LValue(state, Address(info.rValue.value.asInstanceOf[Int], info.address.segment), nestedType)
+					LValue(state, Address(info.rValue.value.asInstanceOf[Int]), nestedType)
 				else
 					// function pointers can ignore the star
 					info

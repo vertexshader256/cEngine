@@ -27,7 +27,7 @@ trait LValue extends ValueType {
 		if rVal.isInstanceOf[FileRValue] then
 			rVal
 		else if TypeHelper.isPointerOrArray(this) then {
-			val addr = Address(getValue.value.asInstanceOf[Int], address.segment)
+			val addr = Address(getValue.value.asInstanceOf[Int])
 			Pointer(addr, TypeHelper.getPointerType(theType))
 		} else
 			RValue(getValue.value, theType)
@@ -41,10 +41,10 @@ trait LValue extends ValueType {
 
 	def setValue(newVal: RValue): Unit = {
 		rVal = newVal
-		address.segment.writeToMemory(newVal.value, address.location, theType, bitOffset, sizeInBits)
+		state.stack.writeToMemory(newVal.value, address.location, theType, bitOffset, sizeInBits)
 	}
 
-	def toByteArray: Array[Byte] = state.readDataBlock(Address(address.location, address.segment), sizeof)
+	def toByteArray: Array[Byte] = state.readDataBlock(Address(address.location), sizeof)
 }
 
 object LValue {
