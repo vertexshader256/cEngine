@@ -41,7 +41,7 @@ trait LValue extends ValueType {
 
 	def setValue(newVal: RValue): Unit = {
 		rVal = newVal
-		state.stack.writeToMemory(newVal.value, address.location, theType, bitOffset, sizeInBits)
+		address.segment.writeToMemory(newVal.value, address.location, theType, bitOffset, sizeInBits)
 	}
 
 	def toByteArray: Array[Byte] = state.readDataBlock(Address(address.location, state.stack), sizeof)
