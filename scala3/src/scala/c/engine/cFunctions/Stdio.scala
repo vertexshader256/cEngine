@@ -136,7 +136,7 @@ object Stdio {
 					}
 				}
 
-				state.writeDataBlock(result.toArray, Address(resultBuffer, state.stack))
+				state.writeDataBlock(Address(resultBuffer, state.stack), result.toArray)
 
 				None
 			}
@@ -180,7 +180,7 @@ object Stdio {
 				val strAddr = formattedOutputParams.last.value.asInstanceOf[Int]
 
 				val formattedStr = Printf.printf(formattedOutputParams.drop(1), state)
-				state.writeDataBlock(formattedStr.getBytes, Address(strAddr, state.stack))
+				state.writeDataBlock(Address(strAddr, state.stack), formattedStr.getBytes)
 				None
 			}
 		}
@@ -204,7 +204,7 @@ object Stdio {
 				val numMembers = TypeHelper.cast(formattedOutputParams(1).value, TypeHelper.intType).value.asInstanceOf[Int]
 				val fp = formattedOutputParams(0).asInstanceOf[FileRValue]
 
-				state.writeDataBlock(fp.read(numMembers * size), Address(resultBuffer, state.stack))
+				state.writeDataBlock(Address(resultBuffer, state.stack), fp.read(numMembers * size))
 				Some(RValue(numMembers))
 			}
 		}

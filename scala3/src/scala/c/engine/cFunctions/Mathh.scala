@@ -167,7 +167,7 @@ object Mathh {
 
 				val result = Printf.printf(formattedOutputParams, state)
 
-				state.writeDataBlock(result.getBytes, Address(resultBuffer, state.stack))
+				state.writeDataBlock(Address(resultBuffer, state.stack), result.getBytes)
 
 				Some(RValue(varArgs.size))
 			}
