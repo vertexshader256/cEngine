@@ -43,8 +43,12 @@ object Printf {
 
 		println("LENGTH: " + stringLength)
 
+		val segment = param1 match
+			case Pointer(address, _) => address.segment
+			case _ => state.stack
+
 		var string = if stringAddr != 0 then
-			val str = Utils.readString(Address(stringAddr, state.stack))
+			val str = Utils.readString(Address(stringAddr, segment))
 			str.split(System.lineSeparator()).mkString
 		else
 			"(null)"
@@ -68,8 +72,12 @@ object Printf {
 			case int: Int => int
 			case long: Long => long.toInt
 
+		val segment = theValue match
+			case Pointer(address, _) => address.segment
+			case _ => state.stack
+
 		val value = if stringAddr != 0 then
-			val str = Utils.readString(Address(stringAddr, state.stack))
+			val str = Utils.readString(Address(stringAddr, segment))
 			str.split(System.lineSeparator()).mkString.asInstanceOf[Object]
 		else
 			"(null)".asInstanceOf[Object]
