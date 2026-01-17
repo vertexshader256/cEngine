@@ -64,8 +64,8 @@ case class Variable(theName: IASTName, state: State, aType: IType, sizeof: Int) 
 		if rVal.isInstanceOf[FileRValue] then
 			rVal
 		else if TypeHelper.isPointerOrArray(this) then {
-			val address = Address(getValue.value.asInstanceOf[Int], state.stack)
-			Pointer(address, TypeHelper.getPointerType(theType))
+			val addr = Address(getValue.value.asInstanceOf[Int], address.segment)
+			Pointer(addr, TypeHelper.getPointerType(theType))
 		} else
 			RValue(getValue.value, theType)
 	}
