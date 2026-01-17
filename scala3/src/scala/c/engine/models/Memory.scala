@@ -3,18 +3,17 @@ package scala.c.engine.models
 import org.eclipse.cdt.core.dom.ast.*
 import org.eclipse.cdt.internal.core.dom.parser.c.{CEnumeration, CStructure, CTypedef}
 import java.math.BigInteger
-import java.nio.{ByteBuffer, ByteOrder}
 import java.util
-import scala.c.engine.*
 import java.nio.{ByteBuffer, ByteOrder}
 import scala.c.engine.*
 
-class Memory(stackSize: Int, dataSize: Int) {
+class Memory(stackSize: Int, dataSize: Int, heapSize: Int) {
 
 	import org.eclipse.cdt.core.dom.ast.IBasicType.Kind.*
 
-	private var insertIndex = 0
-	private var heapInsertIndex = 20000
+	private var dataInsertIndex = 0
+	private var insertIndex = dataSize // stack
+	private var heapInsertIndex = dataSize + stackSize
 
 	def setStackPosition(pos: Int) = {
 		insertIndex = pos
@@ -22,7 +21,7 @@ class Memory(stackSize: Int, dataSize: Int) {
 
 	def getStackPosition: Int = insertIndex
 
-	private val tape: ByteBuffer = ByteBuffer.allocateDirect(dataSize + stackSize)
+	private val tape: ByteBuffer = ByteBuffer.allocateDirect(dataSize + stackSize + heapSize)
 	tape.order(ByteOrder.LITTLE_ENDIAN)
 
 	def writeDataBlock(array: Array[Byte], startingAddress: Int): Unit = {
@@ -135,8 +134,8 @@ class Memory(stackSize: Int, dataSize: Int) {
 	}
 
 	def allocateData(numBytes: Int): Address = {
-		val result = insertIndex
-		insertIndex += Math.max(0, numBytes)
+		val result = dataInsertIndex
+		dataInsertIndex += Math.max(0, numBytes)
 		Address(result)
 	}
 

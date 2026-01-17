@@ -13,7 +13,7 @@ import scala.collection.mutable.ListBuffer
 
 class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
-	val stack = Memory(100000, 10000)
+	val stack = Memory(stackSize = 100000, dataSize = 10000, heapSize = 50000)
 
 	private val functionContexts = mutable.Stack[FunctionScope]()
 
