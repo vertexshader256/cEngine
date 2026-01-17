@@ -6,10 +6,9 @@ import org.eclipse.cdt.internal.core.dom.parser.c.*
 import java.io.File
 import java.util.{Formatter, Locale}
 import scala.c.engine.*
-import scala.c.engine.models.*
+import scala.c.engine.models.{Function, *}
 import scala.collection.mutable.ListBuffer
 import scala.util.Try
-import scala.c.engine.models.Function
 
 object Mathh {
 

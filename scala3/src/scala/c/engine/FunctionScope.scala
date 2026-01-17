@@ -6,11 +6,10 @@ import org.eclipse.cdt.core.dom.ast.*
 import org.eclipse.cdt.internal.core.dom.parser.c.CASTName
 
 import scala.c.engine.Instructions.*
-import scala.c.engine.models.*
+import scala.c.engine.models.{Function, *}
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.compiletime.uninitialized
-import scala.c.engine.models.Function
 
 class VariableScope(val parent: VariableScope) {
 	private val varMap = mutable.LinkedHashMap[String, Variable]() // linked to keep deterministic

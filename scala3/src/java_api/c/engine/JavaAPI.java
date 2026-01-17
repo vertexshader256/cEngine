@@ -1,8 +1,8 @@
 package java_api.c.engine;
 
+import scala.c.engine.State;
 import scala.c.engine.gcc.Gcc;
 import scala.collection.JavaConverters;
-import scala.c.engine.State;
 
 import java.util.ArrayList;
 import java.util.Iterator;
