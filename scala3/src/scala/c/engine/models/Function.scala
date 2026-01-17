@@ -9,7 +9,17 @@ import scala.collection.mutable.ListBuffer
 abstract class Function(val name: String, val isNative: Boolean) {
 	var index = -1
 	var node: IASTNode = _
-	val staticVars = new ListBuffer[Variable]()
+	private val staticVars = new ListBuffer[Variable]()
+
+	def getStaticVariable(name: String): Option[Variable] = {
+		staticVars.find(_.name == name)
+	}
+
+	def addStaticVariable(variable: Variable): Unit = {
+		if (!staticVars.exists(_.name == variable.name)) {
+			staticVars += variable
+		}
+	}
 
 	def run(formattedOutputParams: Array[RValue], state: State): Option[RValue]
 }

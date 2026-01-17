@@ -146,7 +146,8 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 			}
 		}
 
-		newFcn.staticVars ++= addStaticFunctionVars(fcnDef)
+		addStaticFunctionVars(fcnDef).foreach: staticVar =>
+			newFcn.addStaticVariable(staticVar)
 
 		functionList += newFcn
 

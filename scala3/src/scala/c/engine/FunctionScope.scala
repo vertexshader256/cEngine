@@ -58,9 +58,7 @@ class FunctionScope(val function: Function, val parent: FunctionScope, val retur
 	}
 
 	def resolveId(name: IASTName): Option[Variable] = {
-		function.staticVars.find {
-			_.name == name.toString
-		}.orElse {
+		function.getStaticVariable(name.toString).orElse {
 			currentVariableScope.resolveId(name.toString)
 				.orElse(if (parent != null) parent.resolveId(name) else None)
 				.orElse(Some(state.functionPointers(name.toString)))
@@ -69,8 +67,7 @@ class FunctionScope(val function: Function, val parent: FunctionScope, val retur
 
 	def addVariable(variable: Variable): Unit = {
 		if variable.isStatic then
-			if !function.staticVars.exists{_.name == variable.name} then
-				function.staticVars += variable
+			function.addStaticVariable(variable)
 		else
 			currentVariableScope.addVariable(variable)
 	}
@@ -89,9 +86,7 @@ class FunctionScope(val function: Function, val parent: FunctionScope, val retur
 	}
 
 	def addVariable(name: IASTName, theType: IType, initVals: List[RValue] = List()): Variable = {
-		function.staticVars.find {
-			_.name == name.toString
-		}.getOrElse {
+		function.getStaticVariable(name.toString).getOrElse {
 			val newVar = Variable(name, state, theType, initVals)
 			addVariable(newVar)
 			newVar
