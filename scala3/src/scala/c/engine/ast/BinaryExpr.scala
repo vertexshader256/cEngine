@@ -22,7 +22,8 @@ object BinaryExpr {
 
 		val computedOffset = value * bias
 
-		Pointer(rValue.value.asInstanceOf[Int] + computedOffset, rValue.theType)
+		val address = Address(rValue.value.asInstanceOf[Int] + computedOffset, state.stack)
+		Pointer(address, rValue.theType)
 	}
 	
 	def evaluate(x: ValueType, y: ValueType, operator: Int)(implicit state: State): RValue = {
@@ -38,14 +39,16 @@ object BinaryExpr {
 			if isRightPointer then
 				val leftSize = TypeHelper.sizeof(right.theType)
 				val result = (left.value.asInstanceOf[Int] - rightValue) / leftSize
-				Pointer(result, left.theType)
+				val address = Address(result, state.stack)
+				Pointer(address, left.theType)
 			else
 				evaluatePointerArithmetic(left, rightValue, operator)
 		} else if (isRightPointer && operator == op_plus) {
 			val leftValue = TypeHelper.cast(left.value, TypeHelper.intType).value.asInstanceOf[Int]
 			val rightPtrSize = TypeHelper.sizeof(right.theType)
 			val result = leftValue * rightPtrSize + right.value.asInstanceOf[Int]
-			Pointer(result, right.theType)
+			val address = Address(result, state.stack)
+			Pointer(address, right.theType)
 		} else {
 			if right.isInstanceOf[FileRValue] then
 				right

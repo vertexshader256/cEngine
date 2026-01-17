@@ -4,7 +4,9 @@ import org.eclipse.cdt.core.dom.ast.IType
 
 import scala.c.engine.*
 
-case class Pointer(value: Int, theType: IType) extends RValue {
+case class Pointer(address: Address, theType: IType) extends RValue {
+	val value = address.location
+
 	override def toString: String = {
 		"Address(" + value + ", " + theType + ")"
 	}
