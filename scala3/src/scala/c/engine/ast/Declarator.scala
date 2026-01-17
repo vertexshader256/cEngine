@@ -28,20 +28,6 @@ object Declarator {
 				List(Expressions.evaluate(decl).get)
 	}
 
-	def getValuesForStaticVar(decl: IASTInitializerClause, theType: IType)(implicit state: State): List[ValueType] = {
-		decl match
-			case list: IASTInitializerList =>
-				getValuesFromList(list, theType)
-			case idExpr: IASTIdExpression =>
-				List(state.context.resolveId(idExpr.getName).get)
-			case fcnCall: IASTFunctionCallExpression =>
-				Ast.step(decl)
-				state.context.popStack
-				List()
-			case _ =>
-				List(Expressions.evaluate(decl).get)
-	}
-
 	def assign(dst: LValue, srcs: List[ValueType], equals: IASTInitializerClause, op: Int, isStatic: Boolean = false)(implicit state: State): Unit = {
 		if !dst.theType.isInstanceOf[CStructure] then
 			val eval = evaluate(dst, srcs.head, op, isStatic)
