@@ -2,6 +2,7 @@ package scala.c.engine.models
 
 import org.eclipse.cdt.core.dom.ast.{IASTName, IArrayType, IType}
 import org.eclipse.cdt.core.model.IVariable
+import org.eclipse.cdt.internal.core.dom.parser.c.CVariable
 
 import scala.c.engine.*
 
@@ -48,14 +49,14 @@ case class Variable(theName: IASTName, state: State, aType: IType, sizeof: Int) 
 	val isStatic = {
 		val binding = theName.resolveBinding()
 		binding match
-			case vari: IVariable => vari.isStatic
+			case vari: CVariable => vari.isStatic
 			case _ => false
 	}
 
 	val segment = if !isStatic then
 		state.stack
 	else
-		state.dataSegment
+		state.stack
 
 	val address = segment.allocate(sizeof)
 
