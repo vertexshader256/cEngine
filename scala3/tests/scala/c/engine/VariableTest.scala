@@ -28,11 +28,14 @@ class VariableTest extends StandardTest {
 		val code =
 			"""
 					void fcn() {
-						static const char *const dig[3] = { "00", "01", "10" };
+						static char *dig[3] = { "00", "01", "10" };
 						printf("%s %s %s\n", dig[0], dig[1], dig[2]);
+						dig[0] = dig[1];
 				  }
 
 					void main() {
+						fcn();
+						fcn();
 						fcn();
 					}
 					"""
