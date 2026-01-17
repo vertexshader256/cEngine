@@ -116,7 +116,7 @@ object Stringh {
 				val value = formattedOutputParams(1).value.asInstanceOf[Int].toByte
 				val dst = formattedOutputParams(2).value.asInstanceOf[Int]
 
-				state.set(dst, value, numBytes)
+				state.set(Address(dst, state.stack), value, numBytes)
 				None
 			}
 		}

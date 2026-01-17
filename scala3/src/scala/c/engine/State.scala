@@ -288,16 +288,16 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		stack.copy(dst.location, src.location, numBytes)
 	}
 
-	def set(dst: Int, value: Byte, numBytes: Int): Unit = {
-		stack.set(dst, value, numBytes)
+	def set(address: Address, value: Byte, numBytes: Int): Unit = {
+		address.segment.set(address.location, value, numBytes)
 	}
 
-	def writeDataBlock(array: Array[Byte], startingAddress: Address): Unit = {
-		startingAddress.segment.writeDataBlock(array, startingAddress.location)
+	def writeDataBlock(array: Array[Byte], address: Address): Unit = {
+		address.segment.writeDataBlock(array, address.location)
 	}
 
-	def readDataBlock(startingAddress: Address, length: Int): Array[Byte] = {
-		stack.readDataBlock(startingAddress.location, length)
+	def readDataBlock(address: Address, length: Int): Array[Byte] = {
+		stack.readDataBlock(address.location, length)
 	}
 
 	def readPtrVal(address: Address): Int = {
@@ -331,12 +331,12 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		theArrayPtr
 	}
 
-	def writeDataBlock(array: List[RValue], startingAddress: Address): Unit = {
-		var address = startingAddress.location
+	def writeValues(address: Address, values: List[RValue]): Unit = {
+		var location = address.location
 
-		array.foreach:
+		values.foreach:
 			case RValue(newVal, theType) =>
-				stack.writeToMemory(newVal, address, theType)
-				address += TypeHelper.sizeof(theType)(using this)
+				address.segment.writeToMemory(newVal, location, theType)
+				location += TypeHelper.sizeof(theType)(using this)
 	}
 }

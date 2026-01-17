@@ -24,7 +24,7 @@ object Variable {
 		val variable = Variable(name, state, aType, size)
 
 		// now, write the initial values
-		state.writeDataBlock(initVals, variable.address)
+		state.writeValues(variable.address, initVals)
 		variable
 	}
 
