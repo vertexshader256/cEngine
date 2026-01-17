@@ -17,7 +17,7 @@ object Declarator {
 		case arrayDecl: IASTArrayDeclarator =>
 			processArrayDecl(arrayDecl)
 		case decl: CASTDeclarator =>
-			processCastDecl(decl)
+			processDeclarator(decl)
 	}
 
 	def getRValues(decl: IASTInitializerClause, theType: IType)(implicit state: State): List[ValueType] = {
@@ -204,7 +204,8 @@ object Declarator {
 		}
 	}
 
-	private def processCastDecl(decl: CASTDeclarator)(implicit state: State): Unit = {
+	// where variables get created
+	private def processDeclarator(decl: CASTDeclarator)(implicit state: State): Unit = {
 		val nameBinding = decl.getName.resolveBinding()
 		val name = decl.getName
 
