@@ -134,10 +134,10 @@ object TypeHelper {
 	}
 
 	// resolves 'ValueType' to 'RValue'
-	def toRValue(any: ValueType)(implicit state: State): RValue = any match {
+	def toRValue(any: ValueType, isStatic: Boolean = false)(implicit state: State): RValue = any match {
 		case info @ LValue(_, _) => info.rValue
 		case rValue @ RValue(_, _) => rValue
-		case StringLiteral(str) => state.getString(str)
+		case StringLiteral(str) => state.getString(str, isStatic)
 	}
 
 	def isPointerOrArray(value: ValueType): Boolean =

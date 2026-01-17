@@ -42,9 +42,10 @@ object Declarator {
 				List(Expressions.evaluate(decl).get)
 	}
 
-	def assign(dst: LValue, srcs: List[ValueType], equals: IASTInitializerClause, op: Int)(implicit state: State): Unit = {
+	def assign(dst: LValue, srcs: List[ValueType], equals: IASTInitializerClause, op: Int, isStatic: Boolean = false)(implicit state: State): Unit = {
 		if !dst.theType.isInstanceOf[CStructure] then
-			val result = evaluate(dst, srcs.head, op) match
+			val eval = evaluate(dst, srcs.head, op, isStatic)
+			val result = eval match
 				case file @ FileRValue(_) => file
 				case x => TypeHelper.cast(x.value, dst.theType)
 
@@ -145,7 +146,7 @@ object Declarator {
 	}
 
 	private def processList(theType: IType, list: CASTInitializerList)(implicit state: State): List[RValue] = {
-		val flattened = flattenInitList(list).map(TypeHelper.toRValue)
+		val flattened = flattenInitList(list).map(x => TypeHelper.toRValue(x))
 
 		if !TypeHelper.isPointer(theType) && !Structures.isStructure(theType) then
 			val baseType = TypeHelper.resolveBasic(theType)
@@ -161,7 +162,7 @@ object Declarator {
 		val values = pointerType match
 			case struct: CStructure => // array of structs
 				init.getChildren.flatMap { list =>
-					getValuesFromInitializer(list.asInstanceOf[IASTInitializerClause], struct).map(TypeHelper.toRValue)
+					getValuesFromInitializer(list.asInstanceOf[IASTInitializerClause], struct).map(x => TypeHelper.toRValue(x))
 				}.toList
 			case _ =>
 				processList(theType, init.asInstanceOf[CASTInitializerList])
@@ -223,7 +224,7 @@ object Declarator {
 						case equals: IASTEqualsInitializer =>
 							val initClause = equals.getInitializerClause
 							val initVals = getRValues(initClause, theType)
-							assign(addedVariable, initVals, initClause, op_assign)
+							assign(addedVariable, initVals, initClause, op_assign, addedVariable.isStatic)
 						case _ =>
 
 					addedVariable.isInitialized = true

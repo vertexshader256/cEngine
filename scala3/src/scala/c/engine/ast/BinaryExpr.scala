@@ -26,9 +26,9 @@ object BinaryExpr {
 		Pointer(address, rValue.theType)
 	}
 	
-	def evaluate(x: ValueType, y: ValueType, operator: Int)(implicit state: State): RValue = {
-		val left = TypeHelper.toRValue(x)
-		val right = TypeHelper.toRValue(y)
+	def evaluate(x: ValueType, y: ValueType, operator: Int, isStatic: Boolean = false)(implicit state: State): RValue = {
+		val left = TypeHelper.toRValue(x, isStatic)
+		val right = TypeHelper.toRValue(y, isStatic)
 
 		val isLeftPointer = TypeHelper.isPointerOrArray(x)
 		val isRightPointer = TypeHelper.isPointerOrArray(y)

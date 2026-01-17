@@ -275,11 +275,15 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		str.tail.reverse.tail.reverse
 	}
 
-	def getString(str: String): RValue = {
+	def getString(str: String, isStatic: Boolean = false): RValue = {
 		val theStr = stripQuotes(str)
 
 		val withNull = (theStr.toCharArray :+ 0.toChar).map(_.toByte) // terminating null char
-		val strAddr = allocateStack(withNull.length)
+
+		val strAddr = if isStatic then
+			allocateDataSegmentSpace(withNull.length)
+		else
+			allocateStack(withNull.length)
 
 		writeDataBlock(strAddr, withNull)
 		RValue(strAddr.location, pointerType)
