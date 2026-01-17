@@ -11,7 +11,7 @@ class Memory(stackSize: Int, dataSize: Int, heapSize: Int) {
 
 	import org.eclipse.cdt.core.dom.ast.IBasicType.Kind.*
 
-	private var dataInsertIndex = 0
+	private var dataInsertIndex = 10 // dont start at address 0, as that is a null pointer
 	private var insertIndex = dataSize // stack
 	private var heapInsertIndex = dataSize + stackSize
 

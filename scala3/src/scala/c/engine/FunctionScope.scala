@@ -85,6 +85,10 @@ class FunctionScope(val function: Function, val parent: FunctionScope, val retur
 		addVariable(iastName, theType)
 	}
 
+	def isStaticAlreadyDefined(name: IASTName): Boolean = {
+		function.getStaticVariable(name.toString).isDefined
+	}
+
 	def addVariable(name: IASTName, theType: IType, initVals: List[RValue] = List()): Variable = {
 		function.getStaticVariable(name.toString).getOrElse {
 			val newVar = Variable(name, state, theType, initVals)

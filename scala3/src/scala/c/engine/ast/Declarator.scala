@@ -145,8 +145,8 @@ object Declarator {
 		state.context.addVariable(name, aType)
 	}
 
-	private def processList(theType: IType, list: CASTInitializerList)(implicit state: State): List[RValue] = {
-		val flattened = flattenInitList(list).map(x => TypeHelper.toRValue(x))
+	private def processList(theType: IType, list: CASTInitializerList, isStatic: Boolean)(implicit state: State): List[RValue] = {
+		val flattened = flattenInitList(list).map(x => TypeHelper.toRValue(x, isStatic))
 
 		if !TypeHelper.isPointer(theType) && !Structures.isStructure(theType) then
 			val baseType = TypeHelper.resolveBasic(theType)
@@ -159,13 +159,17 @@ object Declarator {
 		val theType = TypeHelper.getBindingType(name.resolveBinding())
 		val pointerType = TypeHelper.getPointerType(theType)
 
+		val isStatic = name.resolveBinding() match
+			case variable: CVariable => variable.isStatic
+			case _ => false
+
 		val values = pointerType match
 			case struct: CStructure => // array of structs
 				init.getChildren.flatMap { list =>
 					getValuesFromInitializer(list.asInstanceOf[IASTInitializerClause], struct).map(x => TypeHelper.toRValue(x))
 				}.toList
 			case _ =>
-				processList(theType, init.asInstanceOf[CASTInitializerList])
+				processList(theType, init.asInstanceOf[CASTInitializerList], isStatic)
 
 		state.context.addVariable(name, theType, values)
 	}
@@ -177,31 +181,33 @@ object Declarator {
 		else
 			arrayDecl.getName
 
-		if (arrayDecl.getInitializer != null) {
-			val equals = arrayDecl.getInitializer.asInstanceOf[IASTEqualsInitializer]
-			val hasList = equals.getInitializerClause.isInstanceOf[IASTInitializerList]
+		if (!state.context.isStaticAlreadyDefined(name)) {
+			if (arrayDecl.getInitializer != null) {
+				val equals = arrayDecl.getInitializer.asInstanceOf[IASTEqualsInitializer]
+				val hasList = equals.getInitializerClause.isInstanceOf[IASTInitializerList]
 
-			if (hasList) {
-				val init = equals.getInitializerClause
-				initializeArrayVariable(name, init)
-			} else {
-				val theType = TypeHelper.getBindingType(name.resolveBinding())
+				if (hasList) {
+					val init = equals.getInitializerClause
+					initializeArrayVariable(name, init)
+				} else {
+					val theType = TypeHelper.getBindingType(name.resolveBinding())
 
-				val stringType = TypeHelper.resolveBasic(theType)
-				if (stringType.getKind == IBasicType.Kind.eChar) {
-					// e.g. char str[] = "Hello!\n";
-					List(Option(arrayDecl.getInitializer)).flatten.foreach(Ast.step)
-					val initString = state.context.popStack.asInstanceOf[StringLiteral].value
-					state.createStringArrayVariable(name, initString, stringType)
-				} else { // initializing array to address, e.g int (*ptr)[5] = &x[1];
-					Ast.step(arrayDecl.getInitializer)
-					val initVal = TypeHelper.toRValue(state.context.popStack)
-					val newArray = List(initVal)
-					state.context.addVariable(name, theType, newArray)
+					val stringType = TypeHelper.resolveBasic(theType)
+					if (stringType.getKind == IBasicType.Kind.eChar) {
+						// e.g. char str[] = "Hello!\n";
+						List(Option(arrayDecl.getInitializer)).flatten.foreach(Ast.step)
+						val initString = state.context.popStack.asInstanceOf[StringLiteral].value
+						state.createStringArrayVariable(name, initString, stringType)
+					} else { // initializing array to address, e.g int (*ptr)[5] = &x[1];
+						Ast.step(arrayDecl.getInitializer)
+						val initVal = TypeHelper.toRValue(state.context.popStack)
+						val newArray = List(initVal)
+						state.context.addVariable(name, theType, newArray)
+					}
 				}
+			} else {
+				initializeNullArray(name, arrayDecl) // no initializer
 			}
-		} else {
-			initializeNullArray(name, arrayDecl) // no initializer
 		}
 	}
 
