@@ -66,7 +66,7 @@ object UnaryExpression {
 				val nestedType = TypeHelper.getPointerType(aType)
 
 				if !nestedType.isInstanceOf[IFunctionType] then
-					LValue(state, Address(info.rValue.value.asInstanceOf[Int], state.stack), nestedType)
+					LValue(state, Address(info.rValue.value.asInstanceOf[Int], info.address.segment), nestedType)
 				else
 					// function pointers can ignore the star
 					info
