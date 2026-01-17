@@ -137,7 +137,7 @@ object TypeHelper {
 	def toRValue(any: ValueType, isStatic: Boolean = false)(implicit state: State): RValue = any match {
 		case info @ LValue(_, _) => info.rValue
 		case rValue @ RValue(_, _) => rValue
-		case StringLiteral(str) => state.getString(str, isStatic)
+		case StringLiteral(str) => state.allocateString(str, isStatic)
 	}
 
 	def isPointerOrArray(value: ValueType): Boolean =

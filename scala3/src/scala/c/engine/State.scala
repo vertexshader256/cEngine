@@ -275,7 +275,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		str.tail.reverse.tail.reverse
 	}
 
-	def getString(str: String, isStatic: Boolean = false): RValue = {
+	def allocateString(str: String, isStatic: Boolean = false): RValue = {
 		val theStr = stripQuotes(str)
 
 		val withNull = (theStr.toCharArray :+ 0.toChar).map(_.toByte) // terminating null char

@@ -25,7 +25,7 @@ object CEngine {
 
 			// convert main args to strings, write them to memory, get the addresses
 			val stringValues = args.map { arg =>
-				val addr = state.getString("\"" + arg + "\"").value
+				val addr = state.allocateString("\"" + arg + "\"").value
 				RValue(addr, stringType)
 			}
 
