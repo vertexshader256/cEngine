@@ -20,10 +20,10 @@ object Declarator {
 			processDeclarator(decl)
 	}
 
-	def getRValues(decl: IASTInitializerClause, theType: IType)(implicit state: State): List[ValueType] = {
+	def getRValues(decl: IASTInitializerClause, theType: IType, isStatic: Boolean)(implicit state: State): List[ValueType] = {
 		theType match
 			case struct: CStructure =>
-				getValuesFromInitializer(decl, struct)
+				getValuesFromInitializer(decl, struct, isStatic)
 			case _ =>
 				List(Expressions.evaluate(decl).get)
 	}
@@ -51,7 +51,7 @@ object Declarator {
 					struct.getFields.zip(srcs).foreach:
 						case (field, newValue) =>
 							val theField = Structures.offsetof(struct, dst.address, field.getName, state)
-							assign(theField, List(newValue), equals, op)
+							assign(theField, List(newValue), equals, op, isStatic)
 	}
 
 	private def setFunctionPointer(fcnDec: IASTFunctionDeclarator)(implicit state: State): Unit = {
@@ -152,7 +152,7 @@ object Declarator {
 		val values = pointerType match
 			case struct: CStructure => // array of structs
 				init.getChildren.flatMap { list =>
-					getValuesFromInitializer(list.asInstanceOf[IASTInitializerClause], struct).map(x => TypeHelper.toRValue(x))
+					getValuesFromInitializer(list.asInstanceOf[IASTInitializerClause], struct, isStatic).map(x => TypeHelper.toRValue(x))
 				}.toList
 			case _ =>
 				processList(theType, init.asInstanceOf[CASTInitializerList], isStatic)
@@ -215,7 +215,7 @@ object Declarator {
 					decl.getInitializer match
 						case equals: IASTEqualsInitializer =>
 							val initClause = equals.getInitializerClause
-							val initVals = getRValues(initClause, theType)
+							val initVals = getRValues(initClause, theType, addedVariable.isStatic)
 							assign(addedVariable, initVals, initClause, op_assign, addedVariable.isStatic)
 						case _ =>
 
@@ -235,7 +235,7 @@ object Declarator {
 		}
 	}
 
-	private def getValuesFromList(list: IASTInitializerList, theType: IType)(implicit state: State): List[ValueType] = {
+	private def getValuesFromList(list: IASTInitializerList, theType: IType, isStatic: Boolean)(implicit state: State): List[ValueType] = {
 		val descendants = Utils.getDescendants(list)
 		val hasNamedDesignator = descendants.exists { node => node.isInstanceOf[CASTDesignatedInitializer] } // {.y = 343, .x = 543, .next = 8578}
 		val isStructure = theType.isInstanceOf[CStructure]
@@ -259,10 +259,10 @@ object Declarator {
 		}
 	}
 
-	private def getValuesFromInitializer(initClause: IASTInitializerClause, theType: IType)(implicit state: State): List[ValueType] = {
+	private def getValuesFromInitializer(initClause: IASTInitializerClause, theType: IType, isStatic: Boolean)(implicit state: State): List[ValueType] = {
 		initClause match
 			case list: IASTInitializerList =>
-				getValuesFromList(list, theType)
+				getValuesFromList(list, theType, isStatic)
 			case idExpr: IASTIdExpression =>
 				List(state.context.resolveId(idExpr.getName).get)
 			case fcnCall: IASTFunctionCallExpression =>
