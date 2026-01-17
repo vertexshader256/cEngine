@@ -57,7 +57,7 @@ case class Variable(theName: IASTName, state: State, aType: IType, sizeof: Int) 
 	else
 		state.dataSegment
 
-	val address = Address(segment.allocate(sizeof), segment)
+	val address = segment.allocate(sizeof)
 
 	override def rValue: RValue = {
 		if rVal.isInstanceOf[FileRValue] then

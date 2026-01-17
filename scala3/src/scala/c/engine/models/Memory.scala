@@ -13,10 +13,10 @@ class Memory(size: Int) {
 	// turing tape
 	private val tape = Tape(size)
 
-	def allocate(numBytes: Int): Int = {
+	def allocate(numBytes: Int): Address = {
 		val result = insertIndex
 		insertIndex += Math.max(0, numBytes)
-		result
+		Address(result, this)
 	}
 
 	def copy(dst: Int, src: Int, numBytes: Int): Unit = {

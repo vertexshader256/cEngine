@@ -270,12 +270,12 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		}
 	}
 
-	def allocateDataSegmentSpace(numBytes: Int): Int = {
+	def allocateDataSegmentSpace(numBytes: Int): Address = {
 		dataSegment.allocate(numBytes)
 	}
 
 	def allocateStack(numBytes: Int): Address = {
-		Address(stack.allocate(numBytes), stack)
+		stack.allocate(numBytes)
 	}
 
 	def allocateHeapSpace(numBytes: Int): Int = {
