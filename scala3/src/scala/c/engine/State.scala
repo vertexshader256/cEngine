@@ -258,7 +258,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 					completedFrame.getReturnValue.map {
 						case structure @ LValue(_, structType: CStructure) =>
 							val structBytes = structure.toByteArray
-							val newAddr = allocateSpace(structBytes.length)
+							val newAddr = allocateStack(structBytes.length)
 							writeDataBlock(newAddr, structBytes)
 							Structure(structBytes, structType)
 						case retVal => retVal
@@ -274,7 +274,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		dataSegment.allocate(numBytes)
 	}
 
-	def allocateSpace(numBytes: Int): Address = {
+	def allocateStack(numBytes: Int): Address = {
 		Address(stack.allocate(numBytes), stack)
 	}
 
@@ -313,7 +313,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		val theStr = stripQuotes(str)
 
 		val withNull = (theStr.toCharArray :+ 0.toChar).map(_.toByte) // terminating null char
-		val strAddr = allocateSpace(withNull.length)
+		val strAddr = allocateStack(withNull.length)
 
 		writeDataBlock(strAddr, withNull)
 		RValue(strAddr.location, pointerType)

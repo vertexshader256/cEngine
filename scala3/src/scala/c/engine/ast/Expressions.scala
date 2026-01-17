@@ -59,7 +59,7 @@ object Expressions {
 		operand match {
 			case str @ StringLiteral(_) => str
 			case LValue(addr, aType) =>
-				val newAddr = state.allocateSpace(TypeHelper.sizeof(theType))
+				val newAddr = state.allocateStack(TypeHelper.sizeof(theType))
 
 				val value = theType match
 					case ptr: IPointerType if aType.isInstanceOf[IArrayType] =>
@@ -71,7 +71,7 @@ object Expressions {
 				newAddr.writeToMemory(value, theType) // write the casted data out
 				LValue(state, newAddr, theType)
 			case RValue(value, _) =>
-				val newAddr = state.allocateSpace(TypeHelper.sizeof(theType))
+				val newAddr = state.allocateStack(TypeHelper.sizeof(theType))
 				newAddr.writeToMemory(TypeHelper.cast(value, theType).value, theType)
 				LValue(state, newAddr, theType)
 		}
@@ -151,7 +151,7 @@ object Expressions {
 
 	private def typeExpr(typeIdInit: IASTTypeIdInitializerExpression)(implicit state: State): LValue = {
 		val theType = TypeHelper.getType(typeIdInit.getTypeId).theType
-		val newAddr = state.allocateSpace(TypeHelper.sizeof(theType))
+		val newAddr = state.allocateStack(TypeHelper.sizeof(theType))
 
 		typeIdInit.getInitializer match {
 			case list: IASTInitializerList =>
