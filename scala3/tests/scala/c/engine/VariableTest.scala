@@ -12,6 +12,18 @@ class VariableTest extends StandardTest {
 		checkResults(code)
 	}
 
+	"basic static variable outside of a function test" should "print the correct results" in {
+		val code =
+			"""
+					static int var = 5;
+
+					void main() {
+						printf("%d\n", var);
+					}
+					"""
+		checkResults(code)
+	}
+
 	"static variables in a function" should "print the correct results" in {
 		val code =
 			"""
