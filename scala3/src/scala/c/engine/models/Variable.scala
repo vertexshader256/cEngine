@@ -53,12 +53,10 @@ case class Variable(theName: IASTName, state: State, aType: IType, sizeof: Int) 
 			case _ => false
 	}
 
-	val segment = if !isStatic then
-		state.stack
+	val address = if !isStatic then
+		state.stack.allocate(sizeof)
 	else
-		state.stack
-
-	val address = segment.allocate(sizeof)
+		state.stack.allocateData(sizeof)
 
 	override def rValue: RValue = {
 		if rVal.isInstanceOf[FileRValue] then
