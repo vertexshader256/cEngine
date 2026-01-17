@@ -19,6 +19,7 @@ object TypeHelper {
 	val unsignedIntType = CBasicType(eInt, IS_UNSIGNED)
 	val doubleType = CBasicType(eDouble, 0)
 	val floatType = CBasicType(eFloat, 0)
+	val void = CBasicType(eVoid, 0)
 
 	val one = RValue(1, unsignedIntType)
 	val zero = RValue(0, unsignedIntType)

@@ -38,7 +38,7 @@ object Stdlibh {
 				val addr = state.allocateHeapSpace(numBlocks * blockSize)
 
 				state.stack.clearMemory(addr, numBlocks * blockSize)
-				val ptr = Pointer(Address(addr, state.stack), TypeHelper.intType)
+				val ptr = Pointer(Address(addr, state.stack), TypeHelper.void)
 
 				Some(ptr)
 			}
