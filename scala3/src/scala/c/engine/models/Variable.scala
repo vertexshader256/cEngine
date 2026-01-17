@@ -73,7 +73,7 @@ case class Variable(theName: IASTName, state: State, aType: IType, sizeof: Int) 
 	private def getValue = if (theType.isInstanceOf[IArrayType]) {
 		RValue(address.location, theType)
 	} else {
-		address.readFromMemory(theType, bitOffset, sizeInBits)
+		state.stack.readFromMemory(address.location, theType, bitOffset, sizeInBits)
 	}
 
 	override def toString = {
