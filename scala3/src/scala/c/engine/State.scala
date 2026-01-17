@@ -101,33 +101,6 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		functionPointers += fcn.name -> newVar
 	}
 
-	private def addStaticFunctionVars(node: IASTNode): List[Variable] = {
-		node match {
-			case decl: IASTDeclarator =>
-				val nameBinding = decl.getName.resolveBinding()
-
-				nameBinding match {
-					case vari: IVariable =>
-						if (vari.isStatic) {
-							val theType = TypeHelper.stripSyntheticTypeInfo(nameBinding.asInstanceOf[IVariable].getType)
-							val variable = Variable(decl.getName, this, vari.getType)
-							
-							if decl.getInitializer != null then
-								val initVals = Declarator.getValuesForStaticVar(decl.getInitializer.asInstanceOf[IASTEqualsInitializer].getInitializerClause, theType)(using this)
-								Declarator.assign(variable, initVals, null, op_assign)(using this)
-
-							variable.isInitialized = true
-
-							List(variable)
-						} else {
-							List()
-						}
-					case _ => List()
-				}
-			case x => x.getChildren.toList.flatMap { x => addStaticFunctionVars(x) }
-		}
-	}
-
 	private def addFunctionDef(fcnDef: IASTFunctionDefinition, isMain: Boolean) = {
 		val name = fcnDef.getDeclarator.getName
 		val count = functionPointers.size
@@ -142,9 +115,6 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 				None
 			}
 		}
-
-		addStaticFunctionVars(fcnDef).foreach: staticVar =>
-			newFcn.addStaticVariable(staticVar)
 
 		functionList += newFcn
 
