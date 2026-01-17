@@ -285,7 +285,8 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	}
 
 	def copy(dst: Address, src: Address, numBytes: Int): Unit = {
-		stack.copy(dst.location, src.location, numBytes)
+		val data = src.segment.readDataBlock(src.location, numBytes)
+		dst.segment.writeDataBlock(data, dst.location)
 	}
 
 	def set(address: Address, value: Byte, numBytes: Int): Unit = {
