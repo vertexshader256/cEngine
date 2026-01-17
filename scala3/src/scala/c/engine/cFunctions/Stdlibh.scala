@@ -50,13 +50,17 @@ object Stdlibh {
 					case long: Long => state.allocateHeapSpace(long.toInt)
 					case int: Int => state.allocateHeapSpace(int)
 				}
-				Some(RValue(returnVal))
+
+				val ptr = Pointer(Address(returnVal, state.stack), TypeHelper.void)
+				Some(ptr)
 			}
 		}
 
 		scalaFunctions += new EmulatedFunction("realloc") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				Some(RValue(state.allocateHeapSpace(formattedOutputParams.head.value.asInstanceOf[Long].toInt)))
+				val addr = state.allocateHeapSpace(formattedOutputParams.head.value.asInstanceOf[Long].toInt)
+				val ptr = Pointer(Address(addr, state.stack), TypeHelper.void)
+				Some(ptr)
 			}
 		}
 
