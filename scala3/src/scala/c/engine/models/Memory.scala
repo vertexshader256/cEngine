@@ -9,21 +9,19 @@ import scala.c.engine.*
 import java.nio.{ByteBuffer, ByteOrder}
 import scala.c.engine.*
 
-class Memory(size: Int, name: String) {
+class Memory(stackSize: Int, dataSize: Int) {
 
 	import org.eclipse.cdt.core.dom.ast.IBasicType.Kind.*
 
 	private var insertIndex = 0
 
-	override def toString: String = name
-
-	def setInsertIndex(pos: Int) = {
+	def setStackPosition(pos: Int) = {
 		insertIndex = pos
 	}
 
-	def getInsertIndex: Int = insertIndex
+	def getStackPosition: Int = insertIndex
 
-	private val tape: ByteBuffer = ByteBuffer.allocateDirect(size)
+	private val tape: ByteBuffer = ByteBuffer.allocateDirect(dataSize + stackSize)
 	tape.order(ByteOrder.LITTLE_ENDIAN)
 
 	def writeDataBlock(array: Array[Byte], startingAddress: Int): Unit = {
@@ -133,6 +131,12 @@ class Memory(size: Int, name: String) {
 			case int: Int => putInt(address, int)
 			case long: Long => putInt(address, long.toInt)
 		}
+	}
+
+	def allocateData(numBytes: Int): Address = {
+		val result = insertIndex
+		insertIndex += Math.max(0, numBytes)
+		Address(result)
 	}
 
 	def allocate(numBytes: Int): Address = {

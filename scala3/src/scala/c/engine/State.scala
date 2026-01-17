@@ -13,8 +13,7 @@ import scala.collection.mutable.ListBuffer
 
 class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
-	val stack = Memory(100000, "Stack")
-	val dataSegment = Memory(2000, "Data Segment")
+	val stack = Memory(100000, 10000)
 
 	private var heapInsertIndex = 20000
 
@@ -73,7 +72,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 	private def popFunctionContext: FunctionScope = {
 		val frame = functionContexts.pop()
-		stack.setInsertIndex(frame.startingStackAddr)
+		stack.setStackPosition(frame.startingStackAddr)
 		frame
 	}
 
@@ -228,13 +227,13 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 			if (!function.isNative) {
 				// this is a function simulated in scala
 
-				val stackPos = stack.getInsertIndex
+				val stackPos = stack.getStackPosition
 				val args = call.getArguments.map { x => Expressions.evaluate(x)(using this) }
 
 				val resolvedArgs: Array[RValue] = args.flatten.map(TypeHelper.toRValue(_)(using this))
 
 				val returnVal = function.run(resolvedArgs.reverse, this)
-				stack.setInsertIndex(stackPos) // pop the stack
+				stack.setStackPosition(stackPos) // pop the stack
 
 				returnVal.map:
 					case file @ FileRValue(_) => file
@@ -272,7 +271,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	}
 
 	def allocateDataSegmentSpace(numBytes: Int): Address = {
-		dataSegment.allocate(numBytes)
+		stack.allocateData(numBytes)
 	}
 
 	def allocateStack(numBytes: Int): Address = {
