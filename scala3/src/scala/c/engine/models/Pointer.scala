@@ -8,7 +8,7 @@ case class Pointer(address: Address, theType: IType) extends RValue {
 	val value = address.location
 
 	override def toString: String = {
-		"Address(" + value + ", " + theType + ")"
+		"Pointer(" + value + ", " + theType + ")"
 	}
 
 	override def sizeof(implicit state: State): Int = {
