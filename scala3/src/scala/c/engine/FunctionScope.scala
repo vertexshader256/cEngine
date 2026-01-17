@@ -68,7 +68,11 @@ class FunctionScope(val function: Function, val parent: FunctionScope, val retur
 	}
 
 	def addVariable(variable: Variable): Unit = {
-		currentVariableScope.addVariable(variable)
+		if variable.isStatic then
+			if !function.staticVars.exists{_.name == variable.name} then
+				function.staticVars += variable
+		else
+			currentVariableScope.addVariable(variable)
 	}
 
 	def addExternVariable(name: IASTName, theType: IType): Variable = {
@@ -89,7 +93,7 @@ class FunctionScope(val function: Function, val parent: FunctionScope, val retur
 			_.name == name.toString
 		}.getOrElse {
 			val newVar = Variable(name, state, theType, initVals)
-			currentVariableScope.addVariable(newVar)
+			addVariable(newVar)
 			newVar
 		}
 	}
