@@ -14,6 +14,7 @@ class Memory(stackSize: Int, dataSize: Int) {
 	import org.eclipse.cdt.core.dom.ast.IBasicType.Kind.*
 
 	private var insertIndex = 0
+	private var heapInsertIndex = 20000
 
 	def setStackPosition(pos: Int) = {
 		insertIndex = pos
@@ -143,6 +144,12 @@ class Memory(stackSize: Int, dataSize: Int) {
 		val result = insertIndex
 		insertIndex += Math.max(0, numBytes)
 		Address(result)
+	}
+
+	def allocateHeapSpace(numBytes: Int): Int = {
+		val result = heapInsertIndex
+		heapInsertIndex += Math.max(0, numBytes)
+		result
 	}
 
 	private def writeInteger(newVal: cEngVal, address: Int, bitOffset: Int = 0, sizeInBits: Int = 0) = {

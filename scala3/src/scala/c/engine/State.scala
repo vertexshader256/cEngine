@@ -15,8 +15,6 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 	val stack = Memory(100000, 10000)
 
-	private var heapInsertIndex = 20000
-
 	private val functionContexts = mutable.Stack[FunctionScope]()
 
 	def context: FunctionScope = functionContexts.head
@@ -279,9 +277,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	}
 
 	def allocateHeapSpace(numBytes: Int): Int = {
-		val result = heapInsertIndex
-		heapInsertIndex += Math.max(0, numBytes)
-		result
+		stack.allocateHeapSpace(numBytes)
 	}
 
 	def copy(dst: Address, src: Address, numBytes: Int): Unit = {
