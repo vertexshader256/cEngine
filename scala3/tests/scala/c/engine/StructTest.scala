@@ -136,6 +136,32 @@ class StructTest extends StandardTest {
 		checkResults(code)
 	}
 
+	"returning a struct from a function" should "print the correct results" in {
+		val code =
+			"""
+
+				struct Test {
+					int y;
+					int x;
+				};
+
+				struct Test returnTest() {
+					struct Test ret = {1,2};
+			    return ret;
+				}
+
+				struct Test fcn() {
+					return returnTest();
+				}
+
+				void main() {
+					struct Test x = fcn();
+					printf("%d %d\n", x.x, x.y);
+				}"""
+
+		checkResults(code)
+	}
+
 	"initializing a simple structure with binary expressions" should "print the correct results" in {
 		val code =
 			"""
