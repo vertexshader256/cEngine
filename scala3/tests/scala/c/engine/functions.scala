@@ -16,6 +16,18 @@ class MathFunctions extends StandardTest {
 
 		checkResults(code)
 	}
+
+	"testing sqrt" should "print the correct results" in {
+		val code =
+			"""
+			#include <math.h>
+
+			void main() {
+				printf("%f\n", sqrt(3.0));
+			}"""
+
+		checkResults(code)
+	}
 }
 
 class SpecialFunctions extends StandardTest {

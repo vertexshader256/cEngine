@@ -17,28 +17,65 @@ object Mathh {
 		//                   <math.h> functions                        //
 		/////////////////////////////////////////////////////////////////
 
-		scalaFunctions += new EmulatedFunction("modf") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val fraction = formattedOutputParams(0).value.asInstanceOf[Double]
-				val intPart = formattedOutputParams(1).value.asInstanceOf[Int]
+		trait Convertable[A]:
+			def convert(value: cEngVal): A
 
-				state.stack.writeToMemory(fraction.toInt, intPart, TypeHelper.intType)
-
-				Some(RValue(fraction % 1.0))
+		abstract class TwoParameterFunction[P1, P2](name: String) {
+			val func: (P1, P2, State) => Option[RValue]
+			def generate: EmulatedFunction = {
+				new EmulatedFunction(name) {
+					def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+						val param2 = formattedOutputParams(0).value.asInstanceOf[P2]
+						val param1 = formattedOutputParams(1).value.asInstanceOf[P1]
+						func(param1, param2, state)
+					}
+				}
 			}
 		}
 
-		scalaFunctions += new EmulatedFunction("sqrt") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val num = formattedOutputParams(0).value match {
+		given Convertable[Float] with
+			def convert(value: cEngVal): Float =
+				value match
 					case float: Float => float
 					case double: Double => double.toFloat
 					case int: Int => int.toFloat
-				}
 
-				Some(RValue(Math.sqrt(num)))
+		abstract class OneParameterFunction[P1](name: String)(using p1Convert: Convertable[P1]) {
+			val func: (P1, State) => Option[RValue]
+
+			def generate: EmulatedFunction = {
+				new EmulatedFunction(name) {
+					def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+						val param1 = p1Convert.convert(formattedOutputParams(0).value)
+						func(param1, state)
+					}
+				}
 			}
 		}
+
+//		scalaFunctions += new TwoParameterFunction("modf") {
+//			val func = (fraction: Double, intPart: Int, state: State) => {
+//				state.stack.writeToMemory(fraction.toInt, intPart, TypeHelper.intType)
+//				Some(RValue(fraction % 1.0))
+//			}
+//		}.generate
+
+//		scalaFunctions += new EmulatedFunction("modf") {
+//			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+//				val fraction = formattedOutputParams(0).value.asInstanceOf[Double]
+//				val intPart = formattedOutputParams(1).value.asInstanceOf[Int]
+//
+//				state.stack.writeToMemory(fraction.toInt, intPart, TypeHelper.intType)
+//
+//				Some(RValue(fraction % 1.0))
+//			}
+//		}
+
+		scalaFunctions += new OneParameterFunction("sqrt") {
+			val func = (num: Float, state: State) => {
+				Some(RValue(Math.sqrt(num)))
+			}
+		}.generate
 
 		scalaFunctions += new EmulatedFunction("fabs") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
