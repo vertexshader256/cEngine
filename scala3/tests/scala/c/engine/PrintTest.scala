@@ -36,7 +36,15 @@ class RobustPrint extends StandardTest {
 			"""
 				void main() {
 					unsigned long long x = 35;
+			    short y = 40;
+			    long long z = 45;
+			    unsigned int zz = 50;
+			    unsigned short zzz = 55;
 					printf("%c\n", x);
+			    printf("%c\n", y);
+			    printf("%c\n", z);
+			    printf("%c\n", zz);
+			    printf("%c\n", zzz);
 				}"""
 
 		checkResults(code)
