@@ -177,9 +177,9 @@ object Stdio {
 		scalaFunctions += new EmulatedFunction("snprintf") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val strAddr = formattedOutputParams.last.value.asInstanceOf[Int]
-				val size = formattedOutputParams(1).value.asInstanceOf[Int]
+				val size = formattedOutputParams.reverse(1).value.asInstanceOf[Int]
 
-				val formattedStr = Printf.printf(formattedOutputParams.drop(2), state)
+				val formattedStr = Printf.printf(formattedOutputParams.reverse.drop(2).reverse, state)
 				state.writeDataBlock(Address(strAddr), formattedStr.getBytes)
 				None
 			}
