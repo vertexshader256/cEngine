@@ -162,7 +162,9 @@ object Stringh {
 
 		scalaFunctions += new EmulatedFunction("strncpy") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val num = formattedOutputParams(0).value.asInstanceOf[Int]
+				val num = formattedOutputParams(0).value match
+					case int: Int => int
+					case long: Long => long.toInt
 				val src = formattedOutputParams(1).value.asInstanceOf[Int]
 				val dst = formattedOutputParams(2).value.asInstanceOf[Int]
 
