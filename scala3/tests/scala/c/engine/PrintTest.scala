@@ -31,6 +31,19 @@ class RobustPrint extends StandardTest {
 		checkResults(code)
 	}
 
+	"snprintf test" should "print the correct results" in {
+		val code =
+			"""
+				void main() {
+					char result[100] = {0};
+					int x = 100;
+					snprintf(result, 100, "after: %d\n", x);
+					printf("results: %s", result);
+				}"""
+
+		checkResults(code)
+	}
+
 	"printing a long as a char" should "print the correct results" in {
 		val code =
 			"""

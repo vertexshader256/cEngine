@@ -174,6 +174,17 @@ object Stdio {
 			}
 		}
 
+		scalaFunctions += new EmulatedFunction("snprintf") {
+			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+				val strAddr = formattedOutputParams.last.value.asInstanceOf[Int]
+				val size = formattedOutputParams(1).value.asInstanceOf[Int]
+
+				val formattedStr = Printf.printf(formattedOutputParams.drop(2), state)
+				state.writeDataBlock(Address(strAddr), formattedStr.getBytes)
+				None
+			}
+		}
+
 		scalaFunctions += new EmulatedFunction("sprintf") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val strAddr = formattedOutputParams.last.value.asInstanceOf[Int]
