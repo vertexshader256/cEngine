@@ -19,7 +19,12 @@ object Printf {
 	private def printChar(theValue: RValue) = {
 		val buffer2 = StringBuffer()
 		val formatter2 = Formatter(buffer2, Locale.US)
-		val value = theValue.value.asInstanceOf[Object]
+
+		val converted = theValue.value match
+			case long: Long => long.toChar
+			case x => x
+
+		val value = converted.asInstanceOf[Object]
 		formatter2.format("%c", List(value) *)
 		buffer2.toString
 	}
