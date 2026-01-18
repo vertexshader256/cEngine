@@ -169,6 +169,7 @@ object TypeHelper {
 		case ptrType: IPointerType => true
 		case arrayType: IArrayType => isPointer(arrayType.getType)
 		case enumeration: CEnumeration => false
+		case qualifier: CQualifierType => isPointer(qualifier.getType)
 	}
 
 	@tailrec

@@ -257,6 +257,7 @@ object Printf {
 		SingleParamOutputFormat("c", (format, rValue, state) => printChar(rValue)),
 		SingleParamOutputFormat("#x", (format, rValue, state) => printHex("#x", rValue)),
 		SingleParamOutputFormat("#X", (format, rValue, state) => printHex("#X", rValue)),
+		SingleParamOutputFormat("02x", (format, rValue, state) => printHex("2x", rValue)),
 		SingleParamOutputFormat("x", (format, rValue, state) => printHex("x", rValue)),
 		SingleParamOutputFormat("X", (format, rValue, state) => printHex("X", rValue)),
 		SingleParamOutputFormat("p", (format, rValue, state) => printHex("16X", rValue)),
