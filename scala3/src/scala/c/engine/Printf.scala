@@ -316,6 +316,10 @@ object Printf {
 					output.append("\t")
 					currentChar = remainder.headOption.getOrElse('_')
 					remainder = remainder.drop(1)
+				} else if (remainder.headOption.contains('\"') && currentChar == '\\') {
+					output.append("\"")
+					currentChar = remainder.headOption.getOrElse('_')
+					remainder = remainder.drop(1)
 				} else {
 					output.append(currentChar)
 				}
