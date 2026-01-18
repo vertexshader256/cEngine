@@ -94,7 +94,8 @@ object Gcc {
 				try {
 					val runLogger = new RunLogger
 					// run the actual executable
-					val runner = Process(Seq(exeFile.getAbsolutePath) ++ args, new File("."))
+					val path = Seq(exeFile.getAbsolutePath) ++ args
+					val runner = Process(path, new File("."))
 					val run = runner.run(runLogger.process)
 
 					files.foreach(_.delete())

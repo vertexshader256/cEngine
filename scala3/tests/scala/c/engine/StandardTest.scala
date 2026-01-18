@@ -17,7 +17,7 @@ object StandardTest {
 													 args: List[String] = List(), includePaths: List[String] = List()): Seq[String] = {
 		TestResults.loadSavedResults()
 
-		val codeBeingRun = codeInFiles.mkString
+		val codeBeingRun = codeInFiles.mkString + args.mkString
 
 		TestResults.getSavedGccOutput(codeBeingRun).map: priorRunResult =>
 			priorRunResult
