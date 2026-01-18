@@ -53,6 +53,33 @@ object Printf {
 		buffer2.toString
 	}
 
+	private def printSubstring(stringFormat: String, param1: RValue, param2: RValue)(implicit state: State) = {
+		val formatString = stringFormat
+		val buffer2 = StringBuffer()
+		val formatter2 = Formatter(buffer2, Locale.US)
+
+		val theVal = param2.value
+		val stringAddr = theVal match
+			case int: Int => int
+			case long: Long => long.toInt
+
+		val stringLength = param1.value match
+			case int: Int => int
+			case long: Long => long.toInt
+
+		var string = if stringAddr != 0 then
+			val str = Utils.readString(Address(stringAddr))
+			str.take(stringLength).mkString
+		else
+			"(null)"
+
+		val paddingLength = stringLength - string.length
+		(0 until paddingLength).foreach { x => string = " " + string } // pad it
+
+		formatter2.format("%" + formatString + "s", List(string.asInstanceOf[Object]) *)
+		buffer2.toString
+	}
+
 	private def printString(stringFormat: String, theValue: RValue)(implicit state: State) = {
 		val formatString = stringFormat
 		val buffer2 = StringBuffer()
@@ -232,7 +259,7 @@ object Printf {
 
 	private val dualParamFormats: Seq[DualParamOutputFormat] = Seq(
 		DualParamOutputFormat("*s", (format, param1, param2, state) => printDynamicWidthString("", param1, param2)(using state)),
-		DualParamOutputFormat(".*s", (format, param1, param2, state) => printDynamicWidthString("", param1, param2)(using state))
+		DualParamOutputFormat(".*s", (format, param1, param2, state) => printSubstring("", param1, param2)(using state))
 	)
 
 	def printf(formattedOutputParams: Array[RValue], state: State): String = {
