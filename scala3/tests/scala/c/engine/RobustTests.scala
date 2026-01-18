@@ -705,10 +705,11 @@ class RobustTest extends StandardTest {
 						for (i = 0; i < strslen; ++i) {
 								int n = repstr(strs[i]);
 								printf("%d\n", n);
-								if (n)
+								if (n) {
 										printf("\"%s\" = rep-string \"%.*s\"\n", strs[i], n, strs[i]);
-								else
+								} else {
 										printf("\"%s\" = not a rep-string\n", strs[i]);
+								}
 						}
 
 						return 0;

@@ -316,7 +316,6 @@ object Printf {
 					dualParamFormats.find { format =>
 						remainder.startsWith(format.identifier)
 					}.foreach { format =>
-						println("FORMAT FOUND: " + format.identifier)
 						charsToDrop = format.identifier.length
 						val length = TypeHelper.toRValue(varArgs(paramCount))(using state)
 						val variable = TypeHelper.toRValue(varArgs(paramCount + 1))(using state)
