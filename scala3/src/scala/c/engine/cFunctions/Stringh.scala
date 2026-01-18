@@ -9,6 +9,8 @@ import scala.collection.mutable.ListBuffer
 
 object Stringh {
 
+	private var strTokPosition = Address(0)
+
 	def addFunctions(scalaFunctions: ListBuffer[Function]) = {
 		/////////////////////////////////////////////////////////////////
 		//                  <string.h> functions                       //
@@ -172,6 +174,78 @@ object Stringh {
 
 				state.copy(Address(dst), Address(src), Math.min(str1.length + 1, num))
 				None
+			}
+		}
+
+		scalaFunctions += new EmulatedFunction("strtok") {
+			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+				val delim = formattedOutputParams(0).value.asInstanceOf[Int]
+				val sourceAddr = formattedOutputParams(1).value.asInstanceOf[Int]
+				val delimiters = Utils.readString(Address(delim))(using state)
+
+				if (sourceAddr == 0) { // a repeated call
+					var initialStr = Utils.readString(strTokPosition)(using state)
+
+					println("SOURCE ADDR: " + strTokPosition + ": " + initialStr)
+
+					var nonTokenFound = false
+					val initialAddress = strTokPosition
+					var hasToken = false
+
+					initialStr.zipWithIndex.foreach { (char, index) =>
+						if !nonTokenFound then
+							if delimiters.contains(char) then
+								hasToken = true
+								initialStr = initialStr.updated(index, '\u0000')
+								strTokPosition = Address(initialAddress.location + index + 1)
+							else
+								nonTokenFound = true
+					}
+
+					val firstNonToken = strTokPosition
+					var sourceStr = Utils.readString(strTokPosition)(using state)
+
+					var tokenFound = false
+					var doneFindingTokens = false
+
+					sourceStr.zipWithIndex.foreach { (char, index) =>
+						if !doneFindingTokens then
+							if delimiters.contains(char) then
+								tokenFound = true
+								sourceStr = sourceStr.updated(index, '\u0000')
+								strTokPosition = Address(sourceAddr + index + 1)
+								state.stack.writeDataBlock(sourceStr.getBytes, sourceAddr)
+							else if tokenFound then
+								doneFindingTokens = true
+					}
+
+					if hasToken then
+						Some(RValue(firstNonToken.location))
+					else {
+						Some(RValue(0))
+					}
+				} else {
+					var sourceStr = Utils.readString(Address(sourceAddr))(using state)
+
+					println("SOURCE ADDR: " + sourceAddr)
+
+					var tokenFound = false
+					var doneFindingTokens = false
+
+					sourceStr.zipWithIndex.foreach{ (char, index) =>
+						if !doneFindingTokens then
+							if delimiters.contains(char) then
+								tokenFound = true
+								sourceStr = sourceStr.updated(index, '\u0000')
+								strTokPosition = Address(sourceAddr + index + 1)
+								state.stack.writeDataBlock(sourceStr.getBytes, sourceAddr)
+								doneFindingTokens = true
+							else if tokenFound then
+								doneFindingTokens = true
+					}
+
+					Some(RValue(sourceAddr))
+				}
 			}
 		}
 
