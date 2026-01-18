@@ -48,4 +48,45 @@ class StringTest extends StandardTest {
 
 		checkResults(code)
 	}
+
+	"sanity test for strtok" should "print the correct results" in {
+		val code =
+			"""
+					#include <string.h>
+					void main() {
+						char str[] = "a string^&*of, tokens";
+						const char delim[] = "*&^"; // Delimiters are space and comma
+						char *token;
+
+						// Get the first token
+						token = strtok(str, delim);
+						printf("Token: %s\n", token);
+						token = strtok(NULL, delim); // Use NULL for subsequent calls
+			      printf("Token: %s\n", token);
+					}"""
+
+		checkResults(code)
+	}
+
+	"testing strtok with repeated calls" should "print the correct results" in {
+		val code =
+			"""
+				#include <string.h>
+				void main() {
+					char str[] = "a string, of, tokens";
+					const char delim[] = " ,"; // Delimiters are space and comma
+					char *token;
+
+					// Get the first token
+					token = strtok(str, delim);
+
+					// Continue getting tokens until there are no more
+					while (token != NULL) {
+							printf("Token: %s\n", token);
+							token = strtok(NULL, delim); // Use NULL for subsequent calls
+					}
+				}"""
+
+		checkResults(code)
+	}
 }

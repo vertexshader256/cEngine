@@ -186,8 +186,6 @@ object Stringh {
 				if (sourceAddr == 0) { // a repeated call
 					var initialStr = Utils.readString(strTokPosition)(using state)
 
-					println("SOURCE ADDR: " + strTokPosition + ": " + initialStr)
-
 					var nonTokenFound = false
 					val initialAddress = strTokPosition
 					var hasToken = false
@@ -220,15 +218,17 @@ object Stringh {
 								doneFindingTokens = true
 					}
 
-					if hasToken then
+					if !hasToken then
+						if initialStr.isEmpty then
+							Some(RValue(0))
+						else {
+							val retVal = RValue(strTokPosition.location)
+							strTokPosition = strTokPosition + initialStr.length
+							Some(retVal)
+						} else
 						Some(RValue(firstNonToken.location))
-					else {
-						Some(RValue(0))
-					}
 				} else {
 					var sourceStr = Utils.readString(Address(sourceAddr))(using state)
-
-					println("SOURCE ADDR: " + sourceAddr)
 
 					var tokenFound = false
 					var doneFindingTokens = false
