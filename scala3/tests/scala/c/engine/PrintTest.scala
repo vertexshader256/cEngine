@@ -31,6 +31,17 @@ class RobustPrint extends StandardTest {
 		checkResults(code)
 	}
 
+	"printing a long as a char" should "print the correct results" in {
+		val code =
+			"""
+				void main() {
+					unsigned long long x = 35;
+					printf("%c\n", x);
+				}"""
+
+		checkResults(code)
+	}
+
 	"printing a unsigned long long with llu format" should "print the correct results" in {
 		val code =
 			"""
