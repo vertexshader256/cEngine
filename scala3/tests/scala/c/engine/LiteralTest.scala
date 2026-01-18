@@ -114,4 +114,13 @@ class LiteralTest extends StandardTest {
 			}"""
 		checkResults(code)
 	}
+
+	"encoded quotes" should "print the correct results" in {
+		val code =
+			"""
+				void main() {
+					printf("\"%s\"", "encoded quotes");
+				}"""
+		checkResults(code)
+	}
 }
