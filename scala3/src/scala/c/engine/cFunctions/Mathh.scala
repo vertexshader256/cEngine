@@ -33,6 +33,7 @@ object Mathh {
 				val num = formattedOutputParams(0).value match {
 					case float: Float => float
 					case double: Double => double.toFloat
+					case int: Int => int.toFloat
 				}
 
 				Some(RValue(Math.sqrt(num)))

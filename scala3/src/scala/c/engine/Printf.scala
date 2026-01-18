@@ -186,7 +186,7 @@ object Printf {
 		buffer2.toString
 	}
 
-	private def printDeciminal(stringFormat: String, value: RValue, convertToInt: Boolean) = {
+	private def printDecimal(stringFormat: String, value: RValue, convertToInt: Boolean) = {
 		var currentFormatString = stringFormat
 		val buffer2 = StringBuffer()
 		val formatter2 = Formatter(buffer2, Locale.US)
@@ -247,12 +247,12 @@ object Printf {
 
 	private val singleParamFormats: Seq[SingleParamOutputFormat] = Seq(
 		SingleParamOutputFormat("f", (format, rValue, _) => printFloat(format, rValue.value.asInstanceOf[Object])),
-		SingleParamOutputFormat("hd", (format, rValue, _) => printDeciminal(format, rValue, true)),
-		SingleParamOutputFormat("d", (format, rValue, _) => printDeciminal(format, rValue, true)),
+		SingleParamOutputFormat("hd", (format, rValue, _) => printDecimal(format, rValue, true)),
+		SingleParamOutputFormat("d", (format, rValue, _) => printDecimal(format, rValue, true)),
 		SingleParamOutputFormat("u", (format, rValue, _) => printUnsigned(format, rValue)),
 		SingleParamOutputFormat("llu", (format, rValue, _) => printLongLongUnsigned(format, rValue)),
-		SingleParamOutputFormat("ld", (format, rValue, _) => printDeciminal(format, rValue, true)),
-		SingleParamOutputFormat("lld", (format, rValue, _) => printDeciminal("", rValue, false)),
+		SingleParamOutputFormat("ld", (format, rValue, _) => printDecimal(format, rValue, true)),
+		SingleParamOutputFormat("lld", (format, rValue, _) => printDecimal("", rValue, false)),
 		SingleParamOutputFormat("s", (format, rValue, state) => printString(format, rValue)(using state)),
 		SingleParamOutputFormat("c", (format, rValue, state) => printChar(rValue)),
 		SingleParamOutputFormat("#x", (format, rValue, state) => printHex("#x", rValue)),
