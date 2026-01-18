@@ -80,9 +80,9 @@ object Stringh {
 
 		scalaFunctions += new EmulatedFunction("memmove") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val dst = formattedOutputParams(0).value.asInstanceOf[Int]
+				val dst = formattedOutputParams(2).value.asInstanceOf[Int]
 				val src = formattedOutputParams(1).value.asInstanceOf[Int]
-				val numBytes = formattedOutputParams(2).value.asInstanceOf[Int]
+				val numBytes = formattedOutputParams(0).value.asInstanceOf[Int]
 
 				state.copy(Address(dst), Address(src), numBytes)
 				None
