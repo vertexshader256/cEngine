@@ -25,6 +25,10 @@ object Statement {
 					case value @ RValue(_, _) if functionScope.returnType != null =>
 						TypeHelper.cast(value.value, functionScope.returnType)
 					case value @ RValue(_, _) => value
+					case struct: Structure =>
+						val newVar = state.context.addVariable("synthetic", struct.theType) // create a temp var
+						state.writeDataBlock(newVar.address, struct.bytes)
+						newVar
 
 				state.context.pushOntoStack(retVal)
 			}
