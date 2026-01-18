@@ -227,6 +227,25 @@ object Stringh {
 			}
 		}
 
+		scalaFunctions += new EmulatedFunction("strstr") { // indexof equivilent
+			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+				val straddy = formattedOutputParams(0).value.asInstanceOf[Int] // needle
+				val straddy2 = formattedOutputParams(1).value.asInstanceOf[Int] // haystack
+
+				val needle = Utils.readString(Address(straddy))(using state)
+				val haystack = Utils.readString(Address(straddy2))(using state)
+
+				val indexOf = haystack.indexOf(needle)
+
+				if indexOf == -1 then
+					Some(RValue(0)) // null pointer
+				else if needle.isEmpty then
+					Some(RValue(straddy2))
+				else
+					Some(RValue(straddy2 + indexOf))
+			}
+		}
+
 		scalaFunctions += new EmulatedFunction("memcmp") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val numBytes = formattedOutputParams(0).value match {
