@@ -44,6 +44,17 @@ class RobustPrint extends StandardTest {
 		checkResults(code)
 	}
 
+	"print hex with padding test" should "print the correct results" in {
+		val code =
+			"""
+			void main() {
+				int x = 0;
+				printf("results: %02x", x);
+			}"""
+
+		checkResults(code)
+	}
+
 	"printing a long as a char" should "print the correct results" in {
 		val code =
 			"""
