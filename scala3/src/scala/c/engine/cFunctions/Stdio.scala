@@ -181,7 +181,10 @@ object Stdio {
 
 				val formattedStr = Printf.printf(formattedOutputParams.reverse.drop(2).reverse, state)
 				state.writeDataBlock(Address(strAddr), formattedStr.getBytes)
-				None
+
+				val resultSize = formattedStr.length
+
+				Some(RValue(resultSize))
 			}
 		}
 

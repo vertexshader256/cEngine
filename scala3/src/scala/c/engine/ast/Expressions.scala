@@ -137,7 +137,7 @@ object Expressions {
 			case (IASTBinaryExpression.op_logicalOr, op1 @ RValue(x: Boolean, _)) if x => op1
 			case (IASTBinaryExpression.op_logicalAnd, op1 @ RValue(x: Boolean, _)) if !x => op1
 			case (_, op1) =>
-				val op2 = evaluate(bin.getOperand2).head
+				val op2 = evaluate(bin.getOperand2).get
 
 				val result = if isAssignment(bin.getOperator) then {
 					Declarator.assign(op1.asInstanceOf[LValue], List(op2), bin.getOperand2, bin.getOperator)
