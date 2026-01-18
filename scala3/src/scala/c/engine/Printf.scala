@@ -173,16 +173,18 @@ object Printf {
 	}
 
 	private def printLongLongUnsigned(stringFormat: String, value: RValue) = {
+		var currentFormatString = stringFormat
 		val buffer2 = StringBuffer()
 		val formatter2 = Formatter(buffer2, Locale.US)
 		val resolved = ListBuffer[Object]()
 
 		val bigInt = value.value
 		val longVal = Long.box(bigInt.asInstanceOf[Long])
+		currentFormatString += 's'
 
 		resolved += java.lang.Long.toUnsignedString(Long.box(longVal))
 
-		formatter2.format("%s", resolved.toSeq *)
+		formatter2.format("%" + currentFormatString, resolved.toSeq *)
 		buffer2.toString
 	}
 
