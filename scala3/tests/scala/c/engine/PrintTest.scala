@@ -55,6 +55,17 @@ class RobustPrint extends StandardTest {
 		checkResults(code)
 	}
 
+	"padding on long test" should "print the correct results" in {
+		val code =
+			"""
+				void main() {
+					long long x = 22;
+					printf("%10llu", x);
+				}"""
+
+		checkResults(code)
+	}
+
 	"printing a long as a char" should "print the correct results" in {
 		val code =
 			"""
