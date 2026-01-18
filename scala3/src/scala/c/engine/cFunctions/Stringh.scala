@@ -211,10 +211,11 @@ object Stringh {
 					sourceStr.zipWithIndex.foreach { (char, index) =>
 						if !doneFindingTokens then
 							if delimiters.contains(char) then
+								hasToken = true
 								tokenFound = true
 								sourceStr = sourceStr.updated(index, '\u0000')
-								strTokPosition = Address(sourceAddr + index + 1)
-								state.stack.writeDataBlock(sourceStr.getBytes, sourceAddr)
+								strTokPosition = Address(firstNonToken.location + index + 1)
+								state.stack.writeDataBlock(sourceStr.getBytes, firstNonToken.location)
 							else if tokenFound then
 								doneFindingTokens = true
 					}
