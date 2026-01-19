@@ -45,13 +45,14 @@ given Convertable[Address] with
 			case int: Int => Address(int)
 
 abstract class OneParameterFunction[P1](name: String)(using p1Convert: Convertable[P1]) {
-	def func(param1: P1, state: State): Option[RValue]
-
-	def generate: EmulatedFunction = {
+	implicit var state: State = _
+	def func(param1: P1): Option[RValue]
+	def generate(implicit theState: State): EmulatedFunction = {
+		state = theState
 		new EmulatedFunction(name) {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val param1 = p1Convert.convert(formattedOutputParams(0).value)
-				func(param1, state)
+				func(param1)
 			}
 		}
 	}

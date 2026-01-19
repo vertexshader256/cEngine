@@ -12,7 +12,7 @@ import scala.util.Try
 
 object Mathh {
 
-	def addFunctions(scalaFunctions: ListBuffer[Function]) = {
+	def addFunctions(scalaFunctions: ListBuffer[Function])(implicit theState: State) = {
 		/////////////////////////////////////////////////////////////////
 		//                   <math.h> functions                        //
 		/////////////////////////////////////////////////////////////////
@@ -20,7 +20,7 @@ object Mathh {
 
 
 		scalaFunctions += new OneParameterFunction[Float]("sqrt") {
-			def func(num: Float, state: State) = {
+			def func(num: Float) = {
 				Some(RValue(Math.sqrt(num)))
 			}
 		}.generate

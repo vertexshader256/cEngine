@@ -71,7 +71,7 @@ object Stringh {
 		}
 
 		scalaFunctions += new OneParameterFunction[Char]("isspace") {
-			def func(theChar: Char, state: State) = {
+			def func(theChar: Char) = {
 				Some(RValue(if (theChar.isSpaceChar || theChar.toInt == 13 || theChar.toInt == 10) 1 else 0))
 			}
 		}.generate
@@ -98,8 +98,8 @@ object Stringh {
 		}.generate
 
 		scalaFunctions += new OneParameterFunction[Address]("strlen") {
-			def func(str: Address, state: State) = {
-				val len = Utils.readString(str)(using state).length
+			def func(str: Address) = {
+				val len = Utils.readString(str).length
 				Some(RValue(len))
 			}
 		}.generate
