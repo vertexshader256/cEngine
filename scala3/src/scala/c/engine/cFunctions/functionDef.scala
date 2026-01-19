@@ -73,14 +73,16 @@ abstract class TwoParameterFunction[P1, P2](name: String)(using p1Convert: Conve
 }
 
 abstract class ThreeParameterFunction[P1, P2, P3](name: String)(using p1Convert: Convertable[P1], p2Convert: Convertable[P2], p3Convert: Convertable[P3]) {
-	def func(param1: P1, param2: P2, param3: P3, state: State): Option[RValue]
-	def generate: EmulatedFunction = {
+	implicit var state: State = _
+	def func(param1: P1, param2: P2, param3: P3): Option[RValue]
+	def generate(implicit theState: State): EmulatedFunction = {
+		state = theState
 		new EmulatedFunction(name) {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val param3 = p3Convert.convert(formattedOutputParams(0).value)
 				val param2 = p2Convert.convert(formattedOutputParams(1).value)
 				val param1 = p1Convert.convert(formattedOutputParams(2).value)
-				func(param1, param2, param3, state)
+				func(param1, param2, param3)
 			}
 		}
 	}

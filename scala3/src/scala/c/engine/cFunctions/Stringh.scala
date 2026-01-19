@@ -11,7 +11,7 @@ object Stringh {
 
 	private var strTokPosition = Address(0)
 
-	def addFunctions(scalaFunctions: ListBuffer[Function])(implicit state: State) = {
+	def addFunctions(scalaFunctions: ListBuffer[Function])(implicit theState: State) = {
 		/////////////////////////////////////////////////////////////////
 		//                  <string.h> functions                       //
 		/////////////////////////////////////////////////////////////////
@@ -77,21 +77,21 @@ object Stringh {
 		}.generate
 
 		scalaFunctions += new ThreeParameterFunction[Address, Address, Int]("memmove") {
-			def func(dst: Address, src: Address, numBytes: Int, state: State) = {
+			def func(dst: Address, src: Address, numBytes: Int) = {
 				state.copy(dst, src, numBytes)
 				None
 			}
 		}.generate
 
 		scalaFunctions += new ThreeParameterFunction[Address, Address, Int]("memcpy") {
-			def func(dst: Address, src: Address, numBytes: Int, state: State) = {
+			def func(dst: Address, src: Address, numBytes: Int) = {
 				state.copy(dst, src, numBytes)
 				None
 			}
 		}.generate
 
 		scalaFunctions += new ThreeParameterFunction[Address, Byte, Int]("memset") {
-			def func(dst: Address, filledBy: Byte, numBytes: Int, state: State) = {
+			def func(dst: Address, filledBy: Byte, numBytes: Int) = {
 				state.set(dst, filledBy, numBytes)
 				None
 			}
