@@ -98,20 +98,13 @@ object Stringh {
 			}
 		}.generate
 
-		scalaFunctions += new EmulatedFunction("strncpy") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val num = formattedOutputParams(0).value match
-					case int: Int => int
-					case long: Long => long.toInt
-				val src = formattedOutputParams(1).value.asInstanceOf[Int]
-				val dst = formattedOutputParams(2).value.asInstanceOf[Int]
-
-				val str1 = Utils.readString(Address(src))(using state)
-
-				state.copy(Address(dst), Address(src), Math.min(str1.length + 1, num))
+		scalaFunctions += new ThreeParameterFunction[Address, Address, Int]("strncpy") {
+			def func(dst: Address, src: Address, numBytes: Int) = {
+				val str1 = Utils.readString(src)(using state)
+				state.copy(dst, src, Math.min(str1.length + 1, numBytes))
 				None
 			}
-		}
+		}.generate
 
 		scalaFunctions += new EmulatedFunction("strtok") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
@@ -186,59 +179,46 @@ object Stringh {
 			}
 		}
 
-		scalaFunctions += new EmulatedFunction("strcpy") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val src = formattedOutputParams(0).value.asInstanceOf[Int]
-				val dst = formattedOutputParams(1).value.asInstanceOf[Int]
-
-				val str1 = Utils.readString(Address(src))(using state)
-
-				state.copy(Address(dst), Address(src), str1.length + 1)
+		scalaFunctions += new TwoParameterFunction[Address, Address]("strcpy") {
+			def func(dst: Address, src: Address) = {
+				val str1 = Utils.readString(src)
+				state.copy(dst, src, str1.length + 1)
 				None
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("strcmp") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val straddy = formattedOutputParams(0).value.asInstanceOf[Int]
-				val straddy2 = formattedOutputParams(1).value.asInstanceOf[Int]
-
-				val str1 = Utils.readString(Address(straddy))(using state)
-				val str2 = Utils.readString(Address(straddy2))(using state)
-
+		scalaFunctions += new TwoParameterFunction[Address, Address]("strcmp") {
+			def func(straddy: Address, straddy2: Address) = {
+				val str1 = Utils.readString(straddy)
+				val str2 = Utils.readString(straddy2)
 				val same = str1 == str2
 				Some(RValue((if (same) 0 else 1)))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("strcat") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val dstAddr = formattedOutputParams(1).value.asInstanceOf[Int]
-				val stringToAppendAddr = formattedOutputParams(0).value.asInstanceOf[Int]
-
-				val str1 = Utils.readString(Address(dstAddr))(using state)
-				val str2 = Utils.readString(Address(stringToAppendAddr))(using state)
+		scalaFunctions += new TwoParameterFunction[Address, Address]("strcat") {
+			def func(dst: Address, src: Address) = {
+				val str1 = Utils.readString(dst)
+				val str2 = Utils.readString(src)
 
 				val concat = str1 + str2 + "\u0000"
 				val bytes = concat.getBytes
-				state.stack.writeDataBlock(bytes, dstAddr)
-				Some(formattedOutputParams(0)) // returns a pointer to the destination string
+				state.stack.writeDataBlock(bytes, dst.location)
+				Some(RValue(dst.location)) // returns a pointer to the destination string
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("offsetof") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val straddy = formattedOutputParams(0).value.asInstanceOf[Int]
-				val straddy2 = formattedOutputParams(1).value.asInstanceOf[Int]
-
-				val memberName = Utils.readString(Address(straddy))(using state)
-				val stuctName = Utils.readString(Address(straddy2))(using state)
+		// offsetof is actually a macro, but this way works
+		scalaFunctions += new TwoParameterFunction[Address, Address]("offsetof") {
+			def func(structNameAddr: Address, memberNameAddr: Address) = {
+				val memberName = Utils.readString(memberNameAddr)
+				val stuctName = Utils.readString(structNameAddr)
 
 				val struct = state.structs.find { x => ("struct " + x.getName) == stuctName }.get
 
 				Some(RValue(Structures.offsetof(struct, memberName, state)))
 			}
-		}
+		}.generate
 
 		scalaFunctions += new EmulatedFunction("strstr") { // indexof equivilent
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
