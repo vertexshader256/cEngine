@@ -23,6 +23,7 @@ given Convertable[Int] with
 		value match
 			case int: Int => int
 			case long: Long => long.toInt
+			case byte: Byte => byte.toInt
 
 given Convertable[Float] with
 	def convert(value: cEngVal): Float =

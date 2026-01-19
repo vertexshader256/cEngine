@@ -99,30 +99,22 @@ object Stringh {
 
 		scalaFunctions += new OneParameterFunction[Address]("strlen") {
 			def func(str: Address, state: State) = {
-				val len = Utils.readString(str)(state).length
+				val len = Utils.readString(str)(using state).length
 				Some(RValue(len))
 			}
 		}.generate
 
-		scalaFunctions += new EmulatedFunction("strchr") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val char = formattedOutputParams(0).value match {
-					case int: Int => int
-					case byte: Byte => byte.toInt
-				}
-				val straddy = Address(formattedOutputParams(1).value.asInstanceOf[Int])
-
-				val str = Utils.readString(straddy)(using state)
-
+		scalaFunctions += new TwoParameterFunction[Address, Int]("strchr") {
+			def func(stringAddress: Address, char: Int, state: State) = {
+				val str = Utils.readString(stringAddress)(using state)
 				val offset = str.indexOf(char.toChar)
 
-				if (offset != -1) {
-					Some(RValue((straddy + offset).location))
-				} else {
+				if offset != -1 then
+					Some(RValue(stringAddress.location + offset))
+				else
 					Some(RValue(0))
-				}
 			}
-		}
+		}.generate
 
 		scalaFunctions += new EmulatedFunction("strncpy") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
