@@ -6,10 +6,23 @@ import scala.c.engine.models.{Address, RValue}
 trait Convertable[A]:
 	def convert(value: cEngVal): A
 
+given Convertable[Byte] with
+	def convert(value: cEngVal): Byte =
+		value match
+			case byte: Byte => byte
+			case int: Int => int.toByte
+
+given Convertable[Char] with
+	def convert(value: cEngVal): Char =
+		value match
+			case char: Char => char
+			case int: Int => int.toChar
+
 given Convertable[Int] with
 	def convert(value: cEngVal): Int =
 		value match
 			case int: Int => int
+			case long: Long => long.toInt
 
 given Convertable[Float] with
 	def convert(value: cEngVal): Float =

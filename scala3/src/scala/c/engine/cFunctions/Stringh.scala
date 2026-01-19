@@ -70,15 +70,11 @@ object Stringh {
 			}
 		}
 
-		scalaFunctions += new EmulatedFunction("isspace") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val theChar = formattedOutputParams.head.value match {
-					case c: char => c.toChar
-					case int: Int => int.toChar
-				}
+		scalaFunctions += new OneParameterFunction[Char]("isspace") {
+			def func(theChar: Char, state: State) = {
 				Some(RValue(if (theChar.isSpaceChar || theChar.toInt == 13 || theChar.toInt == 10) 1 else 0))
 			}
-		}
+		}.generate
 
 		scalaFunctions += new ThreeParameterFunction[Address, Address, Int]("memmove") {
 			def func(dst: Address, src: Address, numBytes: Int, state: State) = {
@@ -87,33 +83,19 @@ object Stringh {
 			}
 		}.generate
 
-		scalaFunctions += new EmulatedFunction("memcpy") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val numBytes = formattedOutputParams(0).value match {
-					case int: Int => int
-					case long: Long => long.toInt
-				}
-				val src = formattedOutputParams(1).value.asInstanceOf[Int]
-				val dst = formattedOutputParams(2).value.asInstanceOf[Int]
-
-				state.copy(Address(dst), Address(src), numBytes)
+		scalaFunctions += new ThreeParameterFunction[Address, Address, Int]("memcpy") {
+			def func(dst: Address, src: Address, numBytes: Int, state: State) = {
+				state.copy(dst, src, numBytes)
 				None
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("memset") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val numBytes = formattedOutputParams(0).value match {
-					case int: Int => int
-					case long: Long => long.toInt
-				}
-				val value = formattedOutputParams(1).value.asInstanceOf[Int].toByte
-				val dst = formattedOutputParams(2).value.asInstanceOf[Int]
-
-				state.set(Address(dst), value, numBytes)
+		scalaFunctions += new ThreeParameterFunction[Address, Byte, Int]("memset") {
+			def func(dst: Address, filledBy: Byte, numBytes: Int, state: State) = {
+				state.set(dst, filledBy, numBytes)
 				None
 			}
-		}
+		}.generate
 
 		scalaFunctions += new EmulatedFunction("strlen") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
