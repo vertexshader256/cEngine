@@ -19,6 +19,24 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 	def context: FunctionScope = functionContexts.head
 
+	var varArgStartingAddr = List[Int]()
+
+	val scalaFunctions = ListBuffer[Function]()
+
+	scalaFunctions += new EmulatedFunction("_assert") {
+		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			val addy = formattedOutputParams(0).value.asInstanceOf[Int]
+			println(Utils.readString(Address(addy))(using state) + " FAILED")
+			None
+		}
+	}
+
+	Stdio.addFunctions(scalaFunctions)
+	Mathh.addFunctions(scalaFunctions)
+	Stdlibh.addFunctions(scalaFunctions)
+	Stringh.addFunctions(scalaFunctions)
+	Stdargh.addFunctions(scalaFunctions)
+
 	val functionList = ListBuffer[Function]()
 	val functionPointers = scala.collection.mutable.LinkedHashMap[String, Variable]()
 	val stdout = ListBuffer[Char]()
@@ -42,7 +60,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	//                  Constructor                      //
 	// ************************************************* //
 	
-	Functions.scalaFunctions.foreach(addScalaFunctionDef)
+	scalaFunctions.foreach(addScalaFunctionDef)
 
 	val main: Function = new Function("main", true) {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = None

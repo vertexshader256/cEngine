@@ -6,7 +6,6 @@ import org.eclipse.cdt.internal.core.dom.parser.c.*
 import java.io.File
 import java.util.{Formatter, Locale}
 import scala.c.engine.*
-import scala.c.engine.cFunctions.Functions.varArgStartingAddr
 import scala.c.engine.models.{Function, *}
 import scala.collection.mutable.ListBuffer
 import scala.util.Try
@@ -33,10 +32,10 @@ object Stdargh {
 					case "unsigned long" => (8, CPointerType(CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG), 0))
 				}
 
-				val current = varArgStartingAddr.head
-				varArgStartingAddr = varArgStartingAddr.tail
+				val current = state.varArgStartingAddr.head
+				state.varArgStartingAddr = state.varArgStartingAddr.tail
 				val result = state.stack.readFromMemory(current, theType).value
-				varArgStartingAddr = (current + offset) +: varArgStartingAddr
+				state.varArgStartingAddr = (current + offset) +: state.varArgStartingAddr
 
 				Some(RValue(result))
 			}
@@ -45,14 +44,14 @@ object Stdargh {
 		scalaFunctions += new EmulatedFunction("va_start") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val lastNamedArgAddr = formattedOutputParams(0).value.asInstanceOf[Int]
-				varArgStartingAddr = (lastNamedArgAddr + 4) +: varArgStartingAddr
+				state.varArgStartingAddr = (lastNamedArgAddr + 4) +: state.varArgStartingAddr
 				None
 			}
 		}
 
 		scalaFunctions += new EmulatedFunction("va_end") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				varArgStartingAddr = varArgStartingAddr.tail
+				state.varArgStartingAddr = state.varArgStartingAddr.tail
 				None
 			}
 		}
