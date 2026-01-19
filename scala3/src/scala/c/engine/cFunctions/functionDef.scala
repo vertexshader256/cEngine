@@ -17,6 +17,7 @@ given Convertable[Char] with
 		value match
 			case char: Char => char
 			case int: Int => int.toChar
+			case byte: Byte => byte.toChar
 
 given Convertable[Int] with
 	def convert(value: cEngVal): Int =

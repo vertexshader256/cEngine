@@ -16,59 +16,41 @@ object Stringh {
 		//                  <string.h> functions                       //
 		/////////////////////////////////////////////////////////////////
 
-		scalaFunctions += new EmulatedFunction("isalpha") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val theChar = formattedOutputParams.head.value.asInstanceOf[char].toChar
+		scalaFunctions += new OneParameterFunction[Char]("isalpha") {
+			def func(theChar: Char) = {
 				Some(RValue(if (theChar.isLetter) 1 else 0))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("isdigit") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val theChar = formattedOutputParams.head.value match {
-					case c: char => c.toChar
-					case int: Int => int.toChar
-				}
+		scalaFunctions += new OneParameterFunction[Char]("isdigit") {
+			def func(theChar: Char) = {
 				Some(RValue(if (theChar.isDigit) 1 else 0))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("isxdigit") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val theChar = formattedOutputParams.head.value match {
-					case c: char => c.toChar
-					case int: Int => int.toChar
-				}
+		scalaFunctions += new OneParameterFunction[Char]("isxdigit") {
+			def func(theChar: Char) = {
 				Some(RValue(if (theChar.toString.matches("^[0-9a-fA-F]+$")) 1 else 0))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("tolower") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val theChar = formattedOutputParams.head.value match {
-					case c: char => c.toChar
-					case int: Int => int.toChar
-				}
+		scalaFunctions += new OneParameterFunction[Char]("tolower") {
+			def func(theChar: Char) = {
 				Some(RValue(theChar.toLower.toByte))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("toupper") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val theChar = formattedOutputParams.head.value.asInstanceOf[char].toChar
+		scalaFunctions += new OneParameterFunction[Char]("toupper") {
+			def func(theChar: Char) = {
 				Some(RValue(theChar.toUpper.toByte))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("isupper") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val theChar = formattedOutputParams.head.value match {
-					case int: int => int.toChar
-					case char: char => char.toChar
-				}
+		scalaFunctions += new OneParameterFunction[Char]("isupper") {
+			def func(theChar: Char) = {
 				Some(RValue(if (theChar.isUpper) 1 else 0))
 			}
-		}
+		}.generate
 
 		scalaFunctions += new OneParameterFunction[Char]("isspace") {
 			def func(theChar: Char) = {
