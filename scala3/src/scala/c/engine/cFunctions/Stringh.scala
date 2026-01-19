@@ -97,28 +97,12 @@ object Stringh {
 			}
 		}.generate
 
-		scalaFunctions += new EmulatedFunction("strlen") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val straddy = formattedOutputParams.head.value match {
-					//case AddressInfo(addr, _) => addr.value
-					case int: Int => int
-				}
-				var current: char = 0
-				var i = 0
-
-				val value = state.stack.readFromMemoryRaw(TypeHelper.charType, straddy + i)
-				current = TypeHelper.castSign(TypeHelper.charType, value).value.asInstanceOf[char]
-
-				while (current != 0) {
-					if (current != 0) {
-						i += 1
-					}
-					val value = state.stack.readFromMemoryRaw(TypeHelper.charType, straddy + i)
-					current = TypeHelper.castSign(TypeHelper.charType, value).value.asInstanceOf[char]
-				}
-				Some(RValue(i))
+		scalaFunctions += new OneParameterFunction[Address]("strlen") {
+			def func(str: Address, state: State) = {
+				val len = Utils.readString(str)(state).length
+				Some(RValue(len))
 			}
-		}
+		}.generate
 
 		scalaFunctions += new EmulatedFunction("strchr") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
