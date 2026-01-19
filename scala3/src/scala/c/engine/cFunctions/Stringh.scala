@@ -236,23 +236,16 @@ object Stringh {
 			}
 		}.generate
 
-		scalaFunctions += new EmulatedFunction("memcmp") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val numBytes = formattedOutputParams(0).value match {
-					case long: Long => long.toInt
-					case int: Int => int
-				}
-				val memaddy = formattedOutputParams(1).value.asInstanceOf[int]
-				val memaddy2 = formattedOutputParams(2).value.asInstanceOf[int]
-
+		scalaFunctions += new ThreeParameterFunction[Address, Address, Int]("memcmp") {
+			def func(memaddy2: Address, memaddy: Address, numBytes: Int) = {
 				var same = true
 
 				for (i <- (0 until numBytes)) {
 
-					val value = state.stack.readFromMemoryRaw(TypeHelper.charType, memaddy + i)
+					val value = state.stack.readFromMemoryRaw(TypeHelper.charType, memaddy.location + i)
 					val value1 = TypeHelper.castSign(TypeHelper.charType, value).value
 
-					val value2 = state.stack.readFromMemoryRaw(CBasicType(IBasicType.Kind.eChar, 0), memaddy2 + i)
+					val value2 = state.stack.readFromMemoryRaw(CBasicType(IBasicType.Kind.eChar, 0), memaddy2.location + i)
 					val value3 = TypeHelper.castSign(TypeHelper.charType, value2).value
 
 					same &= value1 == value3
@@ -260,6 +253,6 @@ object Stringh {
 
 				Some(RValue((if (same) 0 else 1)))
 			}
-		}
+		}.generate
 	}
 }
