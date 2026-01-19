@@ -1,0 +1,71 @@
+package scala.c.engine.cFunctions
+
+import scala.c.engine.{State, cEngVal}
+import scala.c.engine.models.{Address, RValue}
+
+trait Convertable[A]:
+	def convert(value: cEngVal): A
+
+given Convertable[Int] with
+	def convert(value: cEngVal): Int =
+		value match
+			case int: Int => int
+
+given Convertable[Float] with
+	def convert(value: cEngVal): Float =
+		value match
+			case float: Float => float
+			case double: Double => double.toFloat
+			case int: Int => int.toFloat
+
+given Convertable[Double] with
+	def convert(value: cEngVal): Double =
+		value match
+			case float: Float => float.toDouble
+			case double: Double => double
+			case int: Int => int.toDouble
+
+given Convertable[Address] with
+	def convert(value: cEngVal): Address =
+		value match
+			case int: Int => Address(int)
+
+abstract class OneParameterFunction[P1](name: String)(using p1Convert: Convertable[P1]) {
+	def func(param1: P1, state: State): Option[RValue]
+
+	def generate: EmulatedFunction = {
+		new EmulatedFunction(name) {
+			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+				val param1 = p1Convert.convert(formattedOutputParams(0).value)
+				func(param1, state)
+			}
+		}
+	}
+}
+
+abstract class TwoParameterFunction[P1, P2](name: String)(using p1Convert: Convertable[P1], p2Convert: Convertable[P2]) {
+	def func(param1: P1, param2: P2, state: State): Option[RValue]
+	def generate: EmulatedFunction = {
+		new EmulatedFunction(name) {
+			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+				val param2 = p2Convert.convert(formattedOutputParams(0).value)
+				val param1 = p1Convert.convert(formattedOutputParams(1).value)
+				func(param1, param2, state)
+			}
+		}
+	}
+}
+
+abstract class ThreeParameterFunction[P1, P2, P3](name: String)(using p1Convert: Convertable[P1], p2Convert: Convertable[P2], p3Convert: Convertable[P3]) {
+	def func(param1: P1, param2: P2, param3: P3, state: State): Option[RValue]
+	def generate: EmulatedFunction = {
+		new EmulatedFunction(name) {
+			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+				val param3 = p3Convert.convert(formattedOutputParams(0).value)
+				val param2 = p2Convert.convert(formattedOutputParams(1).value)
+				val param1 = p1Convert.convert(formattedOutputParams(2).value)
+				func(param1, param2, param3, state)
+			}
+		}
+	}
+}

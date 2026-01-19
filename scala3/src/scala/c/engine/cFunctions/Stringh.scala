@@ -80,16 +80,12 @@ object Stringh {
 			}
 		}
 
-		scalaFunctions += new EmulatedFunction("memmove") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val dst = formattedOutputParams(2).value.asInstanceOf[Int]
-				val src = formattedOutputParams(1).value.asInstanceOf[Int]
-				val numBytes = formattedOutputParams(0).value.asInstanceOf[Int]
-
-				state.copy(Address(dst), Address(src), numBytes)
+		scalaFunctions += new ThreeParameterFunction[Address, Address, Int]("memmove") {
+			def func(dst: Address, src: Address, numBytes: Int, state: State) = {
+				state.copy(dst, src, numBytes)
 				None
 			}
-		}
+		}.generate
 
 		scalaFunctions += new EmulatedFunction("memcpy") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
