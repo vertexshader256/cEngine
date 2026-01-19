@@ -220,24 +220,21 @@ object Stringh {
 			}
 		}.generate
 
-		scalaFunctions += new EmulatedFunction("strstr") { // indexof equivilent
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val needleAddr = formattedOutputParams(0).value.asInstanceOf[Int] // needle
-				val haystackAddr = formattedOutputParams(1).value.asInstanceOf[Int] // haystack
-
-				val needle = Utils.readString(Address(needleAddr))(using state)
-				val haystack = Utils.readString(Address(haystackAddr))(using state)
+		scalaFunctions += new TwoParameterFunction[Address, Address]("strstr") {
+			def func(haystackAddr: Address, needleAddr: Address) = {
+				val needle = Utils.readString(needleAddr)
+				val haystack = Utils.readString(haystackAddr)
 
 				val indexOf = haystack.indexOf(needle)
 
 				if indexOf == -1 then
 					Some(RValue(0)) // null pointer
 				else if needle.isEmpty then
-					Some(RValue(haystackAddr))
+					Some(RValue(haystackAddr.location))
 				else
-					Some(RValue(haystackAddr + indexOf))
+					Some(RValue(haystackAddr.location + indexOf))
 			}
-		}
+		}.generate
 
 		scalaFunctions += new EmulatedFunction("memcmp") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
