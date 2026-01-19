@@ -11,7 +11,7 @@ object Stringh {
 
 	private var strTokPosition = Address(0)
 
-	def addFunctions(scalaFunctions: ListBuffer[Function]) = {
+	def addFunctions(scalaFunctions: ListBuffer[Function])(implicit state: State) = {
 		/////////////////////////////////////////////////////////////////
 		//                  <string.h> functions                       //
 		/////////////////////////////////////////////////////////////////
@@ -105,8 +105,8 @@ object Stringh {
 		}.generate
 
 		scalaFunctions += new TwoParameterFunction[Address, Int]("strchr") {
-			def func(stringAddress: Address, char: Int, state: State) = {
-				val str = Utils.readString(stringAddress)(using state)
+			def func(stringAddress: Address, char: Int) = {
+				val str = Utils.readString(stringAddress)
 				val offset = str.indexOf(char.toChar)
 
 				if offset != -1 then

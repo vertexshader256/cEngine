@@ -58,13 +58,15 @@ abstract class OneParameterFunction[P1](name: String)(using p1Convert: Convertab
 }
 
 abstract class TwoParameterFunction[P1, P2](name: String)(using p1Convert: Convertable[P1], p2Convert: Convertable[P2]) {
-	def func(param1: P1, param2: P2, state: State): Option[RValue]
-	def generate: EmulatedFunction = {
+	implicit var state: State = _
+	def func(param1: P1, param2: P2): Option[RValue]
+	def generate(implicit theState: State): EmulatedFunction = {
+		state = theState
 		new EmulatedFunction(name) {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
 				val param2 = p2Convert.convert(formattedOutputParams(0).value)
 				val param1 = p1Convert.convert(formattedOutputParams(1).value)
-				func(param1, param2, state)
+				func(param1, param2)
 			}
 		}
 	}
