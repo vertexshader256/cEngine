@@ -72,61 +72,61 @@ class Memory(stackSize: Int, dataSize: Int, heapSize: Int) {
 		}
 	}
 
-	def putShort(address: Int, short: Short): Unit = {
-		tape.putShort(address, short)
+	def putShort(address: Address, short: Short): Unit = {
+		tape.putShort(address.location, short)
 	}
 
-	def getShort(address: Int): Short = {
-		tape.getShort(address)
+	def getShort(address: Address): Short = {
+		tape.getShort(address.location)
 	}
 
-	def putLong(address: Int, long: Long): Unit = {
-		tape.putLong(address, long)
+	def putLong(address: Address, long: Long): Unit = {
+		tape.putLong(address.location, long)
 	}
 
-	def getLong(address: Int): Long = {
-		tape.getLong(address)
+	def getLong(address: Address): Long = {
+		tape.getLong(address.location)
 	}
 
-	def getLongLong(address: Int): BigInt = {
+	def getLongLong(address: Address): BigInt = {
 		val bytes = Array[Byte](8)
-		tape.get(address, bytes)
+		tape.get(address.location, bytes)
 		BigInteger(bytes)
 	}
 
-	def putInt(address: Int, int: Int): Unit = {
-		tape.putInt(address, int)
+	def putInt(address: Address, int: Int): Unit = {
+		tape.putInt(address.location, int)
 	}
 
-	def getInt(address: Int): Int = {
-		tape.getInt(address)
+	def getInt(address: Address): Int = {
+		tape.getInt(address.location)
 	}
 
-	def putByte(address: Int, byte: Byte): Unit = {
-		tape.put(address, byte)
+	def putByte(address: Address, byte: Byte): Unit = {
+		tape.put(address.location, byte)
 	}
 
-	def getByte(address: Int): Byte = {
-		tape.get(address)
+	def getByte(address: Address): Byte = {
+		tape.get(address.location)
 	}
 
-	def putDouble(address: Int, double: Double): Unit = {
-		tape.putDouble(address, double)
+	def putDouble(address: Address, double: Double): Unit = {
+		tape.putDouble(address.location, double)
 	}
 
-	def getDouble(address: Int): Double = {
-		tape.getDouble(address)
+	def getDouble(address: Address): Double = {
+		tape.getDouble(address.location)
 	}
 
-	def putFloat(address: Int, float: Float): Unit = {
-		tape.putFloat(address, float)
+	def putFloat(address: Address, float: Float): Unit = {
+		tape.putFloat(address.location, float)
 	}
 
-	def getFloat(address: Int): Float = {
-		tape.getFloat(address)
+	def getFloat(address: Address): Float = {
+		tape.getFloat(address.location)
 	}
 
-	def writePointerToMemory(newVal: cEngVal, address: Int): Unit = {
+	def writePointerToMemory(newVal: cEngVal, address: Address): Unit = {
 		newVal match {
 			case int: Int => putInt(address, int)
 			case long: Long => putInt(address, long.toInt)
@@ -151,7 +151,7 @@ class Memory(stackSize: Int, dataSize: Int, heapSize: Int) {
 		Address(result)
 	}
 
-	private def writeInteger(newVal: cEngVal, address: Int, bitOffset: Int = 0, sizeInBits: Int = 0) = {
+	private def writeInteger(newVal: cEngVal, address: Address, bitOffset: Int = 0, sizeInBits: Int = 0) = {
 		newVal match {
 			case int: Int =>
 				val x = if (bitOffset != 0) {
@@ -170,7 +170,7 @@ class Memory(stackSize: Int, dataSize: Int, heapSize: Int) {
 		}
 	}
 
-	private def writeLongLong(newVal: cEngVal, address: Int, isUnsigned: Boolean, bitOffset: Int = 0, sizeInBits: Int = 0) = {
+	private def writeLongLong(newVal: cEngVal, address: Address, isUnsigned: Boolean, bitOffset: Int = 0, sizeInBits: Int = 0) = {
 		newVal match
 			case long: Long => putLong(address, long)
 			case int: Int => putInt(address, int)
@@ -183,7 +183,7 @@ class Memory(stackSize: Int, dataSize: Int, heapSize: Int) {
 	}
 
 	// use Address type to prevent messing up argument order
-	def writeToMemory(newVal: cEngVal, address: Int, theType: IType, bitOffset: Int = 0, sizeInBits: Int = 0): Unit = {
+	def writeToMemory(newVal: cEngVal, address: Address, theType: IType, bitOffset: Int = 0, sizeInBits: Int = 0): Unit = {
 
 		TypeHelper.stripSyntheticTypeInfo(theType) match {
 			case basic: IBasicType if basic.isShort =>
@@ -224,7 +224,7 @@ class Memory(stackSize: Int, dataSize: Int, heapSize: Int) {
 		}
 	}
 
-	def readFromMemoryRaw(basic: IBasicType, address: Int, bitOffset: Int = 0, sizeInBits: Int = 0): cEngVal = {
+	def readFromMemoryRaw(basic: IBasicType, address: Address, bitOffset: Int = 0, sizeInBits: Int = 0): cEngVal = {
 		if basic.isShort then
 			val result = getShort(address)
 			(result << (16 - sizeInBits - bitOffset) >> (16 - sizeInBits)).toShort
@@ -242,7 +242,7 @@ class Memory(stackSize: Int, dataSize: Int, heapSize: Int) {
 			getByte(address) // a C 'char' is a Java 'byte'
 	}
 
-	def readFromMemory(address: Int, theType: IType, bitOffset: Int = 0, sizeInBits: Int = 0): RValue = {
+	def readFromMemory(address: Address, theType: IType, bitOffset: Int = 0, sizeInBits: Int = 0): RValue = {
 		theType match
 			case basic: IBasicType =>
 				val value = readFromMemoryRaw(basic, address, bitOffset, sizeInBits)

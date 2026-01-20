@@ -241,10 +241,10 @@ object Stringh {
 
 				for (i <- (0 until numBytes)) {
 
-					val value = state.stack.readFromMemoryRaw(TypeHelper.charType, memaddy.location + i)
+					val value = state.stack.readFromMemoryRaw(TypeHelper.charType, memaddy + i)
 					val value1 = TypeHelper.castSign(TypeHelper.charType, value).value
 
-					val value2 = state.stack.readFromMemoryRaw(CBasicType(IBasicType.Kind.eChar, 0), memaddy2.location + i)
+					val value2 = state.stack.readFromMemoryRaw(CBasicType(IBasicType.Kind.eChar, 0), memaddy2 + i)
 					val value3 = TypeHelper.castSign(TypeHelper.charType, value2).value
 
 					same &= value1 == value3
