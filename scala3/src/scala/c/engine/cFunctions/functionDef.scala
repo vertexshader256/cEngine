@@ -49,6 +49,14 @@ trait FunctionDef {
 	def generate(implicit theState: State): EmulatedFunction
 }
 
+extension [T1: Convertable](baseFunc: scala.Function1[T1, Option[cEngVal]])
+	def generate(name: String)(using State): EmulatedFunction =
+		new OneParameterFunction[T1](name) {
+			def func(param1: T1) = {
+				baseFunc(param1)
+			}
+		}.generate
+
 abstract class ZeroParameterFunction(name: String) extends FunctionDef {
 	implicit var state: State = _
 	def func(): Option[cEngVal]

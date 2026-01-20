@@ -17,47 +17,26 @@ object Stringh {
 
 	def addFunctions(scalaFunctions: ListBuffer[Function])(implicit theState: State) = {
 
-		scalaFunctions += new OneParameterFunction[Char]("isalpha") {
-			def func(theChar: Char) = {
-				Some(if (theChar.isLetter) 1 else 0)
-			}
-		}.generate
+		val isAlpha = (theChar: Char) => Some(if (theChar.isLetter) 1 else 0)
+		scalaFunctions += isAlpha.generate("isalpha")
 
-		scalaFunctions += new OneParameterFunction[Char]("isdigit") {
-			def func(theChar: Char) = {
-				Some(if (theChar.isDigit) 1 else 0)
-			}
-		}.generate
+		val isDigit = (theChar: Char) => Some(if (theChar.isDigit) 1 else 0)
+		scalaFunctions += isDigit.generate("isdigit")
 
-		scalaFunctions += new OneParameterFunction[Char]("isxdigit") {
-			def func(theChar: Char) = {
-				Some(if (theChar.toString.matches("^[0-9a-fA-F]+$")) 1 else 0)
-			}
-		}.generate
+		val isxdigit = (theChar: Char) => Some(if (theChar.toString.matches("^[0-9a-fA-F]+$")) 1 else 0)
+		scalaFunctions += isxdigit.generate("isxdigit")
 
-		scalaFunctions += new OneParameterFunction[Char]("tolower") {
-			def func(theChar: Char) = {
-				Some(theChar.toLower.toByte)
-			}
-		}.generate
+		val tolower = (theChar: Char) => Some(theChar.toLower.toByte)
+		scalaFunctions += tolower.generate("tolower")
 
-		scalaFunctions += new OneParameterFunction[Char]("toupper") {
-			def func(theChar: Char) = {
-				Some(theChar.toUpper.toByte)
-			}
-		}.generate
+		val toupper = (theChar: Char) => Some(theChar.toUpper.toByte)
+		scalaFunctions += toupper.generate("toupper")
 
-		scalaFunctions += new OneParameterFunction[Char]("isupper") {
-			def func(theChar: Char) = {
-				Some(if (theChar.isUpper) 1 else 0)
-			}
-		}.generate
+		val isUpper = (theChar: Char) => Some(if (theChar.isUpper) 1 else 0)
+		scalaFunctions += isUpper.generate("isupper")
 
-		scalaFunctions += new OneParameterFunction[Char]("isspace") {
-			def func(theChar: Char) = {
-				Some(if (theChar.isSpaceChar || theChar.toInt == 13 || theChar.toInt == 10) 1 else 0)
-			}
-		}.generate
+		val isSpace = (theChar: Char) => Some(if (theChar.isSpaceChar || theChar.toInt == 13 || theChar.toInt == 10) 1 else 0)
+		scalaFunctions += isSpace.generate("isspace")
 
 		scalaFunctions += new ThreeParameterFunction[Address, Address, Int]("memmove") {
 			def func(dst: Address, src: Address, numBytes: Int) = {
