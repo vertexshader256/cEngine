@@ -10,11 +10,11 @@ import scala.collection.mutable
 
 object TestResults {
 	var areResultsLoaded = false
-	val digest = MessageDigest.getInstance("SHA-256")
 	val resultCache: mutable.Map[String, Seq[String]] = mutable.HashMap()
 	val resultsFileName = "results.json"
 
 	private def getHash(key: String): String = {
+		val digest = MessageDigest.getInstance("SHA-256")
 		val hashBytes = digest.digest(key.getBytes(StandardCharsets.UTF_8))
 
 		// Convert the byte array into a hexadecimal string
