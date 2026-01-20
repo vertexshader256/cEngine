@@ -12,10 +12,11 @@ import scala.util.Try
 
 object Stdargh {
 
+	/////////////////////////////////////////////////////////////////
+	//                  <stdarg.h> functions                       //
+	/////////////////////////////////////////////////////////////////
+
 	def addFunctions(scalaFunctions: ListBuffer[Function]) = {
-		/////////////////////////////////////////////////////////////////
-		//                  <stdarg.h> functions                       //
-		/////////////////////////////////////////////////////////////////
 
 		scalaFunctions += new EmulatedFunction("va_arg") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {

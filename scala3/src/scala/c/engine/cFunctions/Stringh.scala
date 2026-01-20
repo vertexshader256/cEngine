@@ -11,10 +11,11 @@ object Stringh {
 
 	private var strTokPosition = Address(0)
 
+	/////////////////////////////////////////////////////////////////
+	//                  <string.h> functions                       //
+	/////////////////////////////////////////////////////////////////
+
 	def addFunctions(scalaFunctions: ListBuffer[Function])(implicit theState: State) = {
-		/////////////////////////////////////////////////////////////////
-		//                  <string.h> functions                       //
-		/////////////////////////////////////////////////////////////////
 
 		scalaFunctions += new OneParameterFunction[Char]("isalpha") {
 			def func(theChar: Char) = {

@@ -12,10 +12,32 @@ import scala.util.Try
 
 object Stdio {
 
+	/////////////////////////////////////////////////////////////////
+	//                   <stdio.h> functions                       //
+	/////////////////////////////////////////////////////////////////
+
 	def addFunctions(scalaFunctions: ListBuffer[Function])(implicit theState: State) = {
-		/////////////////////////////////////////////////////////////////
-		//                   <stdio.h> functions                       //
-		/////////////////////////////////////////////////////////////////
+
+		scalaFunctions += new EmulatedFunction("printf") {
+			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+				state.stdout ++= Printf.printf(formattedOutputParams, state)
+				None
+			}
+		}
+
+		scalaFunctions += new EmulatedFunction("sscanf") {
+			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+				val resultBuffer = formattedOutputParams.last.value.asInstanceOf[Int]
+
+				val varArgs = formattedOutputParams.drop(2).toList
+
+				val result = Printf.printf(formattedOutputParams, state)
+
+				state.writeDataBlock(Address(resultBuffer), result.getBytes)
+
+				Some(RValue(varArgs.size))
+			}
+		}
 
 		//fcvtbuf(double arg, int ndigits, int *decpt, int *sign, char *buf)
 		scalaFunctions += new EmulatedFunction("fcvtbuf") {

@@ -12,10 +12,11 @@ import scala.util.Try
 
 object Mathh {
 
+	/////////////////////////////////////////////////////////////////
+	//                   <math.h> functions                        //
+	/////////////////////////////////////////////////////////////////
+
 	def addFunctions(scalaFunctions: ListBuffer[Function])(implicit theState: State) = {
-		/////////////////////////////////////////////////////////////////
-		//                   <math.h> functions                        //
-		/////////////////////////////////////////////////////////////////
 
 		scalaFunctions += new OneParameterFunction[Float]("sqrt") {
 			def func(num: Float) = {
@@ -131,41 +132,10 @@ object Mathh {
 			}
 		}.generate
 
-		scalaFunctions += new EmulatedFunction("fmod") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val first = TypeHelper.cast(formattedOutputParams.last.value, TypeHelper.doubleType).value.asInstanceOf[Double]
-				val second = TypeHelper.cast(formattedOutputParams.head.value, TypeHelper.doubleType).value.asInstanceOf[Double]
-
-				Some(RValue(first % second))
+		scalaFunctions += new TwoParameterFunction[Double, Double]("fmod") {
+			def func(first: Double, second: Double) = {
+				Some(first % second)
 			}
-		}
-
-		scalaFunctions += new EmulatedFunction("sscanf") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val resultBuffer = formattedOutputParams.last.value.asInstanceOf[Int]
-
-				val varArgs = formattedOutputParams.drop(2).toList
-
-				val result = Printf.printf(formattedOutputParams, state)
-
-				state.writeDataBlock(Address(resultBuffer), result.getBytes)
-
-				Some(RValue(varArgs.size))
-			}
-		}
-
-		scalaFunctions += new EmulatedFunction("printf") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-
-				val result = Printf.printf(formattedOutputParams, state)
-
-				result.getBytes.foreach { char =>
-					state.callFunctionFromScala("putchar", Array(RValue(char.toInt, TypeHelper.intType)))
-				}
-
-				None
-			}
-		}
+		}.generate
 	}
-	
 }
