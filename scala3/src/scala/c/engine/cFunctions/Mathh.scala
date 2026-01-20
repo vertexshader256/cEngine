@@ -17,11 +17,9 @@ object Mathh {
 		//                   <math.h> functions                        //
 		/////////////////////////////////////////////////////////////////
 
-
-
 		scalaFunctions += new OneParameterFunction[Float]("sqrt") {
 			def func(num: Float) = {
-				Some(RValue(Math.sqrt(num)))
+				Some(Math.sqrt(num))
 			}
 		}.generate
 

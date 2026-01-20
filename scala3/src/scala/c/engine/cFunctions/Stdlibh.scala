@@ -19,7 +19,7 @@ object Stdlibh {
 
 		scalaFunctions += new ZeroParameterFunction("rand") {
 			def func() = {
-				Some(RValue(Math.abs(scala.util.Random.nextInt())))
+				Some(Math.abs(scala.util.Random.nextInt()))
 			}
 		}.generate
 
@@ -27,26 +27,26 @@ object Stdlibh {
 			def func(blockSize: Int, numBlocks: Int) = {
 				val addr = state.allocateHeapSpace(numBlocks * blockSize)
 				state.stack.clearMemory(addr, numBlocks * blockSize)
-				Some(RValue(addr))
+				Some(addr)
 			}
 		}.generate
 
 		scalaFunctions += new OneParameterFunction[Int]("malloc") {
 			def func(numBytes: Int) = {
-				Some(RValue(state.allocateHeapSpace(numBytes)))
+				Some(state.allocateHeapSpace(numBytes))
 			}
 		}.generate
 
 		scalaFunctions += new OneParameterFunction[Int]("realloc") {
 			def func(numBytes: Int) = {
-				Some(RValue(state.allocateHeapSpace(numBytes)))
+				Some(state.allocateHeapSpace(numBytes))
 			}
 		}.generate
 
 		scalaFunctions += new OneParameterFunction[Address]("atoi") {
 			def func(str: Address) = {
 				val string = Utils.readString(str)
-				Some(RValue(string.toInt))
+				Some(string.toInt)
 			}
 		}.generate
 	}

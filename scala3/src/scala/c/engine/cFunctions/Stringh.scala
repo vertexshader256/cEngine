@@ -18,43 +18,43 @@ object Stringh {
 
 		scalaFunctions += new OneParameterFunction[Char]("isalpha") {
 			def func(theChar: Char) = {
-				Some(RValue(if (theChar.isLetter) 1 else 0))
+				Some(if (theChar.isLetter) 1 else 0)
 			}
 		}.generate
 
 		scalaFunctions += new OneParameterFunction[Char]("isdigit") {
 			def func(theChar: Char) = {
-				Some(RValue(if (theChar.isDigit) 1 else 0))
+				Some(if (theChar.isDigit) 1 else 0)
 			}
 		}.generate
 
 		scalaFunctions += new OneParameterFunction[Char]("isxdigit") {
 			def func(theChar: Char) = {
-				Some(RValue(if (theChar.toString.matches("^[0-9a-fA-F]+$")) 1 else 0))
+				Some(if (theChar.toString.matches("^[0-9a-fA-F]+$")) 1 else 0)
 			}
 		}.generate
 
 		scalaFunctions += new OneParameterFunction[Char]("tolower") {
 			def func(theChar: Char) = {
-				Some(RValue(theChar.toLower.toByte))
+				Some(theChar.toLower.toByte)
 			}
 		}.generate
 
 		scalaFunctions += new OneParameterFunction[Char]("toupper") {
 			def func(theChar: Char) = {
-				Some(RValue(theChar.toUpper.toByte))
+				Some(theChar.toUpper.toByte)
 			}
 		}.generate
 
 		scalaFunctions += new OneParameterFunction[Char]("isupper") {
 			def func(theChar: Char) = {
-				Some(RValue(if (theChar.isUpper) 1 else 0))
+				Some(if (theChar.isUpper) 1 else 0)
 			}
 		}.generate
 
 		scalaFunctions += new OneParameterFunction[Char]("isspace") {
 			def func(theChar: Char) = {
-				Some(RValue(if (theChar.isSpaceChar || theChar.toInt == 13 || theChar.toInt == 10) 1 else 0))
+				Some(if (theChar.isSpaceChar || theChar.toInt == 13 || theChar.toInt == 10) 1 else 0)
 			}
 		}.generate
 
@@ -82,7 +82,7 @@ object Stringh {
 		scalaFunctions += new OneParameterFunction[Address]("strlen") {
 			def func(str: Address) = {
 				val len = Utils.readString(str).length
-				Some(RValue(len))
+				Some(len)
 			}
 		}.generate
 
@@ -92,9 +92,9 @@ object Stringh {
 				val offset = str.indexOf(char.toChar)
 
 				if offset != -1 then
-					Some(RValue(stringAddress.location + offset))
+					Some(stringAddress.location + offset)
 				else
-					Some(RValue(0))
+					Some(0)
 			}
 		}.generate
 
@@ -148,13 +148,13 @@ object Stringh {
 
 					if !hasToken then
 						if initialStr.isEmpty then
-							Some(RValue(0))
+							Some(0)
 						else {
-							val retVal = RValue(strTokPosition.location)
+							val retVal = strTokPosition.location
 							strTokPosition = strTokPosition + initialStr.length
 							Some(retVal)
 						} else
-						Some(RValue(firstNonToken.location))
+						Some(firstNonToken.location)
 				} else {
 					var sourceStr = Utils.readString(Address(sourceAddr))(using state)
 
@@ -173,7 +173,7 @@ object Stringh {
 								doneFindingTokens = true
 					}
 
-					Some(RValue(sourceAddr))
+					Some(sourceAddr)
 				}
 			}
 		}.generate
@@ -191,7 +191,7 @@ object Stringh {
 				val str1 = Utils.readString(straddy)
 				val str2 = Utils.readString(straddy2)
 				val same = str1 == str2
-				Some(RValue((if (same) 0 else 1)))
+				Some((if (same) 0 else 1))
 			}
 		}.generate
 
@@ -203,7 +203,7 @@ object Stringh {
 				val concat = str1 + str2 + "\u0000"
 				val bytes = concat.getBytes
 				state.stack.writeDataBlock(bytes, dst.location)
-				Some(RValue(dst.location)) // returns a pointer to the destination string
+				Some(dst.location) // returns a pointer to the destination string
 			}
 		}.generate
 
@@ -215,7 +215,7 @@ object Stringh {
 
 				val struct = state.structs.find { x => ("struct " + x.getName) == stuctName }.get
 
-				Some(RValue(Structures.offsetof(struct, memberName, state)))
+				Some(Structures.offsetof(struct, memberName, state))
 			}
 		}.generate
 
@@ -227,11 +227,11 @@ object Stringh {
 				val indexOf = haystack.indexOf(needle)
 
 				if indexOf == -1 then
-					Some(RValue(0)) // null pointer
+					Some(0) // null pointer
 				else if needle.isEmpty then
-					Some(RValue(haystackAddr.location))
+					Some(haystackAddr.location)
 				else
-					Some(RValue(haystackAddr.location + indexOf))
+					Some(haystackAddr.location + indexOf)
 			}
 		}.generate
 
@@ -250,7 +250,7 @@ object Stringh {
 					same &= value1 == value3
 				}
 
-				Some(RValue((if (same) 0 else 1)))
+				Some((if (same) 0 else 1))
 			}
 		}.generate
 	}
