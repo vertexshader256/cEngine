@@ -6,11 +6,12 @@ import java.io.{BufferedWriter, File, FileWriter, PrintWriter}
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}
 import java.security.MessageDigest
+import java.util.concurrent.ConcurrentHashMap
 import scala.collection.mutable
 
 object TestResults {
 	var areResultsLoaded = false
-	val resultCache: mutable.Map[String, Seq[String]] = mutable.HashMap()
+	val resultCache: ConcurrentHashMap[String, Seq[String]] = new ConcurrentHashMap[String, Seq[String]]()
 	val resultsFileName = "results.json"
 
 	private def getHash(key: String): String = {
@@ -33,12 +34,12 @@ object TestResults {
 
 	def addGccResult(test: String, results: Seq[String]) = {
 		val key = getHash(test)
-		resultCache.put(key, results)
+		resultCache.put(key, results.toList)
 	}
 
 	def getSavedGccOutput(test: String): Option[Seq[String]] = {
 		val key = getHash(test)
-		resultCache.get(key)
+		Option(resultCache.get(key))
 	}
 
 	def loadSavedResults() = {
@@ -47,13 +48,19 @@ object TestResults {
 		if !areResultsLoaded && resultsFile.toFile.exists() then
 			val resultsBytes = Files.readAllBytes(resultsFile)
 			val priorResults = read[Map[String, Seq[String]]](resultsBytes)
-			resultCache ++= priorResults
+			priorResults.foreach: result =>
+				resultCache.put(result._1, result._2)
 			println(s"Loading saved results for ${priorResults.size} tests")
 			areResultsLoaded = true
 	}
 
 	def writeResultsFile() = {
-		val jsonString: String = write(resultCache)
+		import scala.jdk.CollectionConverters._
+		val scalaMap = mutable.Map[String, Seq[String]]()
+		resultCache.asScala.foreach: result =>
+			scalaMap += result
+
+		val jsonString: String = write(scalaMap)
 
 		val bw = BufferedWriter(FileWriter(File(resultsFileName)))
 		bw.write(jsonString)
