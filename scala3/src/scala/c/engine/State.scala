@@ -19,6 +19,8 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 	def context: FunctionScope = functionContexts.head
 
+
+
 	var varArgStartingAddr = List[Int]()
 
 	val scalaFunctions = ListBuffer[Function]()
@@ -65,6 +67,8 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	val main: Function = new Function("main", true) {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = None
 	}
+
+	val program = new FunctionScope(main, null, null) {}
 
 	pushScope(new FunctionScope(main, null, null) {})
 	

@@ -11,13 +11,8 @@ case class GccOutput(output: Seq[String], wasSuccess: Boolean)
 
 object Gcc {
 
-	val main: Function = new Function("main", true) {
-		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = None
-	}
-
-	val program = new FunctionScope(main, null, null) {}
-
 	def runCode(code: String, state: State, includePaths: Iterator[String]) = {
+
 		val exeCode =
 			s"""
         void main() {
@@ -27,10 +22,10 @@ object Gcc {
 
 		val ast = Utils.getTranslationUnits(Seq(exeCode), includePaths.toList)
 		state.addMain(ast)
-		state.callTheFunction("main", null, Some(program), true)
+		state.callTheFunction("main", null, Some(state.program), true)
 
-		val main = state.functionList.find(_.name == "main").get
-		state.functionList -= main
+		val theMain = state.functionList.find(_.name == "main").get
+		state.functionList -= theMain
 	}
 
 	def runGlobalCode(code: String, state: State, includePaths: List[String]) = {
