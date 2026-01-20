@@ -106,11 +106,10 @@ object Stringh {
 			}
 		}.generate
 
-		scalaFunctions += new EmulatedFunction("strtok") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val delim = formattedOutputParams(0).value.asInstanceOf[Int]
-				val sourceAddr = formattedOutputParams(1).value.asInstanceOf[Int]
-				val delimiters = Utils.readString(Address(delim))(using state)
+		scalaFunctions += new TwoParameterFunction[Address, Address]("strtok") {
+			def func(source: Address, delim: Address) = {
+				val delimiters = Utils.readString(delim)(using state)
+				val sourceAddr = source.location
 
 				if (sourceAddr == 0) { // a repeated call
 					var initialStr = Utils.readString(strTokPosition)(using state)
@@ -162,7 +161,7 @@ object Stringh {
 					var tokenFound = false
 					var doneFindingTokens = false
 
-					sourceStr.zipWithIndex.foreach{ (char, index) =>
+					sourceStr.zipWithIndex.foreach { (char, index) =>
 						if !doneFindingTokens then
 							if delimiters.contains(char) then
 								tokenFound = true
@@ -177,7 +176,7 @@ object Stringh {
 					Some(RValue(sourceAddr))
 				}
 			}
-		}
+		}.generate
 
 		scalaFunctions += new TwoParameterFunction[Address, Address]("strcpy") {
 			def func(dst: Address, src: Address) = {
