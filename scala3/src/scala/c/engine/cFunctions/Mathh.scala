@@ -23,115 +23,113 @@ object Mathh {
 			}
 		}.generate
 
-		scalaFunctions += new EmulatedFunction("fabs") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				Some(RValue(Math.abs(formattedOutputParams.last.value.asInstanceOf[Double])))
+		scalaFunctions += new OneParameterFunction[Double]("fabs") {
+			def func(x: Double) = {
+				Some(Math.abs(x))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("sin") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				Some(RValue(Math.sin(formattedOutputParams.last.value.asInstanceOf[Double])))
+		scalaFunctions += new OneParameterFunction[Double]("sin") {
+			def func(x: Double) = {
+				Some(Math.sin(x))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("cos") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				Some(RValue(Math.cos(formattedOutputParams.last.value.asInstanceOf[Double])))
+		scalaFunctions += new OneParameterFunction[Double]("cos") {
+			def func(x: Double) = {
+				Some(Math.cos(x))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("tan") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				Some(RValue(Math.tan(formattedOutputParams.last.value.asInstanceOf[Double])))
+		scalaFunctions += new OneParameterFunction[Double]("tan") {
+			def func(x: Double) = {
+				Some(Math.tan(x))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("acos") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				Some(RValue(Math.acos(formattedOutputParams.last.value.asInstanceOf[Double])))
+		scalaFunctions += new OneParameterFunction[Double]("acos") {
+			def func(x: Double) = {
+				Some(Math.acos(x))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("cosh") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				Some(RValue(Math.cosh(formattedOutputParams.last.value.asInstanceOf[Double])))
+		scalaFunctions += new OneParameterFunction[Double]("cosh") {
+			def func(x: Double) = {
+				Some(Math.cosh(x))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("asin") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				Some(RValue(Math.asin(formattedOutputParams.last.value.asInstanceOf[Double])))
+		scalaFunctions += new OneParameterFunction[Double]("asin") {
+			def func(x: Double) = {
+				Some(Math.asin(x))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("sinh") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				Some(RValue(Math.sinh(formattedOutputParams.last.value.asInstanceOf[Double])))
+		scalaFunctions += new OneParameterFunction[Double]("sinh") {
+			def func(x: Double) = {
+				Some(Math.sinh(x))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("atan") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				Some(RValue(Math.atan(formattedOutputParams.last.value.asInstanceOf[Double])))
+		scalaFunctions += new OneParameterFunction[Double]("atan") {
+			def func(x: Double) = {
+				Some(Math.atan(x))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("tanh") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				Some(RValue(Math.tanh(formattedOutputParams.last.value.asInstanceOf[Double])))
+		scalaFunctions += new OneParameterFunction[Double]("tanh") {
+			def func(x: Double) = {
+				Some(Math.tanh(x))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("atan2") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				Some(RValue(Math.atan2(formattedOutputParams.last.value.asInstanceOf[Double],
-					formattedOutputParams.head.value.asInstanceOf[Double])))
+		scalaFunctions += new TwoParameterFunction[Double, Double]("atan2") {
+			def func(x: Double, y: Double) = {
+				Some(Math.atan2(x, y))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("log10f") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				Some(RValue(Math.log10(formattedOutputParams.last.value.asInstanceOf[Double])))
+		scalaFunctions += new OneParameterFunction[Double]("log10f") {
+			def func(x: Double) = {
+				Some(Math.log10(x))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("exp") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				Some(RValue(Math.exp(formattedOutputParams.last.value.asInstanceOf[Double])))
+		scalaFunctions += new OneParameterFunction[Double]("exp") {
+			def func(x: Double) = {
+				Some(Math.exp(x))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("ceil") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				Some(RValue(Math.ceil(formattedOutputParams.last.value.asInstanceOf[Double])))
+		scalaFunctions += new OneParameterFunction[Double]("ceil") {
+			def func(x: Double) = {
+				Some(Math.ceil(x))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("floor") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				Some(RValue(Math.floor(formattedOutputParams.last.value.asInstanceOf[Double])))
+		scalaFunctions += new OneParameterFunction[Double]("floor") {
+			def func(x: Double) = {
+				Some(Math.floor(x))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("log") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				Some(RValue(Math.log(formattedOutputParams.last.value.asInstanceOf[Double])))
+		scalaFunctions += new OneParameterFunction[Double]("log") {
+			def func(x: Double) = {
+				Some(Math.log(x))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("log10") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				Some(RValue(Math.log10(formattedOutputParams.last.value.asInstanceOf[Double])))
+		scalaFunctions += new OneParameterFunction[Double]("log10") {
+			def func(x: Double) = {
+				Some(Math.log10(x))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("pow") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				Some(RValue(Math.pow(formattedOutputParams.last.value.asInstanceOf[Double],
-					formattedOutputParams.head.value.asInstanceOf[Double])))
+		scalaFunctions += new TwoParameterFunction[Double, Double]("pow") {
+			def func(base: Double, exp: Double) = {
+				Some(Math.pow(base, exp))
 			}
-		}
+		}.generate
 
 		scalaFunctions += new EmulatedFunction("fmod") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
