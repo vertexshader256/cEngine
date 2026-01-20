@@ -27,19 +27,19 @@ object Stdlibh {
 			def func(blockSize: Int, numBlocks: Int) = {
 				val addr = state.allocateHeapSpace(numBlocks * blockSize)
 				state.stack.clearMemory(addr, numBlocks * blockSize)
-				Some(addr)
+				Some(addr.location)
 			}
 		}.generate
 
 		scalaFunctions += new OneParameterFunction[Int]("malloc") {
 			def func(numBytes: Int) = {
-				Some(state.allocateHeapSpace(numBytes))
+				Some(state.allocateHeapSpace(numBytes).location)
 			}
 		}.generate
 
 		scalaFunctions += new OneParameterFunction[Int]("realloc") {
 			def func(numBytes: Int) = {
-				Some(state.allocateHeapSpace(numBytes))
+				Some(state.allocateHeapSpace(numBytes).location)
 			}
 		}.generate
 

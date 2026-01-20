@@ -264,7 +264,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		stack.allocate(numBytes)
 	}
 
-	def allocateHeapSpace(numBytes: Int): Int = {
+	def allocateHeapSpace(numBytes: Int): Address = {
 		stack.allocateHeapSpace(numBytes)
 	}
 
@@ -274,7 +274,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	}
 
 	def set(address: Address, value: Byte, numBytes: Int): Unit = {
-		stack.set(address.location, value, numBytes)
+		stack.set(address, value, numBytes)
 	}
 
 	def writeDataBlock(address: Address, array: Array[Byte]): Unit = {
@@ -286,7 +286,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	}
 
 	def readPtrVal(address: Address): Int = {
-		stack.readPtrVal(address.location)
+		stack.readPtrVal(address)
 	}
 
 	private def stripQuotes(str: String): String = {

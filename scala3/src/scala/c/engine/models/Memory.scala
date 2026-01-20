@@ -40,32 +40,32 @@ class Memory(stackSize: Int, dataSize: Int, heapSize: Int) {
 		result
 	}
 
-	def copy(dst: Int, src: Int, numBytes: Int): Unit = {
+	def copy(dst: Address, src: Address, numBytes: Int): Unit = {
 		tape.mark()
-		tape.position(src)
+		tape.position(src.location)
 		val array = new Array[Byte](numBytes)
 		tape.get(array)
-		tape.position(dst)
+		tape.position(dst.location)
 		tape.put(array)
 		tape.reset()
 	}
 
 	// fills a destination with a value, numBytes worth
-	def set(dst: Int, value: Byte, numBytes: Int): Unit = {
+	def set(dst: Address, value: Byte, numBytes: Int): Unit = {
 		val array = new Array[Byte](numBytes)
 		util.Arrays.fill(array, value)
 		tape.mark()
-		tape.position(dst)
+		tape.position(dst.location)
 		tape.put(array)
 		tape.reset()
 	}
 
-	def readPtrVal(address: Int): Int = {
-		tape.getInt(address)
+	def readPtrVal(address: Address): Int = {
+		tape.getInt(address.location)
 	}
 
-	def clearMemory(startingAddress: Int, numBytes: Int): Unit = {
-		var address = startingAddress
+	def clearMemory(startingAddress: Address, numBytes: Int): Unit = {
+		var address = startingAddress.location
 		for (i <- 0 until numBytes) {
 			tape.put(address, 0.toByte)
 			address += 1
@@ -145,10 +145,10 @@ class Memory(stackSize: Int, dataSize: Int, heapSize: Int) {
 		Address(result)
 	}
 
-	def allocateHeapSpace(numBytes: Int): Int = {
+	def allocateHeapSpace(numBytes: Int): Address = {
 		val result = heapInsertIndex
 		heapInsertIndex += Math.max(0, numBytes)
-		result
+		Address(result)
 	}
 
 	private def writeInteger(newVal: cEngVal, address: Int, bitOffset: Int = 0, sizeInBits: Int = 0) = {

@@ -48,8 +48,8 @@ object Stdio {
 				// to-do: find a way to do this without allocating?
 				val result = state.allocateHeapSpace(20)
 
-				state.writeValues(Address(result), array)
-				Some(RValue(result))
+				state.writeValues(result, array)
+				Some(RValue(result.location))
 			}
 		}
 
