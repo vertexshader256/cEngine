@@ -12,7 +12,7 @@ import scala.util.Try
 
 object Stdio {
 
-	def addFunctions(scalaFunctions: ListBuffer[Function]) = {
+	def addFunctions(scalaFunctions: ListBuffer[Function])(implicit theState: State) = {
 		/////////////////////////////////////////////////////////////////
 		//                   <stdio.h> functions                       //
 		/////////////////////////////////////////////////////////////////
@@ -53,32 +53,25 @@ object Stdio {
 			}
 		}
 
-		scalaFunctions += new EmulatedFunction("putchar") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val char = formattedOutputParams(0).value match {
-					case int: Int => int.toChar
-					case char: char => char.toChar
-				}
-
+		scalaFunctions += new OneParameterFunction[Char]("putchar") {
+			def func(char: Char) = {
 				state.stdout += char
-
 				None
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("puts") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val string = Utils.readString(Address(formattedOutputParams.last.value.asInstanceOf[Int]))(using state)
+		scalaFunctions += new OneParameterFunction[Address]("puts") {
+			def func(str: Address) = {
+				val string = Utils.readString(str)
 				val tabsReplaced = string.replace("\\t", "\t")
 
 				tabsReplaced.foreach: char =>
 					state.stdout += char
 
 				state.stdout += '\n'
-
 				None
 			}
-		}
+		}.generate
 
 		scalaFunctions += new EmulatedFunction("fopen") {
 			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
