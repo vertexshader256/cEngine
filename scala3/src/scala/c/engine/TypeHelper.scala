@@ -191,7 +191,6 @@ object TypeHelper {
 		case ptrType: IPointerType => resolveBasic(ptrType.getType)
 		case arrayType: IArrayType => resolveBasic(arrayType.getType)
 		case qualType: IQualifierType => resolveBasic(qualType.getType)
-		case fcn: IFunctionType => state.pointerType
 		case enumeration: CEnumeration => TypeHelper.intType
 	}
 
