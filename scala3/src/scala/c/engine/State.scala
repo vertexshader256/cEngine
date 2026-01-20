@@ -33,7 +33,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 	Stdio.addFunctions(scalaFunctions)
 	Mathh.addFunctions(scalaFunctions)(using this)
-	Stdlibh.addFunctions(scalaFunctions)
+	Stdlibh.addFunctions(scalaFunctions)(using this)
 	Stringh.addFunctions(scalaFunctions)(using this)
 	Stdargh.addFunctions(scalaFunctions)
 

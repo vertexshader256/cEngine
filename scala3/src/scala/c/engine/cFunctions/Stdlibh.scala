@@ -6,7 +6,7 @@ import scala.collection.mutable.ListBuffer
 
 object Stdlibh {
 
-	def addFunctions(scalaFunctions: ListBuffer[Function]) = {
+	def addFunctions(scalaFunctions: ListBuffer[Function])(implicit theState: State) = {
 		/////////////////////////////////////////////////////////////////
 		//                  <stdlib.h> functions                       //
 		/////////////////////////////////////////////////////////////////
@@ -17,51 +17,37 @@ object Stdlibh {
 			}
 		}
 
-		scalaFunctions += new EmulatedFunction("rand") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+		scalaFunctions += new ZeroParameterFunction("rand") {
+			def func() = {
 				Some(RValue(Math.abs(scala.util.Random.nextInt())))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("calloc") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val numBlocks = formattedOutputParams(0).value.asInstanceOf[Int]
-				val blockSize = formattedOutputParams(1).value.asInstanceOf[Int]
-
+		scalaFunctions += new TwoParameterFunction[Int, Int]("calloc") {
+			def func(blockSize: Int, numBlocks: Int) = {
 				val addr = state.allocateHeapSpace(numBlocks * blockSize)
-
 				state.stack.clearMemory(addr, numBlocks * blockSize)
-				val ptr = Pointer(Address(addr), TypeHelper.void)
-
-				Some(ptr)
+				Some(RValue(addr))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("malloc") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val returnVal = formattedOutputParams.head.value match {
-					case long: Long => state.allocateHeapSpace(long.toInt)
-					case int: Int => state.allocateHeapSpace(int)
-				}
-
-				val ptr = Pointer(Address(returnVal), TypeHelper.void)
-				Some(ptr)
+		scalaFunctions += new OneParameterFunction[Int]("malloc") {
+			def func(numBytes: Int) = {
+				Some(RValue(state.allocateHeapSpace(numBytes)))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("realloc") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val addr = state.allocateHeapSpace(formattedOutputParams.head.value.asInstanceOf[Long].toInt)
-				val ptr = Pointer(Address(addr), TypeHelper.void)
-				Some(ptr)
+		scalaFunctions += new OneParameterFunction[Int]("realloc") {
+			def func(numBytes: Int) = {
+				Some(RValue(state.allocateHeapSpace(numBytes)))
 			}
-		}
+		}.generate
 
-		scalaFunctions += new EmulatedFunction("atoi") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				val str = Utils.readString(Address(formattedOutputParams.last.value.asInstanceOf[Int]))(using state)
-				Some(RValue(str.toInt))
+		scalaFunctions += new OneParameterFunction[Address]("atoi") {
+			def func(str: Address) = {
+				val string = Utils.readString(str)
+				Some(RValue(string.toInt))
 			}
-		}
+		}.generate
 	}
 }

@@ -45,6 +45,19 @@ given Convertable[Address] with
 		value match
 			case int: Int => Address(int)
 
+abstract class ZeroParameterFunction(name: String) {
+	implicit var state: State = _
+	def func(): Option[RValue]
+	def generate(implicit theState: State): EmulatedFunction = {
+		state = theState
+		new EmulatedFunction(name) {
+			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+				func()
+			}
+		}
+	}
+}
+
 abstract class OneParameterFunction[P1](name: String)(using p1Convert: Convertable[P1]) {
 	implicit var state: State = _
 	def func(param1: P1): Option[RValue]
