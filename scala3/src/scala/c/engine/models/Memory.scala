@@ -24,17 +24,17 @@ class Memory(stackSize: Int, dataSize: Int, heapSize: Int) {
 	private val tape: ByteBuffer = ByteBuffer.allocateDirect(dataSize + stackSize + heapSize)
 	tape.order(ByteOrder.LITTLE_ENDIAN)
 
-	def writeDataBlock(array: Array[Byte], startingAddress: Int): Unit = {
+	def writeDataBlock(array: Array[Byte], startingAddress: Address): Unit = {
 		tape.mark()
-		tape.position(startingAddress)
+		tape.position(startingAddress.location)
 		tape.put(array, 0, array.length)
 		tape.reset
 	}
 
-	def readDataBlock(startingAddress: Int, length: Int): Array[Byte] = {
+	def readDataBlock(startingAddress: Address, length: Int): Array[Byte] = {
 		val result = new Array[Byte](length)
 		tape.mark()
-		tape.position(startingAddress)
+		tape.position(startingAddress.location)
 		tape.get(result, 0, length)
 		tape.reset
 		result

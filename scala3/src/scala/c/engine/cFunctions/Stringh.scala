@@ -141,7 +141,7 @@ object Stringh {
 								tokenFound = true
 								sourceStr = sourceStr.updated(index, '\u0000')
 								strTokPosition = Address(firstNonToken.location + index + 1)
-								state.stack.writeDataBlock(sourceStr.getBytes, firstNonToken.location)
+								state.stack.writeDataBlock(sourceStr.getBytes, firstNonToken)
 							else if tokenFound then
 								doneFindingTokens = true
 					}
@@ -167,7 +167,7 @@ object Stringh {
 								tokenFound = true
 								sourceStr = sourceStr.updated(index, '\u0000')
 								strTokPosition = Address(sourceAddr + index + 1)
-								state.stack.writeDataBlock(sourceStr.getBytes, sourceAddr)
+								state.stack.writeDataBlock(sourceStr.getBytes, Address(sourceAddr))
 								doneFindingTokens = true
 							else if tokenFound then
 								doneFindingTokens = true
@@ -202,7 +202,7 @@ object Stringh {
 
 				val concat = str1 + str2 + "\u0000"
 				val bytes = concat.getBytes
-				state.stack.writeDataBlock(bytes, dst.location)
+				state.stack.writeDataBlock(bytes, dst)
 				Some(dst.location) // returns a pointer to the destination string
 			}
 		}.generate
