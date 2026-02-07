@@ -32,6 +32,7 @@ class FileTest extends StandardTest {
         printf("%s\n", buffer);
 
 				int closed = fclose(fp);
+				fread(buffer, 1, 2, fp); // trying reading after close
 			  printf("%d\n", closed);
       }"""
 
