@@ -37,13 +37,14 @@ case class FileRValue(path: String) extends RValue {
 			Array()
 	}
 
-	def write(bytes: Array[Byte], numBytes: Int): Unit = {
-		val head = byteArray.take(currentPosition)
-		val tail = byteArray.drop(currentPosition)
+	def write(bytes: Array[Byte]): Unit = {
+		import java.io.*
+		val str = new String(bytes)
+		val pw = PrintWriter(file)
+		pw.write(str)
+		pw.close()
 
-		head ++ bytes ++ tail
-
-		currentPosition += numBytes
+		byteArray ++= str.getBytes
 	}
 
 	def printf(str: String): Unit = {

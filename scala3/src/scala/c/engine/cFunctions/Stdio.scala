@@ -246,7 +246,7 @@ object Stdio {
 
 				val bytes = state.readDataBlock(Address(buffer), size * numMembers)
 
-				fp.write(bytes, size * numMembers)
+				fp.write(bytes)
 
 				None
 			}

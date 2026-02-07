@@ -41,7 +41,7 @@ class FileTest extends StandardTest {
 			result
 	}
 
-	"create and write file test" should "print the correct results" in {
+	"create and print file test" should "print the correct results" in {
 
 		val code =
 			"""
@@ -62,6 +62,32 @@ class FileTest extends StandardTest {
 					int wasDeleted = remove("filecreatetest.txt");
 					printf("%d\n", wasDeleted);
       }"""
+
+		checkResults(code, runConcurrent = false)
+	}
+
+	"create and write file test" should "print the correct results" in {
+
+		val code =
+			"""
+
+				#include <stdio.h>
+
+				void main() {
+						FILE *passwd_text=fopen("filecreatetest.txt", "w");
+						int rec_num;
+						char *test = "test!!";
+						fwrite(test, 1, 5, passwd_text);
+						fclose(passwd_text);
+
+						char buff[100];
+						FILE *f = fopen("filecreatetest.txt", "r");
+						fgets(buff, 100, f);
+						printf("String read: %s\n", buff);
+						fclose(f);
+						int wasDeleted = remove("filecreatetest.txt");
+						printf("%d\n", wasDeleted);
+				}"""
 
 		checkResults(code, runConcurrent = false)
 	}
