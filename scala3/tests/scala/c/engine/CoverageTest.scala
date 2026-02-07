@@ -57,4 +57,14 @@ class CoverageTest extends StandardTest {
 
 		checkResults(code)
 	}
+
+	"type coverage" should "print the correct results" in {
+		val short: Short = 16
+		val char: Byte = 8
+		TypeHelper.getType(short)
+		TypeHelper.getType(true)
+		TypeHelper.getType(char)
+
+		assert(true)
+	}
 }

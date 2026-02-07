@@ -25,12 +25,6 @@ object TypeHelper {
 	val zero = RValue(0, unsignedIntType)
 	val negativeOne = RValue(-1, intType)
 
-	def getLong(lit: String) =
-		RValue(lit.toLong, CBasicType(eInt, IS_LONG))
-
-	def getLongLong(bigInt: BigInt) =
-		RValue(bigInt, longlong)
-
 	def castToUnsigned(isShort: Boolean, newVal: cEngVal): cEngVal = {
 		newVal match
 			case long: Long =>
@@ -248,23 +242,6 @@ object TypeHelper {
 				case `eChar` => 1
 				case `eVoid` => 1
 				case `eBoolean` => 4
-	}
-
-	private def printType(theType: IType): String = theType match {
-		case struct: CStructure => "CStructure()"
-		case basicType: IBasicType => s"BasicType(${basicType.getKind}, ${basicType.getModifiers})"
-		case typedef: ITypedef => s"TypeDef(${printType(typedef.getType)})"
-		case ptrType: IPointerType => s"CPointerType(${printType(ptrType.getType)})"
-		case arrayType: IArrayType =>
-			if arrayType.hasSize then
-				s"CArrayType(${printType(arrayType.getType)})[${arrayType.getSize.numericalValue().toInt}]"
-			else
-				s"CArrayType(${printType(arrayType.getType)})[]"
-		case qualType: IQualifierType => s"QualifiedType(${printType(qualType.getType)})"
-		case fcn: IFunctionType => s"FunctionType(${
-			fcn.getParameterTypes.map(printType).reduce(_ + ", " + _)
-		})"
-		case _ => "null"
 	}
 
 	// Kind of hacky; this will do whatever it needs to match gcc.

@@ -148,15 +148,6 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		}
 	}
 
-	def callFunctionFromScala(name: String, args: Array[RValue]): Seq[IASTNode] = {
-		functionList.find(_.name == name).foreach { fcn =>
-			// this is a function simulated in scala
-			fcn.run(args.reverse, this).foreach(context.pushOntoStack)
-		}
-
-		Seq()
-	}
-
 	def writeFunctionStackFrame(fcnDec: IASTFunctionDeclarator): Unit = {
 		val numArgs = context.popStack.asInstanceOf[RValue].value.asInstanceOf[Integer] // placed on the stack by prepareFunctionStackFrame()
 		val args = (0 until numArgs).map { _ => context.popStack }.reverse
