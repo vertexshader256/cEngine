@@ -24,9 +24,7 @@ trait LValue extends ValueType {
 	def sizeof: Int
 
 	def rValue: RValue = {
-		if rVal.isInstanceOf[FileRValue] then
-			rVal
-		else if TypeHelper.isPointerOrArray(this) then {
+		if TypeHelper.isPointerOrArray(this) then {
 			val addr = Address(getValue.value.asInstanceOf[Int])
 			Pointer(addr, TypeHelper.getPointerType(theType))
 		} else

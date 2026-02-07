@@ -40,16 +40,6 @@ class Memory(stackSize: Int, dataSize: Int, heapSize: Int) {
 		result
 	}
 
-	def copy(dst: Address, src: Address, numBytes: Int): Unit = {
-		tape.mark()
-		tape.position(src.location)
-		val array = new Array[Byte](numBytes)
-		tape.get(array)
-		tape.position(dst.location)
-		tape.put(array)
-		tape.reset()
-	}
-
 	// fills a destination with a value, numBytes worth
 	def set(dst: Address, value: Byte, numBytes: Int): Unit = {
 		val array = new Array[Byte](numBytes)
@@ -86,12 +76,6 @@ class Memory(stackSize: Int, dataSize: Int, heapSize: Int) {
 
 	def getLong(address: Address): Long = {
 		tape.getLong(address.location)
-	}
-
-	def getLongLong(address: Address): BigInt = {
-		val bytes = Array[Byte](8)
-		tape.get(address.location, bytes)
-		BigInteger(bytes)
 	}
 
 	def putInt(address: Address, int: Int): Unit = {
@@ -151,7 +135,7 @@ class Memory(stackSize: Int, dataSize: Int, heapSize: Int) {
 		Address(result)
 	}
 
-	private def writeInteger(newVal: cEngVal, address: Address, bitOffset: Int = 0, sizeInBits: Int = 0) = {
+	private def writeInteger(newVal: cEngVal, address: Address, bitOffset: Int, sizeInBits: Int) = {
 		newVal match {
 			case int: Int =>
 				val x = if (bitOffset != 0) {
@@ -170,7 +154,7 @@ class Memory(stackSize: Int, dataSize: Int, heapSize: Int) {
 		}
 	}
 
-	private def writeLongLong(newVal: cEngVal, address: Address, isUnsigned: Boolean, bitOffset: Int = 0, sizeInBits: Int = 0) = {
+	private def writeLongLong(newVal: cEngVal, address: Address, isUnsigned: Boolean, bitOffset: Int, sizeInBits: Int) = {
 		newVal match
 			case long: Long => putLong(address, long)
 			case int: Int => putInt(address, int)

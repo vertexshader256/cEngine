@@ -107,9 +107,6 @@ object Literal {
 		result.mkString
 	}
 
-	private def hasSuffix(string: String, suffix: String): Boolean =
-		string.toLowerCase.endsWith(suffix)
-
 	private def castNumericLiteral(str: String): RValue = {
 		val literal = Lit(str)
 
