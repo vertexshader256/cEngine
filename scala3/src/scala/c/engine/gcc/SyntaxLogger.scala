@@ -6,10 +6,6 @@ import scala.collection.mutable.ListBuffer
 class SyntaxLogger extends Logger {
 	val errors = ListBuffer[String]()
 
-	def addErrors(newErrors: Seq[String]) = {
-		errors ++= newErrors
-	}
-
 	def in(stream: OutputStream) = {}
 	def out(stream: InputStream) = {}
 	def err(stream: InputStream) = {
