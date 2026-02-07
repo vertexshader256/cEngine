@@ -101,7 +101,55 @@ class RobustPrint extends StandardTest {
 			"""
 					void main() {
 						printf("[%*s]\n", 5, "Hi");
+			      long long length = 5;
+						printf("[%*s]\n", length, "Hi");
+						printf("[%*s]\n", length, 0);
 					}"""
+
+		checkResults(code)
+	}
+
+	"printing unsigned" should "print the correct results" in {
+		val code =
+			"""
+				void main() {
+					int val = 5;
+					printf("%u\n", val);
+				}"""
+
+		checkResults(code)
+	}
+
+	"printing float" should "print the correct results" in {
+		val code =
+			"""
+					void main() {
+						int val = 5;
+						printf("%f\n", val);
+						printf("%f\n", 1 == 0);
+			      printf("%f\n", 1 == 1);
+					}"""
+
+		checkResults(code)
+	}
+
+	"printing substring" should "print the correct results" in {
+		val code =
+			"""
+				void main() {
+					char *full_string = "ABCDEF";
+					int start_index = 3;  // Index of the first character to print ('D')
+					int length = 3;       // Number of characters to print
+			    long long length2 = 3;
+
+					// Move the pointer to the starting index using pointer arithmetic
+					char *substring_start = full_string + start_index;
+
+					// Use %.*s to print the specified length from the new start position
+					printf("Substring: %.*s\n", length, substring_start);
+					printf("Substring: %.*s\n", length2, substring_start);
+					printf("Substring: %.*s\n", length2, 0);
+				}"""
 
 		checkResults(code)
 	}

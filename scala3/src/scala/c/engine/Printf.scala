@@ -37,7 +37,6 @@ object Printf {
 		val theVal = param2.value
 		val stringAddr = theVal match
 			case int: Int => int
-			case long: Long => long.toInt
 
 		val stringLength = param1.value match
 			case int: Int => int
@@ -48,8 +47,6 @@ object Printf {
 			str.split(System.lineSeparator()).mkString
 		else
 			"(null)"
-
-		println("STRING: " + string)
 
 		val paddingLength = stringLength - string.length
 		(0 until paddingLength).foreach { x => string = " " + string } // pad it
@@ -66,7 +63,6 @@ object Printf {
 		val theVal = param2.value
 		val stringAddr = theVal match
 			case int: Int => int
-			case long: Long => long.toInt
 
 		val stringLength = param1.value match
 			case int: Int => int
@@ -79,7 +75,8 @@ object Printf {
 			"(null)"
 
 		val paddingLength = stringLength - string.length
-		(0 until paddingLength).foreach { x => string = " " + string } // pad it
+		//(0 until paddingLength).foreach { x => string = " " + string } // pad it
+		string = string.substring(0, stringLength)
 
 		formatter2.format("%" + formatString + "s", List(string.asInstanceOf[Object]) *)
 		buffer2.toString
@@ -93,7 +90,6 @@ object Printf {
 		val theVal = theValue.value
 		val stringAddr = theVal match
 			case int: Int => int
-			case long: Long => long.toInt
 
 		val value = if stringAddr != 0 then
 			val str = Utils.readString(Address(stringAddr))
@@ -134,11 +130,8 @@ object Printf {
 		var wasPaddingNumFound = false
 		stringFormat.take(2).mkString.toIntOption.foreach: intVal =>
 			wasPaddingNumFound = true
-			if intVal <= result.length then
-				result
-			else
-				val diff = intVal - result.length
-				(0 until diff).foreach{ _ => result = "0" + result}
+			val diff = intVal - result.length
+			(0 until diff).foreach{ _ => result = "0" + result}
 
 		if !wasPaddingNumFound then {
 			// if it wasn't found with 2 numbers, try one
@@ -229,10 +222,10 @@ object Printf {
 		} else {
 			base match
 				case boolean: java.lang.Boolean =>
-					val converted = if boolean then 1.0f else 0.0f
+					val converted = 0.0f
 					resolved += Float.box(converted)
 				case int: java.lang.Integer =>
-					resolved += Float.box(int.toFloat)
+					resolved += Float.box(0.0f) // GCC prints zeroes
 				case _ =>
 					resolved += base
 		}
@@ -277,15 +270,6 @@ object Printf {
 		var paramCount = 0
 
 		val varArgs = formattedOutputParams.reverse.tail.toList
-
-		def convertBoolean(): Object = {
-			val x = TypeHelper.toRValue(varArgs(paramCount))(using state).value
-			val convertedBool = x match
-				case bool: Boolean => if bool then 1 else 0
-				case _ => x
-
-			convertedBool.asInstanceOf[Object]
-		}
 
 		var isDone = false
 		var remainder = str.toCharArray
