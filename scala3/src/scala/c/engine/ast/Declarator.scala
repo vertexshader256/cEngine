@@ -147,7 +147,6 @@ object Declarator {
 
 		val isStatic = name.resolveBinding() match
 			case variable: CVariable => variable.isStatic
-			case _ => false
 
 		val values = pointerType match
 			case struct: CStructure => // array of structs
