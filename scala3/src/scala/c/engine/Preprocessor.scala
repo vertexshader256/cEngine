@@ -55,11 +55,6 @@ object Preprocessor {
 			try {
 				var tok = pp.token
 				currentLine = tok.getLine
-
-				while (skipline && currentLine == startLine) {
-					tok = pp.token
-					currentLine = tok.getLine
-				}
 				skipline = false
 
 				if (tok == null || (!shouldBreak && tok.getType == Token.EOF))

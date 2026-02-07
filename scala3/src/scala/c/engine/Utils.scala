@@ -67,10 +67,8 @@ object Utils {
 		current = readChar(address + offset)
 
 		while current != 0 do
-			if current != 0 then
-				stringBuilder += current
-				offset += 1
-
+			stringBuilder += current
+			offset += 1
 			current = readChar(address + offset)
 
 		String(stringBuilder.map(_.toByte).toArray, "UTF-8")

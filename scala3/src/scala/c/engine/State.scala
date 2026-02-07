@@ -19,19 +19,9 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 	def context: FunctionScope = functionContexts.head
 
-
-
 	var varArgStartingAddr = List[Int]()
 
 	val scalaFunctions = ListBuffer[Function]()
-
-	scalaFunctions += new EmulatedFunction("_assert") {
-		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-			val addy = formattedOutputParams(0).value.asInstanceOf[Int]
-			println(Utils.readString(Address(addy))(using state) + " FAILED")
-			None
-		}
-	}
 
 	Stdio.addFunctions(scalaFunctions)(using this)
 	Mathh.addFunctions(scalaFunctions)(using this)
@@ -188,13 +178,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 				newScope.pushOntoStack(argument)
 			} else {
 				val resolved = TypeHelper.toRValue(argument)(using this)
-
-				// printf assumes all floating point numbers are doubles
-				val promoted = resolved.theType match
-					case basic: IBasicType if basic.getKind == IBasicType.Kind.eFloat => RValue(resolved.value, TypeHelper.doubleType)
-					case _ => resolved
-
-				newScope.pushOntoStack(promoted)
+				newScope.pushOntoStack(resolved)
 			}
 		}
 
