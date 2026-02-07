@@ -13,7 +13,7 @@ object StandardTest {
 	val cFileCount = new AtomicInteger()
 	val exeCount = new AtomicInteger()
 
-	private def getGccOutput(codeInFiles: Seq[String], pointerSize: NumBits = ThirtyTwoBits,
+	def getGccOutput(codeInFiles: Seq[String], pointerSize: NumBits = ThirtyTwoBits,
 													 args: List[String] = List(), includePaths: List[String] = List()): Seq[String] = {
 		TestResults.loadSavedResults()
 

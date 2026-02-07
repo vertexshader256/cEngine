@@ -84,6 +84,7 @@ class CoverageTest extends StandardTest {
 				}"""
 
 		CEngine.getCEngineOutput(Seq(code), true, NumBits.ThirtyTwoBits, List(), List())
+		StandardTest.getGccOutput(Seq(code), NumBits.ThirtyTwoBits, List(), List())
 
 		assert(true)
 	}

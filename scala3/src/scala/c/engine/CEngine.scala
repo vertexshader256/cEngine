@@ -16,7 +16,7 @@ object CEngine {
 
 		val args = List(".") ++ arguments
 
-		val functionCall = if (args.nonEmpty) {
+		val functionCall = {
 			val fcnName = CASTIdExpression(CASTName("main".toCharArray))
 			val factory = state.sources.head.getTranslationUnit.getASTNodeFactory
 			val numberOfArgsLit = factory.newLiteralExpression(IASTLiteralExpression.lk_integer_constant, args.size.toString)
@@ -39,8 +39,6 @@ object CEngine {
 			val argStringPtrId = factory.newIdExpression(factory.newName("argStringPtr"))
 
 			CASTFunctionCallExpression(fcnName, List(numberOfArgsLit, argStringPtrId).toArray)
-		} else {
-			null
 		}
 
 		state.callTheFunction("main", functionCall, Some(program))
@@ -56,39 +54,30 @@ object CEngine {
 	}
 
 	def getResults(stdout: List[Char]): List[String] = {
-		if (stdout.nonEmpty) {
-			val results = ListBuffer[String]()
+		val results = ListBuffer[String]()
 
-			var currentString = ListBuffer[Char]()
-			var writeLast = false
+		var currentString = ListBuffer[Char]()
+		var writeLast = false
 
-			var index = 0
-			while (index < stdout.size) {
+		var index = 0
+		while (index < stdout.size) {
 
-				if (stdout(index) == '\r') {
-					results += currentString.mkString
-					currentString = ListBuffer[Char]()
-					writeLast = false
-					index += 1
-				} else if (stdout(index) == '\n') {
-					results += currentString.mkString
-					currentString = ListBuffer[Char]()
-					writeLast = false
-					index += 1
-				} else {
-					currentString += stdout(index)
-					writeLast = true
-					index += 1
-				}
-			}
-
-			if (writeLast) {
+			if (stdout(index) == '\n') {
 				results += currentString.mkString
+				currentString = ListBuffer[Char]()
+				writeLast = false
+				index += 1
+			} else {
+				currentString += stdout(index)
+				writeLast = true
+				index += 1
 			}
-			results.toList
-		} else {
-			List()
 		}
+
+		if (writeLast) {
+			results += currentString.mkString
+		}
+		results.toList
 	}
 
 	def getCEngineOutput(codeInFiles: Seq[String], shouldBootstrap: Boolean, pointerSize: NumBits,
