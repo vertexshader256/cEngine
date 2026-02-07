@@ -22,10 +22,6 @@ class VariableScope(val parent: VariableScope) {
 		varMap.clear()
 	}
 
-	def getVariable(name: String): Option[Variable] = {
-		varMap.get(name)
-	}
-
 	def resolveId(name: String): Option[Variable] = {
 		varMap.get(name).orElse {
 			if parent != null then
@@ -73,10 +69,7 @@ class FunctionScope(val function: Function, val parent: FunctionScope, val retur
 	}
 
 	def addExternVariable(name: IASTName, theType: IType): Variable = {
-		if parent == null then // this extern is not in a function
-			addVariable(name, theType)
-		else
-			null
+		addVariable(name, theType)
 	}
 
 	// special case when we cant get a IASTName
@@ -103,10 +96,6 @@ class FunctionScope(val function: Function, val parent: FunctionScope, val retur
 
 	def setAddress(addr: Int): Unit = {
 		pathIndex = addr
-	}
-
-	def pushOntoStack(values: List[ValueType]): Unit = {
-		stack.pushAll(values.reverse)
 	}
 
 	def pushOntoStack(value: ValueType): Unit = {

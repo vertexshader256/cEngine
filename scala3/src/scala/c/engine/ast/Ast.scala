@@ -43,6 +43,7 @@ object Ast {
 		case goto: Goto =>
 			state.context.setAddress(goto.destAddress)
 		case label: Label =>
+		case _ =>
 	}
 
 	private def stepSimpleDeclaration(simple: IASTSimpleDeclaration)(implicit state: State): Unit = {

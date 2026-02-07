@@ -1,5 +1,8 @@
 package scala.c.engine
 
+import scala.c.engine.models.NumBits
+import scala.c.engine.models.NumBits.ThirtyTwoBits
+
 class CoverageTest extends StandardTest {
 	"strstr coverage" should "print the correct results" in {
 		val code =
@@ -64,6 +67,23 @@ class CoverageTest extends StandardTest {
 		TypeHelper.getType(short)
 		TypeHelper.getType(true)
 		TypeHelper.getType(char)
+
+		assert(true)
+	}
+
+	"errors" should "print the correct results" in {
+		val code =
+			"""
+				int main( ) {
+						short y = 24;
+						char z = 'd'
+						float x = (float)y;
+						float xx = (float)z;
+						printf("%f %f\n", x, xx);
+						return 0;
+				}"""
+
+		CEngine.getCEngineOutput(Seq(code), true, NumBits.ThirtyTwoBits, List(), List())
 
 		assert(true)
 	}
