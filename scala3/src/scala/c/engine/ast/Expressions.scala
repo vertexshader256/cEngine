@@ -48,8 +48,6 @@ object Expressions {
 			Some(binaryExpression(bin))
 		case typeIdInit: IASTTypeIdInitializerExpression =>
 			Some(typeExpr(typeIdInit))
-		case list: IASTInitializerList =>
-			list.getClauses.map(evaluate).last
 	}
 
 	private def castExpression(cast: IASTCastExpression)(implicit state: State): ValueType = {

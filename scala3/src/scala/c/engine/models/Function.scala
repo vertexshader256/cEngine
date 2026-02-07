@@ -16,13 +16,10 @@ abstract class Function(val name: String, val isNative: Boolean) {
 	}
 
 	def addStaticVariable(variable: Variable): Unit = {
-		if (!staticVars.exists(_.name == variable.name)) {
-			staticVars += variable
-		}
+		staticVars += variable
 	}
 
 	def run(formattedOutputParams: Array[RValue], state: State): Option[RValue]
 }
 
-abstract class RealFunction(name: String) extends Function(name, true)
 abstract class EmulatedFunction(name: String) extends Function(name, false)
