@@ -71,6 +71,25 @@ class CoverageTest extends StandardTest {
 		assert(true)
 	}
 
+	"bitwise coverage" should "print the correct results" in {
+		val code =
+			"""
+				int main( ) {
+					long long x = 243442374;
+					unsigned long long y = 243442374;
+					unsigned long long z = x & y;
+					z = y & z;
+					long xx = y + x;
+					long yy = x + y;
+					double blah = 5.0;
+					int zz = x / blah;
+					zz = blah / x;
+					return 0;
+				}"""
+
+		checkResults(code)
+	}
+
 	"errors" should "print the correct results" in {
 		val code =
 			"""

@@ -98,8 +98,6 @@ object Ast {
 		case enumeration: IASTEnumerationSpecifier =>
 			stepEnumeration(enumeration)
 		case fcnDef: IASTFunctionDefinition =>
-		case initList: IASTInitializerList =>
-			initList.getClauses.foreach(step)
 		case equals: IASTEqualsInitializer =>
 			step(equals.getInitializerClause)
 		case x =>

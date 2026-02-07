@@ -152,7 +152,6 @@ object BinaryExpr {
 						op2 match
 							case y: Int => x & y
 							case y: Long => x & y
-							case y: BigInt => x & y
 					case _ =>
 						calculateBoolean(op1, op2, operator)
 	}
@@ -246,7 +245,6 @@ object BinaryExpr {
 			case x: BigInt =>
 				num2 match
 					case y: Int => x + y
-					case y: Long => x + y
 	}
 
 	private def subtract(num1: cEngVal, num2: cEngVal) = {
