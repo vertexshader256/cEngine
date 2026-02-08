@@ -14,47 +14,42 @@ import scala.collection.mutable.ListBuffer
 trait Functions {
 	this: State =>
 
-	val scalaFunctions = ListBuffer[Function]()
-	val functionList = ListBuffer[Function]()
+	var varArgStartingAddr = List[Int]()
+	private val scalaFunctions = ListBuffer[Function]()
+	protected val functionList = ListBuffer[Function]()
 	val functionPointers = scala.collection.mutable.LinkedHashMap[String, Variable]()
 	protected val functionContexts = mutable.Stack[FunctionScope]()
 
 	def context: FunctionScope = functionContexts.head
 
-	def hasFunction(name: String): Boolean = functionList.exists { fcn => fcn.name == name }
-
-	def getFunctionByIndex(index: Int): Function = functionList.find { fcn => fcn.index == index }.get
-
 	def getFunctionScope: FunctionScope = {
 		functionContexts.collect { case fcnScope: FunctionScope => fcnScope }.head
 	}
 
-	private def popFunctionContext: FunctionScope = {
-		val frame = functionContexts.pop()
-		memory.setStackPosition(frame.startingStackAddr)
-		frame
+	def loadFunctions() = {
+		Stdio.addFunctions(scalaFunctions)(using this)
+		Mathh.addFunctions(scalaFunctions)(using this)
+		Stdlibh.addFunctions(scalaFunctions)(using this)
+		Stringh.addFunctions(scalaFunctions)(using this)
+		Stdargh.addFunctions(scalaFunctions)
+
+		scalaFunctions.foreach(addScalaFunctionDef)
 	}
 
-	private def prepareFunctionStackFrame(scope: Option[FunctionScope], function: Function, call: IASTFunctionCallExpression): FunctionScope = {
-		val newScope = scope.getOrElse:
-			val expressionType = call.getExpressionType
-			FunctionScope(function, functionContexts.headOption.orNull, expressionType)
+	def functionCallExpr(call: IASTFunctionCallExpression): Option[ValueType] = {
+		val pop = Expressions.evaluate(call.getFunctionNameExpression)(this).head
 
-		newScope.init(List(function.node), this, scope.isEmpty)
-
-		val args: List[ValueType] = call.getArguments.map { x => Expressions.evaluate(x)(using this).head }.toList
-
-		args.foreach { argument =>
-			if (argument.theType.isInstanceOf[CStructure]) {
-				newScope.pushOntoStack(argument)
-			} else {
-				val resolved = TypeHelper.toRValue(argument)(using this)
-				newScope.pushOntoStack(resolved)
+		val name = if (hasFunction(call.getFunctionNameExpression.getRawSignature)) {
+			call.getFunctionNameExpression.getRawSignature
+		} else {
+			val info = pop.asInstanceOf[LValue]
+			val resolved = TypeHelper.stripSyntheticTypeInfo(info.theType)
+			resolved match {
+				case _: IPointerType => getFunctionByIndex(info.rValue.value.asInstanceOf[Int]).name
 			}
 		}
 
-		newScope.pushOntoStack(RValue(args.size, TypeHelper.unsignedIntType))
-		newScope
+		callTheFunction(name, call, None)
 	}
 
 	def callTheFunction(name: String, call: IASTFunctionCallExpression, scope: Option[FunctionScope], isApi: Boolean = false): Option[ValueType] = {
@@ -106,6 +101,43 @@ trait Functions {
 		}
 	}
 
+	def writeFcnArguments(fcnDec: IASTFunctionDeclarator): Unit = {
+		val isInFunctionPrototype = !Utils.getAncestors(fcnDec).exists(_.isInstanceOf[IASTFunctionDefinition])
+
+		if (!isInFunctionPrototype) {
+			writeFunctionStackFrame(fcnDec)
+		}
+	}
+
+	private def hasFunction(name: String): Boolean = functionList.exists { fcn => fcn.name == name }
+	private def getFunctionByIndex(index: Int): Function = functionList.find { fcn => fcn.index == index }.get
+
+	private def writeFunctionStackFrame(fcnDec: IASTFunctionDeclarator): Unit = {
+		val numArgs = context.popStack.asInstanceOf[RValue].value.asInstanceOf[Integer] // placed on the stack by prepareFunctionStackFrame()
+		val args = (0 until numArgs).map { _ => context.popStack }.reverse
+
+		val binding = fcnDec.getName.resolveBinding()
+		val fcn = binding.asInstanceOf[CFunction]
+		val paramDecls = fcn.getParameters.toList
+		val zipped = args.zip(paramDecls)
+
+		zipped.foreach { (arg, param) =>
+			arg match {
+				case variable: Variable if variable.aType.isInstanceOf[CStructure] =>
+					val copy = Structures.copyStructure(variable.aType.asInstanceOf[CStructure], variable.address, CASTName(param.getName.toCharArray), this)
+					context.addVariable(copy)
+				case struct: Structure =>
+					val newVar = context.addVariable(param.getName, param.getType)
+					writeDataBlock(newVar.address, struct.bytes)
+				case _ =>
+					val resolvedArg = TypeHelper.toRValue(arg)(using this)
+					val newVar = context.addVariable(param.getName, param.getType)
+					val casted = TypeHelper.cast(resolvedArg.value, newVar.theType).value
+					memory.writeToMemory(casted, newVar.address, newVar.theType)
+			}
+		}
+	}
+
 	protected def addFunctionDef(fcnDef: IASTFunctionDefinition, isMain: Boolean) = {
 		val name = fcnDef.getDeclarator.getName
 		val count = functionPointers.size
@@ -131,16 +163,6 @@ trait Functions {
 		}
 	}
 
-	def loadFunctions() = {
-		Stdio.addFunctions(scalaFunctions)(using this)
-		Mathh.addFunctions(scalaFunctions)(using this)
-		Stdlibh.addFunctions(scalaFunctions)(using this)
-		Stringh.addFunctions(scalaFunctions)(using this)
-		Stdargh.addFunctions(scalaFunctions)
-
-		scalaFunctions.foreach(addScalaFunctionDef)
-	}
-
 	private def addScalaFunctionDef(fcn: Function) = {
 		val count = functionPointers.size
 		fcn.index = count
@@ -154,29 +176,31 @@ trait Functions {
 		functionPointers += fcn.name -> newVar
 	}
 
-	def writeFunctionStackFrame(fcnDec: IASTFunctionDeclarator): Unit = {
-		val numArgs = context.popStack.asInstanceOf[RValue].value.asInstanceOf[Integer] // placed on the stack by prepareFunctionStackFrame()
-		val args = (0 until numArgs).map { _ => context.popStack }.reverse
+	private def popFunctionContext: FunctionScope = {
+		val frame = functionContexts.pop()
+		memory.setStackPosition(frame.startingStackAddr)
+		frame
+	}
 
-		val binding = fcnDec.getName.resolveBinding()
-		val fcn = binding.asInstanceOf[CFunction]
-		val paramDecls = fcn.getParameters.toList
-		val zipped = args.zip(paramDecls)
+	private def prepareFunctionStackFrame(scope: Option[FunctionScope], function: Function, call: IASTFunctionCallExpression): FunctionScope = {
+		val newScope = scope.getOrElse:
+			val expressionType = call.getExpressionType
+			FunctionScope(function, functionContexts.headOption.orNull, expressionType)
 
-		zipped.foreach { (arg, param) =>
-			arg match {
-				case variable: Variable if variable.aType.isInstanceOf[CStructure] =>
-					val copy = Structures.copyStructure(variable.aType.asInstanceOf[CStructure], variable.address, CASTName(param.getName.toCharArray), this)
-					context.addVariable(copy)
-				case struct: Structure =>
-					val newVar = context.addVariable(param.getName, param.getType)
-					writeDataBlock(newVar.address, struct.bytes)
-				case _ =>
-					val resolvedArg = TypeHelper.toRValue(arg)(using this)
-					val newVar = context.addVariable(param.getName, param.getType)
-					val casted = TypeHelper.cast(resolvedArg.value, newVar.theType).value
-					memory.writeToMemory(casted, newVar.address, newVar.theType)
+		newScope.init(List(function.node), this, scope.isEmpty)
+
+		val args: List[ValueType] = call.getArguments.map { x => Expressions.evaluate(x)(using this).head }.toList
+
+		args.foreach { argument =>
+			if (argument.theType.isInstanceOf[CStructure]) {
+				newScope.pushOntoStack(argument)
+			} else {
+				val resolved = TypeHelper.toRValue(argument)(using this)
+				newScope.pushOntoStack(resolved)
 			}
 		}
+
+		newScope.pushOntoStack(RValue(args.size, TypeHelper.unsignedIntType))
+		newScope
 	}
 }

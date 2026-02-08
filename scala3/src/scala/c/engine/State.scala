@@ -15,8 +15,6 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) ex
 
 	val memory = Memory(stackSize = 100000, dataSize = 10000, heapSize = 50000)
 
-	var varArgStartingAddr = List[Int]()
-
 	val stdout = ListBuffer[Char]()
 
 	var breakLabelStack = List[Label]()

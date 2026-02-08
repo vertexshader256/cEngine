@@ -67,14 +67,6 @@ object Declarator {
 				variable.setValue(TypeHelper.toRValue(state.context.popStack))
 	}
 
-	private def writeFcnArguments(fcnDec: IASTFunctionDeclarator)(implicit state: State): Unit = {
-		val isInFunctionPrototype = !Utils.getAncestors(fcnDec).exists(_.isInstanceOf[IASTFunctionDefinition])
-
-		if (!isInFunctionPrototype) {
-			state.writeFunctionStackFrame(fcnDec)
-		}
-	}
-
 	private def processFcnDeclarator(fcnDec: IASTFunctionDeclarator)(implicit state: State): Unit = {
 		if (Utils.getDescendants(fcnDec).exists { x => x.isInstanceOf[IASTEqualsInitializer] }) {
 			setFunctionPointer(fcnDec)
@@ -82,7 +74,7 @@ object Declarator {
 			val binding = fcnDec.getName.resolveBinding()
 
 			binding match
-				case fcn: CFunction if fcn.getParameters.nonEmpty => writeFcnArguments(fcnDec)
+				case fcn: CFunction if fcn.getParameters.nonEmpty => state.writeFcnArguments(fcnDec)
 				case _ => Seq()
 		}
 	}

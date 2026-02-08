@@ -43,7 +43,7 @@ object Expressions {
 			val theType = TypeHelper.getType(typeExpr.getTypeId).theType
 			Some(RValue(TypeHelper.sizeof(theType), TypeHelper.intType))
 		case call: IASTFunctionCallExpression =>
-			functionCallExpr(call)
+			state.functionCallExpr(call)
 		case bin: IASTBinaryExpression =>
 			Some(binaryExpression(bin))
 		case typeIdInit: IASTTypeIdInitializerExpression =>
@@ -112,22 +112,6 @@ object Expressions {
 			struct.address
 
 		Structures.offsetof(structType, baseAddr, fieldRef.getFieldName.toString, state)
-	}
-
-	private def functionCallExpr(call: IASTFunctionCallExpression)(implicit state: State): Option[ValueType] = {
-		val pop = evaluate(call.getFunctionNameExpression).head
-
-		val name = if (state.hasFunction(call.getFunctionNameExpression.getRawSignature)) {
-			call.getFunctionNameExpression.getRawSignature
-		} else {
-			val info = pop.asInstanceOf[LValue]
-			val resolved = TypeHelper.stripSyntheticTypeInfo(info.theType)
-			resolved match {
-				case _: IPointerType => state.getFunctionByIndex(info.rValue.value.asInstanceOf[Int]).name
-			}
-		}
-
-		state.callTheFunction(name, call, None)
 	}
 
 	private def binaryExpression(bin: IASTBinaryExpression)(implicit state: State): ValueType = {
