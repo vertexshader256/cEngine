@@ -11,13 +11,9 @@ import scala.c.engine.models.*
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
+class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) extends CodeRunner {
 
 	val stack = Memory(stackSize = 100000, dataSize = 10000, heapSize = 50000)
-
-	private val functionContexts = mutable.Stack[FunctionScope]()
-
-	def context: FunctionScope = functionContexts.head
 
 	var varArgStartingAddr = List[Int]()
 	val scalaFunctions = ListBuffer[Function]()
@@ -41,77 +37,9 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 	val addressSize: Int = TypeHelper.sizeof(pointerType)(using this)
 
-	// ************************************************* //
-	//                  Constructor                      //
-	// ************************************************* //
-
-	Stdio.addFunctions(scalaFunctions)(using this)
-	Mathh.addFunctions(scalaFunctions)(using this)
-	Stdlibh.addFunctions(scalaFunctions)(using this)
-	Stringh.addFunctions(scalaFunctions)(using this)
-	Stdargh.addFunctions(scalaFunctions)
-
-	scalaFunctions.foreach(addScalaFunctionDef)
-
-	// ************************************************* //
-	//                End Constructor                    //
-	// ************************************************* //
-
-	private val main: Function = new Function("main", true) {
-		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = None
-	}
-
-	private val program = new FunctionScope(main, null, null) {}
-
-	def runCode(code: String, includePaths: Iterator[String]) = {
-		val exeCode =
-			s"""
-				void main() {
-					$code
-				}
-			"""
-
-		val ast = Utils.getTranslationUnits(Seq(exeCode), includePaths.toList)
-		addMain(ast)
-		callTheFunction("main", null, Some(program), true)
-
-		val theMain = functionList.find(_.name == "main").get
-		functionList -= theMain
-	}
-
-	def parseGlobals(tUnits: List[IASTNode]): Unit = {
-		pushScope(program)
-		program.init(tUnits, this, false)
-		context.run(this) // parse globals
-	}
-
-	private def pushScope(scope: FunctionScope): Unit = {
-		functionContexts.push(scope)
-	}
-
-	def getFunctionScope: FunctionScope = {
-		functionContexts.collect { case fcnScope: FunctionScope => fcnScope }.head
-	}
-
-	private def popFunctionContext: FunctionScope = {
-		val frame = functionContexts.pop()
-		stack.setStackPosition(frame.startingStackAddr)
-		frame
-	}
-
 	def hasFunction(name: String): Boolean = functionList.exists { fcn => fcn.name == name }
 
 	def getFunctionByIndex(index: Int): Function = functionList.find { fcn => fcn.index == index }.get
-
-	def addMain(sources: List[IASTTranslationUnit]): Unit = {
-		sources.foreach { tUnit =>
-			tUnit.getChildren.collect { case x: IASTFunctionDefinition => x }
-				.filter(fcn => fcn.getDeclSpecifier.getStorageClass != IASTDeclSpecifier.sc_extern)
-				.foreach { fcnDef =>
-					addFunctionDef(fcnDef, fcnDef.getDeclarator.getName.toString == "main")
-				}
-		}
-	}
 
 	private def addScalaFunctionDef(fcn: Function) = {
 		val count = functionPointers.size
@@ -124,31 +52,6 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		stack.writeToMemory(count, newVar.address, fcnType)
 
 		functionPointers += fcn.name -> newVar
-	}
-
-	private def addFunctionDef(fcnDef: IASTFunctionDefinition, isMain: Boolean) = {
-		val name = fcnDef.getDeclarator.getName
-		val count = functionPointers.size
-
-		val fcnType = fcnDef.getDeclarator.getName.resolveBinding().asInstanceOf[IFunction].getType
-
-		val newFcn = new Function(name.toString, true) {
-			index = count
-			node = fcnDef
-
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
-				None
-			}
-		}
-
-		functionList += newFcn
-
-		if (!isMain) {
-			val newVar = Variable(name, State.this, fcnType)
-			stack.writeToMemory(count, newVar.address, fcnType)
-
-			functionPointers += name.toString -> newVar
-		}
 	}
 
 	def writeFunctionStackFrame(fcnDec: IASTFunctionDeclarator): Unit = {
@@ -173,77 +76,6 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 					val newVar = context.addVariable(param.getName, param.getType)
 					val casted = TypeHelper.cast(resolvedArg.value, newVar.theType).value
 					stack.writeToMemory(casted, newVar.address, newVar.theType)
-			}
-		}
-	}
-
-	private def prepareFunctionStackFrame(scope: Option[FunctionScope], function: Function, call: IASTFunctionCallExpression): FunctionScope = {
-		val newScope = scope.getOrElse:
-			val expressionType = call.getExpressionType
-			FunctionScope(function, functionContexts.headOption.orNull, expressionType)
-
-		newScope.init(List(function.node), this, scope.isEmpty)
-
-		val args: List[ValueType] = call.getArguments.map { x => Expressions.evaluate(x)(using this).head }.toList
-
-		args.foreach { argument =>
-			if (argument.theType.isInstanceOf[CStructure]) {
-				newScope.pushOntoStack(argument)
-			} else {
-				val resolved = TypeHelper.toRValue(argument)(using this)
-				newScope.pushOntoStack(resolved)
-			}
-		}
-
-		newScope.pushOntoStack(RValue(args.size, TypeHelper.unsignedIntType))
-		newScope
-	}
-
-	def callTheFunction(name: String, call: IASTFunctionCallExpression, scope: Option[FunctionScope], isApi: Boolean = false): Option[ValueType] = {
-		functionList.find(_.name == name).flatMap { function =>
-
-			if (!function.isNative) {
-				// this is a function simulated in scala
-
-				val stackPos = stack.getStackPosition
-				val args = call.getArguments.map { x => Expressions.evaluate(x)(using this) }
-
-				val resolvedArgs: Array[RValue] = args.flatten.map(TypeHelper.toRValue(_)(using this))
-
-				val returnVal = function.run(resolvedArgs.reverse, this)
-				stack.setStackPosition(stackPos) // pop the stack
-
-				returnVal.map:
-					case file @ FileRValue(_) => file
-					case rValue => RValue(rValue.value, TypeHelper.unsignedIntType)
-			} else {
-				if (function.name == "main" && isApi) {
-					scope.get.init(List(function.node), this, scope.isEmpty)
-					functionContexts.clear()
-					functionContexts.push(scope.get)
-					context.run(this)
-					None
-				} else {
-
-					val newScope = prepareFunctionStackFrame(scope, function, call)
-
-					functionContexts.push(newScope)
-
-					newScope.run(this)
-
-					val completedFrame = popFunctionContext
-
-					completedFrame.getReturnValue.map {
-						case structure @ LValue(_, structType: CStructure) =>
-							val structBytes = structure.toByteArray
-							val newAddr = allocateStack(structBytes.length)
-							writeDataBlock(newAddr, structBytes)
-							Structure(structBytes, structType)
-						case retVal => retVal
-					}.orElse {
-						None
-					}
-				}
 			}
 		}
 	}
@@ -320,4 +152,16 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 				stack.writeToMemory(newVal, Address(location), theType)
 				location += TypeHelper.sizeof(theType)(using this)
 	}
+
+	// ************************************************* //
+	//                  Constructor                      //
+	// ************************************************* //
+
+	Stdio.addFunctions(scalaFunctions)(using this)
+	Mathh.addFunctions(scalaFunctions)(using this)
+	Stdlibh.addFunctions(scalaFunctions)(using this)
+	Stringh.addFunctions(scalaFunctions)(using this)
+	Stdargh.addFunctions(scalaFunctions)
+
+	scalaFunctions.foreach(addScalaFunctionDef)
 }
