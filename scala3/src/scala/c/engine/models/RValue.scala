@@ -28,5 +28,5 @@ abstract class RValue extends ValueType {
 	val value: cEngVal
 	val theType: IType
 	
-	def sizeof(implicit state: CEngine): Int = TypeHelper.sizeof(theType)
+	def sizeof(using CEngine): Int = TypeHelper.sizeof(theType)
 }

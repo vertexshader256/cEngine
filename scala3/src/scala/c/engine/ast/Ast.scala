@@ -9,43 +9,43 @@ import scala.c.engine.models.*
 
 object Ast {
 
-	private def executeCustomInstructions(current: Any)(implicit state: CEngine): Unit = current match {
+	private def executeCustomInstructions(current: Any)(implicit cEngine: CEngine): Unit = current match {
 		case PushVariableStack() =>
-			state.context.pushVariableScope()
+			cEngine.context.pushVariableScope()
 		case PopVariableStack() =>
-			state.context.popVariableScope()
+			cEngine.context.popVariableScope()
 		case cached @ CachedRValue(expr) =>
 			cached.cachedValue = TypeHelper.toRValue(Expressions.evaluate(expr).get)
 		case JmpIfNotEqual(expr, lines) =>
 			val raw = Expressions.evaluate(expr).get
 			val result = TypeHelper.resolveBoolean(raw)
 			if !result then
-				state.context.jmpRelative(lines)
+				cEngine.context.jmpRelative(lines)
 		case JmpToLabelIfNotZero(expr, label) =>
 			val raw = Expressions.evaluate(expr).get
 			val result = TypeHelper.resolveBoolean(raw)
 			if !result then
-				state.context.setAddress(label.address)
+				cEngine.context.setAddress(label.address)
 		case JmpLabel(label) =>
-			state.context.setAddress(label.address)
+			cEngine.context.setAddress(label.address)
 		case JmpToLabelIfZero(expr, label) =>
 			val raw = Expressions.evaluate(expr).get
 			val result = TypeHelper.resolveBoolean(raw)
 			if result then
-				state.context.setAddress(label.address)
+				cEngine.context.setAddress(label.address)
 		case JmpToLabelIfEqual(expr1, cached, label) =>
 			val raw1 = TypeHelper.toRValue(Expressions.evaluate(expr1).get).value
 			val raw2 = cached.cachedValue.value
 			if raw1 == raw2 then
-				state.context.setAddress(label.address)
+				cEngine.context.setAddress(label.address)
 		case Jmp(lines) =>
-			state.context.jmpRelative(lines)
+			cEngine.context.jmpRelative(lines)
 		case goto: Goto =>
-			state.context.setAddress(goto.destAddress)
+			cEngine.context.setAddress(goto.destAddress)
 		case label: Label =>
 	}
 
-	private def stepSimpleDeclaration(simple: IASTSimpleDeclaration)(implicit state: CEngine): Unit = {
+	private def stepSimpleDeclaration(simple: IASTSimpleDeclaration)(using CEngine): Unit = {
 		val declSpec = simple.getDeclSpecifier
 		val isWithinFunction = Utils.getAncestors(simple).exists(_.isInstanceOf[IASTFunctionDefinition])
 
@@ -65,29 +65,29 @@ object Ast {
 			step(simple.getDeclSpecifier)
 	}
 
-	private def stepEnumeration(enumeration: IASTEnumerationSpecifier)(implicit state: CEngine): Unit = {
+	private def stepEnumeration(enumeration: IASTEnumerationSpecifier)(implicit cEngine: CEngine): Unit = {
 		var current = 0
 		enumeration.getEnumerators.foreach {
 			case enumerator: CASTEnumerator =>
 				if (enumerator.getValue != null) {
 					val value = Expressions.evaluate(enumerator.getValue).get.asInstanceOf[RValue]
-					val newVar = state.context.addVariable(enumerator.getName, TypeHelper.intType)
+					val newVar = cEngine.context.addVariable(enumerator.getName, TypeHelper.intType)
 					current = value.value.asInstanceOf[Int] + 1
-					state.memory.writeToMemory(value.value, newVar.address, TypeHelper.intType)
+					cEngine.memory.writeToMemory(value.value, newVar.address, TypeHelper.intType)
 				} else {
-					val newVar = state.context.addVariable(enumerator.getName, TypeHelper.intType)
-					state.memory.writeToMemory(current, newVar.address, TypeHelper.intType)
+					val newVar = cEngine.context.addVariable(enumerator.getName, TypeHelper.intType)
+					cEngine.memory.writeToMemory(current, newVar.address, TypeHelper.intType)
 					current += 1
 				}
 		}
 	}
 
-	def step(current: IASTNode | CEngineInstruction)(implicit state: CEngine): Unit = current match {
+	def step(current: IASTNode | CEngineInstruction)(implicit cEngine: CEngine): Unit = current match {
 		case statement: IASTStatement =>
 			Statement.step(statement)
 		case expression: IASTExpression =>
 			Expressions.evaluate(expression).foreach: value =>
-				state.context.pushOntoStack(value)
+				cEngine.context.pushOntoStack(value)
 		case decl: IASTDeclarator =>
 			Declarator.execute(decl)
 		case array: IASTArrayModifier =>

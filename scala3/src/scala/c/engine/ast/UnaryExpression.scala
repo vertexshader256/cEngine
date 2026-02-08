@@ -11,7 +11,7 @@ import scala.c.engine.models.*
 
 object UnaryExpression {
 		
-	def execute(unary: IASTUnaryExpression)(implicit state: CEngine): ValueType = {
+	def execute(unary: IASTUnaryExpression)(using CEngine): ValueType = {
 		val value = evaluate(unary.getOperand).head
 
 		unary.getOperator match
@@ -33,7 +33,7 @@ object UnaryExpression {
 			case `op_star` => processStar(value)
 	}
 
-	private def processTilde(value: ValueType)(implicit state: CEngine) = {
+	private def processTilde(value: ValueType)(using CEngine) = {
 		value match
 			case RValue(rValue, _) =>
 				RValue(~rValue.asInstanceOf[Int], TypeHelper.unsignedIntType)
@@ -50,7 +50,7 @@ object UnaryExpression {
 				RValue(result, info.theType)
 	}
 
-	private def processSizeof(value: ValueType)(implicit state: CEngine) = {
+	private def processSizeof(value: ValueType)(using CEngine) = {
 		val size = value match
 			case info: LValue => info.sizeof
 			case rValue: RValue => rValue.sizeof
@@ -58,22 +58,22 @@ object UnaryExpression {
 		RValue(size, TypeHelper.intType)
 	}
 
-	private def processStar(value: ValueType)(implicit state: CEngine) = {
+	private def processStar(value: ValueType)(implicit cEngine: CEngine) = {
 		value match
 			case RValue(int: Int, theType) =>
-				LValue(state, Address(int), theType)
+				LValue(cEngine, Address(int), theType)
 			case info @ LValue(_, aType) =>
 				val nestedType = TypeHelper.getPointerType(aType)
 
 				if !nestedType.isInstanceOf[IFunctionType] then
-					LValue(state, Address(info.rValue.value.asInstanceOf[Int]), nestedType)
+					LValue(cEngine, Address(info.rValue.value.asInstanceOf[Int]), nestedType)
 				else
 					// function pointers can ignore the star
 					info
 	}
 	
 	// per C Spec this returns a RValue
-	private def evaluateIncrDecr(unary: IASTUnaryExpression, value: ValueType, operator: Int)(implicit state: CEngine): RValue = {
+	private def evaluateIncrDecr(unary: IASTUnaryExpression, value: ValueType, operator: Int)(implicit cEngine: CEngine): RValue = {
 		val op = operator match
 			case `op_postFixIncr` | `op_prefixIncr` => IASTBinaryExpression.op_plus
 			case `op_postFixDecr` | `op_prefixDecr` => IASTBinaryExpression.op_minus
@@ -87,7 +87,7 @@ object UnaryExpression {
 
 		val pre = lValue.rValue
 
-		state.memory.writeToMemory(newVal.value, lValue.address, lValue.theType)
+		cEngine.memory.writeToMemory(newVal.value, lValue.address, lValue.theType)
 
 		operator match
 			case `op_postFixIncr` | `op_postFixDecr` => pre // push then set

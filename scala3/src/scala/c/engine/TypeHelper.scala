@@ -128,10 +128,10 @@ object TypeHelper {
 	}
 
 	// resolves 'ValueType' to 'RValue'
-	def toRValue(any: ValueType, isStatic: Boolean = false)(implicit state: CEngine): RValue = any match {
+	def toRValue(any: ValueType, isStatic: Boolean = false)(implicit cEngine: CEngine): RValue = any match {
 		case info @ LValue(_, _) => info.rValue
 		case rValue @ RValue(_, _) => rValue
-		case StringLiteral(str) => state.allocateString(str, isStatic)
+		case StringLiteral(str) => cEngine.allocateString(str, isStatic)
 	}
 
 	def isPointerOrArray(value: ValueType): Boolean =
@@ -179,7 +179,7 @@ object TypeHelper {
 	}
 
 	@tailrec
-	def resolveBasic(theType: IType)(implicit state: CEngine): IBasicType = theType match {
+	def resolveBasic(theType: IType)(using CEngine): IBasicType = theType match {
 		case basicType: IBasicType => basicType
 		case typedef: ITypedef => resolveBasic(typedef.getType)
 		case ptrType: IPointerType => resolveBasic(ptrType.getType)
@@ -206,16 +206,16 @@ object TypeHelper {
 		case info@LValue(_, _) => resolveBoolean(info.rValue)
 	}
 
-	def getPointerSize(theType: IType)(implicit state: CEngine): Int = theType match {
-		case ptr: IPointerType => state.addressSize
+	def getPointerSize(theType: IType)(implicit cEngine: CEngine): Int = theType match {
+		case ptr: IPointerType => cEngine.addressSize
 		case array: IArrayType if array.hasSize => TypeHelper.sizeof(array.getType) * array.getSize.numericalValue().toInt
-		case _ => TypeHelper.sizeof(theType)(using state)
+		case _ => TypeHelper.sizeof(theType)(using cEngine)
 	}
 
-	def sizeof(theType: IType)(implicit state: CEngine): Int = theType match {
+	def sizeof(theType: IType)(implicit cEngine: CEngine): Int = theType match {
 		case _: CEnumeration => 4
-		case _: IFunctionType => state.addressSize
-		case _: IPointerType => state.addressSize
+		case _: IFunctionType => cEngine.addressSize
+		case _: IPointerType => cEngine.addressSize
 		case struct: CStructure =>
 			val fieldSizes = struct.getFields.map(Structures.sizeInBits)
 			val numBits = struct.getKey match

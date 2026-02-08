@@ -54,12 +54,12 @@ object Utils {
 		node +: node.getChildren.toList.flatMap(getDescendants)
 	}
 
-	private def readChar(address: Address)(implicit state: CEngine): Char = {
-		val value = state.memory.readFromMemoryRaw(TypeHelper.charType, address)
+	private def readChar(address: Address)(implicit cEngine: CEngine): Char = {
+		val value = cEngine.memory.readFromMemoryRaw(TypeHelper.charType, address)
 		TypeHelper.castSign(TypeHelper.charType, value).value.asInstanceOf[Byte].toChar
 	}
 
-	def readString(address: Address)(implicit state: CEngine): String = {
+	def readString(address: Address)(using CEngine): String = {
 		var current: Char = 0
 		val stringBuilder = ListBuffer[Char]()
 		var offset = 0

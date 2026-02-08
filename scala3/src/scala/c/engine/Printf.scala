@@ -29,7 +29,7 @@ object Printf {
 		buffer2.toString
 	}
 
-	private def printDynamicWidthString(stringFormat: String, param1: RValue, param2: RValue)(implicit state: CEngine) = {
+	private def printDynamicWidthString(stringFormat: String, param1: RValue, param2: RValue)(using CEngine) = {
 		val formatString = stringFormat
 		val buffer2 = StringBuffer()
 		val formatter2 = Formatter(buffer2, Locale.US)
@@ -55,7 +55,7 @@ object Printf {
 		buffer2.toString
 	}
 
-	private def printSubstring(stringFormat: String, param1: RValue, param2: RValue)(implicit state: CEngine) = {
+	private def printSubstring(stringFormat: String, param1: RValue, param2: RValue)(using CEngine) = {
 		val formatString = stringFormat
 		val buffer2 = StringBuffer()
 		val formatter2 = Formatter(buffer2, Locale.US)
@@ -82,7 +82,7 @@ object Printf {
 		buffer2.toString
 	}
 
-	private def printString(stringFormat: String, theValue: RValue)(implicit state: CEngine) = {
+	private def printString(stringFormat: String, theValue: RValue)(using CEngine) = {
 		val formatString = stringFormat
 		val buffer2 = StringBuffer()
 		val formatter2 = Formatter(buffer2, Locale.US)

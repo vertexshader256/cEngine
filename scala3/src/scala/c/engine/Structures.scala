@@ -67,7 +67,7 @@ object Structures {
 		resultAddress
 	}
 
-	def sizeInBits(field: IField)(implicit state: CEngine): Int = {
+	def sizeInBits(field: IField)(using CEngine): Int = {
 		val parent = field.asInstanceOf[CField].getDefinition.getParent
 		parent match
 			case field: CASTFieldDeclarator => Expressions.evaluate(field.getBitFieldSize).get.asInstanceOf[RValue].value.asInstanceOf[Int]
