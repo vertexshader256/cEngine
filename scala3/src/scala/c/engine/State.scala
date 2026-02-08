@@ -23,12 +23,6 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 	val scalaFunctions = ListBuffer[Function]()
 
-	Stdio.addFunctions(scalaFunctions)(using this)
-	Mathh.addFunctions(scalaFunctions)(using this)
-	Stdlibh.addFunctions(scalaFunctions)(using this)
-	Stringh.addFunctions(scalaFunctions)(using this)
-	Stdargh.addFunctions(scalaFunctions)
-
 	val functionList = ListBuffer[Function]()
 	val functionPointers = scala.collection.mutable.LinkedHashMap[String, Variable]()
 	val stdout = ListBuffer[Char]()
@@ -52,6 +46,12 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	//                  Constructor                      //
 	// ************************************************* //
 
+	Stdio.addFunctions(scalaFunctions)(using this)
+	Mathh.addFunctions(scalaFunctions)(using this)
+	Stdlibh.addFunctions(scalaFunctions)(using this)
+	Stringh.addFunctions(scalaFunctions)(using this)
+	Stdargh.addFunctions(scalaFunctions)
+
 	scalaFunctions.foreach(addScalaFunctionDef)
 
 	val main: Function = new Function("main", true) {
@@ -59,6 +59,10 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	}
 
 	val program = new FunctionScope(main, null, null) {}
+
+	// ************************************************* //
+	//                End Constructor                    //
+	// ************************************************* //
 
 	private def pushScope(scope: FunctionScope): Unit = {
 		functionContexts.push(scope)
