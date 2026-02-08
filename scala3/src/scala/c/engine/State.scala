@@ -61,7 +61,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = None
 	}
 
-	val program = new FunctionScope(main, null, null) {}
+	private val program = new FunctionScope(main, null, null) {}
 
 	def runCode(code: String, includePaths: Iterator[String]) = {
 		val exeCode =
@@ -79,21 +79,18 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 		functionList -= theMain
 	}
 
+	def parseGlobals(tUnits: List[IASTNode]): Unit = {
+		pushScope(program)
+		program.init(tUnits, this, false)
+		context.run(this) // parse globals
+	}
+
 	private def pushScope(scope: FunctionScope): Unit = {
 		functionContexts.push(scope)
 	}
 
 	def getFunctionScope: FunctionScope = {
 		functionContexts.collect { case fcnScope: FunctionScope => fcnScope }.head
-	}
-
-	def parseGlobals(tUnits: List[IASTNode]): Unit = {
-		pushScope(program)
-		program.init(tUnits, this, false)
-
-		context.run(this) // parse globals
-
-		context.setAddress(0)
 	}
 
 	private def popFunctionContext: FunctionScope = {
