@@ -8,7 +8,7 @@ import scala.c.engine.models.*
 
 object BinaryExpr {
 
-	def evaluatePointerArithmetic(ptr: ValueType, offset: Int, operator: Int)(implicit state: CEngine): RValue = {
+	def evaluatePointerArithmetic(ptr: ValueType, offset: Int, operator: Int)(using CEngine): RValue = {
 		val rValue = TypeHelper.toRValue(ptr)
 
 		// For some reason double pointers should only use sizeof().  Not sure why.
@@ -26,7 +26,7 @@ object BinaryExpr {
 		Pointer(address, rValue.theType)
 	}
 	
-	def evaluate(x: ValueType, y: ValueType, operator: Int, isStatic: Boolean = false)(implicit state: CEngine): RValue = {
+	def evaluate(x: ValueType, y: ValueType, operator: Int, isStatic: Boolean = false)(using CEngine): RValue = {
 		val left = TypeHelper.toRValue(x, isStatic)
 		val right = TypeHelper.toRValue(y, isStatic)
 
@@ -58,7 +58,7 @@ object BinaryExpr {
 		}
 	}
 
-	private def calculate(left: cEngVal, right: cEngVal, operator: Int)(implicit state: CEngine): cEngVal = {
+	private def calculate(left: cEngVal, right: cEngVal, operator: Int)(using CEngine): cEngVal = {
 		// Because of integer promotion, C never does math on anything less than int's
 
 		val op1 = left match
@@ -156,7 +156,7 @@ object BinaryExpr {
 						calculateBoolean(op1, op2, operator)
 	}
 
-	private def calculateFixedPoint(x: cEngVal, operator: Int, op1: cEngVal, op2: cEngVal)(implicit state: CEngine): cEngVal = {
+	private def calculateFixedPoint(x: cEngVal, operator: Int, op1: cEngVal, op2: cEngVal)(using CEngine): cEngVal = {
 		operator match
 			case `op_assign` =>
 				op2
