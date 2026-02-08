@@ -76,8 +76,6 @@ object Gcc {
 					val runner = Process(path, new File("."))
 					val run = runner.run(runLogger.process)
 
-					files.foreach(_.delete())
-
 					run.exitValue()
 
 					result = runLogger.stdout.clone().toList
@@ -90,6 +88,8 @@ object Gcc {
 					case e: Throwable => Thread.sleep(50)
 				}
 			}
+
+			Try(files.foreach(_.delete()))
 
 			GccOutput(result, true)
 		} else {
