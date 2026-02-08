@@ -1,7 +1,7 @@
 package scala.c.engine.cFunctions
 
-import scala.c.engine.{CEngine, cEngVal}
 import scala.c.engine.models.{Address, EmulatedFunction, RValue}
+import scala.c.engine.{CEngine, cEngVal}
 
 trait Convertable[A]:
 	def convert(value: cEngVal): A

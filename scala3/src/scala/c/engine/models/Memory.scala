@@ -2,9 +2,10 @@ package scala.c.engine.models
 
 import org.eclipse.cdt.core.dom.ast.*
 import org.eclipse.cdt.internal.core.dom.parser.c.{CEnumeration, CStructure, CTypedef}
+
 import java.math.BigInteger
-import java.util
 import java.nio.{ByteBuffer, ByteOrder}
+import java.util
 import scala.c.engine.*
 
 class Memory(stackSize: Int, dataSize: Int, heapSize: Int) {

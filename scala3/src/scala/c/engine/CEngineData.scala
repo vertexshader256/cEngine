@@ -1,6 +1,5 @@
 package scala.c.engine
 
-import scala.c.engine.models.Address
 import org.eclipse.cdt.core.dom.ast.*
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.op_assign
 import org.eclipse.cdt.internal.core.dom.parser.c.*

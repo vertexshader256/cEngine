@@ -4,7 +4,7 @@ import java.io.{File, PrintWriter}
 import scala.c.engine.*
 import scala.c.engine.models.*
 import scala.c.engine.models.NumBits.*
-import scala.sys.process.{Process}
+import scala.sys.process.Process
 import scala.util.Try
 
 case class GccOutput(output: Seq[String], wasSuccess: Boolean)

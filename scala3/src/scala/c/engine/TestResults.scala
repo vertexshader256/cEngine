@@ -55,7 +55,7 @@ object TestResults {
 	}
 
 	def writeResultsFile() = {
-		import scala.jdk.CollectionConverters._
+		import scala.jdk.CollectionConverters.*
 		val scalaMap = mutable.Map[String, Seq[String]]()
 		resultCache.asScala.foreach: result =>
 			scalaMap += result
