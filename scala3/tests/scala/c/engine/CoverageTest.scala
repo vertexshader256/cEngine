@@ -1,5 +1,8 @@
 package scala.c.engine
 
+import org.eclipse.cdt.core.dom.ast.IASTNode
+import org.eclipse.cdt.internal.core.dom.parser.c.CASTProblemDeclaration
+
 import scala.c.engine.models.NumBits
 import scala.c.engine.models.NumBits.ThirtyTwoBits
 
@@ -95,11 +98,13 @@ class CoverageTest extends StandardTest {
 			"""
 				int main( ) {
 						short y = 24;
-						char z = 'd'
+						char z = 'd';
 						float x = (float)y;
 						float xx = (float)z;
+			      float jj == (float)z;
+						iff (blah == blah) {
+						}
 						printf("%f %f\n", x, xx);
-						return 0;
 				}"""
 
 		CEngine.getCEngineOutput(Seq(code), true, NumBits.ThirtyTwoBits, List(), List())

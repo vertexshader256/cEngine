@@ -44,9 +44,9 @@ object CEngine {
 		state.callTheFunction("main", functionCall, Some(program))
 	}
 
-	private def getErrors(node: IASTNode, errors: List[String]): List[String] = {
+	def getErrors(node: IASTNode, errors: List[String]): List[String] = {
 		node match {
-			case prob: CASTProblemDeclaration =>
+			case prob: CASTProblemStatement =>
 				println("ERROR: " + prob.getProblem.getRawSignature)
 				List("Error on: " + prob.getFileLocation.getFileName + ".c:" + prob.getFileLocation.getStartingLineNumber + ":" + prob.getParent.getRawSignature)
 			case _ => errors ++ node.getChildren.toList.flatMap { x => getErrors(x, errors) }
