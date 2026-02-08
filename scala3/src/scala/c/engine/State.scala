@@ -20,7 +20,6 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	def context: FunctionScope = functionContexts.head
 
 	var varArgStartingAddr = List[Int]()
-
 	val scalaFunctions = ListBuffer[Function]()
 
 	val functionList = ListBuffer[Function]()
@@ -54,15 +53,31 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 	scalaFunctions.foreach(addScalaFunctionDef)
 
-	val main: Function = new Function("main", true) {
+	// ************************************************* //
+	//                End Constructor                    //
+	// ************************************************* //
+
+	private val main: Function = new Function("main", true) {
 		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = None
 	}
 
 	val program = new FunctionScope(main, null, null) {}
 
-	// ************************************************* //
-	//                End Constructor                    //
-	// ************************************************* //
+	def runCode(code: String, includePaths: Iterator[String]) = {
+		val exeCode =
+			s"""
+				void main() {
+					$code
+				}
+			"""
+
+		val ast = Utils.getTranslationUnits(Seq(exeCode), includePaths.toList)
+		addMain(ast)
+		callTheFunction("main", null, Some(program), true)
+
+		val theMain = functionList.find(_.name == "main").get
+		functionList -= theMain
+	}
 
 	private def pushScope(scope: FunctionScope): Unit = {
 		functionContexts.push(scope)
