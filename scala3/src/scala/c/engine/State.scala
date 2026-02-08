@@ -60,7 +60,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 	val program = new FunctionScope(main, null, null) {}
 
-	pushScope(new FunctionScope(main, null, null) {})
+	pushScope(program)
 	
 	private def pushScope(scope: FunctionScope): Unit = {
 		functionContexts.push(scope)
@@ -71,7 +71,6 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	}
 
 	def parseGlobals(tUnits: List[IASTNode]): Unit = {
-		val program = new FunctionScope(main, null, null) {}
 		pushScope(program)
 		program.init(tUnits, this, false)
 
