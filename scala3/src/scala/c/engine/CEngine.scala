@@ -82,23 +82,22 @@ object CEngine {
 
 	def getCEngineOutput(codeInFiles: Seq[String], shouldBootstrap: Boolean, pointerSize: NumBits,
 															 arguments: List[String], includePaths: List[String]): List[String] = {
-		try {
-
-			val state = if (shouldBootstrap) {
+			val state = {
 				val ast = Utils.getTranslationUnits(codeInFiles, includePaths)
 				val state = State(ast, pointerSize)
 				state.addMain(ast)
 				state
-			} else {
-				val eePrint = Using(Source.fromFile("./src/scala/c/engine/cFunctions/ee_printf.c", "utf-8")) { source =>
-					source.mkString
-				}.get
-				val code = Seq("#define HAS_FLOAT\n" + eePrint) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }
-				val ast = Utils.getTranslationUnits(code, includePaths)
-				val state = State(ast, pointerSize)
-				state.addMain(ast)
-				state
 			}
+			//else {
+//				val eePrint = Using(Source.fromFile("./src/scala/c/engine/cFunctions/ee_printf.c", "utf-8")) { source =>
+//					source.mkString
+//				}.get
+//				val code = Seq("#define HAS_FLOAT\n" + eePrint) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }
+//				val ast = Utils.getTranslationUnits(code, includePaths)
+//				val state = State(ast, pointerSize)
+//				state.addMain(ast)
+//				state
+//			}
 
 			val errors = state.sources.flatMap { tUnit => getErrors(tUnit, List()) }
 
@@ -108,8 +107,5 @@ object CEngine {
 				getResults(state.stdout.toList)
 			else
 				errors
-		} catch {
-			case e: Throwable => e.printStackTrace(); List()
-		}
 	}
 }
