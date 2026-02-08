@@ -98,7 +98,8 @@ class CoverageTest extends StandardTest {
 		val code =
 			"""
 					int main( ) {
-						printf("64 bits");
+						int *int_ptr;
+						printf("Size of int*   : %zu bytes\n", sizeof(int_ptr));
 						return 0;
 					}"""
 
