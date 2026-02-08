@@ -60,8 +60,6 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 	val program = new FunctionScope(main, null, null) {}
 
-	pushScope(program)
-	
 	private def pushScope(scope: FunctionScope): Unit = {
 		functionContexts.push(scope)
 	}
