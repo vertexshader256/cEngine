@@ -4,7 +4,7 @@ import org.eclipse.cdt.core.dom.ast.{IASTNode, IType}
 import org.eclipse.cdt.internal.core.dom.parser.c.CASTProblemDeclaration
 
 import scala.c.engine.models.{Address, NumBits}
-import scala.c.engine.models.NumBits.ThirtyTwoBits
+import scala.c.engine.models.NumBits.*
 import scala.c.engine.models.*
 
 class CoverageTest extends StandardTest {
@@ -92,6 +92,17 @@ class CoverageTest extends StandardTest {
 				}"""
 
 		checkResults(code)
+	}
+
+	"64 bits" should "print the correct results" in {
+		val code =
+			"""
+					int main( ) {
+						printf("64 bits");
+						return 0;
+					}"""
+
+		checkResults(code, pointerSize = SixtyFourBits)
 	}
 
 	"errors" should "print the correct results" in {
