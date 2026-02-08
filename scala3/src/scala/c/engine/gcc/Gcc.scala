@@ -89,6 +89,7 @@ object Gcc {
 				}
 			}
 
+			// delete the .c files
 			Try(files.foreach(_.delete()))
 
 			GccOutput(result, true)
