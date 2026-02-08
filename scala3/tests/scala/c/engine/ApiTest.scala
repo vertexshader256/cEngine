@@ -20,7 +20,7 @@ class JavaApiTest extends StandardTest {
 
       """, state)
 
-		assert(CEngine.getResults(state.stdout.toList) == (Seq("1432", "what: 2.5")))
+		assert(Results.getResults(state.stdout.toList) == (Seq("1432", "what: 2.5")))
 	}
 }
 
@@ -36,7 +36,7 @@ class ApiTest extends StandardTest {
       printf("what: %.1f\n", x);
       
       """
-		assert(CEngine.getResults(state.stdout.toList) == (Seq("1432", "what: 2.5")))
+		assert(Results.getResults(state.stdout.toList) == (Seq("1432", "what: 2.5")))
 	}
 }
 
@@ -54,7 +54,7 @@ class ApiTest2 extends StandardTest {
        printf("%d\n", add(4,5));
     """
 
-		assert(CEngine.getResults(state.stdout.toList).mkString == "9")
+		assert(Results.getResults(state.stdout.toList).mkString == "9")
 
 		state.stdout.clear
 
@@ -67,7 +67,7 @@ class ApiTest2 extends StandardTest {
        printf("%d\n", mult(add(1,2), add(5,4)));
      """
 
-		assert(CEngine.getResults(state.stdout.toList).mkString == "27")
+		assert(Results.getResults(state.stdout.toList).mkString == "27")
 	}
 }
 
@@ -84,6 +84,6 @@ class ApiTest3 extends StandardTest {
       printf("%.2f\n", blah);
      """
 
-		assert(CEngine.getResults(state.stdout.toList).mkString == "4.34")
+		assert(Results.getResults(state.stdout.toList).mkString == "4.34")
 	}
 }

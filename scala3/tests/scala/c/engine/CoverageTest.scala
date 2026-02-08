@@ -108,7 +108,7 @@ class CoverageTest extends StandardTest {
 						printf("%f %f\n", x, xx);
 				}"""
 
-		CEngine.getCEngineOutput(Seq(code), true, NumBits.ThirtyTwoBits, List(), List())
+		Results.getCEngineOutput(Seq(code), true, NumBits.ThirtyTwoBits, List(), List())
 		StandardTest.getGccOutput(Seq(code), NumBits.ThirtyTwoBits, List(), List())
 
 		assert(true)

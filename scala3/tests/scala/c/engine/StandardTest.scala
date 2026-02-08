@@ -58,7 +58,7 @@ class StandardTest extends AsyncFlatSpec {
 			}
 
 			val cEngineResults = Future {
-				CEngine.getCEngineOutput(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
+				Results.getCEngineOutput(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
 			}
 
 			for {
@@ -73,7 +73,7 @@ class StandardTest extends AsyncFlatSpec {
 		} else {
 			Future {
 				val gccOutput = StandardTest.getGccOutput(codeInFiles, pointerSize, args, includePaths)
-				val cEngineOutput = CEngine.getCEngineOutput(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
+				val cEngineOutput = Results.getCEngineOutput(codeInFiles, shouldBootstrap, pointerSize, args, includePaths)
 				info("C_Engine output: " + cEngineOutput)
 				info("Gcc      output: " + gccOutput)
 

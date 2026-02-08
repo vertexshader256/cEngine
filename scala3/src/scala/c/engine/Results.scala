@@ -8,7 +8,7 @@ import scala.collection.mutable.ListBuffer
 import scala.io.Source
 import scala.util.Using
 
-object CEngine {
+object Results {
 	private def callMain(state: State, arguments: List[String]) = {
 		state.parseGlobals(state.sources)
 

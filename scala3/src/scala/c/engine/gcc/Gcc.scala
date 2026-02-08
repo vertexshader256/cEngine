@@ -1,11 +1,11 @@
 package scala.c.engine.gcc
 
-import java.io.{File, InputStream, OutputStream, PrintWriter}
+import java.io.{File, PrintWriter}
 import scala.c.engine.*
 import scala.c.engine.models.*
 import scala.c.engine.models.NumBits.*
-import scala.collection.mutable.ListBuffer
-import scala.sys.process.{Process, ProcessIO}
+import scala.sys.process.{Process}
+import scala.util.Try
 
 case class GccOutput(output: Seq[String], wasSuccess: Boolean)
 

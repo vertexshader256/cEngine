@@ -26,9 +26,5 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) ex
 			.map { x => x.getName.resolveBinding().asInstanceOf[CStructure] }
 	}
 
-	// ************************************************* //
-	//                  Constructor                      //
-	// ************************************************* //
-
 	loadFunctions()
 }
