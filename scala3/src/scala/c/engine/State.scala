@@ -25,7 +25,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 
 	Stdio.addFunctions(scalaFunctions)(using this)
 	Mathh.addFunctions(scalaFunctions)(using this)
-	scalaFunctions ++= Stdlibh.getFunctions().map(_.generate(using this))
+	Stdlibh.addFunctions(scalaFunctions)(using this)
 	Stringh.addFunctions(scalaFunctions)(using this)
 	Stdargh.addFunctions(scalaFunctions)
 
@@ -51,7 +51,7 @@ class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) {
 	// ************************************************* //
 	//                  Constructor                      //
 	// ************************************************* //
-	
+
 	scalaFunctions.foreach(addScalaFunctionDef)
 
 	val main: Function = new Function("main", true) {
