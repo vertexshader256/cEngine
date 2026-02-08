@@ -7,7 +7,7 @@ import org.eclipse.cdt.internal.core.dom.parser.c.CVariable
 import scala.c.engine.*
 
 object Variable {
-	def apply(name: IASTName, state: State, aType: IType, initVals: List[RValue]): Variable = {
+	def apply(name: IASTName, state: CEngine, aType: IType, initVals: List[RValue]): Variable = {
 
 		val size = if (aType.isInstanceOf[IArrayType] && initVals.nonEmpty) {
 			if (aType.asInstanceOf[IArrayType].hasSize) {
@@ -29,13 +29,13 @@ object Variable {
 		variable
 	}
 
-	def apply(name: IASTName, state: State, aType: IType): Variable = {
+	def apply(name: IASTName, state: CEngine, aType: IType): Variable = {
 		val size = TypeHelper.sizeof(aType)(using state)
 		Variable(name, state, aType, size)
 	}
 }
 
-case class Variable(theName: IASTName, state: State, aType: IType, sizeof: Int) extends LValue {
+case class Variable(theName: IASTName, state: CEngine, aType: IType, sizeof: Int) extends LValue {
 
 	val theType = TypeHelper.stripSyntheticTypeInfo(aType)
 	val rawType = aType

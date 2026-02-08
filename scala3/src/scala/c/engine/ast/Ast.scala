@@ -9,7 +9,7 @@ import scala.c.engine.models.*
 
 object Ast {
 
-	private def executeCustomInstructions(current: Any)(implicit state: State): Unit = current match {
+	private def executeCustomInstructions(current: Any)(implicit state: CEngine): Unit = current match {
 		case PushVariableStack() =>
 			state.context.pushVariableScope()
 		case PopVariableStack() =>
@@ -45,7 +45,7 @@ object Ast {
 		case label: Label =>
 	}
 
-	private def stepSimpleDeclaration(simple: IASTSimpleDeclaration)(implicit state: State): Unit = {
+	private def stepSimpleDeclaration(simple: IASTSimpleDeclaration)(implicit state: CEngine): Unit = {
 		val declSpec = simple.getDeclSpecifier
 		val isWithinFunction = Utils.getAncestors(simple).exists(_.isInstanceOf[IASTFunctionDefinition])
 
@@ -65,7 +65,7 @@ object Ast {
 			step(simple.getDeclSpecifier)
 	}
 
-	private def stepEnumeration(enumeration: IASTEnumerationSpecifier)(implicit state: State): Unit = {
+	private def stepEnumeration(enumeration: IASTEnumerationSpecifier)(implicit state: CEngine): Unit = {
 		var current = 0
 		enumeration.getEnumerators.foreach {
 			case enumerator: CASTEnumerator =>
@@ -82,7 +82,7 @@ object Ast {
 		}
 	}
 
-	def step(current: IASTNode | CEngineInstruction)(implicit state: State): Unit = current match {
+	def step(current: IASTNode | CEngineInstruction)(implicit state: CEngine): Unit = current match {
 		case statement: IASTStatement =>
 			Statement.step(statement)
 		case expression: IASTExpression =>

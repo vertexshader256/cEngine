@@ -11,7 +11,7 @@ import scala.c.engine.models.*
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) extends CodeRunner with CEngineData with Functions {
+class CEngine(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) extends CodeRunner with CEngineData with Functions {
 
 	val memory = Memory(stackSize = 100000, dataSize = 10000, heapSize = 50000)
 

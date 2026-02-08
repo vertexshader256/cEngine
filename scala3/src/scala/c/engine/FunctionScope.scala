@@ -41,7 +41,7 @@ class FunctionScope(val function: Function, val parent: FunctionScope, val retur
 	private val pathStack = ListBuffer[IASTNode | CEngineInstruction]()
 	private var pathIndex = 0
 
-	var state: State = uninitialized
+	var state: CEngine = uninitialized
 
 	def pushVariableScope(): Unit = {
 		val newScope = VariableScope(currentVariableScope)
@@ -110,7 +110,7 @@ class FunctionScope(val function: Function, val parent: FunctionScope, val retur
 		stack.headOption
 	}
 
-	def run(theState: State): Unit = {
+	def run(theState: CEngine): Unit = {
 		state = theState
 		var keepRunning = true
 		try {
@@ -122,7 +122,7 @@ class FunctionScope(val function: Function, val parent: FunctionScope, val retur
 		}
 	}
 
-	def init(nodes: List[IASTNode], theState: State, shouldReset: Boolean): Unit = {
+	def init(nodes: List[IASTNode], theState: CEngine, shouldReset: Boolean): Unit = {
 		if (shouldReset) {
 			currentVariableScope.clear()
 		}
@@ -150,7 +150,7 @@ class FunctionScope(val function: Function, val parent: FunctionScope, val retur
 		}
 	}
 
-	private def tick(state: State): Boolean = {
+	private def tick(state: CEngine): Boolean = {
 		if (pathIndex < pathStack.size) {
 
 			//      if (current.isInstanceOf[IASTNode]) {

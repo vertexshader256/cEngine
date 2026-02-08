@@ -2,7 +2,7 @@ package scala.c.engine.models
 
 import org.eclipse.cdt.core.dom.ast.IASTNode
 
-import scala.c.engine.State
+import scala.c.engine.CEngine
 import scala.collection.mutable.ListBuffer
 
 // 'isNative' implies the function is in C, not Scala
@@ -19,7 +19,7 @@ abstract class Function(val name: String, val isNative: Boolean) {
 		staticVars += variable
 	}
 
-	def run(formattedOutputParams: Array[RValue], state: State): Option[RValue]
+	def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue]
 }
 
 abstract class EmulatedFunction(name: String) extends Function(name, false)

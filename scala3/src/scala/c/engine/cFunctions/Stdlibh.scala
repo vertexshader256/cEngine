@@ -10,7 +10,7 @@ object Stdlibh {
 	//                  <stdlib.h> functions                       //
 	/////////////////////////////////////////////////////////////////
 
-	def addFunctions(scalaFunctions: ListBuffer[Function])(implicit theState: State) = {
+	def addFunctions(scalaFunctions: ListBuffer[Function])(implicit theState: CEngine) = {
 
 		scalaFunctions += new OneParameterFunction[Address]("free") {
 			def func(addr: Address) = {

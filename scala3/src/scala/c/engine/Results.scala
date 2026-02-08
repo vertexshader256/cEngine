@@ -9,7 +9,7 @@ import scala.io.Source
 import scala.util.Using
 
 object Results {
-	private def callMain(state: State, arguments: List[String]) = {
+	private def callMain(state: CEngine, arguments: List[String]) = {
 		state.parseGlobals(state.sources)
 
 		val program = state.context
@@ -84,7 +84,7 @@ object Results {
 															 arguments: List[String], includePaths: List[String]): List[String] = {
 			val state = {
 				val ast = Utils.getTranslationUnits(codeInFiles, includePaths)
-				val state = State(ast, pointerSize)
+				val state = CEngine(ast, pointerSize)
 				state.addMain(ast)
 				state
 			}

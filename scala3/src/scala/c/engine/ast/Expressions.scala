@@ -8,13 +8,13 @@ import scala.c.engine.models.*
 
 object Expressions {
 
-	def evaluateAndResolveVariable(expr: IASTInitializerClause)(implicit state: State): ValueType = {
+	def evaluateAndResolveVariable(expr: IASTInitializerClause)(implicit state: CEngine): ValueType = {
 		evaluate(expr).get match
 			case vari: Variable => vari.rValue
 			case x => x
 	}
 
-	def evaluate(expr: IASTInitializerClause)(implicit state: State): Option[ValueType] = expr match {
+	def evaluate(expr: IASTInitializerClause)(implicit state: CEngine): Option[ValueType] = expr match {
 		case exprList: IASTExpressionList =>
 			exprList.getExpressions.map(evaluate).last
 		case ternary: IASTConditionalExpression =>
@@ -50,7 +50,7 @@ object Expressions {
 			Some(typeExpr(typeIdInit))
 	}
 
-	private def castExpression(cast: IASTCastExpression)(implicit state: State): ValueType = {
+	private def castExpression(cast: IASTCastExpression)(implicit state: CEngine): ValueType = {
 		val theType = TypeHelper.getType(cast.getTypeId).theType
 		val operand = evaluate(cast.getOperand).get
 
@@ -75,7 +75,7 @@ object Expressions {
 		}
 	}
 
-	private def arraySubscriptExpression(subscript: IASTArraySubscriptExpression)(implicit state: State): LValue = {
+	private def arraySubscriptExpression(subscript: IASTArraySubscriptExpression)(implicit state: CEngine): LValue = {
 		var left = evaluate(subscript.getArrayExpression).get
 		var right = evaluate(subscript.getArgument).get
 
@@ -102,7 +102,7 @@ object Expressions {
 		LValue(state, Address(offset), indexType)
 	}
 
-	private def fieldReference(fieldRef: IASTFieldReference)(implicit state: State): Field = {
+	private def fieldReference(fieldRef: IASTFieldReference)(implicit state: CEngine): Field = {
 		val struct = evaluate(fieldRef.getFieldOwner).get.asInstanceOf[LValue]
 		val structType = Structures.resolveStruct(struct.theType)
 
@@ -114,7 +114,7 @@ object Expressions {
 		Structures.offsetof(structType, baseAddr, fieldRef.getFieldName.toString, state)
 	}
 
-	private def binaryExpression(bin: IASTBinaryExpression)(implicit state: State): ValueType = {
+	private def binaryExpression(bin: IASTBinaryExpression)(implicit state: CEngine): ValueType = {
 		(bin.getOperator, evaluate(bin.getOperand1).head) match {
 			case (IASTBinaryExpression.op_logicalOr, op1 @ RValue(x: Boolean, _)) if x => op1
 			case (IASTBinaryExpression.op_logicalAnd, op1 @ RValue(x: Boolean, _)) if !x => op1
@@ -131,7 +131,7 @@ object Expressions {
 		}
 	}
 
-	private def typeExpr(typeIdInit: IASTTypeIdInitializerExpression)(implicit state: State): LValue = {
+	private def typeExpr(typeIdInit: IASTTypeIdInitializerExpression)(implicit state: CEngine): LValue = {
 		val theType = TypeHelper.getType(typeIdInit.getTypeId).theType
 		val newAddr = state.allocateStack(TypeHelper.sizeof(theType))
 

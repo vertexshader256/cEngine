@@ -16,10 +16,10 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 trait CodeRunner {
-	this: State =>
+	this: CEngine =>
 
 	private val main: Function = new Function("main", true) {
-		def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = None
+		def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = None
 	}
 
 	private val program = new FunctionScope(main, null, null) {}

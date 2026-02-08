@@ -29,7 +29,7 @@ object Printf {
 		buffer2.toString
 	}
 
-	private def printDynamicWidthString(stringFormat: String, param1: RValue, param2: RValue)(implicit state: State) = {
+	private def printDynamicWidthString(stringFormat: String, param1: RValue, param2: RValue)(implicit state: CEngine) = {
 		val formatString = stringFormat
 		val buffer2 = StringBuffer()
 		val formatter2 = Formatter(buffer2, Locale.US)
@@ -55,7 +55,7 @@ object Printf {
 		buffer2.toString
 	}
 
-	private def printSubstring(stringFormat: String, param1: RValue, param2: RValue)(implicit state: State) = {
+	private def printSubstring(stringFormat: String, param1: RValue, param2: RValue)(implicit state: CEngine) = {
 		val formatString = stringFormat
 		val buffer2 = StringBuffer()
 		val formatter2 = Formatter(buffer2, Locale.US)
@@ -82,7 +82,7 @@ object Printf {
 		buffer2.toString
 	}
 
-	private def printString(stringFormat: String, theValue: RValue)(implicit state: State) = {
+	private def printString(stringFormat: String, theValue: RValue)(implicit state: CEngine) = {
 		val formatString = stringFormat
 		val buffer2 = StringBuffer()
 		val formatter2 = Formatter(buffer2, Locale.US)
@@ -237,8 +237,8 @@ object Printf {
 		output.toString
 	}
 
-	private case class SingleParamOutputFormat(identifier: String, toText: (String, RValue, State) => String)
-	private case class DualParamOutputFormat(identifier: String, toText: (String, RValue, RValue, State) => String)
+	private case class SingleParamOutputFormat(identifier: String, toText: (String, RValue, CEngine) => String)
+	private case class DualParamOutputFormat(identifier: String, toText: (String, RValue, RValue, CEngine) => String)
 
 	private val singleParamFormats: Seq[SingleParamOutputFormat] = Seq(
 		SingleParamOutputFormat("f", (format, rValue, _) => printFloat(format, rValue.value.asInstanceOf[Object])),
@@ -263,7 +263,7 @@ object Printf {
 		DualParamOutputFormat(".*s", (format, param1, param2, state) => printSubstring("", param1, param2)(using state))
 	)
 
-	def printf(formattedOutputParams: Array[RValue], state: State): String = {
+	def printf(formattedOutputParams: Array[RValue], state: CEngine): String = {
 		val str = Utils.readString(Address(formattedOutputParams.last.value.asInstanceOf[Int]))(using state)
 
 		var percentFound = false

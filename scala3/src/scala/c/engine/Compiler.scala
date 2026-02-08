@@ -8,11 +8,11 @@ import scala.c.engine.Instructions.*
 
 object Compiler {
 
-	def compile(tUnit: IASTNode)(implicit state: State): List[IASTNode | CEngineInstruction] = {
+	def compile(tUnit: IASTNode)(using CEngine): List[IASTNode | CEngineInstruction] = {
 		tUnit.getChildren.flatMap(compileNode).toList
 	}
 
-	private def compileNode(node: IASTNode)(implicit state: State): List[IASTNode | CEngineInstruction] = {
+	private def compileNode(node: IASTNode)(implicit cEngine: CEngine): List[IASTNode | CEngineInstruction] = {
 		node match
 			case ifStatement: IASTIfStatement =>
 				compileIfStatement(ifStatement)
@@ -29,9 +29,9 @@ object Compiler {
 			case x: IASTDefaultStatement =>
 				List(DefaultLabel(x))
 			case _: IASTContinueStatement =>
-				List(JmpLabel(state.continueLabelStack.head))
+				List(JmpLabel(cEngine.continueLabelStack.head))
 			case _: IASTBreakStatement =>
-				List(JmpLabel(state.breakLabelStack.head))
+				List(JmpLabel(cEngine.breakLabelStack.head))
 			case _: IASTElaboratedTypeSpecifier =>
 				List()
 			case goto: IASTGotoStatement =>
@@ -58,7 +58,7 @@ object Compiler {
 				node +: node.getChildren.toList
 	}
 
-	def compileIfStatement(ifStatement: IASTIfStatement)(implicit state: State) = {
+	def compileIfStatement(ifStatement: IASTIfStatement)(using CEngine) = {
 		val contents = compileNode(ifStatement.getThenClause)
 		val elseContents = List(Option(ifStatement.getElseClause)).flatten.flatMap(compileNode)
 
@@ -72,19 +72,19 @@ object Compiler {
 		JmpIfNotEqual(ifStatement.getConditionExpression, all.size) +: (all ++ elseContents)
 	}
 
-	def compileForStatement(forStatement: IASTForStatement)(implicit state: State) = {
+	def compileForStatement(forStatement: IASTForStatement)(implicit cEngine: CEngine) = {
 		val breakLabel = BreakLabel()
-		state.breakLabelStack = breakLabel +: state.breakLabelStack
+		cEngine.breakLabelStack = breakLabel +: cEngine.breakLabelStack
 		val continueLabel = ContinueLabel()
-		state.continueLabelStack = continueLabel +: state.continueLabelStack
+		cEngine.continueLabelStack = continueLabel +: cEngine.continueLabelStack
 
 		val init = List(forStatement.getInitializerStatement)
 		val contents = compileNode(forStatement.getBody)
 		val iter = forStatement.getIterationExpression
 		val beginLabel = GotoLabel("")
 
-		state.breakLabelStack = state.breakLabelStack.tail
-		state.continueLabelStack = state.continueLabelStack.tail
+		cEngine.breakLabelStack = cEngine.breakLabelStack.tail
+		cEngine.continueLabelStack = cEngine.continueLabelStack.tail
 
 		val iterExpr = if iter != null then List(iter) else List()
 
@@ -100,44 +100,44 @@ object Compiler {
 		start ++ jmpnz ++ execution ++ end
 	}
 
-	def compileWhileStatement(whileStatement: IASTWhileStatement)(implicit state: State) = {
+	def compileWhileStatement(whileStatement: IASTWhileStatement)(implicit cEngine: CEngine) = {
 		val breakLabel = BreakLabel()
-		state.breakLabelStack = breakLabel +: state.breakLabelStack
+		cEngine.breakLabelStack = breakLabel +: cEngine.breakLabelStack
 		val continueLabel = ContinueLabel()
-		state.continueLabelStack = continueLabel +: state.continueLabelStack
+		cEngine.continueLabelStack = continueLabel +: cEngine.continueLabelStack
 
 		val contents = compileNode(whileStatement.getBody)
 		val begin = GotoLabel("")
 		val end = GotoLabel("")
 
-		state.breakLabelStack = state.breakLabelStack.tail
-		state.continueLabelStack = state.continueLabelStack.tail
+		cEngine.breakLabelStack = cEngine.breakLabelStack.tail
+		cEngine.continueLabelStack = cEngine.continueLabelStack.tail
 
 		val body = List(JmpLabel(end), begin) ++ contents ++ List(end, continueLabel, JmpToLabelIfZero(whileStatement.getCondition, begin), breakLabel)
 
 		PushVariableStack() +: body :+ PopVariableStack()
 	}
 
-	def compileDoWhileStatement(doWhileStatement: IASTDoStatement)(implicit state: State) = {
+	def compileDoWhileStatement(doWhileStatement: IASTDoStatement)(implicit cEngine: CEngine) = {
 		val breakLabel = BreakLabel()
-		state.breakLabelStack = breakLabel +: state.breakLabelStack
+		cEngine.breakLabelStack = breakLabel +: cEngine.breakLabelStack
 		val continueLabel = ContinueLabel()
-		state.continueLabelStack = continueLabel +: state.continueLabelStack
+		cEngine.continueLabelStack = continueLabel +: cEngine.continueLabelStack
 
 		val contents = compileNode(doWhileStatement.getBody)
 		val begin = new Label {}
 
-		state.breakLabelStack = state.breakLabelStack.tail
-		state.continueLabelStack = state.continueLabelStack.tail
+		cEngine.breakLabelStack = cEngine.breakLabelStack.tail
+		cEngine.continueLabelStack = cEngine.continueLabelStack.tail
 
 		val body = begin +: (contents ++ List(continueLabel, JmpToLabelIfZero(doWhileStatement.getCondition, begin), breakLabel))
 
 		PushVariableStack() +: body :+ PopVariableStack()
 	}
 
-	def compileSwitchStatement(switch: IASTSwitchStatement)(implicit state: State) = {
+	def compileSwitchStatement(switch: IASTSwitchStatement)(implicit cEngine: CEngine) = {
 		val breakLabel = BreakLabel()
-		state.breakLabelStack = breakLabel +: state.breakLabelStack
+		cEngine.breakLabelStack = breakLabel +: cEngine.breakLabelStack
 
 		val descendants = compileNode(switch.getBody)
 
@@ -148,7 +148,7 @@ object Compiler {
 		}
 
 		val jumpTable = descendants.flatMap {
-			case x@CaseLabel(caseStatement) if switch.getBody == getParentSwitchBody(caseStatement) =>
+			case x @ CaseLabel(caseStatement) if switch.getBody == getParentSwitchBody(caseStatement) =>
 				val cached = CachedRValue(switch.getControllerExpression)
 				cached +: List(JmpToLabelIfEqual(caseStatement.getExpression, cached, x))
 			case x@DefaultLabel(default) if switch.getBody == getParentSwitchBody(default) =>
@@ -157,14 +157,14 @@ object Compiler {
 				List()
 		}
 
-		state.breakLabelStack = state.breakLabelStack.tail
+		cEngine.breakLabelStack = cEngine.breakLabelStack.tail
 
 		val result = (jumpTable :+ JmpLabel(breakLabel)) ++ descendants :+ breakLabel
 
 		PushVariableStack() +: result :+ PopVariableStack()
 	}
 
-	def compileCompoundStatement(compound: IASTCompoundStatement)(implicit state: State) = {
+	def compileCompoundStatement(compound: IASTCompoundStatement)(using CEngine) = {
 		val isTypicalCompound = compound.getParent match
 			case _: (IASTSwitchStatement | CASTFunctionDefinition | CASTForStatement |
 				CASTDoStatement | CASTWhileStatement) => true

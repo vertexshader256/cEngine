@@ -16,17 +16,17 @@ object Stdio {
 	//                   <stdio.h> functions                       //
 	/////////////////////////////////////////////////////////////////
 
-	def addFunctions(scalaFunctions: ListBuffer[Function])(implicit theState: State) = {
+	def addFunctions(scalaFunctions: ListBuffer[Function])(implicit theState: CEngine) = {
 
 		scalaFunctions += new EmulatedFunction("printf") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
 				state.stdout ++= Printf.printf(formattedOutputParams, state)
 				None
 			}
 		}
 
 		scalaFunctions += new EmulatedFunction("sscanf") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
 				val resultBuffer = formattedOutputParams.last.value.asInstanceOf[Int]
 
 				val varArgs = formattedOutputParams.drop(2).toList
@@ -41,7 +41,7 @@ object Stdio {
 
 		//fcvtbuf(double arg, int ndigits, int *decpt, int *sign, char *buf)
 		scalaFunctions += new EmulatedFunction("fcvtbuf") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
 				//val buf = formattedOutputParams(0).value.asInstanceOf[Int]
 				//val sign = formattedOutputParams(1).value.asInstanceOf[Int]
 				val decpt = formattedOutputParams(2).value.asInstanceOf[Int]
@@ -96,7 +96,7 @@ object Stdio {
 		}.generate
 
 		scalaFunctions += new EmulatedFunction("fopen") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
 				val path = Utils.readString(Address(formattedOutputParams.last.value.asInstanceOf[Int]))(using state)
 				val mode = Utils.readString(Address(formattedOutputParams.head.value.asInstanceOf[Int]))(using state)
 
@@ -115,7 +115,7 @@ object Stdio {
 
 		// a return value of 0 indicates the file was successfully deleted
 		scalaFunctions += new EmulatedFunction("remove") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
 				val path = Utils.readString(Address(formattedOutputParams.last.value.asInstanceOf[Int]))(using state)
 				val file = File(path)
 
@@ -129,7 +129,7 @@ object Stdio {
 		}
 
 		scalaFunctions += new EmulatedFunction("fgets") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
 				val resultBuffer = formattedOutputParams(2).value.asInstanceOf[Int]
 				val size = formattedOutputParams(1).value.asInstanceOf[Int]
 				val fp = formattedOutputParams(0).asInstanceOf[FileRValue]
@@ -157,7 +157,7 @@ object Stdio {
 		}
 
 		scalaFunctions += new EmulatedFunction("getc") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
 				val fp = formattedOutputParams(0).asInstanceOf[FileRValue]
 
 				try {
@@ -172,7 +172,7 @@ object Stdio {
 
 		// returns 0 on success
 		scalaFunctions += new EmulatedFunction("fclose") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
 				val fp = formattedOutputParams.last.asInstanceOf[FileRValue]
 				fp.close()
 				Some(RValue(0))
@@ -180,7 +180,7 @@ object Stdio {
 		}
 
 		scalaFunctions += new EmulatedFunction("fprintf") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
 				val fp = formattedOutputParams.last.asInstanceOf[FileRValue]
 
 				val formattedStr = Printf.printf(formattedOutputParams.drop(1), state)
@@ -190,7 +190,7 @@ object Stdio {
 		}
 
 		scalaFunctions += new EmulatedFunction("snprintf") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
 				val strAddr = formattedOutputParams.last.value.asInstanceOf[Int]
 				val size = formattedOutputParams.reverse(1).value.asInstanceOf[Int]
 
@@ -204,7 +204,7 @@ object Stdio {
 		}
 
 		scalaFunctions += new EmulatedFunction("sprintf") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
 				val strAddr = formattedOutputParams.last.value.asInstanceOf[Int]
 
 				val formattedStr = Printf.printf(formattedOutputParams.drop(1), state)
@@ -215,7 +215,7 @@ object Stdio {
 
 		// TODO: Complete this
 		scalaFunctions += new EmulatedFunction("fscanf") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
 				//val fp = formattedOutputParams(3).asInstanceOf[FileRValue]
 				//val dst = formattedOutputParams(1).value.asInstanceOf[Int]
 
@@ -226,7 +226,7 @@ object Stdio {
 		}
 
 		scalaFunctions += new EmulatedFunction("fread") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
 				val resultBuffer = formattedOutputParams(3).value.asInstanceOf[Int]
 				val size = formattedOutputParams(2).value.asInstanceOf[Int]
 				val numMembers = TypeHelper.cast(formattedOutputParams(1).value, TypeHelper.intType).value.asInstanceOf[Int]
@@ -238,7 +238,7 @@ object Stdio {
 		}
 
 		scalaFunctions += new EmulatedFunction("fwrite") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
 				val buffer = formattedOutputParams(3).value.asInstanceOf[Int] // write this to fp
 				val size = formattedOutputParams(2).value.asInstanceOf[Int]
 				val numMembers = formattedOutputParams(1).value.asInstanceOf[Int]

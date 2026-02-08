@@ -11,7 +11,7 @@ case class GccOutput(output: Seq[String], wasSuccess: Boolean)
 
 object Gcc {
 
-	def runGlobalCode(code: String, state: State, includePaths: List[String]) = {
+	def runGlobalCode(code: String, state: CEngine, includePaths: List[String]) = {
 		val exeCode = s"$code"
 		val ast = Utils.getTranslationUnits(Seq(exeCode), includePaths)
 		state.addMain(ast)

@@ -11,7 +11,7 @@ import scala.c.engine.models.*
 
 object UnaryExpression {
 		
-	def execute(unary: IASTUnaryExpression)(implicit state: State): ValueType = {
+	def execute(unary: IASTUnaryExpression)(implicit state: CEngine): ValueType = {
 		val value = evaluate(unary.getOperand).head
 
 		unary.getOperator match
@@ -33,7 +33,7 @@ object UnaryExpression {
 			case `op_star` => processStar(value)
 	}
 
-	private def processTilde(value: ValueType)(implicit state: State) = {
+	private def processTilde(value: ValueType)(implicit state: CEngine) = {
 		value match
 			case RValue(rValue, _) =>
 				RValue(~rValue.asInstanceOf[Int], TypeHelper.unsignedIntType)
@@ -50,7 +50,7 @@ object UnaryExpression {
 				RValue(result, info.theType)
 	}
 
-	private def processSizeof(value: ValueType)(implicit state: State) = {
+	private def processSizeof(value: ValueType)(implicit state: CEngine) = {
 		val size = value match
 			case info: LValue => info.sizeof
 			case rValue: RValue => rValue.sizeof
@@ -58,7 +58,7 @@ object UnaryExpression {
 		RValue(size, TypeHelper.intType)
 	}
 
-	private def processStar(value: ValueType)(implicit state: State) = {
+	private def processStar(value: ValueType)(implicit state: CEngine) = {
 		value match
 			case RValue(int: Int, theType) =>
 				LValue(state, Address(int), theType)
@@ -73,7 +73,7 @@ object UnaryExpression {
 	}
 	
 	// per C Spec this returns a RValue
-	private def evaluateIncrDecr(unary: IASTUnaryExpression, value: ValueType, operator: Int)(implicit state: State): RValue = {
+	private def evaluateIncrDecr(unary: IASTUnaryExpression, value: ValueType, operator: Int)(implicit state: CEngine): RValue = {
 		val op = operator match
 			case `op_postFixIncr` | `op_prefixIncr` => IASTBinaryExpression.op_plus
 			case `op_postFixDecr` | `op_prefixDecr` => IASTBinaryExpression.op_minus

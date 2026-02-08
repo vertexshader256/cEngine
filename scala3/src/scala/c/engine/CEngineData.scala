@@ -13,7 +13,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 trait CEngineData {
-	this: State =>
+	this: CEngine =>
 
 	val pointerType: CBasicType = pointerSize match
 		case NumBits.ThirtyTwoBits => TypeHelper.intType

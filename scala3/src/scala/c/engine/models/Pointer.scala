@@ -11,7 +11,7 @@ case class Pointer(address: Address, theType: IType) extends RValue {
 		"Pointer(" + value + ", " + theType + ")"
 	}
 
-	override def sizeof(implicit state: State): Int = {
+	override def sizeof(implicit state: CEngine): Int = {
 		state.pointerSize.ptrSize
 	}
 

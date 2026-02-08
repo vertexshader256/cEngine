@@ -16,7 +16,7 @@ object Mathh {
 	//                   <math.h> functions                        //
 	/////////////////////////////////////////////////////////////////
 
-	def addFunctions(scalaFunctions: ListBuffer[Function])(implicit theState: State) = {
+	def addFunctions(scalaFunctions: ListBuffer[Function])(implicit theState: CEngine) = {
 
 		scalaFunctions += new OneParameterFunction[Float]("sqrt") {
 			def func(num: Float) = {

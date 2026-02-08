@@ -11,7 +11,7 @@ import scala.util.Try
 
 object Declarator {
 
-	def execute(decl: IASTDeclarator)(implicit state: State): Any = decl match {
+	def execute(decl: IASTDeclarator)(implicit state: CEngine): Any = decl match {
 		case fcnDec: IASTFunctionDeclarator =>
 			processFcnDeclarator(fcnDec)
 		case arrayDecl: IASTArrayDeclarator =>
@@ -20,7 +20,7 @@ object Declarator {
 			processDeclarator(decl)
 	}
 
-	def getRValues(decl: IASTInitializerClause, theType: IType, isStatic: Boolean)(implicit state: State): List[ValueType] = {
+	def getRValues(decl: IASTInitializerClause, theType: IType, isStatic: Boolean)(implicit state: CEngine): List[ValueType] = {
 		theType match
 			case struct: CStructure =>
 				getValuesFromInitializer(decl, struct, isStatic)
@@ -28,7 +28,7 @@ object Declarator {
 				List(Expressions.evaluate(decl).get)
 	}
 
-	def assign(dst: LValue, srcs: List[ValueType], equals: IASTInitializerClause, op: Int, isStatic: Boolean = false)(implicit state: State): Unit = {
+	def assign(dst: LValue, srcs: List[ValueType], equals: IASTInitializerClause, op: Int, isStatic: Boolean = false)(implicit state: CEngine): Unit = {
 		if !dst.theType.isInstanceOf[CStructure] then
 			val eval = evaluate(dst, srcs.head, op, isStatic)
 			val result = eval match
@@ -54,7 +54,7 @@ object Declarator {
 							assign(theField, List(newValue), equals, op, isStatic)
 	}
 
-	private def setFunctionPointer(fcnDec: IASTFunctionDeclarator)(implicit state: State): Unit = {
+	private def setFunctionPointer(fcnDec: IASTFunctionDeclarator)(implicit state: CEngine): Unit = {
 		// when you're initializing a function pointer: int (*funcPtr2)(int, int) = blah2;
 		val nameBinding = fcnDec.getNestedDeclarator.getName.resolveBinding()
 		val name = fcnDec.getNestedDeclarator.getName
@@ -67,7 +67,7 @@ object Declarator {
 				variable.setValue(TypeHelper.toRValue(state.context.popStack))
 	}
 
-	private def processFcnDeclarator(fcnDec: IASTFunctionDeclarator)(implicit state: State): Unit = {
+	private def processFcnDeclarator(fcnDec: IASTFunctionDeclarator)(implicit state: CEngine): Unit = {
 		if (Utils.getDescendants(fcnDec).exists { x => x.isInstanceOf[IASTEqualsInitializer] }) {
 			setFunctionPointer(fcnDec)
 		} else {
@@ -79,7 +79,7 @@ object Declarator {
 		}
 	}
 
-	private def flattenInitList(node: IASTInitializerClause)(implicit state: State): List[ValueType] = node match {
+	private def flattenInitList(node: IASTInitializerClause)(implicit state: CEngine): List[ValueType] = node match {
 		case list: IASTInitializerList =>
 			list.getClauses.toList.flatMap(flattenInitList)
 		case lit: IASTLiteralExpression =>
@@ -105,7 +105,7 @@ object Declarator {
 		arrayType
 	}
 
-	private def initializeNullArray(name: IASTName, arrayDecl: IASTArrayDeclarator)(implicit state: State) = {
+	private def initializeNullArray(name: IASTName, arrayDecl: IASTArrayDeclarator)(implicit state: CEngine) = {
 		val theType = TypeHelper.getBindingType(name.resolveBinding())
 
 		val dimensions = arrayDecl.getArrayModifiers.toList.filter {
@@ -123,7 +123,7 @@ object Declarator {
 		state.context.addVariable(name, aType)
 	}
 
-	private def processList(theType: IType, list: CASTInitializerList, isStatic: Boolean)(implicit state: State): List[RValue] = {
+	private def processList(theType: IType, list: CASTInitializerList, isStatic: Boolean)(implicit state: CEngine): List[RValue] = {
 		val flattened = flattenInitList(list).map(x => TypeHelper.toRValue(x, isStatic))
 
 		if !TypeHelper.isPointer(theType) && !Structures.isStructure(theType) then
@@ -133,7 +133,7 @@ object Declarator {
 			flattened
 	}
 
-	private def initializeArrayVariable(name: IASTName, init: IASTInitializerClause)(implicit state: State): Variable = {
+	private def initializeArrayVariable(name: IASTName, init: IASTInitializerClause)(implicit state: CEngine): Variable = {
 		val theType = TypeHelper.getBindingType(name.resolveBinding())
 		val pointerType = TypeHelper.getPointerType(theType)
 
@@ -151,7 +151,7 @@ object Declarator {
 		state.context.addVariable(name, theType, values)
 	}
 
-	private def processArrayDecl(arrayDecl: IASTArrayDeclarator)(implicit state: State): Unit = {
+	private def processArrayDecl(arrayDecl: IASTArrayDeclarator)(implicit state: CEngine): Unit = {
 		
 		val name = if arrayDecl.getNestedDeclarator != null then
 			arrayDecl.getNestedDeclarator.getName
@@ -189,7 +189,7 @@ object Declarator {
 	}
 
 	// where variables get created
-	private def processDeclarator(decl: CASTDeclarator)(implicit state: State): Unit = {
+	private def processDeclarator(decl: CASTDeclarator)(implicit state: CEngine): Unit = {
 		val nameBinding = decl.getName.resolveBinding()
 		val name = decl.getName
 
@@ -226,7 +226,7 @@ object Declarator {
 		}
 	}
 
-	private def getValuesFromList(list: IASTInitializerList, theType: IType, isStatic: Boolean)(implicit state: State): List[ValueType] = {
+	private def getValuesFromList(list: IASTInitializerList, theType: IType, isStatic: Boolean)(implicit state: CEngine): List[ValueType] = {
 		val descendants = Utils.getDescendants(list)
 		val hasNamedDesignator = descendants.exists { node => node.isInstanceOf[CASTDesignatedInitializer] } // {.y = 343, .x = 543, .next = 8578}
 		val isStructure = theType.isInstanceOf[CStructure]
@@ -250,7 +250,7 @@ object Declarator {
 		}
 	}
 
-	private def getValuesFromInitializer(initClause: IASTInitializerClause, theType: IType, isStatic: Boolean)(implicit state: State): List[ValueType] = {
+	private def getValuesFromInitializer(initClause: IASTInitializerClause, theType: IType, isStatic: Boolean)(implicit state: CEngine): List[ValueType] = {
 		initClause match
 			case list: IASTInitializerList =>
 				getValuesFromList(list, theType, isStatic)

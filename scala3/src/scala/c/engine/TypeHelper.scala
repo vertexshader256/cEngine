@@ -128,7 +128,7 @@ object TypeHelper {
 	}
 
 	// resolves 'ValueType' to 'RValue'
-	def toRValue(any: ValueType, isStatic: Boolean = false)(implicit state: State): RValue = any match {
+	def toRValue(any: ValueType, isStatic: Boolean = false)(implicit state: CEngine): RValue = any match {
 		case info @ LValue(_, _) => info.rValue
 		case rValue @ RValue(_, _) => rValue
 		case StringLiteral(str) => state.allocateString(str, isStatic)
@@ -179,7 +179,7 @@ object TypeHelper {
 	}
 
 	@tailrec
-	def resolveBasic(theType: IType)(implicit state: State): IBasicType = theType match {
+	def resolveBasic(theType: IType)(implicit state: CEngine): IBasicType = theType match {
 		case basicType: IBasicType => basicType
 		case typedef: ITypedef => resolveBasic(typedef.getType)
 		case ptrType: IPointerType => resolveBasic(ptrType.getType)
@@ -206,13 +206,13 @@ object TypeHelper {
 		case info@LValue(_, _) => resolveBoolean(info.rValue)
 	}
 
-	def getPointerSize(theType: IType)(implicit state: State): Int = theType match {
+	def getPointerSize(theType: IType)(implicit state: CEngine): Int = theType match {
 		case ptr: IPointerType => state.addressSize
 		case array: IArrayType if array.hasSize => TypeHelper.sizeof(array.getType) * array.getSize.numericalValue().toInt
 		case _ => TypeHelper.sizeof(theType)(using state)
 	}
 
-	def sizeof(theType: IType)(implicit state: State): Int = theType match {
+	def sizeof(theType: IType)(implicit state: CEngine): Int = theType match {
 		case _: CEnumeration => 4
 		case _: IFunctionType => state.addressSize
 		case _: IPointerType => state.addressSize

@@ -15,7 +15,7 @@ object Stringh {
 	//                  <string.h> functions                       //
 	/////////////////////////////////////////////////////////////////
 
-	def addFunctions(scalaFunctions: ListBuffer[Function])(implicit theState: State) = {
+	def addFunctions(scalaFunctions: ListBuffer[Function])(implicit theState: CEngine) = {
 
 		val isAlpha = (theChar: Char) => Some(if (theChar.isLetter) 1 else 0)
 		scalaFunctions += isAlpha.generate("isalpha")

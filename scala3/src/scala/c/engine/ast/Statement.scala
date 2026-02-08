@@ -9,7 +9,7 @@ import scala.c.engine.models.*
 
 object Statement {
 
-	def step(statement: IASTStatement)(implicit state: State): Unit = statement match {
+	def step(statement: IASTStatement)(implicit state: CEngine): Unit = statement match {
 		case _: IASTNullStatement =>
 			PartialFunction.empty
 		case ret: IASTReturnStatement =>

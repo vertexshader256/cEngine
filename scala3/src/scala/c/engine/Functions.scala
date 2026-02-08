@@ -12,7 +12,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 trait Functions {
-	this: State =>
+	this: CEngine =>
 
 	var varArgStartingAddr = List[Int]()
 	private val scalaFunctions = ListBuffer[Function]()
@@ -148,7 +148,7 @@ trait Functions {
 			index = count
 			node = fcnDef
 
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
 				None
 			}
 		}

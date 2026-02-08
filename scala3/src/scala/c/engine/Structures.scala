@@ -20,7 +20,7 @@ object Structures {
 		case qualifier: CQualifierType => isStructure(qualifier.getType)
 	}
 
-	def copyStructure(structType: CStructure, srcAddress: Address, newName: IASTName, state: State): Variable = {
+	def copyStructure(structType: CStructure, srcAddress: Address, newName: IASTName, state: CEngine): Variable = {
 		val newAddress = Address(state.memory.getStackPosition)
 		val resultCopy = Variable(newName, state, structType) // space is allocated now
 
@@ -38,7 +38,7 @@ object Structures {
 		resultCopy
 	}
 
-	def offsetof(struct: CStructure, memberName: String, state: State): Int = {
+	def offsetof(struct: CStructure, memberName: String, state: CEngine): Int = {
 		val largestField = struct.getFields.filter { f => f.getType.isInstanceOf[CBasicType] }.map { x => sizeInBits(x)(using state) / 8 }.sorted.maxOption.getOrElse(0)
 		val fields = struct.getFields.takeWhile { field => field.getName != memberName }.map { x => sizeInBits(x)(using state) / 8 }
 		val paddedFields = fields.map: f =>
@@ -46,7 +46,7 @@ object Structures {
 		paddedFields.sum
 	}
 
-	def offsetof(structType: CStructure, baseAddress: Address, fieldName: String, state: State): Field = {
+	def offsetof(structType: CStructure, baseAddress: Address, fieldName: String, state: CEngine): Field = {
 		var resultAddress: Field = null
 		var offsetInBits: Int = 0
 
@@ -67,7 +67,7 @@ object Structures {
 		resultAddress
 	}
 
-	def sizeInBits(field: IField)(implicit state: State): Int = {
+	def sizeInBits(field: IField)(implicit state: CEngine): Int = {
 		val parent = field.asInstanceOf[CField].getDefinition.getParent
 		parent match
 			case field: CASTFieldDeclarator => Expressions.evaluate(field.getBitFieldSize).get.asInstanceOf[RValue].value.asInstanceOf[Int]

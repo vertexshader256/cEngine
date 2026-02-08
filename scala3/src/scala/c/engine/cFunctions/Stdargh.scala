@@ -19,7 +19,7 @@ object Stdargh {
 	def addFunctions(scalaFunctions: ListBuffer[Function]) = {
 
 		scalaFunctions += new EmulatedFunction("va_arg") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
 				val argTypeStr = formattedOutputParams(0).value.asInstanceOf[Int]
 
 				val str = Utils.readString(Address(argTypeStr))(using state)
@@ -43,7 +43,7 @@ object Stdargh {
 		}
 
 		scalaFunctions += new EmulatedFunction("va_start") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
 				val lastNamedArgAddr = formattedOutputParams(0).value.asInstanceOf[Int]
 				state.varArgStartingAddr = (lastNamedArgAddr + 4) +: state.varArgStartingAddr
 				None
@@ -51,7 +51,7 @@ object Stdargh {
 		}
 
 		scalaFunctions += new EmulatedFunction("va_end") {
-			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
 				state.varArgStartingAddr = state.varArgStartingAddr.tail
 				None
 			}

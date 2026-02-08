@@ -16,7 +16,7 @@ trait LValue extends ValueType {
 	val address: Address
 	val theType: IType
 	val bitOffset: Int
-	val state: State
+	val state: CEngine
 	val sizeInBits: Int
 
 	final protected var rVal: RValue = RValue(0, TypeHelper.intType)
@@ -48,7 +48,7 @@ trait LValue extends ValueType {
 object LValue {
 	def unapply(info: LValue): Option[(Address, IType)] = Some((info.address, info.theType))
 
-	def apply(theState: State, addr: Address, aType: IType) =
+	def apply(theState: CEngine, addr: Address, aType: IType) =
 		new LValue {
 			val address = addr
 			val state = theState
