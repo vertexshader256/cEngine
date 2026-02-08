@@ -31,7 +31,7 @@ trait Functions {
 
 	private def popFunctionContext: FunctionScope = {
 		val frame = functionContexts.pop()
-		stack.setStackPosition(frame.startingStackAddr)
+		memory.setStackPosition(frame.startingStackAddr)
 		frame
 	}
 
@@ -63,13 +63,13 @@ trait Functions {
 			if (!function.isNative) {
 				// this is a function simulated in scala
 
-				val stackPos = stack.getStackPosition
+				val stackPos = memory.getStackPosition
 				val args = call.getArguments.map { x => Expressions.evaluate(x)(using this) }
 
 				val resolvedArgs: Array[RValue] = args.flatten.map(TypeHelper.toRValue(_)(using this))
 
 				val returnVal = function.run(resolvedArgs.reverse, this)
-				stack.setStackPosition(stackPos) // pop the stack
+				memory.setStackPosition(stackPos) // pop the stack
 
 				returnVal.map:
 					case file@FileRValue(_) => file
@@ -125,7 +125,7 @@ trait Functions {
 
 		if (!isMain) {
 			val newVar = Variable(name, this, fcnType)
-			stack.writeToMemory(count, newVar.address, fcnType)
+			memory.writeToMemory(count, newVar.address, fcnType)
 
 			functionPointers += name.toString -> newVar
 		}
@@ -149,7 +149,7 @@ trait Functions {
 
 		val fcnType = CFunctionType(CBasicType(IBasicType.Kind.eVoid, 0), null)
 		val newVar = Variable(new CASTName(fcn.name.toCharArray), this, fcnType)
-		stack.writeToMemory(count, newVar.address, fcnType)
+		memory.writeToMemory(count, newVar.address, fcnType)
 
 		functionPointers += fcn.name -> newVar
 	}
@@ -175,7 +175,7 @@ trait Functions {
 					val resolvedArg = TypeHelper.toRValue(arg)(using this)
 					val newVar = context.addVariable(param.getName, param.getType)
 					val casted = TypeHelper.cast(resolvedArg.value, newVar.theType).value
-					stack.writeToMemory(casted, newVar.address, newVar.theType)
+					memory.writeToMemory(casted, newVar.address, newVar.theType)
 			}
 		}
 	}

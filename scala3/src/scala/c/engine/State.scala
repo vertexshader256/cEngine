@@ -13,7 +13,7 @@ import scala.collection.mutable.ListBuffer
 
 class State(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) extends CodeRunner with CEngineData with Functions {
 
-	val stack = Memory(stackSize = 100000, dataSize = 10000, heapSize = 50000)
+	val memory = Memory(stackSize = 100000, dataSize = 10000, heapSize = 50000)
 
 	var varArgStartingAddr = List[Int]()
 

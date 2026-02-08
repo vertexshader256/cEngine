@@ -22,28 +22,28 @@ trait CEngineData {
 	val addressSize: Int = TypeHelper.sizeof(pointerType)(using this)
 
 	def allocateDataSegmentSpace(numBytes: Int): Address = {
-		stack.allocateData(numBytes)
+		memory.allocateData(numBytes)
 	}
 
 	def allocateStack(numBytes: Int): Address = {
-		stack.allocate(numBytes)
+		memory.allocate(numBytes)
 	}
 
 	def allocateHeapSpace(numBytes: Int): Address = {
-		stack.allocateHeapSpace(numBytes)
+		memory.allocateHeapSpace(numBytes)
 	}
 
 	def copy(dst: Address, src: Address, numBytes: Int): Unit = {
-		val data = stack.readDataBlock(src, numBytes)
-		stack.writeDataBlock(data, dst)
+		val data = memory.readDataBlock(src, numBytes)
+		memory.writeDataBlock(data, dst)
 	}
 
 	def set(address: Address, value: Byte, numBytes: Int): Unit = {
-		stack.set(address, value, numBytes)
+		memory.set(address, value, numBytes)
 	}
 
 	def writeDataBlock(address: Address, array: Array[Byte]): Unit = {
-		stack.writeDataBlock(array, address)
+		memory.writeDataBlock(array, address)
 	}
 
 	def writeValues(address: Address, values: List[RValue]): Unit = {
@@ -51,16 +51,16 @@ trait CEngineData {
 
 		values.foreach:
 			case RValue(newVal, theType) =>
-				stack.writeToMemory(newVal, Address(location), theType)
+				memory.writeToMemory(newVal, Address(location), theType)
 				location += TypeHelper.sizeof(theType)(using this)
 	}
 
 	def readDataBlock(address: Address, length: Int): Array[Byte] = {
-		stack.readDataBlock(address, length)
+		memory.readDataBlock(address, length)
 	}
 
 	def readPtrVal(address: Address): Int = {
-		stack.readPtrVal(address)
+		memory.readPtrVal(address)
 	}
 
 	private def stripQuotes(str: String): String = {

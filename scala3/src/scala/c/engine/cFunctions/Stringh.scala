@@ -121,7 +121,7 @@ object Stringh {
 								tokenFound = true
 								sourceStr = sourceStr.updated(index, '\u0000')
 								strTokPosition = Address(firstNonToken.location + index + 1)
-								state.stack.writeDataBlock(sourceStr.getBytes, firstNonToken)
+								state.memory.writeDataBlock(sourceStr.getBytes, firstNonToken)
 							else if tokenFound then
 								doneFindingTokens = true
 					}
@@ -147,7 +147,7 @@ object Stringh {
 								tokenFound = true
 								sourceStr = sourceStr.updated(index, '\u0000')
 								strTokPosition = Address(sourceAddr + index + 1)
-								state.stack.writeDataBlock(sourceStr.getBytes, Address(sourceAddr))
+								state.memory.writeDataBlock(sourceStr.getBytes, Address(sourceAddr))
 								doneFindingTokens = true
 							else if tokenFound then
 								doneFindingTokens = true
@@ -182,7 +182,7 @@ object Stringh {
 
 				val concat = str1 + str2 + "\u0000"
 				val bytes = concat.getBytes
-				state.stack.writeDataBlock(bytes, dst)
+				state.memory.writeDataBlock(bytes, dst)
 				Some(dst.location) // returns a pointer to the destination string
 			}
 		}.generate
@@ -221,10 +221,10 @@ object Stringh {
 
 				for (i <- (0 until numBytes)) {
 
-					val value = state.stack.readFromMemoryRaw(TypeHelper.charType, memaddy + i)
+					val value = state.memory.readFromMemoryRaw(TypeHelper.charType, memaddy + i)
 					val value1 = TypeHelper.castSign(TypeHelper.charType, value).value
 
-					val value2 = state.stack.readFromMemoryRaw(CBasicType(IBasicType.Kind.eChar, 0), memaddy2 + i)
+					val value2 = state.memory.readFromMemoryRaw(CBasicType(IBasicType.Kind.eChar, 0), memaddy2 + i)
 					val value3 = TypeHelper.castSign(TypeHelper.charType, value2).value
 
 					same &= value1 == value3

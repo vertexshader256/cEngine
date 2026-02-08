@@ -27,7 +27,7 @@ object Stdlibh {
 		scalaFunctions += new TwoParameterFunction[Int, Int]("calloc") {
 			def func(blockSize: Int, numBlocks: Int) = {
 				val addr = state.allocateHeapSpace(numBlocks * blockSize)
-				state.stack.clearMemory(addr, numBlocks * blockSize)
+				state.memory.clearMemory(addr, numBlocks * blockSize)
 				Some(addr.location)
 			}
 		}.generate

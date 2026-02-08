@@ -34,12 +34,12 @@ trait LValue extends ValueType {
 	private def getValue = if (theType.isInstanceOf[IArrayType]) {
 		RValue(address.location, theType)
 	} else {
-		state.stack.readFromMemory(address, theType, bitOffset, sizeInBits)
+		state.memory.readFromMemory(address, theType, bitOffset, sizeInBits)
 	}
 
 	def setValue(newVal: RValue): Unit = {
 		rVal = newVal
-		state.stack.writeToMemory(newVal.value, address, theType, bitOffset, sizeInBits)
+		state.memory.writeToMemory(newVal.value, address, theType, bitOffset, sizeInBits)
 	}
 
 	def toByteArray: Array[Byte] = state.readDataBlock(address, sizeof)

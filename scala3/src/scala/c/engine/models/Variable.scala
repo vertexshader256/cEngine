@@ -54,9 +54,9 @@ case class Variable(theName: IASTName, state: State, aType: IType, sizeof: Int) 
 	}
 
 	val address = if !isStatic then
-		state.stack.allocate(sizeof)
+		state.memory.allocate(sizeof)
 	else
-		state.stack.allocateData(sizeof)
+		state.memory.allocateData(sizeof)
 
 	override def rValue: RValue = {
 		if rVal.isInstanceOf[FileRValue] then
@@ -71,7 +71,7 @@ case class Variable(theName: IASTName, state: State, aType: IType, sizeof: Int) 
 	private def getValue = if (theType.isInstanceOf[IArrayType]) {
 		RValue(address.location, theType)
 	} else {
-		state.stack.readFromMemory(address, theType, bitOffset, sizeInBits)
+		state.memory.readFromMemory(address, theType, bitOffset, sizeInBits)
 	}
 
 	override def toString = {
