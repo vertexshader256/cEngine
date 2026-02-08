@@ -12,8 +12,14 @@ import scala.c.engine.models.*
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-trait Allocator {
+trait CEngineData {
 	this: State =>
+
+	val pointerType: CBasicType = pointerSize match
+		case NumBits.ThirtyTwoBits => TypeHelper.intType
+		case NumBits.SixtyFourBits => CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
+
+	val addressSize: Int = TypeHelper.sizeof(pointerType)(using this)
 
 	def allocateDataSegmentSpace(numBytes: Int): Address = {
 		stack.allocateData(numBytes)
@@ -38,6 +44,15 @@ trait Allocator {
 
 	def writeDataBlock(address: Address, array: Array[Byte]): Unit = {
 		stack.writeDataBlock(array, address)
+	}
+
+	def writeValues(address: Address, values: List[RValue]): Unit = {
+		var location = address.location
+
+		values.foreach:
+			case RValue(newVal, theType) =>
+				stack.writeToMemory(newVal, Address(location), theType)
+				location += TypeHelper.sizeof(theType)(using this)
 	}
 
 	def readDataBlock(address: Address, length: Int): Array[Byte] = {
@@ -78,14 +93,4 @@ trait Allocator {
 		val theArrayPtr = context.addVariable(varName, inferredArrayType, withNull)
 		theArrayPtr
 	}
-
-	def writeValues(address: Address, values: List[RValue]): Unit = {
-		var location = address.location
-
-		values.foreach:
-			case RValue(newVal, theType) =>
-				stack.writeToMemory(newVal, Address(location), theType)
-				location += TypeHelper.sizeof(theType)(using this)
-	}
-
 }

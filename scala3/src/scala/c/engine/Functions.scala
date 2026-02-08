@@ -14,11 +14,134 @@ import scala.collection.mutable.ListBuffer
 trait Functions {
 	this: State =>
 
+	val scalaFunctions = ListBuffer[Function]()
+	val functionList = ListBuffer[Function]()
+	val functionPointers = scala.collection.mutable.LinkedHashMap[String, Variable]()
+	protected val functionContexts = mutable.Stack[FunctionScope]()
+
+	def context: FunctionScope = functionContexts.head
+
 	def hasFunction(name: String): Boolean = functionList.exists { fcn => fcn.name == name }
 
 	def getFunctionByIndex(index: Int): Function = functionList.find { fcn => fcn.index == index }.get
 
-	def addScalaFunctionDef(fcn: Function) = {
+	def getFunctionScope: FunctionScope = {
+		functionContexts.collect { case fcnScope: FunctionScope => fcnScope }.head
+	}
+
+	private def popFunctionContext: FunctionScope = {
+		val frame = functionContexts.pop()
+		stack.setStackPosition(frame.startingStackAddr)
+		frame
+	}
+
+	private def prepareFunctionStackFrame(scope: Option[FunctionScope], function: Function, call: IASTFunctionCallExpression): FunctionScope = {
+		val newScope = scope.getOrElse:
+			val expressionType = call.getExpressionType
+			FunctionScope(function, functionContexts.headOption.orNull, expressionType)
+
+		newScope.init(List(function.node), this, scope.isEmpty)
+
+		val args: List[ValueType] = call.getArguments.map { x => Expressions.evaluate(x)(using this).head }.toList
+
+		args.foreach { argument =>
+			if (argument.theType.isInstanceOf[CStructure]) {
+				newScope.pushOntoStack(argument)
+			} else {
+				val resolved = TypeHelper.toRValue(argument)(using this)
+				newScope.pushOntoStack(resolved)
+			}
+		}
+
+		newScope.pushOntoStack(RValue(args.size, TypeHelper.unsignedIntType))
+		newScope
+	}
+
+	def callTheFunction(name: String, call: IASTFunctionCallExpression, scope: Option[FunctionScope], isApi: Boolean = false): Option[ValueType] = {
+		functionList.find(_.name == name).flatMap { function =>
+
+			if (!function.isNative) {
+				// this is a function simulated in scala
+
+				val stackPos = stack.getStackPosition
+				val args = call.getArguments.map { x => Expressions.evaluate(x)(using this) }
+
+				val resolvedArgs: Array[RValue] = args.flatten.map(TypeHelper.toRValue(_)(using this))
+
+				val returnVal = function.run(resolvedArgs.reverse, this)
+				stack.setStackPosition(stackPos) // pop the stack
+
+				returnVal.map:
+					case file@FileRValue(_) => file
+					case rValue => RValue(rValue.value, TypeHelper.unsignedIntType)
+			} else {
+				if (function.name == "main" && isApi) {
+					scope.get.init(List(function.node), this, scope.isEmpty)
+					functionContexts.clear()
+					functionContexts.push(scope.get)
+					context.run(this)
+					None
+				} else {
+
+					val newScope = prepareFunctionStackFrame(scope, function, call)
+
+					functionContexts.push(newScope)
+
+					newScope.run(this)
+
+					val completedFrame = popFunctionContext
+
+					completedFrame.getReturnValue.map {
+						case structure@LValue(_, structType: CStructure) =>
+							val structBytes = structure.toByteArray
+							val newAddr = allocateStack(structBytes.length)
+							writeDataBlock(newAddr, structBytes)
+							Structure(structBytes, structType)
+						case retVal => retVal
+					}.orElse {
+						None
+					}
+				}
+			}
+		}
+	}
+
+	protected def addFunctionDef(fcnDef: IASTFunctionDefinition, isMain: Boolean) = {
+		val name = fcnDef.getDeclarator.getName
+		val count = functionPointers.size
+
+		val fcnType = fcnDef.getDeclarator.getName.resolveBinding().asInstanceOf[IFunction].getType
+
+		val newFcn = new Function(name.toString, true) {
+			index = count
+			node = fcnDef
+
+			def run(formattedOutputParams: Array[RValue], state: State): Option[RValue] = {
+				None
+			}
+		}
+
+		functionList += newFcn
+
+		if (!isMain) {
+			val newVar = Variable(name, this, fcnType)
+			stack.writeToMemory(count, newVar.address, fcnType)
+
+			functionPointers += name.toString -> newVar
+		}
+	}
+
+	def loadFunctions() = {
+		Stdio.addFunctions(scalaFunctions)(using this)
+		Mathh.addFunctions(scalaFunctions)(using this)
+		Stdlibh.addFunctions(scalaFunctions)(using this)
+		Stringh.addFunctions(scalaFunctions)(using this)
+		Stdargh.addFunctions(scalaFunctions)
+
+		scalaFunctions.foreach(addScalaFunctionDef)
+	}
+
+	private def addScalaFunctionDef(fcn: Function) = {
 		val count = functionPointers.size
 		fcn.index = count
 
