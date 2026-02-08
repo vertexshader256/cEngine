@@ -17,7 +17,12 @@ object StandardTest {
 													 args: List[String] = List(), includePaths: List[String] = List()): Seq[String] = {
 		TestResults.loadSavedResults()
 
-		val codeBeingRun = codeInFiles.mkString + args.mkString
+		val ptrSize = pointerSize match {
+			case ThirtyTwoBits => 32
+			case SixtyFourBits => 64
+		}
+
+		val codeBeingRun = codeInFiles.mkString + args.mkString + ptrSize.toString
 
 		TestResults.getSavedGccOutput(codeBeingRun).map: priorRunResult =>
 			priorRunResult
