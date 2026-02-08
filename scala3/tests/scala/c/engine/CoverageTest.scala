@@ -100,6 +100,7 @@ class CoverageTest extends StandardTest {
 					int main( ) {
 						int *int_ptr;
 						printf("Size of int*   : %zu bytes\n", sizeof(int_ptr));
+						printf("Size of int*   : %zu bytes\n", sizeof(int_ptr));
 						return 0;
 					}"""
 
@@ -120,8 +121,8 @@ class CoverageTest extends StandardTest {
 						printf("%f %f\n", x, xx);
 				}"""
 
-		Results.getCEngineOutput(Seq(code), true, NumBits.ThirtyTwoBits, List(), List())
-		StandardTest.getGccOutput(Seq(code), NumBits.ThirtyTwoBits, List(), List())
+		Results.getCEngineOutput(Seq(code), true, NumBits.SixtyFourBits, List(), List())
+		StandardTest.getGccOutput(Seq(code), NumBits.SixtyFourBits, List(), List())
 
 		assert(true)
 	}

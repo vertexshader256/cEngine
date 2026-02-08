@@ -3,13 +3,13 @@ package c
 package engine
 
 import scala.c.engine.Interpreter.*
-import scala.c.engine.models.NumBits.ThirtyTwoBits
+import scala.c.engine.models.NumBits.SixtyFourBits
 import java_api.c.engine.JavaAPI
 
 class JavaApiTest extends StandardTest {
 	"java api test one" should "print the correct results" in {
 
-		val state = new CEngine(List(), ThirtyTwoBits)
+		val state = new CEngine(List(), SixtyFourBits)
 		val api = new JavaAPI()
 		api.runC("""int i = 1432;""", state)
 		api.runC("""printf("%d\n", i);""", state)
@@ -27,7 +27,7 @@ class JavaApiTest extends StandardTest {
 class ApiTest extends StandardTest {
 	"interp test one" should "print the correct results" in {
 
-		implicit val state = new CEngine(List(), ThirtyTwoBits)
+		implicit val state = new CEngine(List(), SixtyFourBits)
 
 		c"""int i = 1432;"""
 		c"""printf("%d\n", i);"""
@@ -43,7 +43,7 @@ class ApiTest extends StandardTest {
 class ApiTest2 extends StandardTest {
 	"func interpolator" should "print the correct results" in {
 		import Interpreter._
-		implicit val state = new CEngine(List(), ThirtyTwoBits)
+		implicit val state = new CEngine(List(), SixtyFourBits)
 
 		func"""
       int add(int x, int y) {
@@ -74,7 +74,7 @@ class ApiTest2 extends StandardTest {
 class ApiTest3 extends StandardTest {
 	"func interpolator 2" should "print the correct results" in {
 		import Interpreter._
-		implicit val state = new CEngine(List(), ThirtyTwoBits)
+		implicit val state = new CEngine(List(), SixtyFourBits)
 
 		c"""
       float blah = 4.34;

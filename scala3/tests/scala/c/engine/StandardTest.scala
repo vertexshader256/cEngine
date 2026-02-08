@@ -13,7 +13,7 @@ object StandardTest {
 	val cFileCount = new AtomicInteger()
 	val exeCount = new AtomicInteger()
 
-	def getGccOutput(codeInFiles: Seq[String], pointerSize: NumBits = ThirtyTwoBits,
+	def getGccOutput(codeInFiles: Seq[String], pointerSize: NumBits = SixtyFourBits,
 													 args: List[String] = List(), includePaths: List[String] = List()): Seq[String] = {
 		TestResults.loadSavedResults()
 
@@ -49,12 +49,12 @@ abstract class StandardTest2(name: String = "", code: String) extends StandardTe
 class StandardTest extends AsyncFlatSpec {
 	implicit override def executionContext: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-	def checkResults(code: String, shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits,
+	def checkResults(code: String, shouldBootstrap: Boolean = true, pointerSize: NumBits = SixtyFourBits,
 									 args: List[String] = List(), includePaths: List[String] = List(), runConcurrent: Boolean = true) = {
 		testGccVsCEngine(Seq(code), shouldBootstrap, pointerSize, args, includePaths, runConcurrent)
 	}
 
-	def testGccVsCEngine(codeInFiles: Seq[String], shouldBootstrap: Boolean = true, pointerSize: NumBits = ThirtyTwoBits,
+	def testGccVsCEngine(codeInFiles: Seq[String], shouldBootstrap: Boolean = true, pointerSize: NumBits = SixtyFourBits,
 										args: List[String] = List(), includePaths: List[String] = List(), runConcurrent: Boolean = true): Future[Assertion] = {
 
 		if (runConcurrent) {

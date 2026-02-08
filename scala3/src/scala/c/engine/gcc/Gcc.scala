@@ -18,7 +18,7 @@ object Gcc {
 	}
 
 	// blocking
-	def getGccOutput(cSourceCode: Seq[String], testId: String, pointerSize: NumBits = ThirtyTwoBits,
+	def getGccOutput(cSourceCode: Seq[String], testId: String, pointerSize: NumBits = SixtyFourBits,
 														args: List[String] = List(), includePaths: List[String] = List()): GccOutput = {
 
 		val logger = new SyntaxLogger

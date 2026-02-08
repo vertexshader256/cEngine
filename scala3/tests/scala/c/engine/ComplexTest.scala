@@ -1,5 +1,7 @@
 package scala.c.engine
 
+import scala.c.engine.models.NumBits.ThirtyTwoBits
+
 class LinkedListTest extends StandardTest {
 	"Linked list test" should "print the correct results" in {
 		val code =
@@ -412,7 +414,7 @@ class ComplexTest extends StandardTest {
        }
       """
 
-		checkResults(code)
+		checkResults(code, pointerSize = ThirtyTwoBits) // for some reason this needs to be 32 bits
 	}
 
 	"knapsack problem" should "print the correct results" in {
