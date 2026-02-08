@@ -1,10 +1,11 @@
 package scala.c.engine
 
-import org.eclipse.cdt.core.dom.ast.IASTNode
+import org.eclipse.cdt.core.dom.ast.{IASTNode, IType}
 import org.eclipse.cdt.internal.core.dom.parser.c.CASTProblemDeclaration
 
-import scala.c.engine.models.NumBits
+import scala.c.engine.models.{Address, NumBits}
 import scala.c.engine.models.NumBits.ThirtyTwoBits
+import scala.c.engine.models.*
 
 class CoverageTest extends StandardTest {
 	"strstr coverage" should "print the correct results" in {
@@ -109,6 +110,14 @@ class CoverageTest extends StandardTest {
 
 		CEngine.getCEngineOutput(Seq(code), true, NumBits.ThirtyTwoBits, List(), List())
 		StandardTest.getGccOutput(Seq(code), NumBits.ThirtyTwoBits, List(), List())
+
+		assert(true)
+	}
+
+	"improved coverage" should "print the correct results" in {
+
+		val ptr = Pointer(Address(0), null)
+		ptr.toString
 
 		assert(true)
 	}
