@@ -1,22 +1,12 @@
 package scala.c.engine
 
 import org.eclipse.cdt.core.dom.ast.*
-import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.op_assign
 import org.eclipse.cdt.internal.core.dom.parser.c.*
 
-import scala.c.engine.Instructions.*
-import scala.c.engine.ast.{Declarator, Expressions}
-import scala.c.engine.cFunctions.*
 import scala.c.engine.models.*
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 
 trait CEngineData {
 	this: CEngine =>
-
-	val pointerType: CBasicType = pointerSize match
-		case NumBits.ThirtyTwoBits => TypeHelper.intType
-		case NumBits.SixtyFourBits => CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
 
 	val addressSize: Int = pointerSize match
 		case NumBits.ThirtyTwoBits => 4
@@ -79,7 +69,7 @@ trait CEngineData {
 			allocateStack(withNull.length)
 
 		writeDataBlock(strAddr, withNull)
-		RValue(strAddr.location, pointerType)
+		RValue(strAddr.location, CPointerType(TypeHelper.charType, 0))
 	}
 
 	def createStringArrayVariable(varName: IASTName, str: String, theType: IType): Variable = {
