@@ -18,7 +18,9 @@ trait CEngineData {
 		case NumBits.ThirtyTwoBits => TypeHelper.intType
 		case NumBits.SixtyFourBits => CBasicType(IBasicType.Kind.eInt, IBasicType.IS_LONG_LONG)
 
-	val addressSize: Int = TypeHelper.sizeof(pointerType)(using this)
+	val addressSize: Int = pointerSize match
+		case NumBits.ThirtyTwoBits => 4
+		case NumBits.SixtyFourBits => 8
 
 	def allocateDataSegmentSpace(numBytes: Int): Address = {
 		memory.allocateData(numBytes)
