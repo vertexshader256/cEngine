@@ -1,7 +1,7 @@
 package scala.c.engine
 
-import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.op_assign
 import org.eclipse.cdt.core.dom.ast.*
+import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression.op_assign
 import org.eclipse.cdt.internal.core.dom.parser.c.*
 
 import scala.c.engine.Instructions.*
