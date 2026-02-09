@@ -117,6 +117,21 @@ class ArrayInitTest extends StandardTest {
 		checkResults(code)
 	}
 
+	"pointer arithmetic on array of pointers" should "print the correct results" in {
+		val code =
+			"""
+				void main() {
+					int c0[2] = {1, 2};
+					int c1[2] = {2, 1};
+					int c2[4] = {1, 3, 1, 2};
+					int c3[4] = {1, 3, 2, 1};
+					int *cs[4] = {c0, c1, c2, c3};
+					printf("%d\n", (int)cs - (int)(cs + 1));
+				}"""
+
+		checkResults(code)
+	}
+
 	"array indexed with a division binary expression" should "print the correct results" in {
 		val code =
 			"""
