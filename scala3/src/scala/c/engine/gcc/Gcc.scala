@@ -18,8 +18,8 @@ object Gcc {
 	}
 
 	// blocking
-	def getGccOutput(cSourceCode: Seq[String], testId: String, pointerSize: NumBits = SixtyFourBits,
-														args: List[String] = List(), includePaths: List[String] = List()): GccOutput = {
+	def getGccOutput(cSourceCode: Seq[String], testId: String, pointerSize: NumBits,
+														args: List[String], includePaths: List[String]): GccOutput = {
 
 		val logger = new SyntaxLogger
 		val exeFile = java.io.File("a" + testId + ".exe")

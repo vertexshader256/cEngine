@@ -6,6 +6,8 @@ import org.eclipse.cdt.internal.core.dom.parser.c.{CASTName, CASTProblemDeclarat
 import scala.c.engine.models.{Address, NumBits}
 import scala.c.engine.models.NumBits.*
 import scala.c.engine.models.*
+import scala.c.engine.gcc.Gcc
+import scala.util.Try
 
 class CoverageTest extends StandardTest {
 	"strstr coverage" should "print the correct results" in {
@@ -114,12 +116,23 @@ class CoverageTest extends StandardTest {
 				return 0;
 			}"""
 
+		val codeWithError =
+			"""
+					int main( ) {
+						return 0
+					}"""
+
 		val struct = Structure(Array[Byte](), TypeHelper.intType)
 		struct.toString // need this
 		val ast = Utils.getTranslationUnits(List(code), List("blah.txt"))
 		val eng = CEngine(ast, SixtyFourBits)
 		val variable = Variable(CASTName("test".toCharArray), eng, TypeHelper.intType, 4)
 		variable.toString // need this
+
+		Gcc.getGccOutput(Seq(code), "1", SixtyFourBits, List(), List("", ""))
+		Gcc.getGccOutput(Seq(code), "1", ThirtyTwoBits, List("", ""), List(""))
+		Try(Gcc.getGccOutput(Seq(codeWithError), "1", ThirtyTwoBits, List("", ""), List("")))
+
 		assert(true)
 	}
 
