@@ -1,7 +1,7 @@
 package scala.c.engine
 
 import org.eclipse.cdt.core.dom.ast.{IASTNode, IType}
-import org.eclipse.cdt.internal.core.dom.parser.c.CASTProblemDeclaration
+import org.eclipse.cdt.internal.core.dom.parser.c.{CASTName, CASTProblemDeclaration}
 
 import scala.c.engine.models.{Address, NumBits}
 import scala.c.engine.models.NumBits.*
@@ -103,6 +103,43 @@ class CoverageTest extends StandardTest {
 						printf("Size of int*   : %zu bytes\n", sizeof(int_ptr));
 						return 0;
 					}"""
+
+		checkResults(code, pointerSize = SixtyFourBits)
+	}
+
+	"debugging coverage" should "print the correct results" in {
+		val code =
+			"""
+			int main( ) {
+				return 0;
+			}"""
+
+		val struct = Structure(Array[Byte](), TypeHelper.intType)
+		struct.toString // need this
+		val ast = Utils.getTranslationUnits(List(code), List("blah.txt"))
+		val eng = CEngine(ast, SixtyFourBits)
+		val variable = Variable(CASTName("test".toCharArray), eng, TypeHelper.intType, 4)
+		variable.toString // need this
+		assert(true)
+	}
+
+	"function argument conversion" should "print the correct results" in {
+		val code =
+			"""
+						#include "math.h"
+						#include <ctype.h>
+						int main( ) {
+				      int f1 = 45;
+			        float f2 = 45.0;
+			        double f3 = 45.0;
+			        char f4 = '2';
+			        short f5 = 45;
+			        long long f6 = 45;
+							printf("%f %f %f %f %f %f\n", cos(f1), cos(f2), cos(f3), cos(f4), cos(f5), cos(f6));
+							printf("%f %f %f %f %f %f\n", sqrt(f1), sqrt(f2), sqrt(f3), sqrt(f4), sqrt(f5), sqrt(f6));
+							printf("%d %d %d %d %d %d\n", isdigit(f1), isdigit(f2),  isdigit(f3), isdigit(f4),  isdigit(f5), isdigit(f6));
+							return 0;
+						}"""
 
 		checkResults(code, pointerSize = SixtyFourBits)
 	}

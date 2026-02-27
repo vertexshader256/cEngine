@@ -15,9 +15,12 @@ given Convertable[Byte] with
 given Convertable[Char] with
 	def convert(value: cEngVal): Char =
 		value match
-			case char: Char => char
 			case int: Int => int.toChar
 			case byte: Byte => byte.toChar
+			case float: Float => float.toChar
+			case long: Long => long.toChar
+			case short: Short => short.toChar
+			case double: Double => double.toChar
 
 given Convertable[Int] with
 	def convert(value: cEngVal): Int =
@@ -32,6 +35,9 @@ given Convertable[Float] with
 			case float: Float => float
 			case double: Double => double.toFloat
 			case int: Int => int.toFloat
+			case byte: Byte => byte.toFloat
+			case short: Short => short.toFloat
+			case long: Long => long.toFloat
 
 given Convertable[Double] with
 	def convert(value: cEngVal): Double =
@@ -39,6 +45,9 @@ given Convertable[Double] with
 			case float: Float => float.toDouble
 			case double: Double => double
 			case int: Int => int.toDouble
+			case byte: Byte => byte.toDouble
+			case short: Short => short.toDouble
+			case long: Long => long.toDouble
 
 given Convertable[Address] with
 	def convert(value: cEngVal): Address =
@@ -110,23 +119,6 @@ abstract class ThreeParameterFunction[P1, P2, P3](name: String)(using p1Convert:
 				val param2 = p2Convert.convert(formattedOutputParams(1).value)
 				val param1 = p1Convert.convert(formattedOutputParams(2).value)
 				func(param1, param2, param3).map(RValue(_))
-			}
-		}
-	}
-}
-
-abstract class FourParameterFunction[P1, P2, P3, P4](name: String)(using p1Convert: Convertable[P1], p2Convert: Convertable[P2], p3Convert: Convertable[P3], p4Convert: Convertable[P4]) extends FunctionDef {
-	implicit var state: CEngine = _
-	def func(param1: P1, param2: P2, param3: P3, param4: P4): Option[cEngVal]
-	def generate(implicit theState: CEngine): EmulatedFunction = {
-		state = theState
-		new EmulatedFunction(name) {
-			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
-				val param4 = p4Convert.convert(formattedOutputParams(0).value)
-				val param3 = p3Convert.convert(formattedOutputParams(1).value)
-				val param2 = p2Convert.convert(formattedOutputParams(2).value)
-				val param1 = p1Convert.convert(formattedOutputParams(3).value)
-				func(param1, param2, param3, param4).map(RValue(_))
 			}
 		}
 	}

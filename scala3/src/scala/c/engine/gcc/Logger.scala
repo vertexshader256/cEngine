@@ -18,8 +18,4 @@ abstract class Logger {
 	val errorSource = ListBuffer[String]()
 	var isParsingSourcePath = false
 	var currentFunction = ""
-
-	def getErrors(lines: Seq[String]): Seq[String] = {
-		lines
-	}
 }
