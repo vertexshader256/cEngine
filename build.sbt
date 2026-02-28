@@ -14,6 +14,8 @@ lazy val scala3Module = (project in file("scala3"))
 lazy val root = (project in file("."))
 	.aggregate(scala3Module)
 
+ThisBuild / usePipelining := true
+
 scalacOptions ++= Seq(
 	"-encoding",
 	"UTF-8",
