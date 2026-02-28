@@ -113,8 +113,15 @@ class CoverageTest extends StandardTest {
 		val code =
 			"""
 			int main( ) {
+				printf("Testing\n");
 				return 0;
 			}"""
+
+		val codeWithNoOutput =
+			"""
+					int main( ) {
+						return 0;
+					}"""
 
 		val codeWithError =
 			"""
@@ -130,8 +137,8 @@ class CoverageTest extends StandardTest {
 		variable.toString // need this
 
 		Gcc.getGccOutput(Seq(code), "1", SixtyFourBits, List(), List("", ""))
-		Gcc.getGccOutput(Seq(code), "1", ThirtyTwoBits, List("", ""), List(""))
-		Try(Gcc.getGccOutput(Seq(codeWithError), "1", ThirtyTwoBits, List("", ""), List("")))
+		Gcc.getGccOutput(Seq(codeWithNoOutput), "2", ThirtyTwoBits, List("", ""), List(""))
+		Try(Gcc.getGccOutput(Seq(codeWithError), "3", ThirtyTwoBits, List("", ""), List("")))
 
 		assert(true)
 	}

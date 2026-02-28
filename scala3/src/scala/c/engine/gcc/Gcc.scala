@@ -91,12 +91,7 @@ object Gcc {
 			}
 
 			if (gccOutput.output != null) {
-				val hasNoCompileError = !gccOutput.output.exists(x => x.contains("returned 1 exit status"))
-
-				if hasNoCompileError then
-					gccOutput
-				else
-					GccOutput(gccOutput.output, false)
+				gccOutput
 			} else {
 				GccOutput(Seq("Compilation error"), false)
 			}
