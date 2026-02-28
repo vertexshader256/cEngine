@@ -14,7 +14,7 @@ import scala.collection.mutable.ListBuffer
 trait CodeRunner {
 	this: CEngine =>
 
-	private val main: Function = new Function("main", true) {
+	val main: Function = new Function("main", true) {
 		def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = None
 	}
 

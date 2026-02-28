@@ -140,6 +140,8 @@ class CoverageTest extends StandardTest {
 		Gcc.getGccOutput(Seq(codeWithNoOutput), "2", ThirtyTwoBits, List("", ""), List(""))
 		Try(Gcc.getGccOutput(Seq(codeWithError), "3", ThirtyTwoBits, List("", ""), List("")))
 
+		eng.main.run(null, null)
+
 		assert(true)
 	}
 

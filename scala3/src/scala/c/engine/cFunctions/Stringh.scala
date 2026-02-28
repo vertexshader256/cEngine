@@ -149,8 +149,6 @@ object Stringh {
 								strTokPosition = Address(sourceAddr + index + 1)
 								state.memory.writeDataBlock(sourceStr.getBytes, Address(sourceAddr))
 								doneFindingTokens = true
-							else if tokenFound then
-								doneFindingTokens = true
 					}
 
 					Some(sourceAddr)
