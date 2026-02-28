@@ -52,9 +52,9 @@ object Stringh {
 			}
 		}.generate
 
-		scalaFunctions += new ThreeParameterFunction[Address, Byte, Int]("memset") {
-			def func(dst: Address, filledBy: Byte, numBytes: Int) = {
-				state.set(dst, filledBy, numBytes)
+		scalaFunctions += new ThreeParameterFunction[Address, Int, Int]("memset") {
+			def func(dst: Address, filledBy: Int, numBytes: Int) = {
+				state.set(dst, filledBy.toByte, numBytes)
 				None
 			}
 		}.generate

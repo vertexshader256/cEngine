@@ -6,12 +6,6 @@ import scala.c.engine.{CEngine, cEngVal}
 trait Convertable[A]:
 	def convert(value: cEngVal): A
 
-given Convertable[Byte] with
-	def convert(value: cEngVal): Byte =
-		value match
-			case byte: Byte => byte
-			case int: Int => int.toByte
-
 given Convertable[Char] with
 	def convert(value: cEngVal): Char =
 		value match
