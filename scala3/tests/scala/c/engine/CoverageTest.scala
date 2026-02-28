@@ -145,6 +145,21 @@ class CoverageTest extends StandardTest {
 		assert(true)
 	}
 
+	"function coverage" should "print the correct results" in {
+		val code =
+			"""
+				#include "string.h"
+				int main( ) {
+					char *x = "hello3";
+			    char *y = "hello2";
+			    printf("%d\n", memcmp(x, y, 5));
+			    printf("%d\n", memcmp(x, y, 6));
+					return 0;
+				}"""
+
+		checkResults(code, pointerSize = SixtyFourBits)
+	}
+
 	"function argument conversion" should "print the correct results" in {
 		val code =
 			"""
