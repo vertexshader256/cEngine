@@ -53,11 +53,9 @@ object Gcc {
 
 			compile.exitValue()
 
-			logger.errors.toList.foreach(println)
-
 			val numErrors = 0 //logger.errors.length
 
-			val gccOutput = if (numErrors == 0) {
+			val gccOutput = {
 
 				var isDone = false
 				val maxTries = 50 // 50 is proven to work
@@ -90,24 +88,19 @@ object Gcc {
 				}
 
 				GccOutput(result, true)
-			} else {
-				GccOutput(logger.errors.toSeq, false)
 			}
 
-			if gccOutput != null then {
+			if (gccOutput.output != null) {
+				val hasNoCompileError = !gccOutput.output.exists(x => x.contains("returned 1 exit status"))
 
-				if (gccOutput.output != null) {
-					val hasNoCompileError = !gccOutput.output.exists(x => x.contains("returned 1 exit status"))
+				if hasNoCompileError then
+					gccOutput
+				else
+					GccOutput(gccOutput.output, false)
+			} else {
+				GccOutput(Seq("Compilation error"), false)
+			}
 
-					if hasNoCompileError then
-						gccOutput
-					else
-						GccOutput(gccOutput.output, false)
-				} else {
-					GccOutput(Seq("Compilation error"), false)
-				}
-			} else
-				GccOutput(logger.errors.toSeq, false)
 		} finally {
 			// delete the .c files
 			Try(exeFile.delete())
