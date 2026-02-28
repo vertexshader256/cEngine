@@ -2,7 +2,7 @@ name := "cEngine"
 
 lazy val scala3Module = (project in file("scala3"))
 	.settings(
-		scalaVersion := "3.7.4",
+		scalaVersion := "3.8.2",
 		Compile / scalaSource := baseDirectory.value / "src",
 		Test / scalaSource := baseDirectory.value / "tests",
 		libraryDependencies ++= Seq("org.anarres" % "jcpp" % "1.4.14",
