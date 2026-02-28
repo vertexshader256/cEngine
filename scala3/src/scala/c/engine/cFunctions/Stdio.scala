@@ -22,55 +22,55 @@ object Stdio {
 			}
 		}
 
-		scalaFunctions += new EmulatedFunction("sscanf") {
-			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
-				val resultBuffer = formattedOutputParams.last.value.asInstanceOf[Int]
-
-				val varArgs = formattedOutputParams.drop(2).toList
-
-				val result = Printf.printf(formattedOutputParams, state)
-
-				state.writeDataBlock(Address(resultBuffer), result.getBytes)
-
-				Some(RValue(varArgs.size))
-			}
-		}
+//		scalaFunctions += new EmulatedFunction("sscanf") {
+//			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
+//				val resultBuffer = formattedOutputParams.last.value.asInstanceOf[Int]
+//
+//				val varArgs = formattedOutputParams.drop(2).toList
+//
+//				val result = Printf.printf(formattedOutputParams, state)
+//
+//				state.writeDataBlock(Address(resultBuffer), result.getBytes)
+//
+//				Some(RValue(varArgs.size))
+//			}
+//		}
 
 		//fcvtbuf(double arg, int ndigits, int *decpt, int *sign, char *buf)
-		scalaFunctions += new EmulatedFunction("fcvtbuf") {
-			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
-				//val buf = formattedOutputParams(0).value.asInstanceOf[Int]
-				//val sign = formattedOutputParams(1).value.asInstanceOf[Int]
-				val decpt = formattedOutputParams(2).value.asInstanceOf[Int]
-				val ndigits = formattedOutputParams(3).value.asInstanceOf[Int]
-				val arg = formattedOutputParams(4).value.asInstanceOf[Double]
-
-				state.memory.writeToMemory(1, Address(decpt), TypeHelper.intType)
-
-				val buffer = StringBuffer()
-				val formatter = Formatter(buffer, Locale.US)
-
-				val formatString = "%." + ndigits + "f"
-
-				val args = Array[Object](arg.asInstanceOf[Object])
-
-				formatter.format(formatString, args *)
-
-				val result1 = buffer.toString
-				val index = result1.indexOf('.')
-				val resultString = result1.replace(".", "")
-
-				val array = resultString.toCharArray.map { char => RValue(char.toByte, TypeHelper.charType) }.toList
-
-				state.memory.writeToMemory(index, Address(decpt), TypeHelper.intType)
-
-				// to-do: find a way to do this without allocating?
-				val result = state.allocateHeapSpace(20)
-
-				state.writeValues(result, array)
-				Some(RValue(result.location))
-			}
-		}
+//		scalaFunctions += new EmulatedFunction("fcvtbuf") {
+//			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
+//				//val buf = formattedOutputParams(0).value.asInstanceOf[Int]
+//				//val sign = formattedOutputParams(1).value.asInstanceOf[Int]
+//				val decpt = formattedOutputParams(2).value.asInstanceOf[Int]
+//				val ndigits = formattedOutputParams(3).value.asInstanceOf[Int]
+//				val arg = formattedOutputParams(4).value.asInstanceOf[Double]
+//
+//				state.memory.writeToMemory(1, Address(decpt), TypeHelper.intType)
+//
+//				val buffer = StringBuffer()
+//				val formatter = Formatter(buffer, Locale.US)
+//
+//				val formatString = "%." + ndigits + "f"
+//
+//				val args = Array[Object](arg.asInstanceOf[Object])
+//
+//				formatter.format(formatString, args *)
+//
+//				val result1 = buffer.toString
+//				val index = result1.indexOf('.')
+//				val resultString = result1.replace(".", "")
+//
+//				val array = resultString.toCharArray.map { char => RValue(char.toByte, TypeHelper.charType) }.toList
+//
+//				state.memory.writeToMemory(index, Address(decpt), TypeHelper.intType)
+//
+//				// to-do: find a way to do this without allocating?
+//				val result = state.allocateHeapSpace(20)
+//
+//				state.writeValues(result, array)
+//				Some(RValue(result.location))
+//			}
+//		}
 
 		scalaFunctions += new OneParameterFunction[Char]("putchar") {
 			def func(char: Char) = {
@@ -121,7 +121,7 @@ object Stdio {
 						RValue(0)
 					else
 						RValue(-1)
-				}.orElse(Some(RValue(-1)))
+				}
 			}
 		}
 
@@ -200,15 +200,15 @@ object Stdio {
 			}
 		}
 
-		scalaFunctions += new EmulatedFunction("sprintf") {
-			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
-				val strAddr = formattedOutputParams.last.value.asInstanceOf[Int]
-
-				val formattedStr = Printf.printf(formattedOutputParams.drop(1), state)
-				state.writeDataBlock(Address(strAddr), formattedStr.getBytes)
-				None
-			}
-		}
+//		scalaFunctions += new EmulatedFunction("sprintf") {
+//			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
+//				val strAddr = formattedOutputParams.last.value.asInstanceOf[Int]
+//
+//				val formattedStr = Printf.printf(formattedOutputParams.drop(1), state)
+//				state.writeDataBlock(Address(strAddr), formattedStr.getBytes)
+//				None
+//			}
+//		}
 
 		// TODO: Complete this
 		scalaFunctions += new EmulatedFunction("fscanf") {
