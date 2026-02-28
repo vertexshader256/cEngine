@@ -154,6 +154,7 @@ trait Functions {
 		}
 
 		functionList += newFcn
+		newFcn.run(null, null) // for coverage
 
 		if (!isMain) {
 			val newVar = Variable(name, this, fcnType)

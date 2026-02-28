@@ -211,16 +211,16 @@ object Stdio {
 //		}
 
 		// TODO: Complete this
-		scalaFunctions += new EmulatedFunction("fscanf") {
-			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
-				//val fp = formattedOutputParams(3).asInstanceOf[FileRValue]
-				//val dst = formattedOutputParams(1).value.asInstanceOf[Int]
-
-				//val str = fp.readString
-				//state.writeDataBlock(str.getBytes, dst)(state)
-				None
-			}
-		}
+//		scalaFunctions += new EmulatedFunction("fscanf") {
+//			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
+//				//val fp = formattedOutputParams(3).asInstanceOf[FileRValue]
+//				//val dst = formattedOutputParams(1).value.asInstanceOf[Int]
+//
+//				//val str = fp.readString
+//				//state.writeDataBlock(str.getBytes, dst)(state)
+//				None
+//			}
+//		}
 
 		scalaFunctions += new EmulatedFunction("fread") {
 			def run(formattedOutputParams: Array[RValue], state: CEngine): Option[RValue] = {
