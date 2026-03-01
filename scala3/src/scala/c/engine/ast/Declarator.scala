@@ -7,7 +7,6 @@ import org.eclipse.cdt.internal.core.dom.parser.c.*
 
 import scala.c.engine.ast.BinaryExpr.evaluate
 import scala.c.engine.models.*
-import scala.util.Try
 
 object Declarator {
 
@@ -80,10 +79,7 @@ object Declarator {
 			case variable: IVariable =>
 				val theType = TypeHelper.stripSyntheticTypeInfo(variable.getType)
 
-				val addedVariable = if variable.isExtern then
-					cEngine.context.addExternVariable(name, theType)
-				else
-					cEngine.context.addVariable(name, theType)
+				val addedVariable = cEngine.context.addVariable(name, theType)
 
 				if (!addedVariable.isInitialized) {
 					decl.getInitializer match

@@ -68,10 +68,6 @@ class FunctionScope(val function: Function, val parent: FunctionScope, val retur
 			currentVariableScope.addVariable(variable)
 	}
 
-	def addExternVariable(name: IASTName, theType: IType): Variable = {
-		addVariable(name, theType)
-	}
-
 	// special case when we cant get a IASTName
 	def addVariable(name: String, theType: IType): Variable = {
 		val iastName = CASTName(name.toCharArray)
