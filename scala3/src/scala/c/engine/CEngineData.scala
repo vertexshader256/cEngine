@@ -12,7 +12,7 @@ trait CEngineData {
 		case NumBits.ThirtyTwoBits => 4
 		case NumBits.SixtyFourBits => 8
 
-	def allocateDataSegmentSpace(numBytes: Int): Address = {
+	private def allocateDataSegmentSpace(numBytes: Int): Address = {
 		memory.allocateData(numBytes)
 	}
 

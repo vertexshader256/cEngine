@@ -170,13 +170,13 @@ object Declarator {
 					val theType = TypeHelper.getBindingType(name.resolveBinding())
 
 					val stringType = TypeHelper.resolveBasic(theType)
+					Ast.step(arrayDecl.getInitializer)
+					
 					if (stringType.getKind == IBasicType.Kind.eChar) {
 						// e.g. char str[] = "Hello!\n";
-						List(Option(arrayDecl.getInitializer)).flatten.foreach(Ast.step)
 						val initString = cEngine.context.popStack.asInstanceOf[StringLiteral].value
 						cEngine.createStringArrayVariable(name, initString, stringType)
 					} else { // initializing array to address, e.g int (*ptr)[5] = &x[1];
-						Ast.step(arrayDecl.getInitializer)
 						val initVal = TypeHelper.toRValue(cEngine.context.popStack)
 						val newArray = List(initVal)
 						cEngine.context.addVariable(name, theType, newArray)
