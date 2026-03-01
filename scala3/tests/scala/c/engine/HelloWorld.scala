@@ -1,6 +1,7 @@
 package scala.c.engine
 
 import scala.c.engine.models.NumBits.SixtyFourBits
+import scala.c.engine.testing.Results
 
 class HelloWorld extends StandardTest {
 	"hello world" should "print the correct results" in {

@@ -1,4 +1,7 @@
-package scala.c.engine
+package scala
+package c
+package engine
+package testing
 
 import org.eclipse.cdt.core.dom.ast.{IASTLiteralExpression, IASTNode, IBasicType}
 import org.eclipse.cdt.internal.core.dom.parser.c.*
@@ -82,22 +85,9 @@ object Results {
 
 	def getCEngineOutput(codeInFiles: Seq[String], shouldBootstrap: Boolean, pointerSize: NumBits,
 															 arguments: List[String], includePaths: List[String]): List[String] = {
-			val state = {
-				val ast = Utils.getTranslationUnits(codeInFiles, includePaths)
-				val state = CEngine(ast, pointerSize)
-				state.addMain(ast)
-				state
-			}
-			//else {
-//				val eePrint = Using(Source.fromFile("./src/scala/c/engine/cFunctions/ee_printf.c", "utf-8")) { source =>
-//					source.mkString
-//				}.get
-//				val code = Seq("#define HAS_FLOAT\n" + eePrint) ++ codeInFiles.map { code => "#define printf ee_printf \n" + code }
-//				val ast = Utils.getTranslationUnits(code, includePaths)
-//				val state = State(ast, pointerSize)
-//				state.addMain(ast)
-//				state
-//			}
+			val ast = Utils.getTranslationUnits(codeInFiles, includePaths)
+			val state = CEngine(ast, pointerSize)
+			state.addMain(ast)
 
 			val errors = state.sources.flatMap { tUnit => getErrors(tUnit, List()) }
 

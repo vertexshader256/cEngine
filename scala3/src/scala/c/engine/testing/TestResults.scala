@@ -1,4 +1,7 @@
-package scala.c.engine
+package scala
+package c
+package engine
+package testing
 
 import upickle.default.*
 

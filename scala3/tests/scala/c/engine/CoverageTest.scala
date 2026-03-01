@@ -7,6 +7,7 @@ import scala.c.engine.models.{Address, NumBits}
 import scala.c.engine.models.NumBits.*
 import scala.c.engine.models.*
 import scala.c.engine.gcc.Gcc
+import scala.c.engine.testing.Results
 import scala.util.Try
 
 class CoverageTest extends StandardTest {

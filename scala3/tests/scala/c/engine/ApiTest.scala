@@ -6,6 +6,8 @@ import scala.c.engine.Interpreter.*
 import scala.c.engine.models.NumBits.SixtyFourBits
 import java_api.c.engine.JavaAPI
 
+import scala.c.engine.testing.Results
+
 class JavaApiTest extends StandardTest {
 	"java api test one" should "print the correct results" in {
 

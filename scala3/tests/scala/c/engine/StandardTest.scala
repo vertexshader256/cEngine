@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import scala.c.engine.models.NumBits
 import scala.c.engine.models.NumBits.*
 import scala.c.engine.gcc.Gcc
+import scala.c.engine.testing.{Results, TestResults}
 import scala.concurrent.*
 
 object StandardTest {
