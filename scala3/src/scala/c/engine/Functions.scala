@@ -52,52 +52,62 @@ trait Functions {
 		callTheFunction(name, call, None)
 	}
 
+	private def runEmulatedFunction(function: Function, call: IASTFunctionCallExpression) = {
+		val stackPos = memory.getStackPosition
+		val args = call.getArguments.map { x => Expressions.evaluate(x)(using this) }
+
+		val resolvedArgs: Array[RValue] = args.flatten.map(TypeHelper.toRValue(_)(using this))
+
+		val returnVal = function.run(resolvedArgs.reverse, this)
+		memory.setStackPosition(stackPos) // pop the stack
+
+		returnVal.map:
+			case file@FileRValue(_) => file
+			case rValue => RValue(rValue.value, TypeHelper.unsignedIntType)
+	}
+
+	private def runDefinedFunction(function: Function, call: IASTFunctionCallExpression, scope: Option[FunctionScope], isApi: Boolean): Option[ValueType] = {
+		if (function.name == "main" && isApi) {
+			scope.get.init(List(function.node), this, scope.isEmpty)
+			functionContexts.clear()
+			functionContexts.push(scope.get)
+			context.run(this)
+			None
+		} else {
+
+			val newScope = prepareFunctionStackFrame(scope, function, call)
+
+			functionContexts.push(newScope)
+
+			newScope.run(this)
+
+			val completedFrame = popFunctionContext
+
+			completedFrame.getReturnValue.map {
+				case structure@LValue(_, structType: CStructure) =>
+					val structBytes = structure.toByteArray
+					val newAddr = allocateStack(structBytes.length)
+					writeDataBlock(newAddr, structBytes)
+					Structure(structBytes, structType)
+				case retVal => retVal
+			}.orElse {
+				None
+			}
+		}
+	}
+
+	private def runFunction(function: Function, call: IASTFunctionCallExpression, scope: Option[FunctionScope], isApi: Boolean = false) = {
+		if (!function.isNative) {
+			// this is a function simulated in scala
+			runEmulatedFunction(function, call)
+		} else {
+			runDefinedFunction(function, call, scope, isApi)
+		}
+	}
+
 	def callTheFunction(name: String, call: IASTFunctionCallExpression, scope: Option[FunctionScope], isApi: Boolean = false): Option[ValueType] = {
 		functionList.find(_.name == name).flatMap { function =>
-
-			if (!function.isNative) {
-				// this is a function simulated in scala
-
-				val stackPos = memory.getStackPosition
-				val args = call.getArguments.map { x => Expressions.evaluate(x)(using this) }
-
-				val resolvedArgs: Array[RValue] = args.flatten.map(TypeHelper.toRValue(_)(using this))
-
-				val returnVal = function.run(resolvedArgs.reverse, this)
-				memory.setStackPosition(stackPos) // pop the stack
-
-				returnVal.map:
-					case file@FileRValue(_) => file
-					case rValue => RValue(rValue.value, TypeHelper.unsignedIntType)
-			} else {
-				if (function.name == "main" && isApi) {
-					scope.get.init(List(function.node), this, scope.isEmpty)
-					functionContexts.clear()
-					functionContexts.push(scope.get)
-					context.run(this)
-					None
-				} else {
-
-					val newScope = prepareFunctionStackFrame(scope, function, call)
-
-					functionContexts.push(newScope)
-
-					newScope.run(this)
-
-					val completedFrame = popFunctionContext
-
-					completedFrame.getReturnValue.map {
-						case structure@LValue(_, structType: CStructure) =>
-							val structBytes = structure.toByteArray
-							val newAddr = allocateStack(structBytes.length)
-							writeDataBlock(newAddr, structBytes)
-							Structure(structBytes, structType)
-						case retVal => retVal
-					}.orElse {
-						None
-					}
-				}
-			}
+			runFunction(function, call, scope, isApi)
 		}
 	}
 
