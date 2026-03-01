@@ -30,10 +30,6 @@ trait CodeRunner {
 		}
 	}
 
-	private def pushScope(scope: FunctionScope): Unit = {
-		functionContexts.push(scope)
-	}
-
 	def runCode(code: String, includePaths: Iterator[String]) = {
 		val exeCode =
 			s"""

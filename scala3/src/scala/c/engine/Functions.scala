@@ -18,7 +18,7 @@ trait Functions {
 	private val scalaFunctions = ListBuffer[Function]()
 	protected val functionList = ListBuffer[Function]()
 	val functionPointers = scala.collection.mutable.LinkedHashMap[String, Variable]()
-	protected val functionContexts = mutable.Stack[FunctionScope]()
+	private val functionContexts = mutable.Stack[FunctionScope]()
 
 	def context: FunctionScope = functionContexts.head
 
@@ -99,6 +99,10 @@ trait Functions {
 				}
 			}
 		}
+	}
+
+	protected def pushScope(scope: FunctionScope): Unit = {
+		functionContexts.push(scope)
 	}
 
 	def writeFcnArguments(fcnDec: IASTFunctionDeclarator): Unit = {
