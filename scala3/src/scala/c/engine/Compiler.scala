@@ -138,17 +138,17 @@ trait Compiler {
 		PushVariableStack() +: body :+ PopVariableStack()
 	}
 
+	@tailrec
+	private def getParentSwitchBody(node: IASTNode): IASTStatement = node.getParent match {
+		case switch: IASTSwitchStatement => switch.getBody
+		case _ => getParentSwitchBody(node.getParent)
+	}
+
 	private def compileSwitchStatement(switch: IASTSwitchStatement)(implicit cEngine: CEngine) = {
 		val breakLabel = BreakLabel()
 		breakLabelStack = breakLabel +: breakLabelStack
 
 		val descendants = compileNode(switch.getBody)
-
-		@tailrec
-		def getParentSwitchBody(node: IASTNode): IASTStatement = node.getParent match {
-			case switch: IASTSwitchStatement => switch.getBody
-			case _ => getParentSwitchBody(node.getParent)
-		}
 
 		val jumpTable = descendants.flatMap {
 			case x @ CaseLabel(caseStatement) if switch.getBody == getParentSwitchBody(caseStatement) =>
