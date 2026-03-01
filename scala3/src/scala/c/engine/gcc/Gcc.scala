@@ -53,6 +53,8 @@ object Gcc {
 
 			compile.exitValue()
 
+			logger.errors.toList.foreach(println)
+
 			val numErrors = 0 //logger.errors.length
 
 			val gccOutput = {
