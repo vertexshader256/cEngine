@@ -61,7 +61,7 @@ trait Compiler {
 				node +: node.getChildren.toList
 	}
 
-	def compileIfStatement(ifStatement: IASTIfStatement)(using CEngine) = {
+	private def compileIfStatement(ifStatement: IASTIfStatement)(using CEngine) = {
 		val contents = compileNode(ifStatement.getThenClause)
 		val elseContents = List(Option(ifStatement.getElseClause)).flatten.flatMap(compileNode)
 
@@ -75,7 +75,7 @@ trait Compiler {
 		JmpIfNotEqual(ifStatement.getConditionExpression, all.size) +: (all ++ elseContents)
 	}
 
-	def compileForStatement(forStatement: IASTForStatement)(implicit cEngine: CEngine) = {
+	private def compileForStatement(forStatement: IASTForStatement)(implicit cEngine: CEngine) = {
 		val breakLabel = BreakLabel()
 		breakLabelStack = breakLabel +: breakLabelStack
 		val continueLabel = ContinueLabel()
@@ -103,7 +103,7 @@ trait Compiler {
 		start ++ jmpnz ++ execution ++ end
 	}
 
-	def compileWhileStatement(whileStatement: IASTWhileStatement)(implicit cEngine: CEngine) = {
+	private def compileWhileStatement(whileStatement: IASTWhileStatement)(implicit cEngine: CEngine) = {
 		val breakLabel = BreakLabel()
 		breakLabelStack = breakLabel +: breakLabelStack
 		val continueLabel = ContinueLabel()
@@ -121,7 +121,7 @@ trait Compiler {
 		PushVariableStack() +: body :+ PopVariableStack()
 	}
 
-	def compileDoWhileStatement(doWhileStatement: IASTDoStatement)(implicit cEngine: CEngine) = {
+	private def compileDoWhileStatement(doWhileStatement: IASTDoStatement)(implicit cEngine: CEngine) = {
 		val breakLabel = BreakLabel()
 		breakLabelStack = breakLabel +: breakLabelStack
 		val continueLabel = ContinueLabel()
@@ -138,7 +138,7 @@ trait Compiler {
 		PushVariableStack() +: body :+ PopVariableStack()
 	}
 
-	def compileSwitchStatement(switch: IASTSwitchStatement)(implicit cEngine: CEngine) = {
+	private def compileSwitchStatement(switch: IASTSwitchStatement)(implicit cEngine: CEngine) = {
 		val breakLabel = BreakLabel()
 		breakLabelStack = breakLabel +: breakLabelStack
 
@@ -167,7 +167,7 @@ trait Compiler {
 		PushVariableStack() +: result :+ PopVariableStack()
 	}
 
-	def compileCompoundStatement(compound: IASTCompoundStatement)(using CEngine) = {
+	private def compileCompoundStatement(compound: IASTCompoundStatement)(using CEngine) = {
 		val isTypicalCompound = compound.getParent match
 			case _: (IASTSwitchStatement | CASTFunctionDefinition | CASTForStatement |
 				CASTDoStatement | CASTWhileStatement) => true
