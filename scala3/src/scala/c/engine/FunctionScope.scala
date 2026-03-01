@@ -131,7 +131,7 @@ class FunctionScope(val function: Function, val parent: FunctionScope, val retur
 		startingStackAddr = theState.memory.getStackPosition
 
 		nodes.foreach { node =>
-			pathStack ++= Compiler.compile(node)(using theState)
+			pathStack ++= theState.compile(node)(using theState)
 		}
 
 		pathStack.zipWithIndex.foreach { case (node, index) =>

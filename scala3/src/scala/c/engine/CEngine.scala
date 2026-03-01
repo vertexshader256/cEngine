@@ -11,14 +11,11 @@ import scala.c.engine.models.*
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-class CEngine(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) extends CodeRunner with CEngineData with Functions {
+class CEngine(val sources: List[IASTTranslationUnit], val pointerSize: NumBits) extends CodeRunner with CEngineData with Functions with Compiler {
 
 	val memory = Memory(stackSize = 100000, dataSize = 10000, heapSize = 50000)
 
 	val stdout = ListBuffer[Char]()
-
-	var breakLabelStack = List[Label]()
-	var continueLabelStack = List[Label]()
 
 	val structs: Seq[CStructure] = sources.flatMap { src =>
 		src.getDeclarations.collect { case simp: CASTSimpleDeclaration => simp.getDeclSpecifier }

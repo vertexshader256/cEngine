@@ -6,7 +6,10 @@ import org.eclipse.cdt.internal.core.dom.parser.c.*
 import scala.annotation.tailrec
 import scala.c.engine.Instructions.*
 
-object Compiler {
+trait Compiler {
+
+	private var breakLabelStack = List[Label]()
+	private var continueLabelStack = List[Label]()
 
 	def compile(tUnit: IASTNode)(using CEngine): List[IASTNode | CEngineInstruction] = {
 		tUnit.getChildren.flatMap(compileNode).toList
@@ -29,9 +32,9 @@ object Compiler {
 			case x: IASTDefaultStatement =>
 				List(DefaultLabel(x))
 			case _: IASTContinueStatement =>
-				List(JmpLabel(cEngine.continueLabelStack.head))
+				List(JmpLabel(continueLabelStack.head))
 			case _: IASTBreakStatement =>
-				List(JmpLabel(cEngine.breakLabelStack.head))
+				List(JmpLabel(breakLabelStack.head))
 			case _: IASTElaboratedTypeSpecifier =>
 				List()
 			case goto: IASTGotoStatement =>
@@ -74,17 +77,17 @@ object Compiler {
 
 	def compileForStatement(forStatement: IASTForStatement)(implicit cEngine: CEngine) = {
 		val breakLabel = BreakLabel()
-		cEngine.breakLabelStack = breakLabel +: cEngine.breakLabelStack
+		breakLabelStack = breakLabel +: breakLabelStack
 		val continueLabel = ContinueLabel()
-		cEngine.continueLabelStack = continueLabel +: cEngine.continueLabelStack
+		continueLabelStack = continueLabel +: continueLabelStack
 
 		val init = List(forStatement.getInitializerStatement)
 		val contents = compileNode(forStatement.getBody)
 		val iter = forStatement.getIterationExpression
 		val beginLabel = GotoLabel("")
 
-		cEngine.breakLabelStack = cEngine.breakLabelStack.tail
-		cEngine.continueLabelStack = cEngine.continueLabelStack.tail
+		breakLabelStack = breakLabelStack.tail
+		continueLabelStack = continueLabelStack.tail
 
 		val iterExpr = if iter != null then List(iter) else List()
 
@@ -102,16 +105,16 @@ object Compiler {
 
 	def compileWhileStatement(whileStatement: IASTWhileStatement)(implicit cEngine: CEngine) = {
 		val breakLabel = BreakLabel()
-		cEngine.breakLabelStack = breakLabel +: cEngine.breakLabelStack
+		breakLabelStack = breakLabel +: breakLabelStack
 		val continueLabel = ContinueLabel()
-		cEngine.continueLabelStack = continueLabel +: cEngine.continueLabelStack
+		continueLabelStack = continueLabel +: continueLabelStack
 
 		val contents = compileNode(whileStatement.getBody)
 		val begin = GotoLabel("")
 		val end = GotoLabel("")
 
-		cEngine.breakLabelStack = cEngine.breakLabelStack.tail
-		cEngine.continueLabelStack = cEngine.continueLabelStack.tail
+		breakLabelStack = breakLabelStack.tail
+		continueLabelStack = continueLabelStack.tail
 
 		val body = List(JmpLabel(end), begin) ++ contents ++ List(end, continueLabel, JmpToLabelIfZero(whileStatement.getCondition, begin), breakLabel)
 
@@ -120,15 +123,15 @@ object Compiler {
 
 	def compileDoWhileStatement(doWhileStatement: IASTDoStatement)(implicit cEngine: CEngine) = {
 		val breakLabel = BreakLabel()
-		cEngine.breakLabelStack = breakLabel +: cEngine.breakLabelStack
+		breakLabelStack = breakLabel +: breakLabelStack
 		val continueLabel = ContinueLabel()
-		cEngine.continueLabelStack = continueLabel +: cEngine.continueLabelStack
+		continueLabelStack = continueLabel +: continueLabelStack
 
 		val contents = compileNode(doWhileStatement.getBody)
 		val begin = new Label {}
 
-		cEngine.breakLabelStack = cEngine.breakLabelStack.tail
-		cEngine.continueLabelStack = cEngine.continueLabelStack.tail
+		breakLabelStack = breakLabelStack.tail
+		continueLabelStack = continueLabelStack.tail
 
 		val body = begin +: (contents ++ List(continueLabel, JmpToLabelIfZero(doWhileStatement.getCondition, begin), breakLabel))
 
@@ -137,7 +140,7 @@ object Compiler {
 
 	def compileSwitchStatement(switch: IASTSwitchStatement)(implicit cEngine: CEngine) = {
 		val breakLabel = BreakLabel()
-		cEngine.breakLabelStack = breakLabel +: cEngine.breakLabelStack
+		breakLabelStack = breakLabel +: breakLabelStack
 
 		val descendants = compileNode(switch.getBody)
 
@@ -157,7 +160,7 @@ object Compiler {
 				List()
 		}
 
-		cEngine.breakLabelStack = cEngine.breakLabelStack.tail
+		breakLabelStack = breakLabelStack.tail
 
 		val result = (jumpTable :+ JmpLabel(breakLabel)) ++ descendants :+ breakLabel
 
