@@ -44,7 +44,7 @@ object Arrays {
 		val values = pointerType match
 			case struct: CStructure => // array of structs
 				init.getChildren.flatMap { list =>
-					Declarator.getValuesFromInitializer(list.asInstanceOf[IASTInitializerClause], struct, isStatic).map(x => TypeHelper.toRValue(x))
+					Initializer.getValuesFromInitializer(list.asInstanceOf[IASTInitializerClause], struct, isStatic).map(x => TypeHelper.toRValue(x))
 				}.toList
 			case _ =>
 				processList(theType, init.asInstanceOf[CASTInitializerList], isStatic)

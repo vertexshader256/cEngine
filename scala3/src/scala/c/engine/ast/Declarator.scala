@@ -20,14 +20,6 @@ object Declarator {
 			processDeclarator(decl)
 	}
 
-	private def getRValues(decl: IASTInitializerClause, theType: IType, isStatic: Boolean)(using CEngine): List[ValueType] = {
-		theType match
-			case struct: CStructure =>
-				getValuesFromInitializer(decl, struct, isStatic)
-			case _ =>
-				List(Expressions.evaluate(decl).get)
-	}
-
 	def assign(dst: LValue, srcs: List[ValueType], equals: IASTInitializerClause, op: Int, isStatic: Boolean = false)(implicit cEngine: CEngine): Unit = {
 		if !dst.theType.isInstanceOf[CStructure] then
 			val eval = evaluate(dst, srcs.head, op, isStatic)
@@ -97,7 +89,7 @@ object Declarator {
 					decl.getInitializer match
 						case equals: IASTEqualsInitializer =>
 							val initClause = equals.getInitializerClause
-							val initVals = getRValues(initClause, theType, addedVariable.isStatic)
+							val initVals = Initializer.getRValues(initClause, theType, addedVariable.isStatic)
 							assign(addedVariable, initVals, initClause, op_assign, addedVariable.isStatic)
 						case _ =>
 
@@ -105,53 +97,5 @@ object Declarator {
 				}
 			case _ =>
 		}
-	}
-
-	// should return 'true' if this list is equivilant to {0}
-	private def isNullInitializer(list: IASTInitializerList): Boolean = {
-		if (list.getClauses.length == 1) {
-			val rawSig = list.getClauses.toList.head.getRawSignature
-			Try(rawSig.toInt == 0).getOrElse(false)
-		} else {
-			false
-		}
-	}
-
-	private def getValuesFromList(list: IASTInitializerList, theType: IType, isStatic: Boolean)(using CEngine): List[ValueType] = {
-		val descendants = Utils.getDescendants(list)
-		val hasNamedDesignator = descendants.exists { node => node.isInstanceOf[CASTDesignatedInitializer] } // {.y = 343, .x = 543, .next = 8578}
-		val isStructure = theType.isInstanceOf[CStructure]
-
-		if (isStructure && hasNamedDesignator) {
-			val struct = theType.asInstanceOf[CStructure]
-			val initializers = descendants.collect { case des: CASTDesignatedInitializer => des }
-			val initValues = initializers.map: init =>
-				val fieldName = init.getDesignators.toList.head.asInstanceOf[CASTFieldDesignator].getName.toString
-				(fieldName, Expressions.evaluate(init.getOperand).get)
-			.toMap
-
-			struct.getFields.map { field =>
-				initValues.getOrElse(field.getName, TypeHelper.zero)
-			}.toList
-		} else if (isStructure && isNullInitializer(list)) {
-			val struct = theType.asInstanceOf[CStructure]
-			struct.getFields.toList.map(x => TypeHelper.zero)
-		} else {
-			list.getClauses.map(Expressions.evaluateAndResolveVariable).toList
-		}
-	}
-
-	def getValuesFromInitializer(initClause: IASTInitializerClause, theType: IType, isStatic: Boolean)(implicit cEngine: CEngine): List[ValueType] = {
-		initClause match
-			case list: IASTInitializerList =>
-				getValuesFromList(list, theType, isStatic)
-			case idExpr: IASTIdExpression =>
-				List(cEngine.context.resolveId(idExpr.getName).get)
-			case fcnCall: IASTFunctionCallExpression =>
-				Ast.step(initClause)
-				cEngine.context.popStack
-				List()
-			case _ =>
-				List()
 	}
 }
