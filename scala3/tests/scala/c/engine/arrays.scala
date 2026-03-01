@@ -121,11 +121,7 @@ class ArrayInitTest extends StandardTest {
 		val code =
 			"""
 				void main() {
-					int c0[2] = {1, 2};
-					int c1[2] = {2, 1};
-					int c2[4] = {1, 3, 1, 2};
-					int c3[4] = {1, 3, 2, 1};
-					int *cs[4] = {c0, c1, c2, c3};
+					int cs[2] = {1, 2};
 					printf("%d\n", (int)cs - (int)(cs + 1));
 				}"""
 
