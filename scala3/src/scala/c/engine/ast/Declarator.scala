@@ -20,7 +20,7 @@ object Declarator {
 			processDeclarator(decl)
 	}
 
-	def getRValues(decl: IASTInitializerClause, theType: IType, isStatic: Boolean)(using CEngine): List[ValueType] = {
+	private def getRValues(decl: IASTInitializerClause, theType: IType, isStatic: Boolean)(using CEngine): List[ValueType] = {
 		theType match
 			case struct: CStructure =>
 				getValuesFromInitializer(decl, struct, isStatic)
@@ -151,37 +151,42 @@ object Declarator {
 		cEngine.context.addVariable(name, theType, values)
 	}
 
+	def createArrayVariable(name: IASTName, arrayDecl: IASTArrayDeclarator)(implicit cEngine: CEngine) = {
+		val equals = arrayDecl.getInitializer.asInstanceOf[IASTEqualsInitializer]
+		val hasList = equals.getInitializerClause.isInstanceOf[IASTInitializerList]
+
+		if (hasList) {
+			val init = equals.getInitializerClause
+			initializeArrayVariable(name, init)
+		} else {
+			val theType = TypeHelper.getBindingType(name.resolveBinding())
+
+			val stringType = TypeHelper.resolveBasic(theType)
+			Ast.step(arrayDecl.getInitializer)
+
+			if (stringType.getKind == IBasicType.Kind.eChar) {
+				// e.g. char str[] = "Hello!\n";
+				val initString = cEngine.context.popStack.asInstanceOf[StringLiteral].value
+				cEngine.createStringArrayVariable(name, initString, stringType)
+			} else { // initializing array to address, e.g int (*ptr)[5] = &x[1];
+				val initVal = TypeHelper.toRValue(cEngine.context.popStack)
+				val newArray = List(initVal)
+				cEngine.context.addVariable(name, theType, newArray)
+			}
+		}
+	}
+
 	private def processArrayDecl(arrayDecl: IASTArrayDeclarator)(implicit cEngine: CEngine): Unit = {
-		
-		val name = if arrayDecl.getNestedDeclarator != null then
-			arrayDecl.getNestedDeclarator.getName
+		val decl = if arrayDecl.getNestedDeclarator != null then
+			arrayDecl.getNestedDeclarator
 		else
-			arrayDecl.getName
+			arrayDecl
+
+		val name = decl.getName
 
 		if (!cEngine.context.isStaticAlreadyDefined(name)) {
 			if (arrayDecl.getInitializer != null) {
-				val equals = arrayDecl.getInitializer.asInstanceOf[IASTEqualsInitializer]
-				val hasList = equals.getInitializerClause.isInstanceOf[IASTInitializerList]
-
-				if (hasList) {
-					val init = equals.getInitializerClause
-					initializeArrayVariable(name, init)
-				} else {
-					val theType = TypeHelper.getBindingType(name.resolveBinding())
-
-					val stringType = TypeHelper.resolveBasic(theType)
-					Ast.step(arrayDecl.getInitializer)
-					
-					if (stringType.getKind == IBasicType.Kind.eChar) {
-						// e.g. char str[] = "Hello!\n";
-						val initString = cEngine.context.popStack.asInstanceOf[StringLiteral].value
-						cEngine.createStringArrayVariable(name, initString, stringType)
-					} else { // initializing array to address, e.g int (*ptr)[5] = &x[1];
-						val initVal = TypeHelper.toRValue(cEngine.context.popStack)
-						val newArray = List(initVal)
-						cEngine.context.addVariable(name, theType, newArray)
-					}
-				}
+				createArrayVariable(name, arrayDecl)
 			} else {
 				initializeNullArray(name, arrayDecl) // no initializer
 			}
