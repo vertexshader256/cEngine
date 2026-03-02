@@ -40,13 +40,13 @@ object Gcc {
 			val sourceFileTokens = files.flatMap { file => Seq(file.getAbsolutePath) }
 			val includeTokens = Seq("-I", Utils.mainPath) ++ moreIncludes
 
-			val size = pointerSize match {
+			val executable = pointerSize match {
 				case ThirtyTwoBits => Seq("gcc")
 				case SixtyFourBits => Seq("gcc")
 			}
 
 			val processTokens =
-				size ++ sourceFileTokens ++ includeTokens ++ Seq("-o", exeFile.getAbsolutePath) ++ Seq("-D", "ALLOC_TESTING")
+				executable ++ sourceFileTokens ++ includeTokens ++ Seq("-o", exeFile.getAbsolutePath) ++ Seq("-D", "ALLOC_TESTING") ++ Seq("-Wno-error=incompatible-pointer-types")
 
 			val builder = Process(processTokens, java.io.File("."))
 			val compile = builder.run(logger.process)
