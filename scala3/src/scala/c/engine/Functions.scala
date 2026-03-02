@@ -96,7 +96,7 @@ trait Functions {
 		}
 	}
 
-	private def runFunction(function: Function, call: IASTFunctionCallExpression, scope: Option[FunctionScope], isApi: Boolean = false) = {
+	private def runFunction(function: Function, call: IASTFunctionCallExpression, scope: Option[FunctionScope], isApi: Boolean) = {
 		if (!function.isNative) {
 			// this is a function simulated in scala
 			runEmulatedFunction(function, call)
