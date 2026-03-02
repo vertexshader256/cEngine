@@ -2,7 +2,7 @@ package scala.c.engine
 
 import org.anarres.cpp.{InputLexerSource, Preprocessor, Token}
 
-import java.io.{ByteArrayInputStream, File}
+import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 
 object Preprocessor {

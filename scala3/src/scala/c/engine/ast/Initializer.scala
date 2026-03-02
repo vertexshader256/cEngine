@@ -3,8 +3,8 @@ package scala.c.engine.ast
 import org.eclipse.cdt.core.dom.ast.*
 import org.eclipse.cdt.internal.core.dom.parser.c.*
 
-import scala.c.engine.{CEngine, TypeHelper, Utils}
 import scala.c.engine.models.*
+import scala.c.engine.{CEngine, TypeHelper, Utils}
 import scala.util.Try
 
 object Initializer {
