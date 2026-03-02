@@ -368,6 +368,121 @@ class PointerArithmeticTest13 extends StandardTest2("pointer comparison",
 			}"""
 )
 
+class PointerArithmeticTest14 extends StandardTest2("pointer comparison",
+	"""
+			void main() {
+				int n = 10;
+
+					int arr[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+
+					// Declaration of pointer variable
+					int* ptr;
+
+					// Pointer points the first (0th index)
+					// element in an array
+					ptr = arr;
+					int count_even = 0;
+					int count_odd = 0;
+
+					for (int i = 0; i < n; i++) {
+
+							if (*ptr % 2 == 0) {
+									count_even++;
+							}
+							if (*ptr % 2 != 0) {
+									count_odd++;
+							}
+
+							// Pointing to the next
+							// element in an array
+							ptr++;
+					}
+					printf("No of even elements in an array is : %d", count_even);
+					printf("\nNo of odd elements in an array is : %d",count_odd);
+			}"""
+)
+
+class PointerArithmeticTest15 extends StandardTest2("pointer comparison",
+	"""
+			void main() {
+				int N = 5;
+
+				// An array
+				int arr[] = { 1, 2, 3, 4, 5 };
+
+				// Declare pointer variable
+				int* ptr;
+
+				// Point the pointer to first
+				// element in array arr[]
+				ptr = arr;
+
+				// Traverse array using ptr
+				for (int i = 0; i < N; i++) {
+
+						// Print element at which
+						// ptr points
+						printf("%d ", ptr[0]);
+						ptr++;
+				}
+			}"""
+)
+
+class PointerArithmeticTest16 extends StandardTest2("pointer comparison",
+	"""
+			void traverseArr(int* arr, int N, int M){
+					int i, j;
+
+					// Traverse rows of 2D matrix
+					for (i = 0; i < N; i++) {
+
+							// Traverse columns of 2D matrix
+							for (j = 0; j < M; j++) {
+
+									// Print the element
+									printf("%d ", *((arr + i * M) + j));
+							}
+							printf("\n");
+					}
+			}
+
+			int main(){
+
+					int N = 3, M = 2;
+
+					// A 2D array
+					int arr[][2] = { { 1, 2 }, { 3, 4 }, { 5, 6 } };
+
+					// Function Call
+					traverseArr((int*)arr, N, M);
+					return 0;
+			}
+			"""
+)
+
+class PointerArithmeticTest17 extends StandardTest2("pointer subtraction",
+	"""
+			void main(){
+					int myNumbers[5] = {10, 20, 30, 40, 50};
+					int *start = &myNumbers[1]; // points to 20
+					int *end = &myNumbers[4];   // points to 50
+
+					printf("%ld\n", end - start); // 3 elements apart
+			}
+			"""
+)
+
+class PointerArithmeticTest18 extends StandardTest2("using += for pointer arithmetic",
+	"""
+			void main(){
+				  int arr[] = {10, 20, 30, 40, 50};
+					int *ptr = arr;
+					ptr += 1;
+					printf(" %d\n", *ptr);
+			}
+			"""
+)
+
 class PointerTest extends StandardTest2("pointer equality",
 	"""
       int *testFcn() {
