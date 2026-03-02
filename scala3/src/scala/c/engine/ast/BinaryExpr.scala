@@ -33,9 +33,9 @@ object BinaryExpr {
 		val isLeftPointer = TypeHelper.isPointerOrArray(x)
 		val isRightPointer = TypeHelper.isPointerOrArray(y)
 
-		if (isLeftPointer && (operator == op_minus || operator == op_plus)) {
+		if (isLeftPointer && (operator == op_minus || operator == op_plus || operator == op_plusAssign || operator == op_minusAssign)) {
 			val rightValue = TypeHelper.cast(right.value, TypeHelper.intType).value.asInstanceOf[Int]
-			
+
 			if isRightPointer then
 				val leftSize = TypeHelper.sizeof(right.theType)
 				val result = (left.value.asInstanceOf[Int] - rightValue) / leftSize
