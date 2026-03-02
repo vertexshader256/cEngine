@@ -4,7 +4,7 @@ package ast
 import org.eclipse.cdt.core.dom.ast.*
 import org.eclipse.cdt.internal.core.dom.parser.c.CStructure
 
-import scala.c.engine.Instructions.ReturnFromFunction
+import scala.c.engine.instructions.ReturnFromFunction
 import scala.c.engine.models.*
 
 object Statement {

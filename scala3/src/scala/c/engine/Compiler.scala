@@ -4,7 +4,7 @@ import org.eclipse.cdt.core.dom.ast.*
 import org.eclipse.cdt.internal.core.dom.parser.c.*
 
 import scala.annotation.tailrec
-import scala.c.engine.Instructions.*
+import scala.c.engine.instructions.*
 
 trait Compiler {
 

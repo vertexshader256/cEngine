@@ -5,7 +5,7 @@ package engine
 import org.eclipse.cdt.core.dom.ast.*
 import org.eclipse.cdt.internal.core.dom.parser.c.CASTName
 
-import scala.c.engine.Instructions.*
+import scala.c.engine.instructions.*
 import scala.c.engine.models.{Function, *}
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
