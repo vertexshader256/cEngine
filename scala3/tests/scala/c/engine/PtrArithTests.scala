@@ -456,6 +456,60 @@ class PointerArithmeticTest19 extends StandardTest2("using -= for pointer arithm
 			"""
 )
 
+class PointerArithmeticTest20 extends StandardTest2("elements between",
+	"""
+			void main(){
+					char arr[] = {'a', 'b', 'c', 'd', 'e'};
+					char *ptr = &arr[4];
+		 			char *ptr2 = &arr[2];
+					printf(" %d\n", ptr - ptr2);
+			}
+			"""
+)
+
+class PointerComparisonTest extends StandardTest2("less than",
+	"""
+			void main(){
+					int arr[] = {10, 20, 30, 40, 50};
+					int *ptr = &arr[4];
+		 			int *ptr2 = &arr[2];
+					int *ptr3 = &arr[4];
+					printf(" %d\n", ptr < ptr2);
+		 			printf(" %d\n", ptr2 < ptr);
+					printf(" %d\n", ptr <= ptr3);
+		 			printf(" %d\n", ptr3 <= ptr);
+			}
+			"""
+)
+
+class PointerComparisonTest2 extends StandardTest2("greater than",
+	"""
+			void main(){
+					int arr[] = {10, 20, 30, 40, 50};
+					int *ptr = &arr[4];
+					int *ptr2 = &arr[2];
+		 			int *ptr3 = &arr[4];
+					printf(" %d\n", ptr > ptr2);
+					printf(" %d\n", ptr2 > ptr);
+		 			printf(" %d\n", ptr >= ptr3);
+		 			printf(" %d\n", ptr3 >= ptr);
+			}
+			"""
+)
+
+class PointerComparisonTest3 extends StandardTest2("equals",
+	"""
+			void main(){
+					int arr[] = {10, 20, 30, 40, 50};
+					int *ptr = &arr[4];
+					int *ptr2 = &arr[2];
+					int *ptr3 = &arr[4];
+					printf(" %d\n", ptr == ptr3);
+					printf(" %d\n", ptr != ptr3);
+			}
+			"""
+)
+
 class TwoDimAddressingCheck extends StandardTest2("2d array pointer arithmetic",
 	"""
 			void main() {
