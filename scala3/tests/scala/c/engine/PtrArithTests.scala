@@ -424,17 +424,112 @@ class PointerArithmeticTest17 extends StandardTest2("pointer subtraction",
 			"""
 )
 
-class PointerArithmeticTest18 extends StandardTest2("using += or -= for pointer arithmetic",
+class PointerArithmeticTest18 extends StandardTest2("using += 1 for pointer arithmetic",
 	"""
 			void main(){
-				  int arr[] = {10, 20, 30, 40, 50};
+				  int arr[] = {10, 20, 30, 40, 50, 60, 70};
 					int *ptr = arr;
 					ptr += 1;
 					printf(" %d\n", *ptr);
-		 			ptr += 1;
+		 			ptr += 2;
 					printf(" %d\n", *ptr);
-		 			ptr -= 2;
+		 			ptr++;
+					printf(" %d\n", *ptr);
+		 			++ptr;
 					printf(" %d\n", *ptr);
 			}
 			"""
+)
+
+class PointerArithmeticTest19 extends StandardTest2("using -= for pointer arithmetic",
+	"""
+			void main(){
+					int arr[] = {10, 20, 30, 40, 50};
+					int *ptr = &arr[4];
+					ptr -= 2;
+					printf(" %d\n", *ptr);
+		 			ptr--;
+					printf(" %d\n", *ptr);
+		 			--ptr;
+					printf(" %d\n", *ptr);
+			}
+			"""
+)
+
+class TwoDimAddressingCheck extends StandardTest2("2d array pointer arithmetic",
+	"""
+			void main() {
+				int x[2][2] = {1,2,3,4};
+				int *ptr = x[0];
+				printf("%d\n", *ptr);
+				ptr++;
+				printf("%d\n", *ptr);
+				ptr++;
+				printf("%d\n", *ptr);
+				ptr++;
+				printf("%d\n", *ptr);
+			}"""
+)
+
+class PointerTest22 extends StandardTest2("some incremental pointer arithmetic",
+	"""
+			void main() {
+				char str[] = "Hello!\n";
+				char *x = str;
+				printf("%s", x);
+				x++;
+				printf("%s", x);
+				x++;
+				x++;
+				printf("%s", x);
+				x--;
+				printf("%s", x);
+			}"""
+)
+
+class PointerTest5 extends StandardTest2("some basic pointer arithmetic/indexing",
+	"""
+			void main() {
+				unsigned char *str = calloc(12,1);
+				memcpy(str, "Hello!\n", 6);
+				char *x = str + 2;
+				char y = str[2];
+				printf("%d\n", *x == y);
+				printf("%s\n", x);
+				*x++;
+//        str++;
+//        str++;
+//        ++str;
+//        str--;
+				printf("%s\n", str);
+				printf("%s\n", x);
+			}"""
+)
+
+class PointerTest6 extends StandardTest2("some basic pointer arithmetic",
+	"""
+			void main() {
+				char str[] = "Hello!\n";
+				char *x = str + 1;
+				printf("%s\n", x);
+				*x++;
+				printf("%s\n", x);
+			}"""
+)
+
+class PointerTest7 extends StandardTest2("some basic pointer arithmetic 2",
+	"""
+		void main() {
+			char str[] = "Hello!\n";
+			char *x = str;
+
+			switch (x++[0]) {
+				case 'H': printf("H\n"); break;
+				case 'e': printf("e\n"); break;
+				case 'l': printf("l\n"); break;
+				case 'o': printf("o\n"); break;
+			}
+
+			printf("DONE\n");
+		}"""
 )

@@ -102,53 +102,6 @@ class PointerTest4 extends StandardTest2("pointer indexing",
       }"""
 )
 
-class PointerTest5 extends StandardTest2("some basic pointer arithmetic/indexing",
-	"""
-      void main() {
-        unsigned char *str = calloc(12,1);
-        memcpy(str, "Hello!\n", 6);
-        char *x = str + 2;
-        char y = str[2];
-        printf("%d\n", *x == y);
-        printf("%s\n", x);
-        *x++;
-//        str++;
-//        str++;
-//        ++str;
-//        str--;
-        printf("%s\n", str);
-        printf("%s\n", x);
-      }"""
-)
-
-class PointerTest6 extends StandardTest2("some basic pointer arithmetic",
-	"""
-      void main() {
-        char str[] = "Hello!\n";
-        char *x = str + 1;
-        printf("%s\n", x);
-        *x++;
-        printf("%s\n", x);
-      }"""
-)
-
-class PointerTest7 extends StandardTest2("some basic pointer arithmetic 2",
-	"""
-    void main() {
-      char str[] = "Hello!\n";
-      char *x = str;
-
-      switch (x++[0]) {
-         case 'H': printf("H\n"); break;
-         case 'e': printf("e\n"); break;
-         case 'l': printf("l\n"); break;
-         case 'o': printf("o\n"); break;
-      }
-
-      printf("DONE\n");
-    }"""
-)
-
 class PointerTest8 extends StandardTest2("pointers of all types",
 	"""
       void main() {
@@ -347,22 +300,6 @@ class PointerTest21 extends StandardTest2("A pointer with a unary expression5",
         ++(*k);
         printf("%d %d\n", *k, z);
         
-      }"""
-)
-
-class PointerTest22 extends StandardTest2("some incremental pointer arithmetic",
-	"""
-      void main() {
-        char str[] = "Hello!\n";
-        char *x = str;
-        printf("%s", x);
-        x++;
-        printf("%s", x);
-        x++;
-        x++;
-        printf("%s", x);
-        x--;
-        printf("%s", x);
       }"""
 )
 
