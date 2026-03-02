@@ -38,7 +38,7 @@ object Gcc {
 			}
 
 			val sourceFileTokens = files.flatMap { file => Seq(file.getAbsolutePath) }
-			val includeTokens = Seq("-I", Utils.mainPath) ++ moreIncludes
+			val includeTokens = Seq("-I", GccConfig.mainPath) ++ moreIncludes
 
 			val executable = pointerSize match {
 				case ThirtyTwoBits => Seq("gcc")
