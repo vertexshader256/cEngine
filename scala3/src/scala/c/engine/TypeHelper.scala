@@ -122,7 +122,7 @@ object TypeHelper {
 			case float: Float => eFloat
 			case doub: Double => eDouble
 			case short: Short => eInt
-			case char: char => eChar
+			case char: Byte => eChar
 
 		CBasicType(theType, config)
 	}
@@ -152,7 +152,7 @@ object TypeHelper {
 		case int: Int => if int == 0 then 1 else 0
 		case long: Long => if long == 0 then 1 else 0
 		case bool: Boolean => !bool
-		case char: char => if char == 0 then 1 else 0
+		case char: Byte => if char == 0 then 1 else 0
 	}
 
 	@tailrec
@@ -196,9 +196,9 @@ object TypeHelper {
 	@tailrec
 	def resolveBoolean(theVal: Any): Boolean = theVal match {
 		case x: Boolean => x
-		case int: int => int != 0
-		case short: short => short != 0
-		case char: char => char != 0
+		case int: Int => int != 0
+		case short: Short => short != 0
+		case char: Byte => char != 0
 		case long: Long => long != 0
 		case float: Float => float != 0.0
 		case double: Double => double != 0.0

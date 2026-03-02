@@ -194,7 +194,7 @@ class Memory(stackSize: Int, dataSize: Int, heapSize: Int) {
 					case float: Float => putFloat(address, float)
 			case basic: IBasicType if basic.getKind == eChar =>
 				newVal match
-					case char: char => putByte(address, char)
+					case char: Byte => putByte(address, char)
 					case int: Int => putByte(address, int.toByte)
 			case basic: IBasicType =>
 				putInt(address, newVal.asInstanceOf[Int])

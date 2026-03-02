@@ -62,13 +62,13 @@ object BinaryExpr {
 		// Because of integer promotion, C never does math on anything less than int's
 
 		val op1 = left match
-			case theChar: char => theChar.toInt
-			case theShort: short => theShort.toInt
+			case theChar: Byte => theChar.toInt
+			case theShort: Short => theShort.toInt
 			case x => x
 
 		val op2 = right match
-			case theChar: char => theChar.toInt
-			case theShort: short => theShort.toInt
+			case theChar: Byte => theChar.toInt
+			case theShort: Short => theShort.toInt
 			case x => x
 
 		op1 match
