@@ -6,10 +6,6 @@ import java.io.{ByteArrayInputStream, File}
 import java.nio.charset.StandardCharsets
 
 object Preprocessor {
-	
-	private val rootDir = raw"C:\msys64\\ucrt64"
-	private val minGWAdditionalIncludes = File(s"$rootDir\\lib\\gcc\\x86_64-w64-mingw32\\15.2.0\\include").getAbsolutePath
-	private val minGWIncludes = s"$rootDir\\include"
 
 	def preprocess(code: String, includePaths: List[String]): String = {
 		val preprocessResults = new StringBuilder
@@ -33,8 +29,8 @@ object Preprocessor {
 
 		val pp = new Preprocessor()
 
-		pp.getSystemIncludePath.add(minGWIncludes)
-		pp.getSystemIncludePath.add(minGWAdditionalIncludes)
+		pp.getSystemIncludePath.add(GccConfig.minGWIncludes)
+		pp.getSystemIncludePath.add(GccConfig.minGWAdditionalIncludes)
 		pp.addMacro("__cdecl", "")
 		pp.addMacro("__int64", "long long") // 12-25-25: need this
 		pp.addMacro("__forceinline", "") // 12-25-25: need this
